@@ -1,0 +1,280 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: editors._wc,v 1.12 2007/03/01 13:25:15 sanjar Exp $
+ */
+	error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
+	
+	//----------------------------
+	//Редакторы документов
+	//----------------------------
+	
+	
+	//Кнопки
+	define('BTN_NEW_DOCUMENT','New Document');
+	define('BTN_GOTO_LINE','Go to line...');
+	@define('BTN_SAVE','Save');
+	@define('BTN_CREATE','Create');
+	define('BTN_CUT','Cut');
+	define('BTN_COPY','Copy');
+	define('BTN_PASTE','Insert');
+	define('BTN_REMOVE_FORMAT','Remove Format');
+	define('BTN_REMOVE_STYLES','Remove Styles');
+	define('BTN_INSERT_IMAGE','Insert Image');
+	define('BTN_INSERT_LINK','Insert a Hyperlink');
+	define('BTN_BOLD','Bold');
+	define('BTN_ITALIC','Italic');
+	define('BTN_ALIGN_LEFT','Align Left');
+	define('BTN_ALIGN_CENTER','Align Center');
+	define('BTN_ALIGN_RIGHT','Align Right');
+	define('BTN_INDENT','Increase Indent');
+	define('BTN_OUTDENT','Decrease Indent');
+	define('BTN_INSERT_UL','Bullets');
+	define('BTN_INSERT_OL','Numbering');
+	define('BTN_EDIT_STYLE_CLASS','Style Class');
+	define('BTN_EDIT_STYLE','Style (CSS)');
+	define('BTN_EDIT_TAG_PROPS','Tag Properties');
+	define('BTN_IMPORT_TABLE','Import Table');
+	define('BTN_INSERT_TAG','Insert');
+	define('BTN_REMOVE_IMAGE','Remove Image');
+	
+	//Месяца
+	define('MONTH_1','January');
+	define('MONTH_2','February');
+	define('MONTH_3','March');
+	define('MONTH_4','April');
+	define('MONTH_5','May');
+	define('MONTH_6','June');
+	define('MONTH_7','July');
+	define('MONTH_8','August');
+	define('MONTH_9','September');
+	define('MONTH_10','October');
+	define('MONTH_11','November');
+	define('MONTH_12','December');
+	
+	//HTML текст
+	define('CREATE_HTMLTEXT','HTML Source Creation');
+	define('EDIT_HTMLTEXT','HTML Source Editing');
+	define('F_PAGE_URI','Page URI');
+	define('BTN_INSERT_HR','Insert HR');
+	
+	//Публикации
+	define('CREATE_PUBLICATION','Create Publication');
+	define('EDIT_PUBLICATION','Edit Publication');
+	define('DOCUMENT_IS_ALIAS','(Alias)');
+	define('CONFIRM_REMOVE_IMAGE_Q','Remove Image?');
+	define('F_PUBLICATION_HEADER','Publication Header');
+	define('F_DATE_TIME','Date/Time');
+	define('F_IS_MAIN_PUBLICATION','Main Publication');
+	define('F_IS_PUBLISHED','Published');
+	define('F_AUTOGENERATE_INTRO','Auto Generate Intro');
+	define('F_IMAGEMAIN','Picture');
+	define('F_IMAGEINTRO','Intro Picture');
+	define('TT_SHOW_CURRENT_IMAGE','Show Current Picture');
+	define('F_ATTACHED_GALLERY','Edit Gallery');
+	define('F_TT_ATTACHED_GALLERY','Edit Attached Gallery');
+	
+	//Календарь событий
+	define('CREATE_EVENT','Create Event');
+	define('EDIT_EVENT','Edit Event');
+	define('F_EVENT_HEADER','Event Header');
+	define('F_EVENT_PLACE','Event Place');
+	define('F_DATE_TIME_BEGIN','Starting Date');
+	define('F_DATE_TIME_END','Ending Date');
+	
+	//Фото галерея
+	define('CREATE_IMAGE','Picture Creation');
+	define('EDIT_IMAGE','Picture Edition');
+	define('F_IMAGE_HEADER','Picture Header');
+	define('H_IMAGE_DISABLED','Without Picture');
+	define('H_IMAGE_EMPTY','Empty');
+	
+	//Статьи
+	define('CREATE_ARTICLE','Article Creation');
+	define('EDIT_ARTICLE','Article Edition');
+	define('BTN_ADD_PAGE','Add a Page (after the current)');
+	define('BTN_SET_RELATED_ARTICLES','Edit Related Articles');
+	define('BTN_MOVE_PAGES_UP','Move Highlighted Pages Up');
+	define('BTN_MOVE_PAGES_DOWN','Move Highligted Pages Down');
+	define('BTN_REMOVE_PAGES','Remove Highligted Pages');
+	define('BTN_SHOW_HIDE_PAGES','Show/Hide Panel');
+	define('H_ARTICLE_PAGES','Pages List');
+	define('H_ENTIRE_ARTICLE','Entire Article');
+	@define('H_PAGE','Page');
+	define('F_ARTICLE_HEADER','Article Header');
+	define('F_PAGE_HEADER','Page Header');
+	define('REMOVE_SELECTED_PAGES_Q','Delete Highligted Pages?');
+		//Статьи :: ссылки по теме
+		define('TT_ADD_ARTICLE','Add Article');
+		define('TT_REMOVE_ARTICLE','Delete Article');
+		@define('SEARCH_FOR_KEYWORD','Enter Subject');
+		@define('FIND_NOW','Find');
+		define('BTN_SET_ARTICLES','Save');
+		@define('H_NO_RESULTS_FOR_KEYWORD','No Article by Subject');
+		define('H_INPUT_KEYWORD','Enter Subject');
+	
+	//Пул текстов
+	define('CREATE_TEXT','Create Text');
+	define('EDIT_TEXT','Edit Text');
+	define('F_TEXT_HEADER','Text Name');
+	
+	//Гостевая книга
+	define('CREATE_MESSAGE','Message Creation');
+	define('EDIT_MESSAGE','Message Edition');
+	define('F_SUBJECT','Subject');
+	define('F_AUTHOR','Author');
+	define('F_EMAIL','E-mail');
+	define('H_REPLY','Reply');
+	
+	//PHP код
+	define('CREATE_PHPSOURCE','PHP Source Creation');
+	define('EDIT_PHPSOURCE','PHP Source Edition');
+	define('F_PHPSOURCE_HEADER','PHP Source Name');
+	
+	//Файлы
+	define('CREATE_FILE','File Upload');
+	define('EDIT_FILE','File Modification');
+	define('H_GENERAL_PROPS','General');
+	define('F_FILE_HEADER','File Name');
+	define('F_FILENAME_LOCAL','File');
+	define('F_FILENAME_REMOTE','File Name on Server');
+	define('BTN_CORRECT_FILENAME','Adjust');
+	define('TT_CORRECT_FILENAME','Make a Translitreration and remove restricted symbols');
+	define('H_PROPS','Properties');
+	define('F_FILETYPE','Type');
+	define('F_FILESIZE','Size');
+	define('F_FILEURL','File URL');
+	define('INCONSISTENCY_BETWEEN_FILETYPES','Inconsistency Between Types!');
+	@define('BTN_CANCEL','Cancel');
+	
+	define('CREATE_FILE_SUCCES_I','File was saved successfuly');
+	define('CREATE_FILE_FAILED_W','Error Occured. Some data entered uncorrectly. File was saved with changes.');
+	
+	//Вставка карткартинки
+	define('H_INSERT_IMAGE','Picture Insertion');
+	define('BTN_INSERT_THIS_IMAGE','Insert');
+	define('BTN_UPLOAD_IMAGE','Upload Picture');
+	define('TT_UPLOAD_IMAGE','Create an Image in a Current Folder');
+	define('H_CHOOSE_FOLDER','Choose Folder');
+	define('H_FOLDER_IS_EMPTY','Folder is Empty');
+	define('H_NO_FOLDERS','No Folders');
+	define('H_VIEW_IMAGE','Picture Preview');
+	define('BTN_CLOSE_WINDOW','Close');
+	define('YOU_HAVE_CLOSED_EDITOR_W','You have already closed the Editor\'s window!');
+	
+	//Импорт таблицы
+	define('H_CHOOSE_TEMPLATE','Please choose a template...');
+	define('H_IMPORT_TABLE','Table Import');
+	define('H_TEMPLATE','Template');
+	define('BTN_IMPORT','Import');
+	define('BTN_INSERT_IMPORTED_TABLE','Insert');
+	
+	//Редактирование стиля
+	define('H_EDIT_STYLE','Style Edition');
+	define('H_TAG_NAME','Tag');
+	define('H_CSS_CLASS','Class');
+	define('H_CSS_STYLE','Style');
+	@define('BTN_OK','Ok');
+	
+	//Редактирование свойств тега
+	define('H_EDIT_TAG_PROPERTIES','Tag Properties Edition');
+	define('H_TAG_PROPERTIES','Properties');
+	define('H_OPEN_IN_NEW_WINDOW_JS','Open in a new Window (JavaScript)');
+	define('PR_TITLE','Title');
+	define('PR_HREF','Link');
+	define('PR_TARGET','Window');
+	define('PR_INNERHTML','Text');
+	
+	define('BTN_EDIT_SOURCE','Edit source On/Off');
+	define('H_DONT_INDEX','Do not include document in the search index');
+	define('H_RELATED_ARTICLES','Related links');
+	define('H_FILE_DESCRIPTION','File description');
+	define('F_FILETYPE_UNKNOWN','Indefinite file type');
+	define('BTN_COPY_TO_CLIPBOARD','To clipboard');
+	define('CREATE_HYBRID','Create Hybrid document');
+	define('EDIT_HYBRID','Edit Hybrid document');
+	define('PR_DOC_HEADER','Header');
+	define('PR_DOC_PUBLISHED_STATUS','Document status');
+	define('H_PUBLISH_DOC','Publish document');
+	define('H_PUBLISH_YES','Yes');
+	define('H_PUBLISH_NO','No');
+	define('H_SELECT_VALUE','Choose...');
+	define('H_REMOVE_FILE','Delete file');
+	define('H_MANAGE_DS','Edit...');
+	define('H_SAVE_DOC_TO_MANAGE_DS','Section will be available after ReSave');
+	define('H_DOCFIELD_NAME','Attachment');
+	define('H_DOCFIELD_VALUE','Name');
+	define('H_DOCFIELD_CREATE','Create');
+	define('H_DOCFIELD_REMOVE','Remove');
+	define('H_DOCFIELD_SELECT','Select');
+	define('H_ARRAYFIELD_CREATE','Create');
+	define('H_ARRAYFIELD_ADD','Add');
+	define('H_ARRAYFIELD_REMOVE','Remove');
+	@define('BTN_CLOSE','Close');
+	define('H_SELECT_DOCUMENT','Select document(s)');
+	@define('BTN_SELECT','Select');
+	@define('BTN_SEARCH','search');
+	define('BTN_INSERT_IMG','Insert');
+	define('H_IMG_FILENAME','File');
+	define('H_IMG_DS','Section');
+	define('H_IMAGE_WAS_REMOVED_I','Image removed successfully');
+
+	define('H_RATING_VALUE','Rating');
+	define('H_RATING_VOTES','Votes');
+	define('EDIT_RATING','Edit rating');
+	define('BTN_ACTIVATE_VOTE','Activate votes');
+	define('BTN_DEACTIVATE_VOTE','Deactivate votes');
+	define('BTN_REMOVE_VOTE','Remove votes');
+	define('ACTIVATE_SELECTED_VOTES_Q','Activate selected votes?');
+	define('DEACTIVATE_SELECTED_VOTES_Q','Deactivate selected votes?');
+	define('REMOVE_SELECTED_VOTES_Q','Remove selected votes?');
+	define('RATING_MUST_BE_VALID_W_PATTERN','Rating must be from %d to %d');
+	define('H_AVERAGE_RATING','Rating');
+	define('H_TOTAL_VOTES','Total Votes');
+	define('H_SET_RATING_MANUALLY','Set rating Manually');
+	define('H_REAL_AVERAGE_RATING','Real Rating');
+	define('H_REAL_VOTES','Real Votes');
+	define('H_FAKE_AVERAGE_RATING','Fake Rating');
+	define('H_FAKE_VOTES','Fake Votes');
+	define('H_SET_RATING','Set Rating');
+	define('H_SET_RATING_STRATEGY','with');
+	define('H_SRS_ADDUSER','Create New User');
+	define('H_SRS_DISTRIBUTE','Distribution by Users');
+	define('BTN_SET_RATING','Set');
+	define('H_SEARCH_VOTE','Search');
+	define('H_FILTER_BY_DATE','Date');
+	define('H_FILTER_DATE_FROM','From');
+	define('H_FILTER_DATE_TO','To');
+	define('BTN_FILTER_BY_DATE','Show');
+	define('H_FILTER_VOTES','Filter');
+	define('H_SHOW_ONLY_FAKE_VOTES','Show only<br/>fake votes');
+	define('H_SHOW_ALL_VOTES','Show all votes');
+	define('EDIT_RATING_VOTE','Edit vote');
+	define('H_VOTE_AUTHOR_WAS_REMOVED','Author was removed');
+	define('F_VOTE_AUTHOR','Author');
+	define('F_VOTE_RATING','Rating');
+	define('F_VOTE_DATE','Date');
+	define('F_VOTE_COUNT','Number of Votes');
+	define('F_VOTE_IS_ACTIVE','Vote is activated');
+	define('H_REC_VOTES','votes');
+	define('BTN_NEW_FILE','New File');
+	
+	error_reporting($_oldLevel);
+?>

@@ -1,0 +1,44 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: catalog._wc,v 1.5 2007/02/27 11:23:19 sanjar Exp $
+ */
+	error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
+	
+	//----------------------------
+	//Диалоговые окна в карте сайта
+	//----------------------------
+		
+		
+	// Создание узла
+	define('CREATE_NODE','Создание узла');
+	define('EDIT_NODE','Редактирование узла');
+	define('NEW_NODE','Новый узел');
+	define('NODE_PROPS','Свойства узла');
+	define('NODE_KEY','Ключ');
+	define('NODE_HEADER','Заголовок');
+	define('PARENT_NODE','Родительский узел');
+	define('CREATE_NODE_IN','Создать узел в');
+	@define('BTN_CREATE','Создать');
+	@define('BTN_SAVE','Сохранить');
+	@define('BTN_CANCEL','Отмена');
+	
+	error_reporting($_oldLevel);
+?>

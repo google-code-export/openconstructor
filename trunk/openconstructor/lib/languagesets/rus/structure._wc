@@ -1,0 +1,102 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: structure._wc,v 1.12 2007/02/27 11:23:19 sanjar Exp $
+ */
+	error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
+	
+	//----------------------------
+	//Диалоговые окна в карте сайта
+	//----------------------------
+	
+	
+	//Создать страницу
+	define('H_CREATE_PAGE','Создание страницы');
+	define('NEW_PAGE','Новая страница');
+	define('PAGE_FOLDER','Папка');
+	define('PAGE_NAME','Название');
+	define('PAGE_URI','URI страницы');
+	define('PARENT_PAGE','Родительский раздел');
+	define('CREATE_PAGE_IN','Создать страницу в');
+	@define('BTN_CREATE','Создать');
+	@define('BTN_SAVE','Сохранить');
+	@define('BTN_CANCEL','Отмена');
+	
+	//Добавиь объект
+	define('ADD_OBJECT','Добавление объекта');
+	define('H_SELECT_OBJECT_I','Выберите объект');
+	define('BTN_ADD_OBJECT','Добавить');
+	
+	//Редактировать страницу
+	define('H_EDIT_PAGE','Редактирование страницы');
+	define('PAGE_GENERAL','Общие');
+	define('PAGE_STATUS','Статус');
+	define('PAGE_IS_PUBLISHED','Опубликована');
+	define('PAGE_IS_UNPUBLISHED','Не опубликована');
+	define('PAGE_STATUS_AFFECTS_CHILDREN','Включая подразделы');
+	define('PAGE_TEMPLATE','Шаблон');
+	define('PAGE_ROUTE','Маршрутицировать вируальные URI на подразделы');
+	define('PAGE_WEB','Страница');
+	define('PAGE_TITLE','Заголовок');
+	define('PAGE_ADD_PARENTS_TITLE','Добавить заголовок предка');
+	define('PAGE_CSS','Стиль(CSS)');
+	define('PAGE_META_INFO','META информация');
+	define('PAGE_CONTENT_TYPE','Тип');
+	define('PAGE_INHERIT_CONTENT_TYPE','Наследовать у предка');
+	define('PAGE_META_KEYWORDS','Ключевые слова');
+	define('PAGE_META_DESCRIPTION','Описание');
+	define('PAGE_REDIRECT_URI','Редирект');
+	define('PAGE_ROBOTS','Поисковики');
+	define('PAGE_ROBOTS_INDEX','INDEX');
+	define('PAGE_ROBOTS_NOINDEX','NOINDEX');
+	define('PAGE_ROBOTS_FOLLOW','FOLLOW');
+	define('PAGE_ROBOTS_NOFOLLOW','NOFOLLOW');
+	define('PAGE_CACHING','Кеширование вывода');
+	define('PAGE_ENABLE_CACHING','Включить кеширование');
+	define('PAGE_CACHE_PROPS','Настройки кеширования');
+	define('PAGE_CACHE_LIFETIME','Время жизни кеша в секундах');
+	define('PAGE_CACHE_VARY','Зависимости кеша');
+	define('PAGE_CACHE_VARY_SUGGEST','Варианты...');
+	define('PAGE_TRY_TO_GZIP_CACHE','Кешировать в формате Gzip если возможно');
+	define('PAGE_USERS','Пользователи');
+	define('H_PAGE_USER_PROFILES','Профили пользователей');
+	define('PAGE_PROFILES_INHERIT','Наследовать настройки у предка');
+	define('PAGE_PROFILES_LOADER','Объект для загрузки профилей');
+	define('PAGE_PROFILES_LOAD_ONCE','Не загружать профиль, если он уже загружен в сессию');
+	define('H_MAKE_CHILDS_USR_THE_SAME', 'Задать этиже значения и для подразделов');
+	define('PAGE_SELECT_ALL_USERS','Выделить все');
+	define('PAGE_UNSELECT_ALL_USERS','Сбросить все');
+	
+	//Переместить страницу
+	define('H_MOVE_PAGE','Перемещение страницы');
+	define('MOVE_TO','Переместить в');
+	define('PAGE_URI_CURRENT','Текущий URI');
+	define('PAGE_URI_NEW','Новый URI');
+	define('BTN_MOVE','Переместить');
+	
+	// Предположение cache id
+	define('H_CACHE_VARY_SUGGEST', 'Предположение зависимостей кеша');
+	define('SUGGESTTIONS_MAY_BE_INVALID', 'Система может ошибатся при автоматичеком определении идентификатора кеша. Особенно если на странице работает инъекция объектов.');
+	define('H_SUGGESTIONS', 'Варианты');
+	define('H_NO_SUGGESTIONS', 'Вариантов нет');
+	define('BTN_INSERT', 'Вставить');
+	
+	error_reporting($_oldLevel);
+?>

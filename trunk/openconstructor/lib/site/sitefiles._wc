@@ -1,0 +1,181 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: sitefiles._wc,v 1.6 2007/02/27 11:23:21 sanjar Exp $
+ */
+
+class SiteFiles {
+	var $ftp;
+	
+	function SiteFiles() {
+		
+	}
+	
+	function createPage($parent, $folder) {
+		$result = false;
+		assert(!empty($parent) && !empty($folder));
+		if(@file_exists($_SERVER['DOCUMENT_ROOT'].substr($parent, 0, strlen($parent > 2) ? -1 : 1))) {
+			if(!@file_exists($_SERVER['DOCUMENT_ROOT'].$parent.$folder)) {
+				$ftp = &$this->_getFtp();
+				$ftp->open();
+				$ftp->md($parent.$folder);
+				$ftp->copy_local_file($_SERVER['DOCUMENT_ROOT'].WCHOME.'/404.php', $parent.$folder.'/index.php');
+				if($ftp->success())
+					$result = true;
+				else {
+					echo $ftp->get_message(true);
+					$ftp->rdEntire($parent.$folder);
+					$ftp->get_message();
+				}
+				$ftp->close();
+			} else {
+				echo "<br/> - SiteFiles: Folder already exists [dir = {$_SERVER['DOCUMENT_ROOT']}{$parent}{$folder}]<br/>";
+			}
+		} else {
+			echo "<br/> - SiteFiles: Parent folder doesnt exists [dir = {$_SERVER['DOCUMENT_ROOT']}{$parent}]<br/>";
+		}
+		return $result;
+	}
+	
+	function removePage($folder) {
+		$result = false;
+		assert(!empty($folder) && $folder != '/');
+		if($folder{strlen($folder) - 1} == '/')
+			$folder = substr($folder, 0, -1);
+		if(@file_exists($_SERVER['DOCUMENT_ROOT'].$folder)) {
+			$ftp = &$this->_getFtp();
+			$ftp->open();
+			$ftp->rdEntire($folder);
+			$ftp->close();
+			if($ftp->success())
+				$result = true;
+			else {
+				echo $ftp->get_message(true);
+			}
+		} else
+			$result = true;
+		return $result;
+	}
+	
+	function writePage($filename, $content = null) {
+		$result = true;
+		$ftp = &$this->_getFtp();
+		$ftp->open();
+		if(is_array($filename)) {
+			foreach($filename as $name => $source)
+				$result = $result && $this->_writeFile($name, $source);
+		} else
+			$result = $this->_writeFile($filename, $content);
+		$ftp->close();
+		if($ftp->success())
+			$result = true;
+		else
+			echo $ftp->get_message(true);
+		return $result;
+	}
+	
+	function rename($name, $newName) {
+		$result = false;
+		assert($name != $newName && !empty($name) && !empty($newName));
+		if($name{strlen($name) - 1} == '/')
+			$name = substr($name, 0, -1);
+		if($newName{strlen($newName) - 1} == '/')
+			$newName = substr($newName, 0, -1);
+		if(@file_exists($_SERVER['DOCUMENT_ROOT'].$name) && !@file_exists($_SERVER['DOCUMENT_ROOT'].$newName)) {
+			$ftp = &$this->_getFtp();
+			$ftp->open();
+			$ftp->move($name, $newName);
+			$ftp->close();
+			if($ftp->success())
+				$result = true;
+			else {
+				echo $ftp->get_message(true);
+			}
+		}
+		return $result;
+	}
+	
+	function unpublishPages($uris) {
+		$result = false;
+		$uris = (array) $uris;
+		if(sizeof($uris)) {
+			$ftp = &$this->_getFtp();
+			$ftp->open();
+			foreach($uris as $uri) {
+				$uriExists = true;
+				$pos = 0;
+				while($uriExists && (($pos = strpos($uri, '/', $pos + 1)) !== false)) {
+					$dir = substr($uri, 0, $pos);
+					if(!is_dir($_SERVER['DOCUMENT_ROOT'].$dir))
+						$uriExists = @file_exists($_SERVER['DOCUMENT_ROOT'].$dir) ? false : $ftp->md($dir);
+				}
+				if($uriExists) {
+					$ftp->copy_local_file($_SERVER['DOCUMENT_ROOT'].WCHOME.'/404.php', $uri.'index.php');
+					if(@is_file($_SERVER['DOCUMENT_ROOT'].$uri.'index._wc'))
+						$ftp->unlink($uri.'index._wc');
+				}
+			}
+			$ftp->close();
+			if($ftp->success())
+				$result = true;
+			else {
+				echo $ftp->get_message(true);
+			}
+		}
+		return $result;
+	}
+	
+	function exists($uri) {
+		return @file_exists($_SERVER['DOCUMENT_ROOT'].$uri);
+	}
+	
+	function _writeFile($filename, $content) {
+		$result = true;
+		$ftp = &$this->_getFtp();
+		$pos = 0;
+		while($result && (($pos = strpos($filename, '/', $pos + 1)) !== false)) {
+			$dir = substr($filename, 0, $pos);
+			if(!is_dir($_SERVER['DOCUMENT_ROOT'].$dir))
+				$result = @file_exists($_SERVER['DOCUMENT_ROOT'].$dir) ? false : $ftp->md($dir);
+		}
+		if($result) {
+			if($content == null)
+				$result = @is_file($_SERVER['DOCUMENT_ROOT'].$filename) ? $ftp->unlink($filename) : true;
+			else
+				$result = $ftp->write_file($filename, $content);
+		}
+		return $result;
+	}
+	
+	function &_getFtp() {
+		if(!is_object($this->ftp)) {
+			require_once(LIBDIR.'/wcftp._wc');
+			$this->_setFtp(WCFTP::getNew());
+		}
+		return $this->ftp;
+	}
+	
+	function _setFtp(&$ftp) {
+		$this->ftp = &$ftp;
+	}
+}
+?>

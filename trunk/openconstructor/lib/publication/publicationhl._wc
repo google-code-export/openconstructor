@@ -1,0 +1,115 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Список публикаций.
+ * 
+ * Объект вывода.
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: publicationhl._wc,v 1.15 2007/03/15 07:02:46 sanjar Exp $
+ */
+
+class PublicationHL extends WCObject {
+	var $header;
+	var $srvuri, $publicationid;
+	var $pid, $offset, $pageSize, $reverseOrder, $ohneMain;
+	var $dateFormat, $withCurrent;
+	var $ids;
+	var $no404;
+	
+	function PublicationHL() {
+		$this->DSTable='dspublication';
+		$this->ds_type='publication';
+		$this->obj_type='publicationhl';
+		$this->offset=0;
+		$this->pageSize=10;
+		$this->pid='page';
+		$this->srvuri='publication/';
+		$this->publicationid='publication_id';
+		$this->galleryid=false;
+		$this->ohneMain=false;
+		$this->withCurrent=false;
+		$this->dateFormat='[j.m.Y]';
+		$this->reverseOrder=false;
+		$this->no404=false;
+		$this->caching=2;
+		$this->cached_by_WC=true;
+	}
+	
+	function getCacheId() {
+		$cacheId = null;
+		if(!$this->ids) {
+			$page = (int)@$_GET[$this->pid];
+			if(--$page < 0) $page = 0;
+			$displayed = &$this->getDisplayedDocs();
+			$cacheId = $this->obj_id.'|p'.$page.'-c'.implode(':', array_keys($displayed));
+		}
+		return $cacheId;
+	}
+	
+	function fetchData(&$smarty) {
+		$result = false;
+		$page = (int)@$_GET[$this->pid];
+		if(--$page < 0) $page = 0;
+		
+		$where = $this->ids ? 'id IN ('.$this->ids.')' : 'ds_id IN ('.$this->ds_id.')';
+		$db = &$this->ctx->_getDB();
+		$res = $db->query(
+			'SELECT id, real_id as rid, ds_id, gallery, header, date'.
+			' FROM '.$this->DSTable.
+			' WHERE '.$where.' AND published!=0'.($this->ohneMain ? ' AND main=0' : '').
+			' ORDER BY date '.($this->reverseOrder ? 'ASC' : 'DESC').
+			' LIMIT '.($this->offset + $page * $this->pageSize).','.$this->pageSize
+		);
+		if(mysql_num_rows($res) > 0) {
+			$displayed = &$this->getDisplayedDocs();
+			$news=array();
+			$fet=array();
+			$thref=$this->srvuri.'?'.$this->publicationid.'=%d'.(@$this->galleryid?'&'.$this->galleryid.'=%d':'');
+			while($row=mysql_fetch_assoc($res)) {
+				if(isset($fet[$row['rid']])||(!$this->withCurrent&&@$fet[$row['id']])) continue;
+				$fet[$row['rid']] = true;
+				$news[$row['id']]['ds_id'] = (int) $row['ds_id'];
+				$news[$row['id']]['header'] = escapeTags($row['header']);
+				$news[$row['id']]['href'] = isset($displayed[$row['id']]) ? null : sprintf(&$thref,$row['id']);
+				$news[$row['id']]['gid'] = $row['gallery'];
+				$news[$row['id']]['date'] = wcfFormatTime($this->dateFormat, $row['date']);
+			}
+			$smarty->assign('header',$this->header);
+			$smarty->assign_by_ref('news',$news);
+			$result = array('header','news');
+		} elseif($page > 1 && !$this->no404)
+			$this->ctx->throw404();
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &getDisplayedDocs() {
+		if(!isset($this->_dispalyedDocs))
+			$this->_displayedDocs = class_exists('publicationbody') ? PublicationBody::getDisplayedDocs() : array();
+		return $this->_displayedDocs;
+	}
+	
+	function getExtraClause() {
+		return '';
+	}
+}
+?>

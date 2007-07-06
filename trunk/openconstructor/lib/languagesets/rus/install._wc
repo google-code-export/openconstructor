@@ -1,0 +1,65 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: install._wc,v 1.4 2007/02/27 11:23:19 sanjar Exp $
+ */
+	error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
+	
+	//----------------------------
+	//Инсталятор
+	//----------------------------
+
+	define('H_INSTALL_SYSTEM', 'Установка Open Constructor\'а');
+	define('H_INSTALLER_ENGLISH', 'In English');
+	define('H_INSTALLER_RUSSIAN', 'На Русском');
+	
+	define('H_INVALID_PREFS_GIVEN', 'Поля выделенные красным были заполнены неверно, пожалуйста введите корректные данные.');
+	
+	define('H_INSTALLER_GENERAL_PREFS', 'Общие');
+	define('PR_INSTALLER_HTTP_HOST', 'HTTP Хост');
+	define('PR_INSTALLER_LANGUAGE', 'Язык интерфейса');
+	define('PR_INSTALLER_ENGLISH', 'Английский');
+	define('PR_INSTALLER_RUSSIAN', 'Русский');
+	
+	define('H_INSTALLER_FTP_PREFS', 'Настройки FTP соединения');
+	define('PR_INSTALLER_FTP_HOST', 'Хост');
+	define('PR_INSTALLER_FTP_PORT', 'Порт');
+	define('PR_INSTALLER_FTP_LOGIN', 'Логин');
+	define('PR_INSTALLER_FTP_PWD', 'Пароль');
+	define('PR_INSTALLER_FTP_SITEROOT', 'Корень сайта');
+	
+	define('H_INSTALLER_DB_PREFS', 'База Данных');
+	define('PR_INSTALLER_DB_SERVER', 'Сервер');
+	define('PR_INSTALLER_DB_NAME', 'Имя базы данных');
+	define('PR_INSTALLER_DB_LOGIN', 'Логин');
+	define('PR_INSTALLER_DB_PWD', 'Пароль');
+	
+	define('TT_INSTALLER_WILL_DROP_TABLES', 'Если в базе существуют таблицы с теми же именами что и в Open Constructor\'е, то все они будут удалены.');
+	define('H_INSTALLER_SHOW_TABLES', 'Просмотреть список таблиц');
+	define('H_INSTALLER_HIDE_TABLES', 'Закрыть список таблиц');
+	define('H_INSTALLER_TABLE_LIST', 'Таблицы системы');
+	
+	define('H_INSTALLER_ABOUT_SYSTEM', 'О программе');
+	
+	define('PR_INSTALLER_I_ACCEPT', 'Я принимаю условия лицензионного соглашения');
+	define('BTN_INSTALL', 'Установить');
+	
+	error_reporting($_oldLevel);
+?>

@@ -1,0 +1,133 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: objtypes._wc,v 1.10 2007/02/27 11:23:19 sanjar Exp $
+ */
+	// Массив испоьзуется для вывода типов объектов в списке (/structure/) 
+	$o_t=array(
+		'htmltextbody'=>OBJ_HTMLTEXT_BODY,
+		'htmltexthl'=>OBJ_HTMLTEXT_HL,
+		'htmltexthlintro'=>OBJ_HTMLTEXT_HL_INTRO,
+		'publicationhl'=>OBJ_PUBLICATION_HL,
+		'publicationhlintro'=>OBJ_PUBLICATION_HL_INTRO,
+		'publicationmainintro'=>OBJ_PUBLICATION_MAIN_INTRO,
+		'publicationbody'=>OBJ_PUBLICATION_BODY,
+		'publicationpager'=>OBJ_PUBLICATION_PAGER,
+		'publicationlist'=>OBJ_PUBLICATION_LIST,
+		'publicationlistintro'=>OBJ_PUBLICATION_LIST_INTRO,
+		'eventcalendar'=>OBJ_EVENT_CALENDAR,
+		'eventhl'=>OBJ_EVENT_HL,
+		'eventhlintro'=>OBJ_EVENT_HL_INTRO,
+		'eventbody'=>OBJ_EVENT_BODY,
+		'eventpager'=>OBJ_EVENT_PAGER,
+		'galleryhl'=>OBJ_GALLERY_HL,
+		'gallerypager'=>OBJ_GALLERY_PAGER,
+		'galleryimage'=>OBJ_GALLERY_IMAGE,
+		'galleryimgpager'=>OBJ_GALLERY_IMG_PAGER,
+		'articlebody'=>OBJ_ARTICLE_BODY,
+		'articlebodypager'=>OBJ_ARTICLE_BODY_PAGER,
+		'articlehl'=>OBJ_ARTICLE_HL,
+		'articlehlintro'=>OBJ_ARTICLE_HL_INTRO,
+		'articlepager'=>OBJ_ARTICLE_PAGER,
+		'articlerelated'=>OBJ_ARTICLE_RELATED,
+		'textrandom'=>OBJ_TEXT_RANDOM,
+		'gballmessages'=>OBJ_GB_ALL_MESSAGES,
+		'gbaddmsglogic'=>OBJ_GB_ADDMSG_LOGIC,
+		'gblist'=>OBJ_GB_LIST,
+		'gbmsgbody'=>OBJ_GB_MSG_BODY,
+		'gbmsghl'=>OBJ_GB_MSG_HL,
+		'gbpager'=>OBJ_GB_PAGER,
+		'phpinclude'=>OBJ_PHP_INCLUDE,
+		'phpcallback'=>OBJ_PHP_CALLBACK,
+		'miscfetchtpl'=>OBJ_MISC_FETCHTPL,
+		'misccrumbs'=>OBJ_MISC_CRUMBS,
+		'miscsendmail'=>OBJ_MISC_SENDMAIL,
+		'miscinjector'=>OBJ_MISC_INJECTOR,
+		'filehl'=>OBJ_FILE_HL,
+		'filepager'=>OBJ_FILE_PAGER,
+		'usersauthorize'=>OBJ_USERS_AUTHENTICATE,
+		'userslogout'=>OBJ_USERS_LOGOUT,
+		'hybridtree' => OBJ_HYBRID_TREE,
+		'hybridhl' => OBJ_HYBRID_HL,
+		'hybridbar' => OBJ_HYBRID_BAR,
+		'hybridpager' => OBJ_HYBRID_PAGER,
+		'hybridbody' => OBJ_HYBRID_BODY,
+		'hybridbodyedit' => OBJ_HYBRID_BODY_EDIT,
+		'ratingrate' => OBJ_RATING_RATE,
+		'ratingratelogic' => OBJ_RATING_RATELOGIC,
+		'searchdss' => OBJ_SEARCH_DSS,
+		'searchdsspager' => OBJ_SEARCH_DSS_PAGER
+	);
+	// Массив используется для вывода иконок объектов в списке (/structure/)
+	$i_t=array(
+		'htmltextbody'=>'html',
+		'htmltexthl'=>'html',
+		'htmltexthlintro'=>'html',
+		'publicationhl'=>'pub',
+		'publicationhlintro'=>'pub',
+		'publicationmainintro'=>'pub',
+		'publicationbody'=>'pub',
+		'publicationpager'=>'pub',
+		'publicationlist'=>'pub',
+		'publicationlistintro'=>'pub',
+		'eventbody'=>'event',
+		'eventcalendar'=>'event',
+		'eventhl'=>'event',
+		'eventhlintro'=>'event',
+		'eventpager'=>'event',
+		'galleryhl'=>'img',
+		'galleryimage'=>'img',
+		'gallerypager'=>'img',
+		'galleryimgpager'=>'img',
+		'textrandom'=>'txt',
+		'phpinclude'=>'php',
+		'phpcallback'=>'php',
+		'miscfetchtpl'=>'tpl',
+		'misccrumbs'=>'crumbs',
+		'miscsendmail'=>'mail',
+		'miscinjector'=>'inject',
+		'filehl'=>'file',
+		'filepager'=>'file',
+		'usersauthorize'=>'user',
+		'userslogout'=>'user',
+		'articlebody'=>'article',
+		'articlebodypager'=>'article',
+		'articlehl'=>'article',
+		'articlehlintro'=>'article',
+		'articlepager'=>'article',
+		'articlerelated'=>'article',
+		'gbaddmsglogic'=>'message',
+		'gballmessages'=>'message',
+		'gblist'=>'message',
+		'gbmsgbody'=>'message',
+		'gbmsghl'=>'message',
+		'gbpager'=>'message',
+		'hybridtree'=>'hyb',
+		'hybridhl'=>'hyb',
+		'hybridbar'=>'hyb',
+		'hybridpager'=>'hyb',
+		'hybridbody'=>'hyb',
+		'hybridbodyedit'=>'hyb',
+		'ratingrate'=>'rating',
+		'ratingratelogic'=>'rating',
+		'searchdss'=>'search',
+		'searchdsspager'=>'search'
+	);
+?>

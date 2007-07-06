@@ -1,0 +1,134 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: fileresponse._wc,v 1.9 2007/03/01 11:57:37 sanjar Exp $
+ */
+require_once(LIBDIR.'/func/getmimetype._wc');
+
+class FileResponse {
+	var $filename;
+	var $begin, $end, $size;
+	var $bufferSize;
+	
+	function FileResponse($filename, $bufferSize = 0) {
+		$this->filename = $filename;
+		$this->begin = -1;
+		$this->end = -1;
+		$this->bufferSize = intval($bufferSize) > 0 ? intval($bufferSize) * 1024 : 4 * 1024;
+	}
+	
+	function doResponse() {
+		$oldLevel = error_reporting(0);
+		if(isset($_SERVER['HTTP_RANGE']))
+			$this->doPartialResponse($_SERVER['HTTP_RANGE']);
+		else
+			$this->doFullResponse();
+		error_reporting($oldLevel);
+	}
+	
+	function doFullResponse() {
+		$size = filesize($this->filename);
+		header('HTTP/1.1 200 Ok');
+		header('Status: 200 Ok');
+		header('Last-Modified: '.FileResponse::getLastModified($this->filename));
+		header('Content-Type: '.wcfGetMimeType($this->filename));
+		header('Content-Length: '.$size);
+		header('Accept-Range: bytes');
+		$met = ini_get('max_execution_time');
+		if($met > 0 && $size > $met * 1024)
+			set_time_limit(intval($size / 1024));
+		readfile($this->filename);
+	}
+	
+	function doPartialResponse($range) {
+		if($this->calculatePositions($range)) {
+			$file = @fopen($this->filename, 'rb');
+			if(fseek($file, $this->begin, SEEK_SET) === 0) {
+				$length = $this->end - $this->begin + 1;
+				header('HTTP/1.1 206 Partial Content');
+				header('Last-Modified: '.FileResponse::getLastModified($this->filename));
+				header('Content-Type: '.wcfGetMimeType($this->filename));
+				header(sprintf('Content-Range: bytes %d-%d/%d', $this->begin, $this->end, $this->size));
+				header(sprintf('Content-Length: %d', $length));
+				$met = ini_get('max_execution_time');
+				if($met > 0 && $length > $met * 1024)
+					set_time_limit(intval($length / 1024));
+				for($i = 0, $l = intval($length / $this->bufferSize); $i < $l; $i++) {
+					$data = fread($file, $this->bufferSize);
+					echo $data;
+					flush();
+					unset($data);
+				}
+				if(($remain = $length % $this->bufferSize) > 0) {
+					$data = fread($file, $remain);
+					echo $data;
+					flush();
+					unset($data);
+				}
+			} else
+				$this->doErrorResponse();
+			fclose($file);
+		} else
+			$this->doErrorResponse();
+	}
+	
+	function doErrorResponse() {
+		header('HTTP/1.1 416 Requested range not satisfiable');
+		header('Content-Range: *');
+	}
+	
+	function calculatePositions($range) {
+		if(strpos($range, 'bytes=') !== 0 || strlen($range) < 7)
+			return false;
+		$range = trim(substr($range, 6));
+		if(strspn($range, '0123456789-') != strlen($range))
+			return false;
+		$pos = explode('-', $range);
+		if(sizeof($pos) != 2)
+			return false;
+		$begin = strlen($pos[0]) ? intval($pos[0]) : null;
+		$end = strlen($pos[1]) ? intval($pos[1]) : null;
+		if(($begin === null && $end === null) || ($begin !== null && $end !== null && $begin > $end))
+			return false;
+		$size = filesize($this->filename);
+		if($end !== null && $end > ($size - 1))
+			return false;
+		if($begin === null) {
+			$begin = $size - $end;
+			$end = $size - 1;
+		}
+		if($end === null)
+			$end = $size - 1;
+		if($end < 0 || $begin < 0)
+			return false;
+		$this->size = (int) $size;
+		$this->begin = (int) $begin;
+		$this->end = (int) $end;
+		return true;
+	}
+	
+	function getLastModified($filename) {
+		$time = filemtime($filename);
+		return gmdate('D, j M Y H:i:s', $time).' GMT';
+	}
+}
+?>

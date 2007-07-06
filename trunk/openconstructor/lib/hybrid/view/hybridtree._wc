@@ -1,0 +1,180 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Выводит иерархию документов гибридного раздела.
+ * 
+ * Объект вывода ВК.
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: hybridtree._wc,v 1.14 2007/03/05 12:36:17 sanjar Exp $
+ */
+require_once('hybridagent._wc');
+
+class HybridTree extends WCObject {
+	
+	var $srvUri, $dsIdKey, $nodeId, $onlySub;
+	var $docFields, $deepness, $countDocs;
+	var $no404;
+	var $_agent;
+	
+	function HybridTree() {
+		$this->DSTable='dshybrid';
+		$this->ds_type='hybrid';
+		$this->obj_type='hybridtree';
+		$this->srvUri = '.';
+		$this->deepness = 1;
+		$this->nodeId = 'node';
+		$this->dsIdKey = '';
+		$this->onlySub = false;
+		$this->docFields = array();
+		$this->no404 = false;
+		$this->caching = 2;
+		$this->cached_by_WC = true;
+	}
+	
+	function getCacheId() {
+		$agent = &$this->getAgent();
+		$nodeId = str_replace(array('/', '\\'), array('', ''), $this->ctx->getParam($this->nodeId));
+		return $this->obj_id.'|'.$agent->dsId.'|'.$nodeId;
+	}
+	
+	function onPageLoad() {
+		if(!$this->no404 && !is_object($agent = &$this->getAgent()))
+			$this->ctx->throw404();
+	}
+	
+	function changeCrumbs(&$crumbs) {
+		$agent = &$this->getAgent();
+		if(is_object($agent)) {
+			$agent->_changeDsCrumbs($crumbs, $this->dsIdKey);
+			$agent->_changeNodeCrumbs($crumbs, $this->nodeId);
+		}
+	}
+	
+	function fetchData(&$smarty) {
+		$result = false;
+		$tree = &$this->getTrees();
+		if(sizeof($tree)) {
+			$smarty->assign('header', $this->header);
+			$smarty->assign_by_ref('tree', $tree);
+			$result = array('header', 'tree');
+		}
+		return $result;
+	}
+	
+	function &getTrees() {
+		if(!isset($this->tree)) {
+			$this->tree = array();
+			$result = &$this->tree;
+			$agent = &$this->getAgent();
+			if(!$agent)
+				return $result;
+			$trees = $agent->getTrees();
+			if(sizeof($this->docFields)) {
+				for($i = 0, $treeIds = array(), $l = sizeof($this->docFields); $i < $l; $i++)
+					if($id = @$trees[$agent->dsFields[$this->docFields[$i]['id']]['name']])
+						$treeIds[] = $id;
+				$treeIds = sizeof($treeIds) ? implode(',', &$treeIds) : -1;
+			} else
+				$treeIds = sizeof($trees) ? implode(',', &$trees) : -1;
+			$ctx = &Context::getInstance();
+			$uri = $ctx->getPatternFor($this->srvUri, array($this->dsIdKey, $this->nodeId));
+			$result = array(1 => array('id' => 1, 'parent' => null, 'key' => null, 'at' => null, 'header' => null, 'level' => 0, 'href' => sprintf($uri, $agent->dsKey, '')));
+			$result['root'] = &$result[1];
+			$db = &$this->ctx->_getDB();
+			$res = $db->query($this->_getQuery($treeIds));
+			if(mysql_num_rows($res) > 0) {
+				$curnode = $ctx->getParam($this->nodeId);
+				$nodes = &$agent->_getNodesCache();
+				$fetchCount = $this->countDocs;
+				while($r = mysql_fetch_assoc($res)) {
+					$id = (int) $r['id'];
+					$result[$id] = array(
+						'id' => $id,
+						'parent' => (int) $r['parent'],
+						'header' => $r['header']
+					);
+					if($fetchCount)
+						$result[$id]['docs'] = (int) $r['docs'];
+					$result[$result[$id]['parent']]['children'][] = $id;
+					$result[$id]['level'] = $result[$result[$id]['parent']]['level'] + 1;
+					$result[$id]['key'] = $result[$result[$id]['parent']]['key'] ? $result[$result[$id]['parent']]['key'].'.'.$r['name'] : $r['name'];
+					$result[$id]['at'] = $curnode == $result[$id]['key'] ? 1 : 0;
+					if($result[$id]['at'] && !$result[$result[$id]['parent']]['at']) {
+						$parent = $id;
+						do {
+							$result[$parent = $result[$parent]['parent']]['at'] = 2;
+						} while($parent > 1);
+					}
+					$result[$id]['href'] = sprintf($uri, $agent->dsKey, $result[$id]['key']);
+					$nodes[$id] = array('id' => $id, 'key' => $result[$id]['key'], 'header' => $result[$id]['header']);
+					$nodes[$nodes[$id]['key']] = &$nodes[$id];
+				}
+			}
+			mysql_free_result($res);
+		}
+		return $this->tree;
+	}
+	
+	function &getAgent() {
+		if($this->_agent === null) {
+			$dsId = $this->dsIdKey ? $this->ctx->getParam($this->dsIdKey) : $this->ds_id;
+			if(!($this->_agent = &HybridAgent::getInstance($dsId ? $dsId : $this->ds_id, $this->ds_id, $this->onlySub)))
+				$this->_agent = false;
+		}
+		return $this->_agent;
+	}
+	
+	function &_getQuery($treeIds) {
+		if($this->countDocs) {
+			$agent = &$this->getAgent();
+			$result = '
+				SELECT t.id, t.parent, t.name, t.header, COUNT(DISTINCT c.doc) AS docs
+				FROM
+					catalogtree t1, catalogtree t FORCE INDEX(num),
+					dshybrid_'.$agent->dsId.' d
+					INNER JOIN dshybrid ON (d.id = dshybrid.id)
+						INNER JOIN catalogdocs c IGNORE INDEX(doc) ON (d.id = c.doc)
+							INNER JOIN catalogtree t2 ON (c.node = t2.id)
+				WHERE
+					t1.id IN ('.$treeIds.')
+					AND t.num >= t1.num AND	(t1.next = 0 OR t1.next > t.num) AND t.level <= t1.level + '.$this->deepness.'
+					AND dshybrid.published > 0
+					AND t2.num >=t.num AND (t.next = 0 OR t.next > t2.num)
+				GROUP BY t.num';
+		} else
+			$result = '
+				SELECT t.id, t.parent, t.name, t.header
+				FROM catalogtree t1, catalogtree t FORCE INDEX(num)
+				WHERE t1.id IN ('.$treeIds.')
+					AND t.num >= t1.num AND	(t1.next = 0 OR t1.next > t.num)
+					AND t.level <= t1.level + '.$this->deepness.'
+				ORDER BY t.num';
+		return $result;
+	}
+	
+	function &_getDSFields() {
+		static $result;
+		if(!is_array(&$result)) $result = array('ds_id', 'dsIdKey');
+		return $result;
+	}
+}
+?>

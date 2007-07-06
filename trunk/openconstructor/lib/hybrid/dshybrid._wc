@@ -1,0 +1,297 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: dshybrid._wc,v 1.13 2007/02/27 11:23:19 sanjar Exp $
+ */
+require_once('hybriddocument._wc');
+require_once('hybridrecord._wc');
+
+class DSHybrid extends WCDataSource {
+	var $key, $parent, $path;
+	var $record;
+	var $readSQL;
+	var $autoPublish;
+	var $indexedDoc, $docIntro, $indexedDocQuery;
+	var $editTpl;
+	
+	function DSHybrid($key = null, $parent = null) {
+		$this->DSTable = 'dshybrid';
+		$this->ds_type = 'hybrid';
+		$this->key = $key;
+		$this->parent = $parent;
+		$this->path = null;
+		$this->record = null;
+		$this->readSQL = null;
+		$this->autoPublish = true;
+		$this->editTpl = null;
+	}
+	
+	function save() {
+		unset($this->record,  $this->readSQL, $this->indexedDocQuery);
+		return WCDataSource::save();
+	}
+	
+	function remove() {
+		WCS::assert($this, 'removeds');
+		$db = &WCDB::bo();
+		$res = $db->query(
+			'SELECT id'.
+			' FROM dshybrid_'.$this->ds_id
+		);
+		if(mysql_num_rows($res)>0) {
+			$ids = array();
+			while($r = mysql_fetch_assoc($res))
+				$ids[] = intval($r['id']);
+			$this->removeOwnDocuments(&$ids);
+		}
+		mysql_free_result($res);
+		$db->query(
+			'DELETE FROM datasources WHERE ds_id IN ('.$this->ds_id.')'
+		);
+		$record = &$this->getRecord();
+		$record->destroy();
+	}
+	
+	function createDocument(&$doc, $ownerId = null) {
+		WCS::assert($this, 'createdoc');
+		$doc->sRes = $this->sRes;
+		settype($ownerId, 'int');
+		if($ownerId > 0 && Authentication::getUserId() == WCS_ROOT_ID)
+			$doc->sRes->setOwner($ownerId);
+		else
+			$doc->sRes->setOwner(Authentication::getOriginalUserId());
+		$id = $this->createEmptyDocument($doc->header, $doc->sRes->owner);
+		$doc->id = $id;
+		if(!WCS::decide($this, 'publishdoc'))
+			$doc->isPublished = $this->autoPublish ? 1 : 0;
+		$record = &$this->getRecord();
+		$record->initializeDocument($doc);
+		$query = $record->getSQL($doc);
+		$success = true;
+		$db = &WCDB::bo();
+		foreach($query as $q)
+			$success = $db->query($q) && $success;
+		if($success) {
+			$this->updateSize();
+			$this->addToIndex($id);
+			$this->evictDocCache();
+		} else {
+			$record->destroyDocument($doc);
+			$this->removeEmptyDocuments(array($doc->id));
+			$doc->id = 0;
+		}
+	}
+	
+	function updateDocument(&$doc) {
+		$old = $this->getDocument($doc->id);
+		if(!$old->id)
+			return false;
+		WCS::assertValue(WCS::decide($old, 'editdoc') || WCS::decide($this, 'editdoc'), $old, 'editdoc');
+		if(!(WCS::decide($this, 'publishdoc') || WCS::decide($old, 'publishdoc')))
+			$doc->isPublished = $old->isPublished;
+		$record = &$this->getRecord(); 
+		$record->documentChanged($old, $doc);
+		$query = $record->getSQL($doc);
+		
+		$result = true;
+		$db = &WCDB::bo();
+		foreach($query as $q)
+			$result = $db->query($q) && $result;
+		
+		if($old->isPublished != $doc->isPublished) {
+			if($doc->isPublished)
+				$this->addToIndex($old->id);
+			else
+				$this->removeFromIndex($old->id);
+		} elseif($old->isPublished)
+			$this->updateIndex($old->id);
+		
+		$this->evictDocCache($doc->id);
+		
+		return $result;
+	}
+	
+	function removeOwnDocuments($ids) {
+		$record = &$this->getRecord(); 
+		foreach($ids as $k => $id) {
+			$doc = &$this->getDocument($id);
+			if(!((WCS::decide($doc, 'removedoc') || WCS::decide($this, 'removedoc')) && $record->destroyDocument($doc)))
+				unset($ids[$k]);
+		}
+		$this->removeEmptyDocuments($ids);
+		$this->updateSize();
+		$this->evictDocCache(&$ids);
+	}
+	
+	function &getDocument($id) {
+		$doc = null;
+		if($id > 0) {
+			$doc = new HybridDocument($this->getRecord());
+			if(!$this->readSQL) {
+				$record = &$this->getRecord(); 
+				$parents = explode(',', $this->path);
+				unset($parents[0]);
+				foreach($parents as $parent) {
+					$tables[] = "dshybrid_$parent";
+					$where[] = " dshybrid_$parent.id=dshybrid.id ";
+				}
+				$tables = 'dshybrid,'. implode(',', $tables);
+				$where = implode('AND', $where);
+				$fields = implode(',', array_keys($record->fields));
+				if($fields) $fields = ', '.$fields;
+				$this->readSQL = "SELECT dshybrid.id as id, ds_id, published, header, wcsowner $fields FROM $tables WHERE dshybrid.id=%d AND $where LIMIT 1"; 
+			}
+			$db = &WCDB::bo();
+			$res = $db->query(sprintf($this->readSQL, $id));
+			if(mysql_num_rows($res) > 0) {
+				$r = mysql_fetch_assoc($res);
+				$doc->readValues($r);
+				$doc->loadAuths((int) $r['wcsowner'], $this->docAuths);
+			}
+			mysql_free_result($res);
+		}
+		return $doc;
+	}
+	
+	function &getEmptyDocument() {
+		$record = &$this->getRecord();
+		$doc = new HybridDocument($record);
+		return $doc;
+	}
+	
+	function &getRecord() {
+		if(!is_object($this->record))
+			$this->record = new HybridRecord($this);
+		return $this->record; 
+	}
+	
+	function createEmptyDocument($header, $ownerId) {
+		assert(trim($header) != '');
+		$db = &WCDB::bo();
+		$db->query(
+			sprintf("INSERT INTO dshybrid (ds_id, header, date, wcsowner) VALUES ($this->ds_id, '%s', '%s', %d)", addslashes($header), time(), $ownerId)
+		);
+		$id = $db->lastInsertId();
+		$parents = explode(',',$this->path);
+		unset($parents[0]);
+		$success = true;
+		foreach($parents as $parent) {
+			$db->query("INSERT INTO dshybrid_$parent (id) VALUES ($id)");
+			$success = $success && ($db->affectedRows() > 0);
+		}
+		if($success && $id)
+			return $id;
+		foreach($parents as $parent)
+			$db->query("DELETE FROM dshybrid_$parent WHERE id = $id");
+		$db->query("DELETE FROM dshybrid WHERE id = $id");
+		return null;
+	}
+	
+	function removeEmptyDocuments($ids) {
+		$ids = implode(',',$ids);
+		$db = &WCDB::bo();
+		$db->query("DELETE FROM dshybrid WHERE id IN ($ids)");
+		$parents = explode(',',$this->path);
+		unset($parents[0]);
+		foreach($parents as $parent)
+			$db->query("DELETE FROM dshybrid_$parent WHERE id IN ($ids)");
+		$this->removeFromIndex(&$ids);
+	}
+	
+	function delete($ids) {
+		loadClass('dshybridfactory', '/hybrid/dshybridfactory._wc');
+		$dsf = new DSHybridFactory();
+		$ids = explode(',', $ids);
+		$dsf->removeDocuments(&$ids);
+	}
+	
+	function &getIndexableDocs($id = null) {
+		$result = array();
+		$doc = new HybridDocument($this->getRecord());
+		if(!$this->indexedDocQuery) {
+			$record = &$this->getRecord();
+			$fields = $select = array();
+			$found = preg_match_all('/\\{([a-z][a-z0-9_]*)\\}/u', $this->indexedDoc, $fields);
+			if($found) {
+				$fields = array_unique($fields[1]);
+				foreach($fields as $i => $f) {
+					$field = 'f_'.$f;
+					if(isset($record->fields[$field]) ) {
+						if(!isset($tables[$record->fields[$field]->ds_id])) {
+							$tables[$record->fields[$field]->ds_id] = "dshybrid_{$record->fields[$field]->ds_id}";
+							$where[$record->fields[$field]->ds_id] = " dshybrid_{$record->fields[$field]->ds_id}.id=dshybrid.id ";
+						}
+						$select[$field] = $field;
+					} elseif(!isset($record->fields[$field]) && $f != 'id' && $f != 'header')
+						unset($fields[$i]);
+				}
+			} else
+				$fields = array();
+			if(isset($record->fields[$this->docIntro])) {
+				$select[$this->docIntro] = $this->docIntro;
+				$tables[$record->fields[$this->docIntro]->ds_id] = "dshybrid_{$record->fields[$this->docIntro]->ds_id}";
+				$where[$record->fields[$this->docIntro]->ds_id] = " dshybrid_{$record->fields[$this->docIntro]->ds_id}.id=dshybrid.id ";
+			}
+			$select = (sizeof($select) ? ','.implode(',', $select) : '');
+			$tables = 'dshybrid'. (@$tables ? ','.implode(',', $tables) : '');
+			$where = @$where ? implode('AND', $where) : 1;
+			$this->indexedDocQuery = "SELECT dshybrid.id as id, ds_id, published, header, wcsowner $select FROM $tables WHERE dshybrid.ds_id = {$this->ds_id} %s AND $where";
+		}
+		$indexedDoc = str_replace('%', '%%', $this->indexedDoc);
+		$fieldsLength = sizeof($fields);
+		for($i = 0, $rep = array(), $l = $fieldsLength; $i < $l; $i++) {
+			$rep['%'.($i + 1).'$s'] = '{'.$fields[$i].'}';
+			$fields[$i] = isset($record->fields['f_'.$fields[$i]]) ? 'f_'.$fields[$i] : $fields[$i];
+		}
+		$indexedDoc = str_replace(array_values(&$rep), array_keys(&$rep), $indexedDoc);
+		$agrs = array_fill(0, $fieldsLength + 1, null);
+		$args[0] = &$indexedDoc;
+		$intro = &$this->docIntro;
+		$db = &WCDB::bo();
+		$res = $db->query(sprintf($this->indexedDocQuery, $id === null ? '' : "AND dshybrid.id IN ($id)"));
+		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++) {
+			$r = mysql_fetch_assoc($res);
+			$doc->readValues($r);
+			$doc->sRes = $this->sRes;
+			$doc->sRes->setOwner((int) $r['wcsowner']);
+			$doc->fetchValues();
+			$doc->convertToPlain();
+			for($j = 0; $j < $fieldsLength; $j++) {
+				$f = &$fields[$j];
+				$args[$j + 1] = $doc->fields[$f];
+			}
+			$result[$i] = array(
+				'id' => $doc->id, 'header' => $doc->header,
+				'content' => call_user_func_array('sprintf', &$args),
+				'intro' => isset($doc->fields[$intro]) ? $doc->fields[$intro] : @$doc->$intro
+			);
+			$doc->reset();
+		}
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &getCopiableProps() {
+		assert(true === false);
+	}
+}
+?>

@@ -1,0 +1,64 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: task.backup.restore._wc,v 1.2 2007/02/27 11:23:20 sanjar Exp $
+ */
+require_once('consoletask._wc');
+
+class ConsoleTask_Backup_Restore extends ConsoleTask  {
+	var $id = null;
+	var $last = null;
+	
+	function ConsoleTask_Backup_Restore() {
+		$this->ConsoleTask('Restore site from backup');
+	}
+	
+	function run() {
+		require_once(LIBDIR.'/backup/backupmanager._wc');
+		$bm = new BackupManager();
+		
+		if($this->last) {
+			$this->runner->info("Restoring from latest backup...");
+			if($bm->restoreLast()) {
+				$this->runner->info("Successfully restored site");
+			} else {
+				$this->runner->info("Failed to restore site");
+			}
+		} elseif($this->id) {
+			$this->runner->info("Restoring from backup [ id = {$this->id} ]...");
+			if($bm->restore($this->id)) {
+				$this->runner->info("Successfully restored site");
+			} else {
+				$this->runner->info("Failed to restore site from backup");
+			}
+		} else
+			$this->runner->warning("Specify backup id");
+	}
+	
+	function getArgNames() {
+		return array(
+			'id' => '',
+			'last' => ''
+		);
+	}
+}
+?>

@@ -1,0 +1,76 @@
+<?php
+	$GLOBALS['WCDB_DATABASES'] = array(
+		'default' => array(
+			'server' => '%db_server%',
+			'user' => '%db_user%',
+			'pwd' => '%db_password%',
+			'db' => '%db_name%',
+			'setnames' => true
+		)
+	);
+	define('WCDB_FRONT', 'default');
+	define('WCDB_SYSTEM', WCDB_FRONT);
+	
+	// FTP settings
+	define('WCFTP_HOST', '%ftp_host%');
+	define('WCFTP_PORT', '%ftp_port%');
+	define('WCFTP_SITEROOT', '%ftp_siteroot%');
+	define('WCFTP_USER', '%ftp_user%');
+	define('WCFTP_PWD', '%ftp_pwd%');
+	
+	define('WC_SITE_HOST', '%site_host%'); // with "www" prefix if possible
+	
+	define('WC_SMARTY_TEMPLATES', FILES.'/smarty/templates/');
+	
+	define('WC_BLOCK_CACHING', 0);
+	define('WC_PAGE_CACHING', 0);
+	define('WC_PAGE_CACHE_GZ', 5);
+	define('WC_OUTPUT_BUFFER', 12000);
+	define('WC_MODE_DEBUG', 1);
+	// Site's timezone
+	define('WC_TIMEZONE', 5 * 3600);
+	// Group ids seperated by "," that can access Open Constructor
+	define('WCS_USERGROUP', '1,3');
+	// List of disallowed filetypes separated by ",". You can specify regex as well. Exapmle: "/^php.*/,py,/^shtm/"
+	define('CONF_DSFILE_DISALLOW_TYPES','/^php/,/^phtm/,py,pl,/^asp/,htaccess,cgi,_wc,/^shtm/,/^jsp/'); 
+	// Captcha
+	define('WC_CAPTCHA_CACHE', $_SERVER['DOCUMENT_ROOT'].FILES.'/captcha'); 
+	define('WC_MAX_IDLE_CAPTCHA', 5);
+	// Inline editing
+	define('WCI_ALLOWED', 1); 
+	
+	define('DEFAULT_SKIN', 'metallic');
+	define('DEFAULT_LANGUAGE', '%default_language%');
+	define('WC_SYNTAX_ENABLE', 0);
+	define('WC_SYNTAX_DEFAULT', 1);
+	define('WC_GZIP_OUTPUT', 1);
+	
+	// Security defaults
+	define('WCS_DS_MASK', 'createdoc,editdoc,editds,editds.chmod,publishdoc,removedoc,removeds:createdoc,editdoc,publishdoc,removedoc');
+	define('WCS_DS_HTMLTEXT_MASK', WCS_DS_MASK);
+	define('WCS_DS_PUBLICATION_MASK', WCS_DS_MASK);
+	define('WCS_DS_EVENT_MASK', WCS_DS_MASK);
+	define('WCS_DS_GALLERY_MASK', WCS_DS_MASK);
+	define('WCS_DS_TEXTPOOL_MASK', WCS_DS_MASK);
+	define('WCS_DS_GUESTBOOK_MASK', WCS_DS_MASK);
+	define('WCS_DS_PHPSOURCE_MASK', 'createdoc,editdoc,editds,editds.chmod,removedoc,removeds:createdoc');
+	define('WCS_DS_FILE_MASK', WCS_DS_MASK);
+	define('WCS_DS_ARTICLE_MASK', WCS_DS_MASK);
+	define('WCS_DS_HYBRID_MASK', WCS_DS_MASK);
+	define('WCS_DS_RATING_MASK', WCS_DS_MASK);
+	
+	define('WCS_DOC_MASK', 'editdoc,publishdoc,removedoc');
+	
+	define('WCS_ENUM_MASK', 'editenum,editenum.chmod,removeenum,addvalue,editvalue,removevalue:editvalue');
+	
+	define('WCS_WCOBJECT_MASK', 'editobj,editobj.tpl,editobj.chmod,editobj.ds,removeobj:editobj,editobj.tpl,editobj.ds');
+	
+	define('WCS_GROUP_MASK', 'createuser,editgroup,editgroup.umask,edituser,removegroup:edituser');
+	define('WCS_DEFAULT_USER_MASK', 'edit,edit.pwd');
+	
+	define('WCS_WCTPL_MASK', 'edittpl,edittpl.chmod,removetpl:edittpl');
+	
+	define('WCS_WCTREE_MASK', 'edittree,edittree.chmod,managetree,removetree:edittree,managetree');
+	
+	define('WCS_PAGE_MASK', 'editpage,editpage.caching,editpage.chmod,editpage.publish,editpage.security,editpage.uri,managesub,pageblock,pageblock.manage,removepage:editpage,editpage.caching,editpage.security,editpage.publish,managesub,pageblock,pageblock.manage');
+?>

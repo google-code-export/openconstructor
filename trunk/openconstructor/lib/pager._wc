@@ -1,0 +1,62 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: pager._wc,v 1.5 2007/02/27 11:23:18 sanjar Exp $
+ */
+function pager($vname,$table,$field,$clause,$pagesize,$size=10,$searchclause='') {
+	$db = &WCDB::bo();
+	$query = 'SELECT COUNT(*) as items '.
+		'FROM '.$table.' '.$clause.$searchclause;
+	$res = $db->query($query);
+	$items = mysql_result($res, 0, 'items');
+	mysql_free_result($res);
+	noSqlPager($items, $vname, $pagesize, $size);
+	return $items;
+}
+
+function noSqlPager($items, $vname, $pagesize, $size = 10) {
+	$current = intval(@$_GET[$vname]) + !intval(@$_GET[$vname]);
+	$pages = intval($items / $pagesize) + intval(($items % $pagesize) && true);
+	if(!$pages)
+		return;
+	$first = $current - intval($size / 2) - !($size % 2) * 1;
+	if($first < 1)
+		$first = 1;
+	$last = $first + $size - 1;
+	if($last > $pages) {
+		$first -= $last - $pages;
+		$last = $pages;
+	}
+	if($first < 1)
+		$first = 1;
+	$ref = $_SERVER['QUERY_STRING'];
+	if($ref) {	
+		$ref = '?'.preg_replace('/(&?)page=(.(?!&))*.(&|$)/', '\\1', $ref);
+		$ref .= (strrpos($ref, '&') + 1 < strlen($ref) ? '&' : '').'page=';
+	} else
+		$ref = '?page=';
+	$ref=htmlspecialchars($ref);
+
+	echo '<pages count="'.$pages.'" current="'.$current.'" first="'.$first.'" items="'.$items.'" href="'.$ref.'">';
+	for($i = $first; $i <= $last; $i++)
+		echo '<page/>';
+	echo '</pages>';
+}
+?>

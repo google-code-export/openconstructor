@@ -1,0 +1,139 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: setup._wc,v 1.2 2007/02/27 11:23:19 sanjar Exp $
+ */
+	error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
+	
+	//----------------------------
+	//Настройки
+	//----------------------------
+
+	define('H_SYSTEM_SETUP', 'Настройки');
+	
+	define('H_SETUP_GENERAL_INFRO', 'Информация');
+	define('PR_SETUP_HTTP_HOST', 'HTTP Хост');
+	define('PR_SETUP_SERVER_IP', 'IP');
+	define('PR_SETUP_WEBSERVER', 'Веб сервер');
+	define('PR_WC_MODE_DEBUG', 'Режим отладки');
+	define('H_WC_MODE_DEBUG_W', 'Нужно выключить');
+	define('PR_WC_BLOCK_CACHING', 'Кеширование вывода блоков');
+	define('PR_WC_PAGE_CACHING', 'Кеширование вывода страниц');
+	define('H_SETUP_WCS_USERS', 'Группы имеющие доступ в ВК');
+	define('H_SETUP_VIEW_LS_DIFFS', 'Просмотреть <a href="%s">различия языковых пакетов</a>');
+	define('H_SETUP_VIEW_ERROR_LOGS', 'Просмотреть <a href="%s">журналы ошибок</a>');
+	
+	define('H_SETUP_PHP_PREFS', 'Настройки PHP');
+	define('H_SETUP_OK_I', '<font color="green">Ok</font>');
+	define('H_SETUP_ENABLE_W', '<font color="red">Нужно включить [On]</font>');
+	define('H_SETUP_DISABLE_W', '<font color="red">Нужно отключть [Off]</font>');
+	define('H_SETUP_VIEW_PHPINFO', 'Открыть <a href="%s">phpinfo()</a>');
+	
+	define('H_SETUP_FTP_PREFS', 'Настройки FTP соединения');
+	define('PR_SETUP_FTP_HOST', 'Хост');
+	define('PR_SETUP_FTP_PORT', 'Порт');
+	define('PR_SETUP_FTP_LOGIN', 'Логин');
+	define('PR_SETUP_FTP_SITEROOT', 'Корень сайта');
+	define('H_ELSES_FTP_PREFS_GIVEN', 'Данные FTP не от этого сайта');
+	
+	define('H_SETUP_DB_PREFS', 'База Данных');
+	define('H_SETUP_DB_VERSION', 'Версия MySQL');
+	define('PR_SETUP_DB_NAME', 'Имя базы данных');
+	define('PR_SETUP_DB_LOGIN', 'Пользователь');
+	define('H_SETUP_DB_OPTIMIZE', '<a href="%s">Оптимизировать</a> все таблицы системы ( OPTIMIZE TABLE ... )');
+	define('H_SETUP_DB_TABLES_INFO', '<a href="checktables.php">Информация</a> о таблицах системы');
+	
+	define('H_SETUP_SYS_ALL', 'Всего');
+	define('H_SETUP_SYS_PAGES', 'Страниц');
+	define('H_SETUP_SYS_DS_DOCS', 'Разделов данных / документов');
+	define('H_SETUP_SYS_ENUMS', 'Перечислений (enum)');
+	define('H_SETUP_SYS_NODES', 'Узлов');
+	define('H_SETUP_SYS_OBJECTS', 'Объектов');
+	define('H_SETUP_SYS_TPLS', 'Шаблонов');
+	define('H_SETUP_SYS_USERS_GROUPS', 'Пользователей / Групп');
+	define('H_SETUP_SYS_REMOVE', 'Удалить');
+	define('H_SETUP_SYS_REMOVE_ALL', 'Удалить все');
+	define('H_SETUP_SYS_BACKUP_SITE', '<a href="%s">Резервное копирование</a> сайта');
+	
+	define('H_SETUP_SMARTY_PREFS', 'Шаблоны Smarty');
+	define('H_SETUP_SMARTY_CLEAR_CACHE', 'Очистить кеш ( $smarty->clear_all_cache )');
+	define('H_SETUP_SMARTY_CLEAR_COMPILED', 'Удалить скомпилированные шаблоны ( $smarty->clear_compiled )');
+	
+	define('H_SETUP_MISC_PREFS', 'Разное');
+	define('H_SETUP_MISC_RESAVE_DS', 'Пересохранить все разделы данных (может занять много времени)');
+	define('H_SETUP_MISC_RESAVE_PAGES', 'Пересохранить все страницы (может занять много времени)');
+	define('H_SETUP_MISC_UPDATE_INDEX', 'Обновить поисковый индекс (%d документов) <i>займет от %s до %s</i>');
+	define('H_SETUP_MISC_CLEAR_CAPTCHA', 'Очистить кеш Captcha');
+	define('H_SETUP_MISC_CHMOD', 'Установить права доступа к файлам и папкам');
+	
+	define('BTN_APPLY', 'Применить');
+	define('BTN_EXIT_SETUP', 'Выйти из настроек');
+	define('BTN_EXIT_SYSTEM', 'Выйти из системы');
+	
+	// Результаты
+	define('H_SETUP_RESULTS', 'Результаты');
+	define('R_SETUP_OK', 'Ok');
+	define('R_SETUP_SKIPPED', 'Отмена');
+	define('R_SETUP_TIME_SPENT', 'Заняло');
+	define('R_SETUP_REMOVE_PAGES', 'Удаление Страниц...');
+	define('R_SETUP_REMOVE_DS', 'Удаление Разделов данных...');
+	define('R_SETUP_REMOVE_ENUMS', 'Удаление Enum-ов...');
+	define('R_SETUP_REMOVE_NODES', 'Удаление Узлов...');
+	define('R_SETUP_REMOVE_OBJECTS', 'Удаление Объектов...');
+	define('R_SETUP_REMOVE_TPLS', 'Удаление Шаблонов...');
+	define('R_SETUP_REMOVE_USERS_GROUPS', 'Удаление Пользователей и Групп...');
+	define('R_SETUP_SMARTY_CLEAR_CACHE', 'Очистка кэша...');
+	define('R_SETUP_SMARTY_CLEAR_COMPILED', 'Удаление скомпилированных шаблонов...');
+	define('R_SETUP_RESAVE_DS', 'Пересохранение Разделов данных...');
+	define('R_SETUP_RESAVE_PAGES', 'Пересохранение Страниц...');
+	define('R_SETUP_UPDATE_INDEX', 'Обновление поискового индекса...');
+	define('R_SETUP_EVICT_CAPTCHA', 'Очистка кеша Captcha...');
+	define('R_SETUP_CHMOD', 'Исправление прав доступа к файловой системе...');
+	define('H_SETUP_BACK', 'Назад');
+	
+	// Оптимизация таблиц
+	define('H_SETUP_OPTIMIZE_TABLES', 'Оптимизация таблиц системы');
+	
+	// Проверка таблиц
+	define('H_SETUP_TABLES_INFO', 'Таблицы системы');
+	define('H_SETUP_EXISTING_TABLES', 'Существующие таблицы системы');
+	define('H_SETUP_ABSENT_TABLES', 'Недостающие таблицы системы');
+	define('H_SETUP_FOREIGN_TABLES', 'Таблицы не используемые системой');
+	
+	// Бэкапы
+	define('H_SETUP_BACKUPS', 'Резервные копии сайта');
+	
+	define('H_SETUP_RESTORE_BACKUP', 'Восстановление резервной копии');
+	define('PR_SETUP_BACKUP_ID', 'Резервные копии');
+	define('BTN_SELECT_LATEST_BACKUP', 'Выбрать самую новую');
+	define('BTN_RESTORE_BACKUP', 'Восстановить');
+	
+	define('H_SETUP_CREATE_BACKUP', 'Создание резервной копии');
+	define('PR_BACKUP_MAX_ARCHIVABLE', 'Сжимать файлы, размер которых меньше чем(МБ)');
+	define('PR_BACKUP_TIMEOUT', 'Ограничение времени выполнения(в сек.)');
+	define('BTN_CREATE_BACKUP', 'Создать');
+	
+	define('H_CREATING_BACKUP_ID', 'Создание резервной копии сайта[ID = %s]');
+	define('CREATING_BACKUP_BG_I', 'Резервное копирование начато в фоновом режиме...');
+	define('H_RESTORING_BACKUP_ID', 'Восстановление сайта из %s');
+	define('RESTORING_BACKUP_BG_I', 'Восстановление начато в фоновом режиме...');
+	
+	error_reporting($_oldLevel);
+?>

@@ -1,0 +1,4 @@
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType application/xml A28800
+</IfModule>
