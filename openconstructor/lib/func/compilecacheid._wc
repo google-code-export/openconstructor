@@ -1,0 +1,41 @@
+<?php
+/**
+ * @author Sanjar Akhmedov
+ */
+
+function wcfCompileCacheId($cid) {
+	$fields = array();
+	$result = addslashes($cid);
+	$found = preg_match_all(
+		'/(?<!\{)\{('.
+			'(\$[A-Za-z0-9_\-\.\/]+)'. // {$abc}
+			'|(\-?[0-9]+)'. // {1}, {-1}
+			'|(\.)'. // {.}
+		')\}(?!\})/u'
+		, $result, $fields
+	);
+	if($found) {
+		$fields = array_unique($fields[1]);
+		$crc32 = false;
+		foreach($fields as $i => $f) {
+			$patterns[] = '/(?<!\{)\{'.preg_quote($f, '/').'\}(?!\})/u';
+			$part = null;
+			switch($f{0}) {
+				case '$':
+					$crc32 = true;
+					$part = sprintf('\'.$x->getParam(\'%s\').\'', addslashes(substr($f, 1)));
+				break;
+				case '.':
+					$part = '\'.$p->id.\'';
+				break;
+				default:
+					$part = sprintf('\'.$p->getParent(%d).\'', $f);
+			}
+			$reps[] = $part;
+		}
+		$result = preg_replace($patterns, $reps, $result);
+		$result = $crc32 ? "\$t->_encCID('$result')" : "'$result'";
+	}
+	return $result;
+}
+?>

@@ -1,0 +1,185 @@
+<?php 
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: sections._wc,v 1.6 2007/02/27 11:23:26 sanjar Exp $
+ */
+function menu($cur_section) {
+	$sections = getTabs();
+	echo '<sections>';
+	foreach($sections as $uri=>$title)
+		echo '<item href="'.WCHOME.'/'.$uri.'"'.($uri==$cur_section?' current="yes"':'').'>'.$title.'</item>';
+	echo '</sections>';
+}
+
+function &getTabs() {
+	$sections = array(
+		'structure' => array('sitemap', SITEMAP),
+		'data' => array('data', DATASOURCES),
+		'objects' => array('objects', OBJECTS),
+		'templates' => array('tpls', TEMPLATES),
+		'catalog' => array('catalog', CATALOG),
+		'users' => array('users', USERS)
+	);
+	$sys = &System::getInstance();
+	foreach($sections as $uri=>$v)
+		if(WCS::decide($sys, $v[0]))
+			$result[$uri] = $v[1];
+	return $result;
+}
+
+if(!function_exists('toolbar')) {
+	function toolbar($toolbar) {
+		echo '<toolbar>';
+		$prev=false;
+		$i=0;
+		foreach($toolbar as $name=>$v){
+			if($v=='separator') {
+				$prev=' separator="yes"';
+				continue;
+			}
+			else if(substr($name,0,1)=='{') {
+				echo '<buttonset id="bs'.$i++.'"'.$prev.'>';
+				$default=$v;
+			} else if($v=='}') {
+				echo '</buttonset>';
+				$default=null;
+			} else {
+				$act='';
+				$d=$v['pic']==@$default?' default="yes"':'';
+				if(!empty($v['action']))
+					$act="javascript:{$v['action']}";
+				echo "<button id='{$v['pic']}' action='$act'{$prev}{$d}>$name</button>";
+			}
+			$prev=null;
+		}
+		echo '</toolbar>';
+	}
+}
+
+function print_tree(&$map, $type = 'f')
+{
+	$clickable=@$_GET['search']?' clickable="yes"':'';
+	global $curnode,$opened;
+	$i=0;
+	foreach($map as $id=>$v)
+		if(is_array($v))
+			foreach($v as $desc=>$childmap)
+			{
+				echo '<tree'
+						.' id="'.$id.'"'
+						.($id==$curnode?' current="yes"'.$clickable:'')
+						.(isset($opened[$id])?' opened="yes"':'')
+						.' action="'.(is_int($id)?'?node='.$id:'javascript:node(\''.$id.'\')').'"'
+						.' name="'.htmlspecialchars($desc, ENT_QUOTES, 'UTF-8').'"'
+						.' type="'.$type.'"'
+						.' default="f"'
+					.'>';
+				print_tree($childmap);
+				echo '</tree>';
+			}
+		else
+			echo '<node'
+					.' id="'.$id.'"'
+					.($id==$curnode?' current="yes"'.$clickable:'')
+					.' action="'.(is_int($id)||true?'?node='.$id:'javascript:node(\''.$id.'\')').'"'
+					.' name="'.htmlspecialchars($v, ENT_QUOTES, 'UTF-8').'"'
+				.'/>';
+}
+
+function print_headline(&$hl)
+{
+	$i=0;
+	global $fields,$icon,$fieldnames;
+	$fields1=$fields;
+	foreach((array) $fieldnames as $k=>$v)
+		if(!@$fields1[$k]||@$fields1[$k]===true)
+			$fields1[$k]=$v;
+	echo '<fields>';
+		foreach($fields1 as $k=>$v)
+			if($v!==true)
+				echo '<field name="'.$v.'" id="'.$k.'" title="'.@$fieldnames[$k].'" enabled="'.(isset($fields[$k])?'yes':'no').'" visible="'.(isset($fields[$k])&&@$fields[$k]!==true?'yes':'no').'"/>';
+	echo '</fields>';
+
+	$fl=true;
+	foreach($hl as $id=>$v)
+	{
+		echo '<item id="'.$id.'"'.(isset($v['ds_id'])?' dsId="'.$v['ds_id'].'"':'').(isset($v['published'])&&!@$v['published']?' published="no"':'').(is_array($icon)?' type="'.$icon[$id].'"':'').'>';
+		$b='';
+		foreach($fields as $k=>$junk)
+			if($junk!==true){
+				if(!$b)
+					echo '<name>'.htmlspecialchars($v[$k], ENT_QUOTES, 'UTF-8').'</name>'.(@$v['description']&&@$fields['description']?'<meta><![CDATA['.$v['description'].']]></meta>':'');
+				else
+					echo '<f><![CDATA['.$v[$k].']]></f>';
+				$b=true;
+			}
+		echo '</item>';
+	}
+}
+function set_js_vars($vars)
+{
+	foreach($vars as $v)
+		echo 'var ',$v,'="',constant($v),'";';
+}
+function set_xslt_vars($vars)
+{
+	echo '<messages>';
+	foreach($vars as $v)
+		echo '<msg id="',$v,'">',constant($v),'</msg>';
+	echo '</messages>';
+}
+function getTreesFor($id) {
+	$trees = array();
+	$id = (int) $id;
+	$db = &WCDB::bo();
+	$res = $db->query(
+		"SELECT name, tree".
+		" FROM dshfields, hybriddatasources".
+		" WHERE hybriddatasources.ds_id = $id AND dshfields.family = 'tree' AND FIND_IN_SET(dshfields.ds_id, hybriddatasources.path) > 0"
+	);
+	if(mysql_num_rows($res) > 0)
+		while($r = mysql_fetch_assoc($res))
+			$trees[$r['name']] = (int) $r['tree'];
+	mysql_free_result($res);
+	return sizeof($trees) ? $trees : array(0);
+}
+
+function html_toolbar($toolbar) {
+	$img = WCHOME.'/i/'.SKIN; ?>
+	<div id="toolbar" nowrap=""><img src="<?=$img?>/tool/beginner.gif" align="absmiddle" vspace="4" hspace="5"/>
+<?php
+	$prev=false;
+	$i=0;
+	foreach($toolbar as $name=>$v){
+		if($v=='separator') {
+			echo '<img src="'.$img.'/tool/separator.gif" alt="|" align="absmiddle" hspace="3"/>';
+			continue;
+		}
+		$act='';
+		if(!empty($v['action']))
+			$act="javascript:{$v['action']}";
+		if($act)
+			echo "<a href='$act' class='tool'><img src='$img/tool/{$v['pic']}.gif' alt='$name' width='34' height='32' align='absmiddle' class='t' name='btn_{$v['pic']}'/></a>";
+		else
+			echo "<img src='$img/tool/{$v['pic']}_.gif' alt='$name' width='34' height='32' align='absmiddle' name='btn_{$v['pic']}' class='t'/>";
+	}
+	echo '</div>';
+}
+?>

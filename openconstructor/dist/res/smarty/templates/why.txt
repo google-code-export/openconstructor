@@ -1,0 +1,2 @@
+This folder contains all Smarty templates created by Open Constructor.
+Do not remove this file.

@@ -1,0 +1,42 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: apply_tpl._wc,v 1.4 2007/02/27 11:23:24 sanjar Exp $
+ */
+	$obj->tpl=@$_POST['tpl_id'];
+	if(isset($_POST['tpl_args']))
+		$obj->tpl_args = (string) $_POST['tpl_args'];
+	else
+		unset($obj->tpl_args);
+	$obj->caching=@$_POST['enableCaching']=='true'?2:0;
+	if($obj->caching){
+		if(@$_POST['flushCache']=='time'){
+			$time=@$_POST['cacheLifetime'];
+			$obj->cache_lifetime=intval($time)?intval($time):15*60;
+			$obj->cached_by_WC=false;
+		} else {
+			$obj->cached_by_WC=true;
+			$obj->cache_lifetime=4*7*24*60*60;
+		}
+	}
+	if(array_key_exists('cidTpl', get_class_vars($obj->obj_type))) {
+		$obj->_setCidTpl(@$_POST['cidTpl']);
+	}
+?>

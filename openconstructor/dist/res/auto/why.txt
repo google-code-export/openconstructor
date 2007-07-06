@@ -1,0 +1,2 @@
+This folder contains all folders auto-created by DSFile.
+Do not remove this file.

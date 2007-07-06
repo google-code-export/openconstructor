@@ -1,0 +1,6 @@
+ErrorDocument 403 /openconstructor/lib/captcha/get.php?length=4&width=64&height=32&fontsize=16
+
+<Files ~ "\.png$"> 
+  Order allow,deny 
+  Deny from all 
+</Files> 

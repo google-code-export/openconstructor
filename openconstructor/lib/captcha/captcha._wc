@@ -1,0 +1,147 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Bakhtiyor Khodjayev
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: captcha._wc,v 1.4 2007/02/27 11:23:20 sanjar Exp $
+ */
+
+require_once('image.filter._wc');
+
+class Captcha {
+	var $text, $width, $height;
+	var $isTrueType, $font, $fontSize;
+	var $textWidth, $textHeight;
+	var $colorValues;
+	var $filters;
+	var $image;
+	
+	function Captcha($text, $width = 80, $height = 80, $fontSize = 14) {
+		$this->text = (string)$text;
+		$this->width = $width;
+		$this->height = $height;
+		$this->fontSize = $fontSize;
+		$this->isTrueType = true;
+		$this->font = LIBDIR.'/captcha/captcha.ttf';
+		$this->filters = array('.LinesImageFilter', 'WavyImageFilter');
+		$this->colorValues = array();
+		$this->image = null;
+	}
+	
+	function createImage() {
+		if($this->image)
+			$this->destroy();
+		$this->image = @imagecreate($this->width, $this->height);
+	}
+	
+	function colorAllocate() {
+		$this->colorValues['bgColor'] = array(rand(240, 255), rand(240, 255), rand(240, 255));
+		$this->colorValues['charColor'] = array(rand(0,128), rand(0,128), rand(0,128));
+		$this->bgColor = imagecolorallocate($this->image, $this->colorValues['bgColor'][0], 
+			$this->colorValues['bgColor'][1], $this->colorValues['bgColor'][2]);
+		$this->charColor = imagecolorallocate($this->image, $this->colorValues['charColor'][0],
+			$this->colorValues['charColor'][1], $this->colorValues['charColor'][2]);		
+	}
+	
+	function paintChars() {
+		$font = 3;
+		$tmp = @imagecreate(ceil(imagefontwidth($font)*strlen($this->text)*1.1),
+			ceil(imagefontheight($font)*1.1));
+		$bgColor = imagecolorallocate($tmp, $this->colorValues['bgColor'][0], 
+			$this->colorValues['bgColor'][1], $this->colorValues['bgColor'][2]);
+		$charColor = imagecolorallocate($tmp, $this->colorValues['charColor'][0],
+			$this->colorValues['charColor'][1], $this->colorValues['charColor'][2]);
+		imagestring($tmp, $font, 0, 0, $this->text, $charColor);
+		/*TODO: finish implementation*/ 
+		imagedestroy($tmp);
+	}
+	
+	function paintTrueTypeChars() {
+		$bounds = imagettfbbox($this->fontSize, 0, $this->font, $this->text);
+		$this->textWidth = $bounds[2] - $bounds[0];
+		$this->textHeight = abs($bounds[1]) + abs($bounds[5]);//$bounds[1] - $bounds[7];
+		$x = ceil(($this->width - $this->textWidth)/2);
+		$y = $this->textHeight;//ceil($this->height / 2 + $this->textHeight / 5);
+		$bounds = imagettftext($this->image, $this->fontSize, 0, $x, $y, $this->charColor, $this->font, $this->text);
+		$this->textHeight = abs($bounds[1]) + abs($bounds[5]);//$bounds[1] - $bounds[7];
+		unset($bounds);
+	}
+	
+	function applyFilters() {
+		for ($i=0; $i<count($this->filters); $i++) {
+			if (class_exists($this->filters[$i])) {
+				$filter = & new $this->filters[$i]($this);
+				$filter->run();
+				if ($this->image != $filter->getImage()) {
+					imagedestroy($this->image);
+					$this->image = $filter->getImage();
+				}
+				unset($filter);
+			}
+		}
+	}
+	
+	function getImage() {
+		if(!$this->image)
+			$this->create();
+		return $this->image;
+	}
+	
+	function create() {
+		if(!$this->image) {
+			$this->createImage();
+			$this->colorAllocate();
+			if ($this->isTrueType) {
+				$this->paintTrueTypeChars();
+			} else {
+				$this->paintChars();
+			}
+			$this->applyFilters();
+		}
+	}
+	
+	function destroy() {
+		if($this->image)
+			imagedestroy($this->image);
+		$this->image = null;
+	}
+	
+	function png($filename = null) {
+		if($filename)
+			imagepng($this->getImage(), $filename);
+		else
+			imagepng($this->getImage());
+	}
+	
+	function &generate($secureWord, $width, $height, $fontSize, $isTrueType) {
+		$captcha = & new Captcha($secureWord, $width, $height);
+		$captcha->fontSize = $fontSize;
+		$captcha->isTrueType = true;
+		ob_start();
+		$captcha->png();
+		$result = ob_get_contents();
+		ob_end_clean();
+		$captcha->destroy();
+		unset($captcha);
+		return $result;
+	}
+}
+?>

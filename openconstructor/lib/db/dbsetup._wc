@@ -1,0 +1,92 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: dbsetup._wc,v 1.2 2007/02/27 11:23:25 sanjar Exp $
+ */
+class DBSetup {
+	function getWCTables($withHybrid = true) {
+		$tables = array(
+			'catalogdocs', 'catalognode', 'catalogtree',
+			'datasources',
+			'dsarticle','dsarticlepages',
+			'dsevent',
+			'dsfile',
+			'dsgallery',
+			'dsguestbook',
+			'dshtmltext',
+			'dshybrid',	'dshfields', 'hybriddatasources',
+			'dsphpsource',
+			'dspublication',
+			'dstextpool',
+			'dsrating','dsratinglog',
+			'enums', 'enumvalues',
+			'index', 'strongtags',
+			'objects',
+			'siteobjects', 'sitepages', 'sitetree',
+			'wcsgroups', 'wcsmembership', 'wcsusers',
+			'wctemplates', 'wctemplate_blocks'
+		);
+		
+		if($withHybrid)
+			$tables = array_merge($tables, DBSetup::getDSHybridTables());
+		return $tables;
+	}
+	
+	function getDSHybridTables() {
+		static $hybrid;
+		if(!isset($hybrid)) {
+			$hybrid = array();
+			$db = &WCDB::bo();
+			$res = $db->query('SELECT ds_id FROM hybriddatasources');
+			if(!$db->errorCode()) {
+				while($r = mysql_fetch_row($res))
+					$hybrid[] = strtolower("dshybrid_{$r[0]}");
+				mysql_free_result($res);
+			}
+		}
+		return $hybrid;
+	}
+	
+	function getAbsentWCTables() {
+		$result = array_diff(DBSetup::getWCTables(), DBSetup::getAllTables());
+		return $result;
+	}
+	
+	function getExistingWCTables() {
+		$result = array_diff(DBSetup::getWCTables(), DBSetup::getAbsentWCTables());
+		return $result;
+	}
+	
+	function getAllTables() {
+		static $all;
+		if(!isset($all)) {
+			$all = array();
+			$db = &WCDB::bo();
+			$res = $db->query('SHOW TABLES');
+			while($r = mysql_fetch_row($res))
+				$all[] = strtolower($r[0]);
+			mysql_free_result($res);
+		}
+		return $all;
+	}
+}
+?>

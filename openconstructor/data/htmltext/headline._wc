@@ -1,0 +1,67 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: headline._wc,v 1.8 2007/02/27 11:23:21 sanjar Exp $
+ */
+	require_once(LIBDIR.'/site/pagereader._wc');
+	require_once('../include/headlines._wc');
+	$pr = &PageReader::getInstance();
+	$pagesize = 30;
+	if(intval(@$_COOKIE['pagesize'])>0)
+		$pagesize=$_COOKIE['pagesize'];
+	$_ds = &$ds;
+	$searchclause = $ds->isIndexable  && !isset($_GET['noindex']) ? get_index_clause(@$_GET['search']) : get_clause(@$_GET['search'],'html, s.name, s.header');
+	list($items, $hl) = $_ds->get_headline(@$_GET['page'], $pagesize, $searchclause);
+	if(is_array($searchclause)) {
+		$pages = &$pr->getAllPages();
+		$ids = array_keys($hl);
+		for($i = 0, $l = sizeof($ids); $i < $l; $i++) {
+			$hl[$ids[$i]]['uri'] = '<u>'.$pages[$ids[$i]].'</u>';
+		}
+	}
+	$icon='html';
+	$w=820; $h=520;
+	$editor='htmltext/edit.php?ds_id='.$curnode;
+	$fields=array(
+		'name'=>HL_NAME,
+		'uri'=>'URI',
+		'date'=>HL_DATE
+	);
+	$fieldnames=array(
+		'uri'=>RP_SHOW_URI,
+		'date'=>RP_SHOW_DATE
+	);
+	if(is_array(@$_COOKIE['vf']))
+		foreach($_COOKIE['vf'] as $f=>$st)
+			if($st=='disabled') unset($fields[$f]);
+	echo '<documents server="htmltext/i_htmltext.php"'
+			.' type="'.$icon.'"'
+			.' defaultaction="delete_html"'
+			.' size="'.(intval(@$_COOKIE['pagesize'])>0?$_COOKIE['pagesize']:$pagesize).'"'
+		.'>';
+	echo '<editor href="'.$editor.'" width="'.$w.'" height="'.$h.'"/>';
+	echo '<hidden name="ds_id" value="'.$curnode.'"/>';
+	echo '<hidden name="dest_ds_id" value="'.$curnode.'"/>';
+	print_headline($hl);
+	require_once(LIBDIR.'/pager._wc');
+//	pager('page','dshtmltext','id','WHERE ds_id='.$_ds->ds_id,$pagesize,10,$searchclause);
+	noSqlPager($items, 'page', $pagesize, 10);
+	echo '</documents>';
+?>

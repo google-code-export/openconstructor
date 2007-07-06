@@ -1,0 +1,122 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: classes._wc,v 1.15 2007/02/27 11:23:19 sanjar Exp $
+ */
+	error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
+	
+	//----------------------------
+	//Классы
+	//----------------------------
+	
+	define('WC','Open Constructor');
+	
+	//Разделы данных
+	
+	define('DS_HTMLTEXT','HTML текст');
+	define('DS_PUBLICATION','Публикации');
+	define('DS_EVENT','Календарь событий');
+	define('DS_GALLERY','Фото галерея');
+	define('DS_TEXTPOOL','Пул текстов');
+	define('DS_GUESTBOOK','Гостевая книга');
+	define('DS_PHPSOURCE','PHP код');
+	define('DS_FILE','Файлы');
+	define('DS_ARTICLE','Статьи');
+	define('DS_MISCELLANY','Разное');
+	define('DS_USERS','Пользователи');
+	define('DS_HYBRID','Гибридные данные');
+	define('DS_SEARCH','Поиск');
+	define('DS_RATING','Журнал оценок');
+	
+	
+	//Объекты вывода
+	
+	define('OBJ_HTMLTEXT_BODY','HTML текст');
+	define('OBJ_HTMLTEXT_HL','Список страниц');
+	define('OBJ_HTMLTEXT_HL_INTRO','Список страниц с интро');
+	
+	define('OBJ_PUBLICATION_HL','Список публикаций');
+	define('OBJ_PUBLICATION_HL_INTRO','Список публикаций с интро');
+	define('OBJ_PUBLICATION_MAIN_INTRO','Главная публикация, интро');
+	define('OBJ_PUBLICATION_BODY','Публикация');
+	define('OBJ_PUBLICATION_PAGER','Листалка');
+	define('OBJ_PUBLICATION_LIST','Публикации по алфавиту');
+	define('OBJ_PUBLICATION_LIST_INTRO','Публикации по алфавиту с интро');
+	
+	define('OBJ_EVENT_CALENDAR','Календарь событий');
+	define('OBJ_EVENT_HL','Список событий');
+	define('OBJ_EVENT_HL_INTRO','Список событий с интро');
+	define('OBJ_EVENT_BODY','Событие');
+	define('OBJ_EVENT_PAGER','Листалка');
+	
+	define('OBJ_GALLERY_HL','Список картинок');
+	define('OBJ_GALLERY_PAGER','Листалка для галереи');
+	define('OBJ_GALLERY_IMAGE','Картинка галереи');
+	define('OBJ_GALLERY_IMG_PAGER','Листалка для картинки');
+	
+	define('OBJ_ARTICLE_BODY','Статья');
+	define('OBJ_ARTICLE_BODY_PAGER','Листалка для статьи');
+	define('OBJ_ARTICLE_HL','Список статей');
+	define('OBJ_ARTICLE_HL_INTRO','Список статей с интро');
+	define('OBJ_ARTICLE_PAGER','Листалка');
+	define('OBJ_ARTICLE_RELATED','Ссылки по теме');
+	
+	define('OBJ_TEXT_RANDOM','Произвольный текст');
+	
+	define('OBJ_GB_ALL_MESSAGES','Список всех сообщений');
+	define('OBJ_GB_ADDMSG_LOGIC','Обработчик добавления сообщений');
+	define('OBJ_GB_LIST','Список гостевых книг');
+	define('OBJ_GB_MSG_BODY','Сообщение');
+	define('OBJ_GB_MSG_HL','Список сообщений');
+	define('OBJ_GB_PAGER','Листалка');
+	
+	define('OBJ_PHP_INCLUDE','Включение кода');
+	define('OBJ_PHP_CALLBACK','Обратный вызов');
+	
+	define('OBJ_MISC_FETCHTPL','Включение шаблона');
+	define('OBJ_MISC_CRUMBS','Хлебные крошки');
+	define('OBJ_MISC_SENDMAIL','Отправка писем');
+	define('OBJ_MISC_INJECTOR','Инъекция объектов');
+	
+	define('OBJ_FILE_HL','Список файлов');
+	define('OBJ_FILE_PAGER','Листалка');
+	
+	define('OBJ_HYBRID_TREE','Структура');
+	define('OBJ_HYBRID_HL','Список документов');
+	define('OBJ_HYBRID_BAR','Cписок документов по ID');
+	define('OBJ_HYBRID_PAGER','Листалка');
+	define('OBJ_HYBRID_BODY','Гибридный документ');
+	define('OBJ_HYBRID_BODY_EDIT','Редактор гибридного документа');
+	
+	define('OBJ_SEARCH_DSS','Поиск по разделам');
+	define('OBJ_SEARCH_DSS_PAGER','Листалка');
+	
+	define('OBJ_USERS_AUTHENTICATE','Аутентификация пользователя');
+	define('OBJ_USERS_LOGOUT','Аннулирование аутентификации');
+	
+	define('OBJ_RATING_RATE','Оценивание документа');
+	define('OBJ_RATING_RATELOGIC','Обработчик оценивания документа');
+	
+	define('H_SITE','Сайт');
+	define('H_PAGE','Страница');
+	define('H_IMPORT_TABLES','Шаблоны таблиц');
+	
+	error_reporting($_oldLevel);
+?>

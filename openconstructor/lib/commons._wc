@@ -1,0 +1,207 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: commons._wc,v 1.64 2007/04/13 13:51:27 sanjar Exp $
+ */
+	define('WC_VERSION', '3.9.0');
+	define('WC_VERSION_FULL', '3.9.0-rc-20070413');
+	
+	define('WCHOME', '/openconstructor');
+	define('LIBDIR', $_SERVER['DOCUMENT_ROOT'].WCHOME.'/lib');
+	define('LIBDIR_THIRD', LIBDIR.'/third');
+	define('ROOT', $_SERVER['DOCUMENT_ROOT']);
+	define('FILES', '/res');
+	define('SMARTY_DIR', LIBDIR_THIRD.'/smarty/');
+	
+	define('WCS_ROOT_ID', 1); // id пользователя root
+	define('WCS_ADMINS_ID', 1); // id группы Administrators
+	define('WCS_EVERYONE_ID', 2); // id группы Everyone
+
+	// TODO: удалить эти 3 переменные
+	$_wchome = WCHOME;
+	$_libdir = LIBDIR;
+	$_host = $_SERVER['HTTP_HOST'];
+
+	assert_options(ASSERT_BAIL, 1);
+
+	error_reporting(E_ALL);
+	
+	if(!@include_once(ROOT.FILES.'/config._wc'))
+		if(!@file_exists(ROOT.FILES)) {
+			require_once($_SERVER['DOCUMENT_ROOT'].WCHOME.'/setup/install._wc');
+			die();
+		}
+	if(WC_SITE_HOST && (@$_SERVER['HTTP_HOST'] != WC_SITE_HOST)) {
+		header('HTTP/1.x 301 Moved Permanently');
+		header('Location: http://'.WC_SITE_HOST.$_SERVER['REQUEST_URI']);
+		die();
+	}
+	
+	if(WC_MODE_DEBUG) {
+		ini_set('display_errors', true);
+	} else {
+		ini_set('display_errors', false);
+		ini_set('ignore_repeated_errors', true);
+	}
+	ini_set('error_log', $_SERVER['DOCUMENT_ROOT'].FILES.'/log/'.date('Y-m-d').'.txt');
+	ini_set('log_errors', true);
+	
+	global $__markedtime, $__report, $object;
+	$object = array();
+	
+	function _gettime()		{list($a,$b)=explode(' ',microtime());return ((float)$a + (float)$b);}
+	function _marktime()	{$GLOBALS['__markedtime'] = _gettime();}
+	function _getperiod()	{return ((float)_gettime()-(float)$GLOBALS['__markedtime']);}
+
+	_marktime();
+	
+	require_once(LIBDIR_THIRD.'/phputf8/utf8.php');
+	
+	function encodestr($str) {
+		$result = '';
+		if(!empty($str)) {
+			require_once(LIBDIR_THIRD.'/phputf8/utils/unicode.php');
+			$chars = utf8_to_unicode($str);
+			foreach($chars as $char)
+				$result .= '&#X'.dechex($char).';';
+		}
+		return $result;
+	}
+	
+	function loadClass($class, $file) {
+		if(class_exists($class))
+			return;
+		$filename = LIBDIR . $file;
+		include($filename);
+	}
+	
+	function sendOutput(&$output, $sendLength = false) {
+		$length = strlen($output);
+		if(!headers_sent()) {
+			$ctx = &Context::getInstance();
+			header('Content-Type: '.$ctx->page->getContentTypeHeader());
+			if($ctx->page->_cacheGz) {
+				header('Content-Encoding: gzip');
+				header('Vary: Accept-Encoding');
+				header("Content-Length: $length");
+			} elseif($sendLength)
+				header("Content-Length: $length");
+			if($ctx->page->_eTag !== null) {
+				header('Cache-Control: '.($ctx->auth->userId > 0 ? 'private' : 'public').', must-revalidate');
+				header("Etag: {$ctx->page->_eTag}");
+			}
+		}
+		$bufferSize = defined('WC_OUTPUT_BUFFER') ? (int) constant('WC_OUTPUT_BUFFER') : 6000;
+		if($bufferSize < 1 || $length <= $bufferSize) {
+			echo $output;
+			return 0;
+		}
+		$offset = 0;
+		for($i = 0, $l = intval($length / $bufferSize); $i < $l; $i++) {
+			$chunk = substr($output, $offset, $bufferSize);
+			echo $chunk;
+			$offset += $bufferSize;
+		}
+		if($length > $offset)
+			echo substr($output, $offset);
+		return $bufferSize;
+	}
+	
+	function _getAuthenticationPage() {
+		loadClass('context', '/context._wc');
+		$ctx = &Context::getInstance();
+		if(is_object($ctx->map)) {
+			$prefix = $ctx->page->getParent(1, true);
+			$prefix = $prefix && strlen($prefix) == 4 ? $prefix : '/';
+			$suggest = array('login', 'log-in', 'signin', 'sign-in');
+			foreach($suggest as $folder)
+				if($ctx->map->exists("{$prefix}{$folder}/"))
+					return "{$prefix}{$folder}/";
+				elseif($ctx->map->exists("/{$folder}/"))
+					return "/{$folder}/";
+		}
+		return WCHOME.'/login.php';
+	}
+	
+	function _register_phase($header, $start = null) {
+		static $last;
+		$current = (float) _getperiod();
+		if($start === null) {
+			$GLOBALS['__report'][$header] = $current - $last;
+			$last = $current;
+		} else
+			$GLOBALS['__report'][$header] = $current - $start;
+		return $current;
+	}
+	
+	function print_report() {
+		$length = 80;
+		$head = ' Page generation report '; $l1 = ($length - strlen($head)) / 2;
+		$all = (float) _getperiod();
+		echo "\n<!--".str_pad('', $l1, ' -').$head.str_pad('', $l1, '- ')."\n\n";
+		foreach((array)$GLOBALS['__report'] as $header => $time) {
+			$p = round((float)($time * 100) / $all, 1);
+			$dots = $length - 18 - utf8_strlen($header);
+			echo $header.str_repeat('.', $dots > 0 ? $dots : 0).
+				sprintf("% 5.01f%%  [ %01.03f sec ]\n", $p, $time);
+		}
+		$ctx = &Context::getInstance();
+		$db = &$ctx->_getDB();
+		echo sprintf("Date: %s GMT\n", gmdate('D, j M Y H:i:s'));
+		echo sprintf("SQL queries used: %d\n", $db->getQueryCount());
+		echo sprintf('Speed: % 5.1f pps  [ %01.03f sec ]', round(1/$all, 1), $all);
+		echo "\n\n".str_pad('', $length, '- ').' -->';
+	}
+	
+	function pr(&$var) {
+		echo '<pre style="text-align: left; font-size: 12px; background: #fff; color: #000;">';
+		echo htmlspecialchars(print_r($var, true), ENT_COMPAT, 'UTF-8');
+		echo '</pre>';
+	}
+	
+	function &wcfStripTags($html, $allowedTags) {
+		require_once(LIBDIR.'/htmlcleaner._wc');
+		$cleaner = &HtmlCleaner::getInstance($allowedTags);
+		$result = &$cleaner->clean($html);
+		return $result;
+	}
+	
+	function wcfFormatTime($format, $time, $offset = 'auto') {
+		require_once(LIBDIR.'/func/formattime._wc');
+		return wcfFormatTimeImpl($format, $time, $offset);
+	}
+	
+	function escapeTags($text, $mode = ENT_COMPAT) {
+		return htmlspecialchars($text, $mode, 'UTF-8');
+	}
+	
+	function sendRedirect($url, $status = 302) {
+		if (function_exists('session_write_close'))
+			session_write_close();
+		if($status)
+			setHTTPStatus($status);
+		header('Location: '.$url);
+	}
+	
+	function setHTTPStatus($status) {
+		require_once(LIBDIR.'/func/sethttpstatus._wc');
+		return wcfSetHTTPStatus($status);
+	}
+?>

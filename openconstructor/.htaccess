@@ -1,0 +1,14 @@
+Options -Indexes
+
+<Files ~ "\._wc$"> 
+  Order allow,deny 
+  Deny from all 
+</Files>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg A28800
+    ExpiresByType image/jpeg A28800
+    ExpiresByType image/gif A28800
+    ExpiresByType image/png A28800
+</IfModule>

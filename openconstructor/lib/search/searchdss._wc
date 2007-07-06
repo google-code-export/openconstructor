@@ -1,0 +1,124 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Поиск по разделам
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: searchdss._wc,v 1.13 2007/02/27 11:23:26 sanjar Exp $
+ */
+require_once('searcher._wc');
+
+class SearchDSs extends WCObject {
+	var $header;
+	var $listOffset, $listSize, $keywordKey;
+	var $hrefs;
+	var $no404;
+	
+	function SearchDSs() {
+		$this->DSTable = null;
+		$this->ds_type = 'search';
+		$this->obj_type = 'searchdss';
+		$this->caching = 0;
+		$this->cached_by_WC = 0;
+		$this->header = '';
+		$this->keywordKey = 'q';
+		$this->listOffset = 0;
+		$this->listSize = 20;
+		$this->hrefs = array();
+		$this->no404 = false;
+	}
+	
+	function getCacheId() {
+		$cacheId = null;
+		$ctx = &Context::getInstance();
+		$keyword = sprintf('%x', crc32(Searcher::getStemmedText($ctx->getParam($this->keywordKey))));
+		$cacheId = $this->obj_id.'|'.$keyword.'|o-'.$this->listOffset;
+		return $cacheId;
+	}
+	
+	function fetchData(&$smarty) {
+		$result = false;
+		$searchResults = &$this->performSearch();
+		$ctx = &Context::getInstance();
+		$keyword = $ctx->getParam($this->keywordKey);
+		$smarty->assign('keyword', escapeTags($keyword));
+		$smarty->assign('found', (int) @$this->availableDocsCount);
+		$smarty->assign('time', round($this->time, 3));
+		$smarty->assign('header', $this->header);
+		$smarty->assign_by_ref('results', &$searchResults);
+		$smarty->assign_by_ref('offset', $this->listOffset);
+		$smarty->assign_by_ref('size', $this->listSize);
+		$result = array('header', 'found', 'keyword', 'results');
+		return $result;
+	}
+	
+	function &performSearch() {
+		if(is_array($this->results))
+			return $this->results;
+		$ctx = &Context::getInstance();
+		$keyword = $ctx->getParam($this->keywordKey);
+		$stemmedKeyword = Searcher::getStemmedText($keyword);
+		settype($this->listOffset, 'int');
+		settype($this->listSize, 'int');
+		$match = sprintf('MATCH(i.header, i.content) AGAINST("%s")', addslashes($stemmedKeyword));
+		$dsId = $this->ds_id ? $this->ds_id : 0;
+		$start = _gettime();
+		$db = &$this->ctx->_getDB();
+		$res = $db->query(
+			"SELECT SQL_CALC_FOUND_ROWS i.document_id as id, i.ds_id, i.ds_type as type, i.title, i.annotation, sum($match) as rank, IF(i.ds_type = 'file', f.filename, NULL) as file".
+			' FROM `index` i LEFT JOIN dsfile f ON(i.document_id = f.id AND i.ds_id = f.ds_id)'.
+			" WHERE $match > 0 AND i.ds_id IN ($dsId)".
+			' GROUP BY ds_type, id'.
+			" ORDER BY rank DESC".
+			' LIMIT '.($this->listOffset).', '.$this->listSize
+		);
+		$this->time = _gettime() - $start;
+		$this->countAvailableDocs();
+		if(($l = mysql_num_rows($res)) > 0) {
+			$paramNames = array('{id}', '{ds_id}', '{file}');
+			$paramValues = array(-1, -1, '');
+			for($i = 0; $i < $l; $i++) {
+				$r = mysql_fetch_assoc($res);
+				$results[$i]['title'] = escapeTags($r['title']);
+				$results[$i]['annotation'] = $r['annotation'];
+				$results[$i]['rank'] = round($r['rank'], 2);
+				$paramValues[0] = &$r['id'];
+				$paramValues[1] = &$r['ds_id'];
+				$paramValues[2] = &$r['file'];
+				$results[$i]['href'] = $r['type'] != 'htmltext' ? str_replace(&$paramNames, &$paramValues, &$this->hrefs[$r['ds_id']]) : $ctx->map->getHref($ctx->map->id[$r['id']]['uri']);
+			}
+		} elseif($this->availableDocsCount > (int) @$this->originalOffset && !$this->no404)
+			$this->ctx->throw404();
+		else
+			$results = array();
+		mysql_free_result($res);
+		$this->results = &$results;
+		return $this->results;
+	}
+	
+	function countAvailableDocs() {
+		$db = &$this->ctx->_getDB();
+		$res = $db->query('SELECT FOUND_ROWS()');
+		list($this->availableDocsCount) = mysql_fetch_row($res);
+		mysql_free_result($res);
+	}
+}
+?>
