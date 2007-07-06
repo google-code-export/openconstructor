@@ -401,7 +401,7 @@
 					echo '<nobr id="tool.wysiwyg" class="tool">';
 						wysiwygtoolbar('control["'.$key.'"]');
 					echo '</nobr>';
-					echo '<textarea name="'.$key.'" id="'.$key.'" style="width:100%; height: 400px;border-color: red; display:none">'.$doc->fields[$key].'</textarea>';
+					echo '<textarea name="'.$key.'" id="'.$key.'" style="width:100%; height: 400px;border-color: red; display:none">'.htmlspecialchars($doc->fields[$key], ENT_COMPAT, 'UTF-8').'</textarea>';
 					echo '<iframe id="iframe.'.$key.'" width="100%" height="400"></iframe>';
 					echo '</div>';
 				}
