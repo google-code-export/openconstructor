@@ -146,6 +146,7 @@ class WCDataSource {
 	}
 	
 	function remove() {
+		WCS::assert($this, 'removeds');
 		$db = &WCDB::bo();
 		$res = $db->query(
 			'SELECT id'.

@@ -240,8 +240,8 @@ class DSHTMLText extends WCDataSource {
 			WCS::runAs(WCS_ROOT_ID);
 			for($i = 0; $i < $l; $i++) {
 				list($ds_id, $ids) = mysql_fetch_row($res);
-				$ds = &DSManager::load($ds_id);
-				$ds->delete($ids);
+				if($ds = &DSManager::load($ds_id))
+					$ds->delete($ids);
 			}
 			WCS::stopRunAs();
 		}
