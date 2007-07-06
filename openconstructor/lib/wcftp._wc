@@ -197,7 +197,7 @@ class WCFTP {
 		}
 		$to = ($to = $this->_normalize($to)) ? $to : '.';
 		$offset = ($p = strrpos($from, '/')) === false ? 0 : $p + 1;
-		$all = $this->_getAllEntries($from, true);
+		$all = $this->_getAllEntries($from, array('.svn', 'CVS'), true);
 		ksort($all, SORT_STRING);
 		$result = true;
 		foreach($all as $f => $isdir) {
@@ -338,18 +338,19 @@ class WCFTP {
 		return FTP_BINARY;
 	}
 	
-	function &_getAllEntries($dir, $includeSelf = false) {
+	function &_getAllEntries($dir, $ignore = array(), $includeSelf = false) {
 		$list=array();
 		$d = dir($dir);
 		if($includeSelf)
 			$list[$dir] = true;
 		while(false !== ($entry = $d->read())) {
-			if($entry == '.' || $entry == '..' || $entry == 'CVS') continue;
-			$f = $dir.'/'.$entry;
-			$list[$f] = is_dir($f);
-			if($list[$f]) {
-				$sublist = $this->_getAllEntries($f);
-				$list = array_merge($list, $sublist);
+			if($entry != '.' && $entry != '..' && (array_search($entry, $ignore) === false)) {
+				$f = $dir.'/'.$entry;
+				$list[$f] = is_dir($f);
+				if($list[$f]) {
+					$sublist = $this->_getAllEntries($f, $ignore);
+					$list = array_merge($list, $sublist);
+				}
 			}
 		}
 		$d->close();
