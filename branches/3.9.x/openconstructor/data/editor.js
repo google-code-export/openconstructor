@@ -65,9 +65,9 @@ function editsource()
 }
 var pi=new Array();
 pi[1]=new Image;
-pi[1].src='/openconstructor/i/e/save_.gif';
+pi[1].src='/openconstructor/i/default/e/save_.gif';
 pi[2]=new Image;
-pi[2].src='/openconstructor/i/e/border.gif';
+pi[2].src='/openconstructor/i/default/e/border.gif';
 function disableButton(b,img,src){
 	if(!src){
 		if((b.dLevel&&1)==(img&&1)) return;
