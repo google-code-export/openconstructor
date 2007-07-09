@@ -135,7 +135,7 @@ class WCObject {
 	
 	function isCached() {
 		if(!isset($this->_isCached))
-			$this->_isCached = WC_BLOCK_CACHING && $this->caching && $this->ctx->smarty->is_cached($this->tpl.'.tpl', $this->getCacheId());
+			$this->_isCached = WC_BLOCK_CACHING && $this->caching && $this->ctx->_smarty->is_cached($this->tpl.'.tpl', $this->getCacheId());
 		return $this->_isCached;
 	}
 	
