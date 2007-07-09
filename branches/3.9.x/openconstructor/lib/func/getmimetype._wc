@@ -1,0 +1,58 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: getmimetype._wc,v 1.7 2007/02/27 11:23:26 sanjar Exp $
+ */
+
+function wcfGetMimeType($filename) {
+	static $types;
+	if(function_exists('mime_content_type'))
+			return mime_content_type($filename);
+	if(!is_array($types)) {
+		$types = array(
+			'zip'	=> 'application/zip',
+			'gz'	=> 'application/x-gzip',
+			'doc'	=> 'application/msword',
+			'pdf'	=> 'application/pdf',
+			'xls'	=> 'application/vnd.ms-excel',
+			'ppt'	=> 'application/vnd.ms-powerpoint',
+			'js'	=> 'application/x-javascript',
+			'swf'	=> 'application/x-shockwave-flash',
+			'tar'	=> 'application/x-tar',
+			'wav'	=> 'audio/x-wav',
+			'gif'	=> 'image/gif',
+			'png'	=> 'image/png',
+			'css'	=> 'text/css',
+			'xml'	=> 'text/xml'
+		);
+		$types['bin'] = $type['exe'] = $type['class'] =	'application/octet-stream';
+		$types['xsl'] = $type['xslt'] =					'application/xml';
+		$types['jpeg'] = $type['jpg'] = $type['jpe'] =	'image/jpeg';
+		$types['tiff'] = $type['tif'] =					'image/tiff';
+		$types['mpga'] = $type['mp2'] = $type['mp3'] =	'audio/mpeg';
+		$types['html'] = $type['htm'] =					'text/html';
+		$types['txt'] = $type['asc'] = $types['log'] = 	'text/plain';
+	}
+	$ext = pathinfo($filename, PATHINFO_EXTENSION);
+	return isset($types[$ext]) ? $types[$ext] : "application/octet-stream";
+}
+?>

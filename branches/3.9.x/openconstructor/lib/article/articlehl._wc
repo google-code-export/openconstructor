@@ -1,0 +1,105 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Список статей.
+ * 
+ * Объект вывода.
+ * 
+ * @author Rustam Akhmedov
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: articlehl._wc,v 1.13 2007/02/27 11:23:21 sanjar Exp $
+ */
+
+class ArticleHL extends WCObject
+{
+	var $header;
+	var $pid, $srvuri, $articleid;
+	var $offset, $pageSize, $ids;
+	var $dateFormat;
+	var $no404;
+	
+	function ArticleHL() {
+		$this->DSTable='dsarticle';
+		$this->ds_type='article';
+		$this->obj_type='articlehl';
+		$this->offset=0;
+		$this->pageSize=10;
+		$this->pid='page';
+		$this->srvuri='article/';
+		$this->articleid='article_id';
+		$this->dateFormat='[j.m.Y]';
+		$this->no404 = false;
+		$this->caching=2;
+		$this->cached_by_WC=true;
+	}
+	
+	function getCacheId() {
+		$cacheId = null;
+		if(!$this->ids) {
+			$page = (int) @$_GET[$this->pid];
+			$displayed = &$this->getDisplayedDocs();
+			if(--$page < 0) $page = 0;
+			$cacheId = $this->obj_id.'|p'.$page.'-c'.implode(',', array_keys($displayed));
+		}
+		return $cacheId;
+	}
+	
+	function fetchData(&$smarty) {
+		$result = false;
+		$page = (int) @$_GET[$this->pid];
+		if(--$page < 0) $page = 0;
+
+		$where = $this->ids ? 'id IN ('.$this->ids.')' : 'ds_id IN ('.$this->ds_id.')';
+		$db = &$this->ctx->_getDB();
+		$res = $db->query(
+			'SELECT id, real_id as rid, header, date '.
+			'FROM '.$this->DSTable.' '.
+			'WHERE '.$where.' AND published!=0 '.
+			'ORDER BY date DESC '.
+			'LIMIT '.($this->offset + $page*$this->pageSize).', '.$this->pageSize
+		);
+		if(mysql_num_rows($res) > 0) {
+			$fet = array();
+			$displayed = &$this->getDisplayedDocs();
+			$thref=$this->srvuri.'?'.$this->articleid.'=%d';
+			while($row = mysql_fetch_assoc($res)) {
+				if(isset($fet[$row['rid']])) continue;
+				$fet[$row['rid']] = true;
+				$article[$row['id']]['header'] = escapeTags($row['header']);
+				$article[$row['id']]['href'] = isset($displayed[$row['id']]) ? '' : sprintf(&$thref, $row['id']);
+				$article[$row['id']]['date'] = wcfFormatTime($this->dateFormat, $row['date']);
+			}
+			$smarty->assign('header',$this->header);
+			$smarty->assign_by_ref('articles',$article);
+			$result = array('header', 'articles');
+		} elseif($page > 1 && !$this->no404)
+			$this->ctx->throw404();
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &getDisplayedDocs() {
+		if(!isset($this->_dispalyedDocs))
+			$this->_displayedDocs = class_exists('articlebody') ? ArticleBody::getDisplayedDocs() : array();
+		return $this->_displayedDocs;
+	}
+}
+?>

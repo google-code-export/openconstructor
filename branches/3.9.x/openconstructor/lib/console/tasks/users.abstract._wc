@@ -1,0 +1,90 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: users.abstract._wc,v 1.2 2007/02/27 11:23:20 sanjar Exp $
+ */
+require_once('consoletask._wc');
+
+class AbstractConsoleTask_Users extends ConsoleTask {
+	var $group = null;
+	var $primary_group = null;
+	var $login = null;
+	var $expired = null;
+	
+	var $_uf = null;
+	
+	function AbstractConsoleTask_Users($name) {
+		$this->ConsoleTask($name);
+	}
+	
+	function &_getUserIds() {
+		$result = array();
+		$tables = array('wcsusers u' => true);
+		$filter = array();
+		if($this->group !== null) {
+			$tables['wcsmembership m'] = true;
+			$tables['wcsgroups mg'] = true;
+			$filter[] = sprintf('mg.name = "%s" AND m.group_id = mg.id AND u.id = m.user_id', addslashes($this->group));
+		}
+		if($this->primary_group !== null) {
+			$tables['wcsgroups g'] = true;
+			$filter[] = sprintf('g.name = "%s" AND u.group_id = g.id', addslashes($this->primary_group));
+		}
+		if($this->login !== null)
+			$filter[] = sprintf('u.login = "%s"', addslashes($this->login));
+		if($this->expired !== null)
+			$filter[] = sprintf('u.expiry > 0 AND u.expiry %s %d', $this->expired ? '<' : '>', time());
+		if(sizeof($filter)) {
+			$this->runner->info('Searching for users matching given criteria...');
+			$query = sprintf('SELECT u.id FROM %s WHERE %s', implode(',', array_keys($tables)), implode(' AND ', $filter));
+			$db = &$this->getDB();
+			$res = $db->query($query);
+			while($r = mysql_fetch_row($res))
+				$result[] = (int) $r[0];
+			mysql_free_result($res);
+			$this->runner->info(sizeof($result)
+				? 'Found '.sizeof($result).' user(s)'
+				: 'No matches found'
+			);
+		} else
+			$this->runner->warning('No criteria given');
+		return $result;
+	}
+	
+	function &_getUserFactory() {
+		if(!is_object($this->_uf)) {
+			require_once(LIBDIR.'/security/userfactory._wc');
+			$this->_uf = &UserFactory::getInstance();
+		}
+		return $this->_uf;
+	}
+	
+	function getArgNames() {
+		return array(
+			'group' => '',
+			'primary-group' => '',
+			'login' => '',
+			'expired' => ''
+		);
+	}
+}
+?>

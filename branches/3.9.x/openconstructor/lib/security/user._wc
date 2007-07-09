@@ -1,0 +1,149 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * $Id: user._wc,v 1.4 2007/02/27 11:23:21 sanjar Exp $
+ */
+require_once('resource._wc');
+
+define('WCS_HASH_LEVEL', 5);
+
+class User {
+	var $id, $groupId, $login, $name, $builtIn;
+	var $membership;
+	var $email, $ip, $active, $autologinId, $expiry;
+	var $profile, $profileId, $profileType;
+	var $sRes;
+	
+	function User($login, $name) {
+		$this->id = 0;
+		$this->groupId = 0;
+		$this->login = strtolower($login);
+		$this->name = $name;
+		$this->membership = array();
+		$this->pwd = null;
+	}
+	
+	function isLoginValid($login) {
+		return preg_match('~^[A-Za-z][A-Za-z0-9_]{0,31}$~', $login);
+	} 
+	
+	function &loadByUID($uid) {
+		$clause = 'u.autologin = "'.addslashes($uid).'"';
+		return User::loadByClause($clause);
+	}
+	
+	function &load($id, $fromCache = true) {
+		static $cache;
+		$result = null;
+		if(!$fromCache || !isset($cache[$id])) {
+			if(intval($id) > 0 || User::isLoginValid($id)) {
+				$clause = intval($id) > 0 ? 'u.id = '.intval($id) : 'u.login = "'.addslashes(strtolower($id)).'"';	
+				$result = &User::loadByClause($clause);
+				if($result != null) {
+					$cache[$result->id] = &$result;
+					$cache[$result->login] = &$result;
+				}
+			}
+		} else
+			$result = &$cache[$id];
+		return $result;
+	}
+	
+	function &loadByClause($clause) {
+		$result = null;
+		$db = &WCDB::fo();
+		$res = $db->query(
+			"SELECT u.id, u.login, u.group_id, u.autologin, u.email, u.name, u.active, u.builtin, u.profile, g.profile as profile_type, u.expiry, BIN(ROUND(u.oauths)) as oauths, BIN(ROUND(u.gauths)) as gauths, GROUP_CONCAT(m.group_id) as membership
+				FROM wcsusers u, wcsmembership m, wcsgroups g
+				WHERE $clause AND m.user_id = u.id AND g.id = u.group_id
+				GROUP BY u.id"
+		);
+		if(mysql_num_rows($res) > 0) {
+			$r = mysql_fetch_assoc($res);
+			$result = &User::fromArray($r);
+		}
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &fromArray(&$user) {
+		$result = & new User($user['login'], $user['name']);
+		$result->id = (int) $user['id'];
+		$result->groupId = (int) $user['group_id'];
+		$result->autologinId = $user['autologin'];
+		$result->builtIn = $user['builtin'] > 0;
+		$result->profileId = (int) $user['profile'];
+		$result->profileType = (int) $user['profile_type'];
+		$result->active = $user['active'] > 0;
+		$result->email = $user['email'];
+		$result->expiry = $user['expiry'];
+		$result->membership = explode(',', $user['membership']);
+		$result->loadAuths($result->id, $result->groupId, $user['oauths'], $user['gauths']);
+		return $result;
+	}
+	
+	function getWCSAuthorities($userId) {
+		$auths = '0';
+		if($userId != WCS_ROOT_ID) {
+			$db = &WCDB::fo();
+			$res = $db->query("SELECT BIN(ROUND(g.auths)) as auths FROM wcsmembership m, wcsgroups g WHERE m.user_id = {$userId} AND g.id = m.group_id");
+			while($r = mysql_fetch_row($res))
+				$auths = wcs_or($auths, $r[0]);
+			mysql_free_result($res);
+		}
+		return $auths;
+	}
+	
+	function loadAuths($owner, $group, $ownerAuths, $groupAuths) {
+		$this->sRes = new WCSResource($this->name."[{$this->login}]",(int) $owner, (int) $group);
+		
+		$this->sRes->addAction('edit');
+		$this->sRes->addAction('edit.chmod');
+		$this->sRes->addAction('edit.expiry');
+		$this->sRes->addAction('edit.group');
+		$this->sRes->addAction('edit.pwd');
+		$this->sRes->addAction('edit.status');
+		$this->sRes->addAction('edit.email');
+		$this->sRes->addAction('remove');
+		
+		$this->sRes->setAuthorities($ownerAuths, $groupAuths);
+	}
+}
+
+function wcs_pwd_hash($pwd) {
+	$result = $pwd;
+	if($pwd) {
+		for($i = 0; $i < WCS_HASH_LEVEL; $i++)
+			$pwd .= md5($pwd.$pwd{$i});
+		$result = md5($pwd);
+	}
+	return $result;
+}
+
+function wcs_or($a, $b) {
+	$length = max(strlen($a), strlen($b));
+	$a = str_pad($a, $length, '0', STR_PAD_LEFT);
+	$b = str_pad($b, $length, '0', STR_PAD_LEFT);
+	for($i = 0, $result = ''; $i < $length; $i++)
+		$result .= $a{$i} == '1' || $b{$i} == '1' ? '1' : '0';
+	return $result;
+}
+?>

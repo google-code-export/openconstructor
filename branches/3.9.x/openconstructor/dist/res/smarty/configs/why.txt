@@ -1,0 +1,2 @@
+This folder contains Smarty's config files.
+Do not remove this file.

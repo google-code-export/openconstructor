@@ -1,0 +1,654 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: pagecompiler._wc,v 1.44 2007/03/10 20:31:18 sanjar Exp $
+ */
+define('PAGE_LOCATION_EMPTY', 0);
+define('PAGE_LOCATION_EXT', 1);
+define('PAGE_LOCATION_INT', 2);
+define('PAGE_LOCATION_ROUTE', 3);
+
+class PageCompiler {
+	var $reader, $tree; 
+	
+	function PageCompiler() {
+		$this->reader = & new PageReader();
+	}
+	
+	function &compile(&$page) {
+		$result = null;
+		$location = $this->_parsePageLocation($page);
+		switch($location['type']) {
+			case PAGE_LOCATION_EMPTY:
+				if(!$page->router) {
+					$result = &$this->compilePlainPage($page, $location['query']);
+					$result[$page->uri.'index._wc'] = null;
+				} else
+					$result = &$this->compileRoutedPage($page, $page->uri, $page->name);
+			break;
+			case PAGE_LOCATION_EXT:
+				$result = &$this->compileRedirectPage($page, $location['page']);
+				$result[$page->uri.'index._wc'] = null;
+			break;
+			case PAGE_LOCATION_INT:
+				$result = &$this->compileLinkedPage($page, $location['page'], $location['query']);
+				$result[$page->uri.'index._wc'] = null;
+			break;
+			case PAGE_LOCATION_ROUTE:
+				$result = &$this->compileRoutedPage($page, $location['page'], $location['name'], $location['param'], $location['query']);
+			break;
+		}
+		return $result;
+	}
+	
+	function generateSitemap() {
+		require_once(LIBDIR.'/tree/export/sitemapview._wc');
+		$tree = &$this->_getSiteTree(true);
+		return "<?php\n".
+			PageCompiler::_getWcSign('').
+			"\n".
+			$tree->export(new TreeSiteMapView()).
+			"?>";
+	}
+	
+	function &compilePlainPage(&$page, $query = '') {
+		$result = null;
+		$content = "<?php\n".
+			PageCompiler::_getWcSign().
+			"\n".
+			PageCompiler::_getQueryDef($query).
+			$this->_getCommonPart($page).
+			"\n".
+			$this->_getAuthenticatingPart($page).
+			"\n".
+			PageCompiler::_getPageBuildingPart($page).
+			"\n".
+			PageCompiler::_getOutputPart($page).
+			"?>";
+		$result = array($page->uri.'index.php' => $content);
+		return $result;
+	}
+	
+	function &compileRedirectPage(&$page, $href) {
+		$result = null;
+		$content = "<?php\n".
+			PageCompiler::_getWcSign().
+			"\n".
+			sprintf("\theader('Location: %s');\n", $href{0} == '/' ? "http://'.\$_SERVER['HTTP_HOST'].'".addslashes($href) : addslashes($href)).
+			"\tdie();\n".
+			"?>";
+		$result = array($page->uri.'index.php' => $content);
+		return $result;
+	}
+	
+	function &compileLinkedPage(&$page, $link, $query = '') {
+		$result = null;
+		$content = "<?php\n".
+			PageCompiler::_getWcSign().
+			"\n".
+			PageCompiler::_getRecurseCheck($page).
+			"\n".
+			PageCompiler::_getQueryDef($query).
+			"\tinclude(\$_SERVER['DOCUMENT_ROOT'].'$link');\n".
+			"\tdie();\n".
+			"?>";
+		$result = array($page->uri.'index.php' => $content);
+		return $result;
+	}
+	
+	function &compileRoutedPage(&$page, $route, $name, $pathInfo = '/', $query = '') {
+		$result = null;
+		if($page->uri == $route || $page->router) {
+			$result = &$this->compilePlainPage($page, $query);
+			$result[$page->uri.'index._wc'] = $result[$page->uri.'index.php'];
+		} else
+			$result = array($page->uri.'index._wc' => null);
+		$routerContent = "<?php\n".
+			PageCompiler::_getWcSign().
+			"\n".
+			PageCompiler::_getRecurseCheck($page).
+			"\n".
+			($page->uri != $route ? PageCompiler::_getQueryDef($query) : '').
+			"\trequire_once(\$_SERVER['DOCUMENT_ROOT'].'".WCHOME."/lib/router._wc');\n";
+		if($page->uri == $route)
+			$routerContent .= sprintf(
+				"\t\$info = isset(\$_SERVER['PATH_INFO']) ? \$_SERVER['PATH_INFO'] : '%s';\n", addslashes($pathInfo)
+			);
+		else
+			$routerContent .= sprintf(
+				"\t\$info = '%s';\n", addslashes($pathInfo)
+			);
+		$routerContent .= 
+			"\t\$router = & new Router('$route', '$name', \$info);\n";
+		if($route != $page->uri) {
+			$tree = &$this->_getSiteTree();
+			$router = $tree->getPageByUri($route);
+			$routerContent .= sprintf(
+				"\t@include(\$_SERVER['DOCUMENT_ROOT'].'$route'.(\$router->target ? \$router->target.'/index.php' : 'index.%s'));\n"
+				, $this->reader->getPageRouter($router->id) == $router->id ? '_wc' : 'php'
+			);
+		} else {
+			$routerContent .=
+				"\t@include(\$_SERVER['DOCUMENT_ROOT'].'$route'.(\$router->target ? \$router->target.'/index.php' : 'index._wc'));\n";
+		}
+		$routerContent .=
+			"\tinclude(\$_SERVER['DOCUMENT_ROOT'].'".WCHOME."/404.php');\n".
+			"\tdie();\n".
+			"?>";
+		$result[$page->uri.'index.php'] = $routerContent; 
+		return $result;
+	}
+	
+	function _getQueryDef($queryString, $indent = "\t") {
+		$result = '';
+		if($queryString) {
+			$query = array();
+			parse_str($queryString, $query);
+			foreach($query as $k => $v)
+				if($k{0} == '!' && strlen($k) > 1) {
+					$result .= sprintf(
+						"{$indent}\$_GET['%1\$s'] = '%2\$s';\n"
+						, addslashes(substr($k, 1)), addslashes($v)
+					);
+				} else {
+					$result .= sprintf(
+						"{$indent}if(!isset(\$_GET['%1\$s']))\n{$indent}\t\$_GET['%1\$s'] = '%2\$s';\n"
+						, addslashes($k), addslashes($v)
+					);
+				}
+		}
+		return $result;
+	}
+	
+	function _getCommonPart(&$page, $i = "\t") {
+		static $files;
+		$result = '';
+		if(!is_array($files)) {
+			$files = array(
+				"\$_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/commons._wc'",
+				"LIBDIR.'/context._wc'",
+				"LIBDIR.'/security/siteauthentication._wc'",
+				"LIBDIR.'/site/webpage._wc'",
+				"LIBDIR.'/site/sitemap._wc'",
+			);
+		}
+		$router = $this->reader->getPageRouter($page);
+		if($router)// && $router != $page->id)
+			$result .= 
+				$i."if(!isset(\$router)) {\n".
+				$i."	@include(\$_SERVER['DOCUMENT_ROOT'].'{$GLOBALS['_wchome']}/404.php');\n".
+				$i."	die();\n".
+				$i."}\n\n";
+		$result .=
+			$i."require_once(".implode(");\n{$i}require_once(", $files).");\n".
+			"\n".
+			$i."\$ctx = &Context::getInstance();\n";
+		if($router) {
+			$result .= $i."\$ctx->router = &\$router;\n";
+		} else {
+			$result .= 
+				$i."if(isset(\$router))\n".
+				$i."	\$ctx->router = &\$router;\n";
+		}
+		$phpcallback = array();
+		$objects = &$page->getObjects();
+		foreach($objects as $id => $obj) 
+			if($obj['observer'] && $obj['type'] == 'phpcallback' && $obj['block'] != '')
+				$phpcallback[] = sprintf("\$ctx->_attachEventListener('%s', %s);", $obj['block'], PageCompiler::_getCreateObserverStatement($id));
+		if(sizeof($phpcallback))
+			$result .= 
+				"\n".
+				$i."require_once(LIBDIR.'/wcobject._wc');\n".
+				$i."require_once(LIBDIR.'".PageCompiler::_getClassFile('phpcallback')."');\n".
+				$i.implode("\n$i", $phpcallback)."\n".
+				"\n";
+		$result .= 
+			$i."\$ctx->_fireEvent('onInitialize');\n".
+			$i."_register_phase('Initializing');\n".
+			"\n".
+			$i."require_once(ROOT.FILES.'/map._wc');\n".
+			$i."\$ctx->map = &\$map;\n".
+			$i.sprintf("\$page = &\$map->_newPage($page->id, '%s');\n", PageCompiler::_escapeSingleQuotes($this->_getPageTitle($page))).
+			$i."\$ctx->page = &\$page;\n".
+			$i."\$ctx->_fireEvent('onLoadSitemap');\n".
+			$i."_register_phase('Loading sitemap');\n";
+		return $result;
+	}
+	
+	function _getAuthenticatingPart(&$page, $i = "\t") {
+		$profiles = $this->_getPageProfileProps($page);
+		$result = 
+			$i."if(\$page->isSecure()) {\n".
+			$i."	session_start();\n".
+			$i."	require_once(LIBDIR.'/security/resource._wc');\n".
+			$i."	require_once(LIBDIR.'/security/wcs._wc');\n".
+			$i."	Authentication::importFromSession();\n".
+			$i."	\$page->authenticationPage = _getAuthenticationPage();\n".
+			$i."	\$page->sRes = & new WCSResource(&\$page->uri, WCS_ROOT_ID, 0);\n";
+		$tree = &$this->_getSiteTree();
+		$node = &$tree->node[$page->id];
+		$authCheck = array();
+		while(($node = &$node->parent) != null)
+			$authCheck[] = 
+				$i."	\$page->sRes->setGroup(\$map->id[$node->id]['usr']);\t// ".$node->getFullKey('/')."\n".
+				$i."	WCS::requireAuthentication(&\$page);\n";
+		$authCheck[] =
+				$i."	\$ctx->_fireEventArgs('onBeforeAuth', \$args = array('page' => &\$page));	unset(\$args);\n";
+		$result .= implode('', array_reverse($authCheck)).
+			$i."	\$page->sRes->setGroup(\$map->id[$page->id]['usr']);\t// $page->uri\n".
+			$i."	WCS::requireAuthentication(&\$page);\n".
+			$i."	_register_phase('Authenticating user');\n".
+			$i."	\$auth = &SiteAuthentication::createFrom(Authentication::getInstance());\n".
+			$i."} elseif(isset(\$_COOKIE[session_name()])) {\n".
+			$i."	session_start();\n".
+			$i."	\$auth = &SiteAuthentication::createFromSession();\n".
+			$i."} else {\n".
+			$i."	\$auth = new SiteAuthentication();\n".
+			$i."}\n";
+		if($profiles['load'] > 0)
+			$result .=
+				$i.sprintf("\$auth->_loadProfile(%d, %s);\n", $profiles['load'], $profiles['dynamic'] ? 'true' : 'false');
+		$result .=
+			$i."\$ctx->_setAuthentication(\$auth);	unset(\$auth);\n";
+		return $result;
+	}
+	
+	function _getPageBuildingPart(&$page, $i = "\t") {
+		$result =
+			$i."define('WCI_ENABLED', WCI_ALLOWED && \$ctx->auth->isWciEditor());\n".
+			"\n".
+			$i."require_once(LIBDIR.'/smarty/wcsmarty._wc');\n".
+			$i."\$smarty = & new WCSmarty();\n".
+			$i."\$smarty->_ctx = &\$ctx;\n".
+			$i."\$ctx->_smarty = &\$smarty;\n".
+			$i."\$ctx->_fireEvent('onCreateSmarty');\n".
+			$i."_register_phase('Creating Smarty instance');\n".
+			"\n".
+			$i.sprintf("\$page->setTemplate('%s.tpl');\n", $page->tpl > 0 ? $page->tpl : "file:'.LIBDIR.'/tpl/page");
+		if($page->caching) {
+			$cid = PageCompiler::_compileCacheVary($page->cacheVary);
+			$result .=
+				$i."\$smarty->caching = !WCI_ENABLED && WC_PAGE_CACHING ? 2 : 0;\n".
+				$i.sprintf("\$smarty->cache_lifetime = %d;\n", $page->cacheLife ? $page->cacheLife : -1).
+				$i.sprintf("\$page->_cacheGz = \$smarty->caching && WC_PAGE_CACHE_GZ && %s && !headers_sent() && (strpos(@\$_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false);\n", $page->cacheGz ? 'true' : 'false');
+			if($cid)
+				$result .= $i."if(\$ctx->router) \$r = &\$ctx->router->param; else \$r = array();\n";
+			$result .=
+				$i.sprintf("\$page->_setUID(\"{\$page->id}%s\n", $cid ? "|\".sprintf('%x', crc32($cid)));" : '");').
+				$i.sprintf("\$page->_cacheId = \"p\".\$page->_uid.(\$page->_cacheGz ? '%1\$sgz' : '');\n", $cid ? '-' : '|');
+			if($cid)
+				$result .= $i."unset(\$r);\n";
+			$result .=
+				$i."\$_isCached = false;\n".
+				$i."if(!\$smarty->caching || !(\$_isCached = \$smarty->is_cached(\$page->tpl, \$page->_cacheId))) {\n".
+				PageCompiler::_getPageBuildingCore($page, strlen($i) ? $i.$i{0} : "\t").
+				$i."} elseif(\$_isCached) {\n".
+				$i."	\$page->_eTag = '\"'.\$page->id.sprintf('-%x-%d', crc32(\$page->_uid), \$smarty->_cache_info['timestamp']).'\"';\n".
+				$i."	if(@\$_SERVER['HTTP_IF_NONE_MATCH'] == \$page->_eTag)\n".
+				$i."		\$page->status = 304;\n".
+				$i."}\n";
+		} else {
+			$result .=
+				$i."\$smarty->caching = 0;\n".
+				"\n".
+				PageCompiler::_getPageBuildingCore($page, $i);
+		}
+		return $result;
+	}
+	
+	function _getPageBuildingCore(&$page, $i = "\t") {
+		static $robots;
+		if(!is_array($robots))
+			$robots = array(
+				ROBOTS_I_F => 'INDEX,FOLLOW',
+				ROBOTS_I_NOF => 'INDEX,NOFOLLOW',
+				ROBOTS_NOI_F => 'NOINDEX,FOLLOW',
+				ROBOTS_NOI_NOF => 'NOINDEX,NOFOLLOW'
+			);
+		$result = '';
+		$contentType = $this->reader->getPageContentType($page);
+		$links = $this->reader->getPageLinks($page->id);
+		if(sizeof($links)) {
+			$tree = &$this->_getSiteTree();
+			foreach($links as $id)
+				$linkUris[] = $tree->node[$id]->getFullKey('/');
+			$result .= sprintf($i."\$page->links = array(%s); // %s\n", implode(', ', $links), implode(', ', $linkUris));
+			unset($linkUris);
+		}
+		$result .=
+			$i."require_once(LIBDIR.'/site/pagecrumbs._wc');\n".
+			$i."\$ctx->crumbs = &Crumbs::getInstance();\n".
+			"\n".
+			$i."\$page->robots = '{$robots[$page->robots]}';\n".
+			$i.sprintf("\$page->keywords = '%s';\n", @htmlspecialchars($page->meta['keywords'], ENT_QUOTES, 'UTF-8')).
+			$i.sprintf("\$page->description = '%s';\n", @htmlspecialchars($page->meta['description'], ENT_QUOTES, 'UTF-8')).
+			$i."\$page->generator = 'Open Constructor '.(WC_MODE_DEBUG ? WC_VERSION_FULL : WC_VERSION);\n";
+		if(sizeof($page->css) > 1)
+			$result .= $i.sprintf("\$page->setStyleSheet(array('/css/%s'));\n", implode("', '/css/", $page->css));
+		else
+			$result .= $i.sprintf("\$page->setStyleSheet('%s');\n", sizeof($page->css) ? "/css/{$page->css[0]}" : '');
+		foreach(PageCompiler::_getFavicons() as $icon)
+			$result .= $i.sprintf("\$page->addFavicon('%s', '%s'%s);\n", $icon[0], $icon[1], isset($icon[2]) ? ", '{$icon[2]}'" : '');
+		$result .=
+			$i.sprintf("\$page->setContentType('%s');\n", $contentType).
+			$i.sprintf("\$page->_caching = \$smarty->caching && %s;\n", $page->caching ? 'true' : 'false').
+			"\n";
+		$includes = array();
+		$objects = &$page->getObjects();
+		foreach($objects as $id => $obj)
+			if($obj['block'] != '' && ($filename = PageCompiler::_getClassFile($obj['type'])) != null)
+				$includes[$filename] = "require_once(LIBDIR.'$filename');";
+		if(sizeof($includes)) {
+			$result .=
+				$i."require_once(LIBDIR.'/wcobject._wc');\n".
+				$i.implode("\n$i", $includes)."\n".
+				"\n".
+				$i."\$objects = &\$page->_getObjects();\n".
+				$i."\$ctx->_fireEventArgs('onLoadObjects', \$args = array('objects' => &\$objects));	unset(\$args, \$objects);\n".
+				$i."\$ctx->_registerObjects(\$page->_getObjects());\n".
+				$i."_register_phase('Loading objects');\n".
+				$i."\$ctx->_fireEvent('onLoadBlocks');\n".
+				$i."_register_phase('Registering objects');\n".
+				"\n".
+				$i."\$ctx->_buildCrumbs();\n".
+				$i."_register_phase('Building crumbs');\n".
+				"\n";
+		}
+		$result .= 
+			$i."\$smarty->assign_by_ref('ctx', \$ctx);\n".
+			$i."\$smarty->assign_by_ref('page', \$ctx->page);\n".
+			$i."\$smarty->assign_by_ref('map', \$ctx->map);\n".
+			$i."\$smarty->assign_by_ref('idMap', \$ctx->map->id);\n".
+			$i."\$smarty->assign_by_ref('uriMap', \$ctx->map->uri);\n".
+			$i."\$ctx->_fireEvent('onSmartyAssign');\n";
+		if(sizeof($objects)) {
+			$pre = array();
+			foreach($objects as $id => $obj)
+				if($obj['block'] == 'PRE' && ($obj['type'] == 'phpinclude' || $obj['type'] == 'phpcallback'))
+					$pre[] = "\$ctx->objects[$id]->run();";
+			if(sizeof($pre))
+				$result .= $i.implode("\n$i", $pre)."\n\n";
+		}
+		return $result;
+	}
+	
+	function _getOutputPart(&$page, $i = "\t") {
+		$result = '';
+		$result .=
+			$i."if(\$page->status == 404 || \$page->status == 304) {\n".
+			$i."	\$content = null;\n".
+			$i."} else {\n".
+			$i."	if(\$page->_caching && \$page->_cacheGz)\n".
+			$i."		\$smarty->register_outputfilter('smarty_outputfilter_gzip');\n".
+			$i."	\$content = \$smarty->fetch(\$page->tpl, \$page->_cacheId);\n".
+			$i."}\n".
+			$i."_register_phase('Fetching content');\n".
+			"\n".
+			$i."switch(\$page->status) {\n".
+			$i."	case 404:\n".
+			$i."		if(!WCI_ENABLED && WC_PAGE_CACHING && \$smarty->caching)\n".
+			$i."			\$smarty->clear_cache(null, \$page->_cacheId);\n".
+			$i."		unset(\$content, \$smarty, \$page, \$map, \$__report);\n".
+			$i."		if(defined('WC_STATUS_404')) {\n".
+			$i."			@include(\$_SERVER['DOCUMENT_ROOT'].WCHOME.'/404.php');\n".
+			$i."		} else\n".
+			$i."			header('Location: http://'.\$_SERVER['HTTP_HOST'].WCHOME.'/404.php?from='.urlencode(\$_SERVER['REQUEST_URI']));\n".
+			$i."		die();\n".
+			$i."	break;\n".
+			$i."	case 304:\n".
+			$i."		header('HTTP/1.1 304 Not Modified');\n".
+			$i."		header('Cache-control: public, must-revalidate');\n".
+			$i."	break;\n".
+			$i."	default:\n".
+			$i."		\$printReport = \$page->isCommentable() && !\$page->_cacheGz && (WC_MODE_DEBUG || \$ctx->auth->groupId == WCS_ADMINS_ID);\n".
+			$i."		\$bufferSize = sendOutput(\$content, !\$printReport);\n".
+			$i."		_register_phase('Sending output [ '.number_format(strlen(\$content)).' bytes, buffer = '.number_format(\$bufferSize).' bytes ]');\n".
+			$i."		if(\$printReport)\n".
+			$i."			print_report();\n".
+			$i."		unset(\$content, \$smarty, \$ctx, \$map, \$page, \$__report);\n".
+			$i."}\n".
+			$i."die();\n";
+		return $result;
+	}
+	
+	function _getCreateObserverStatement($objId) {
+		require_once(LIBDIR.'/objmanager._wc');
+		$result = 'null';
+		$obj = ObjManager::load($objId);
+		if($obj)
+			switch($obj->obj_type) {
+				case 'phpcallback':
+					$srcId = file_exists(ROOT.FILES.$obj->sourcePath.intval($obj->source).'._wc') ? $obj->source : 0;
+					$result = sprintf("PHPCallback::_newCallback(%d, '%s')", $srcId, addslashes($obj->name));
+				break;
+			}
+		return $result;
+	}
+	
+	function _getPageTitle(&$page) {
+		$result = array($page->cTitle);
+		if($page->addTitle) {
+			$db = &WCDB::bo();
+			$res = $db->query(
+				"SELECT p.addtitle, p.ctitle".
+				" FROM {$this->reader->treeTable} t1, {$this->reader->treeTable} t2, {$this->reader->pagesTable} p".
+				" WHERE t1.id = {$page->id} AND t2.num < t1.num AND (t2.next = 0 OR t2.next > t1.num) AND t2.id = p.id".
+				" ORDER BY t2.num DESC"
+			);
+			if(mysql_num_rows($res) > 0) {
+				$at = true;
+				while($at && ($r = mysql_fetch_assoc($res))) {
+					$result[] = $r['ctitle'];
+					$at = $r['addtitle'] > 0;
+				}
+			}
+			mysql_free_result($res);
+			$result = array_reverse($result);
+		}
+		return implode('.', $result);
+	}
+	
+	function _getPageProfileProps(&$page) {
+		$result = array('load' => $page->profilesLoad, 'dynamic' => $page->profilesDynamic);
+		if($page->profilesInherit) {
+			$db = &WCDB::bo();
+			$res = $db->query(
+				"SELECT p.profilesload, p.profilesdynamic".
+				" FROM {$this->reader->treeTable} t1, {$this->reader->treeTable} t2, {$this->reader->pagesTable} p".
+				" WHERE t1.id = {$page->id} AND t2.num < t1.num AND (t2.next = 0 OR t2.next > t1.num) AND t2.id = p.id AND (p.profilesinherit = 0 OR t2.num = 0)".
+				" ORDER BY t2.num DESC".
+				" LIMIT 1"
+			);
+			$r = mysql_fetch_row($res);
+			mysql_free_result($res);
+			$result['load'] = (int) @$r[0];
+			$result['dynamic'] = @$r[1] > 0;
+		}
+		return $result;
+	}
+	
+	function _parsePageLocation(&$page) {
+		$result = array('type' => PAGE_LOCATION_EMPTY, 'query' => '');
+		if(!empty($page->location)) {
+			$result['type'] = PAGE_LOCATION_EXT;
+			$result['page'] = $page->location;
+			if($page->linkTo > 0) {
+				$tree = &$this->_getSiteTree();
+				$result['type'] = PAGE_LOCATION_INT;
+				$result['page'] = $tree->node[$page->linkTo]->getFullKey('/').'index.php';
+			} elseif($page->location{0} == '/') {
+				$url = parse_url("http://{$_SERVER['HTTP_HOST']}{$page->location}");
+				if(substr($url['path'], -10) == '/index.php' && empty($url['fragment'])) {
+					$uri = substr($url['path'], 0, -9);
+					$tree = &$this->_getSiteTree();
+					if($tree->uriExists($uri)) {
+						if($uri == $page->uri) {
+							$result['type'] = PAGE_LOCATION_EMPTY;
+							$result['page'] = '';
+						} else {
+							$result['type'] = PAGE_LOCATION_INT;
+							$result['page'] = $uri.'index.php';
+						}
+						$result['query'] = @$url['query'];
+					}
+				} elseif(($p = utf8_strpos($url['path'], '/index.php/')) !== false && empty($url['fragment'])) {
+					$uri = utf8_substr($url['path'], 0, $p + 1);
+					$tree = &$this->_getSiteTree();
+					if($tree->uriExists($uri)) {
+						$result['type'] = PAGE_LOCATION_ROUTE;
+						$result['page'] = $uri;
+						$route = $tree->getPageByUri($uri);
+						$result['name'] = $route->key;
+						$result['param'] = utf8_substr($url['path'], $p + 10); // 10 = strlen('/index.php/');
+						$result['query'] = (string) @$url['query'];
+						unset($route);
+					}
+				}
+			}
+		}
+		return $result;
+	}
+	
+	function &_getSiteTree($reload = false) {
+		if($reload || !is_object($this->tree))
+			$this->tree = &$this->reader->getTree();
+		return $this->tree;
+	}
+	
+	function _compileCacheVary($cacheVary) {
+		$result = '';
+		$found = preg_match_all('/\{(ctx|get|route)\.([\-\.a-z0-9_]+)\}/ui', $cacheVary, $params = array());
+		if($found) {
+			foreach($params[1] as $i => $v)
+				switch($v) {
+					case 'ctx': $result[] = sprintf('$ctx->getParam(\'%s\')', $params[2][$i]); break;
+					case 'get': $result[] = sprintf('@$_GET[\'%s\']', $params[2][$i]); break;
+					case 'route': $result[] = sprintf('@$r[\'%s\']', $params[2][$i]); break;
+				}
+			$result = implode('.chr(255).', $result);
+		}
+		return $result;
+	}
+	
+	function _getWcSign($indent = "\t") {
+		static $sign;
+		if(!is_array($sign)) {
+			$auth = &Authentication::getOriginal();
+			$sign = array(
+				"// Generated by Open Constructor ".WC_VERSION_FULL." [{$auth->userLogin}]",
+				'// '.date('D, j M Y H:i:s'),
+				'',
+				'// Do not edit this file. All changes that were made manually will be overwritten.'
+			);
+		}
+		return $indent.implode("\n$indent", $sign)."\n";
+	}
+	
+	function _escapeSingleQuotes($str) {
+		return strtr($str, array('\'' => '\\\'', '\\' => '\\\\'));
+	}
+	
+	function _getRecurseCheck(&$page, $i = "\t") {
+		$uid = 'WCP_'.sprintf('%X', crc32($page->id));
+		return 
+			$i."if(defined('$uid')) {\n".
+			$i."	die(\"\\n<p>Recursive inclusion of $page->uri</p>\\n\");\n".
+			$i."} else\n".
+			$i."	define('$uid', 1);\n";
+	}
+	
+	function &_getFavicons() {
+		static $icons;
+		if(!is_array($icons)) {
+			$icons = array();
+			if(@file_exists($_SERVER['DOCUMENT_ROOT'].'/favicon.ico'))
+				$icons[] = array('/favicon.ico', 'shortcut icon', 'image/x-icon');
+			if(@file_exists($_SERVER['DOCUMENT_ROOT'].'/favicon.gif'))
+				$icons[] = array('/favicon.gif', 'icon', 'image/gif');
+			if(@file_exists($_SERVER['DOCUMENT_ROOT'].'/favicon.png'))
+				$icons[] = array('/favicon.png', 'icon', 'image/png');
+		}
+		return $icons;
+	}
+	
+	function _getClassFile($class) {
+		static $classes;
+		if(!is_array($classes)) {
+			$classes = array(
+				'htmltextbody'=>'/htmltext/htmltextbody._wc',
+				'htmltexthl'=>'/htmltext/htmltexthl._wc',
+				'htmltexthlintro'=>'/htmltext/htmltexthlintro._wc',
+				'publicationhl'=>'/publication/publicationhl._wc',
+				'publicationhlintro'=>'/publication/publicationhlintro._wc',
+				'publicationmainintro'=>'/publication/publicationmainintro._wc',
+				'publicationbody'=>'/publication/publicationbody._wc',
+				'publicationpager'=>'/publication/publicationpager._wc',
+				'publicationlist'=>'/publication/publicationlist._wc',
+				'publicationlistintro'=>'/publication/publicationlistintro._wc',
+				'eventcalendar'=>'/event/eventcalendar._wc',
+				'eventhl'=>'/event/eventhl._wc',
+				'eventhlintro'=>'/event/eventhlintro._wc',
+				'eventpager'=>'/event/eventpager._wc',
+				'eventbody'=>'/event/eventbody._wc',
+				'galleryhl'=>'/gallery/galleryhl._wc',
+				'galleryimage'=>'/gallery/galleryimage._wc',
+				'gallerypager'=>'/gallery/gallerypager._wc',
+				'galleryimgpager'=>'/gallery/galleryimgpager._wc',
+				'textrandom'=>'/textpool/textrandom._wc',
+				'phpcallback'=>'/phpsource/phpcallback._wc',
+				'phpinclude'=>'/phpsource/phpinclude._wc',
+				'gballmessages'=>'/guestbook/gballmessages._wc',
+				'gbaddmsglogic'=>'/guestbook/gbaddmsglogic._wc',
+				'gblist'=>'/guestbook/gblist._wc',
+				'gbmsgbody'=>'/guestbook/gbmsgbody._wc',
+				'gbmsghl'=>'/guestbook/gbmsghl._wc',
+				'gbpager'=>'/guestbook/gbpager._wc',
+				'miscfetchtpl'=>'/miscellany/miscfetchtpl._wc',
+				'misccrumbs'=>'/miscellany/misccrumbs._wc',
+				'miscinjector'=>'/miscellany/miscinjector._wc',
+				'miscsendmail'=>'/miscellany/miscsendmail._wc',
+				'filehl'=>'/file/filehl._wc',
+				'filepager'=>'/file/filepager._wc',
+				'usersauthorize'=>'/users/usersauthorize._wc',
+				'userslogout'=>'/users/userslogout._wc',
+				'articlebody'=>'/article/articlebody._wc',
+				'articlebodypager'=>'/article/articlebodypager._wc',
+				'articlehl'=>'/article/articlehl._wc',
+				'articlehlintro'=>'/article/articlehlintro._wc',
+				'articlepager'=>'/article/articlepager._wc',
+				'articlerelated'=>'/article/articlerelated._wc',
+				'hybridtree'=>'/hybrid/view/hybridtree._wc',
+				'hybridhl'=>'/hybrid/view/hybridhl._wc',
+				'hybridbar'=>'/hybrid/view/hybridbar._wc',
+				'hybridpager'=>'/hybrid/view/hybridpager._wc',
+				'hybridbody'=>'/hybrid/view/hybridbody._wc',
+				'hybridbodyedit'=>'/hybrid/view/hybridbodyedit._wc',
+				'ratingrate'=>'/rating/ratingrate._wc',
+				'ratingratelogic'=>'/rating/ratingratelogic._wc',
+				'searchdss'=>'/search/searchdss._wc',
+				'searchdsspager'=>'/search/searchdsspager._wc'
+			);
+		}
+		return isset($classes[$class]) ? $classes[$class] : null;
+	}
+}
+?>
