@@ -64,10 +64,15 @@
 		
 		function sendData()
 		{
-			saveState();
+			var ci = curIndex;
 			if(content.source) {theHTML=content;editsource();}
-			repairHRefs(content);
-			for(i=0; i<pages+1; i++)
+			for(var i = 0; i < pages + 1; i++) {
+				switchTo(i);
+				repairHRefs(content);
+			}
+			switchTo(ci);
+			
+			for(var i = 0; i < pages + 1; i++)
 			{
 				head[i].setAttribute("name","header["+i+"]");
 				cont[i].setAttribute("name","html["+i+"]");
