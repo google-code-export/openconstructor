@@ -1,0 +1,72 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: wctparsehelper._wc,v 1.6 2007/02/27 11:23:19 sanjar Exp $
+ */
+
+class WCTParseHelper {
+	var $tpl = null;
+	
+	function WCTParseHelper(&$tpl) {
+		$this->tpl = &$tpl;
+	}
+	
+	function smarty_def_block($tag_attrs, &$compiler) {
+		$params = $compiler->_parse_attrs($tag_attrs);
+		if(!isset($params['id'])) {
+			$compiler->_syntax_error("def_block: missing 'id' parameter", E_USER_WARNING);
+			return;
+		}
+		$id = $compiler->_dequote($params['id']);
+		if(preg_match('~^(?:[A-Za-z0-9_\-\.]+,?)+$~u', $id)) {
+			$ids = explode(',', $id);
+			foreach($ids as $id)
+				$this->tpl->addBlock($id, false);
+		} elseif(strlen($id) > 0) {
+			$compiler->_syntax_error("def_block: 'id' must be a literal string (allowed chars 'A-Z', 'a-z', '0-9', '_', '.' and '-')", E_USER_WARNING);
+		} else {
+			$compiler->_syntax_error("def_block: 'id' must be not empty", E_USER_WARNING);
+		}
+		return '';
+	}
+	
+	function smarty_run_block($tag_attrs, &$compiler) {
+		$params = $compiler->_parse_attrs($tag_attrs);
+		if(!isset($params['id'])) {
+			$compiler->_syntax_error("run_block: missing 'id' parameter", E_USER_WARNING);
+			return;
+		}
+		$id = $compiler->_dequote($params['id']);
+		if(preg_match('~^[A-Za-z0-9_\-\.]+$~u', $id)) {
+			$this->tpl->addBlock($id, true);
+		} elseif(strlen($id) == 0) {
+			$compiler->_syntax_error("def_block: 'id' must be not empty", E_USER_WARNING);
+		}
+		return '';
+	}
+	
+	function smarty_error_handler($params, &$compiler) {
+		$this->tpl->addError($params['error_msg'], $params['error_type']);
+		return false;
+	}
+}
+?>

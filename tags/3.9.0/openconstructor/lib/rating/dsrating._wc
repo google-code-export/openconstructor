@@ -1,0 +1,366 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: dsrating._wc,v 1.10 2007/02/27 11:23:26 sanjar Exp $
+ */
+define('DSR_FAKING_ADDUSER', 0);
+define('DSR_FAKING_DISTRIBUTE', 1);
+define('DSR_DEVIATION', (float) 0.49);
+define('DSR_FAKE_LOGIN_PREFIX', 'fake');
+define('DSR_FAKE_USERNAME_PREFIX', 'Fake User ');
+
+class DSRating extends WCDataSource {
+	var $minRating, $maxRating;
+	var $stripHTML, $allowedTags;
+	var $fakeRaters;
+	
+	function DSRating() {
+		$this->ds_type = 'rating';
+		$this->DSTable = 'dsrating';
+		$this->isIndexable = false;
+		$this->stripHTML = true;
+		$this->allowedTags = '<p><br>';
+		$this->fakeRaters = null;
+	}
+	
+	function add($hDocId, $updateHDoc = true) {
+		$result = null;
+		WCS::assert($this, 'createdoc');
+		settype($hDocId, 'int');
+		assert($hDocId > 0);
+		$db = &WCDB::bo();
+		$db->query("INSERT INTO {$this->DSTable} (ds_id, hdoc, date, wcsowner) SELECT {$this->ds_id} AS ds_id, dsh.id, ".time()." AS date, dsh.wcsowner FROM dshybrid dsh WHERE dsh.id = $hDocId");
+		if($db->affectedRows() > 0) {
+			$result = $db->lastInsertId();
+			if($updateHDoc && ($c = $this->_getHybridDocColumn()))
+				$db->query("UPDATE dshybrid_{$c[0]} SET {$c[1]} = {$result} WHERE id = {$hDocId}");
+		} else {
+			$res = $db->query("SELECT id FROM {$this->DSTable} WHERE ds_id = {$this->ds_id} AND hdoc = $hDocId");
+			list($result) = mysql_fetch_row($res);
+			mysql_free_result($res);
+		}
+		return $result;
+	}
+	
+	function update($id, $rating, $strategy = DSR_FAKING_ADDUSER) {
+		settype($rating, 'int');
+		assert($rating >= $this->minRating && $rating <= $this->maxRating && $this->fakeRaters > 0);
+		$doc = &$this->getDocument($id);
+		assert($doc->id > 0);
+		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
+		switch($strategy) {
+			case DSR_FAKING_ADDUSER: $result = $this->_updateByAddingUser($doc, $rating); break;
+			case DSR_FAKING_DISTRIBUTE: $result = $this->_updateByDistributing($doc, $rating); break;
+			default:
+				assert(true === false);
+		}
+		if($result)
+			$this->_recalculateRating('d.id = '.$doc->id);
+		return $result;
+	}
+	
+	function _updateByAddingUser(&$doc, $rating) {
+		$result = false;
+		$rec = $this->get_record($doc->id);
+		if($rec['rating'] != $rating) {
+			$newRating = $rating == $this->minRating ? $this->minRating + DSR_DEVIATION : ($rating == $this->maxRating ? $this->maxRating - DSR_DEVIATION : $rating);
+			if($userId = $this->_getFakeUserFor($doc->id)) {
+				$db = &WCDB::bo();
+				$res = $db->query("SELECT SUM(rating), SUM(votes) FROM dsratinglog WHERE id = {$doc->id} AND active GROUP BY id");
+				$r = mysql_fetch_row($res);
+				mysql_free_result($res);
+				$sum = (int) @$r[0]; $votes = (int) @$r[1]; $avgRating = $votes ? $sum / $votes : 0;
+				$mark = $rating > $avgRating ? $this->maxRating : $this->minRating;
+				$votesToAdd = max(ceil(($newRating * $votes - $sum) / ($mark - $newRating)), 1);
+				$db->query(sprintf(
+					"INSERT INTO dsratinglog (id, user_id, fake, active, rating, votes, date) VALUES(%d, %d, 1, 1, %d, %d, %d)"
+					, $doc->id, $userId, $votesToAdd * $mark, $votesToAdd, time()
+				));
+				$result = $db->affectedRows() == 1;
+			}
+		}
+		return $result;
+	}
+	
+	function _updateByDistributing(&$doc, $rating) {
+		return false;
+	}
+	
+	function delete($ids) {
+		WCS::assertValue(WCS::decide($this, 'removedoc') || WCS::ownerAllowed($this->getSDoc(), 'removedoc'), $this, 'removedoc');
+		$this->filterDocs($ids);
+		if(sizeof($ids)) {
+			$_ids = implode(',', $ids);
+			$db = &WCDB::bo();
+			if($r = $this->_getHybridDocColumn())
+				$db->query("UPDATE dshybrid_{$r[0]} h, dsrating d SET h.{$r[1]} = NULL WHERE d.id IN ($_ids) AND h.id = d.hdoc");
+			$db->query("DELETE FROM {$this->DSTable} WHERE id IN($_ids)");
+			$db->query("DELETE FROM dsratinglog WHERE id IN($_ids)");
+			$this->evictDocCache(&$ids);
+		}
+	}
+	
+	function removeVotes($ratingId, $userIds) {
+		$result = true;
+		$doc = &$this->getDocument($ratingId);
+		assert($doc->id > 0);
+		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
+		if(sizeof($userIds) > 0) {
+			$db = &WCDB::bo();
+			$db->query(sprintf(
+				"DELETE l.* FROM {$this->DSTable} d, dsratinglog l WHERE d.ds_id = %d AND d.id = %d AND l.id = d.id AND l.user_id IN (%s)"
+				, $this->ds_id, $ratingId, implode(',', $userIds)
+			));
+			$result = $db->affectedRows() > 0;
+			if($result)
+				$this->_recalculateRating('d.id = '.$doc->id);
+		}
+		return $result;
+	}
+	
+	function setVotesState($ratingId, $userIds, $state) {
+		$result = true;
+		$doc = &$this->getDocument($ratingId);
+		assert($doc->id > 0);
+		WCS::assertValue(WCS::decide($doc, 'publishdoc') || WCS::decide($this, 'publishdoc'), $doc, 'publishdoc');
+		if(sizeof($userIds) > 0) {
+			$db = &WCDB::bo();
+			$db->query(sprintf(
+				"UPDATE {$this->DSTable} d, dsratinglog l SET l.active = %d WHERE d.ds_id = %d AND d.id = %d AND l.id = d.id AND l.user_id IN (%s)"
+				, $state ? 1 : 0, $this->ds_id, $ratingId, implode(',', $userIds)
+			));
+			$result = $db->affectedRows() > 0;
+			if($result)
+				$this->_recalculateRating('d.id = '.$doc->id);
+		}
+		return $result;
+	}
+	
+	function rateDocument($hDocId, $userId, $rating, $comment = '') {
+		settype($hDocId, 'int');
+		assert($hDocId > 0);
+		return $this->_addUserRatingByClause("d.hdoc = $hDocId", $userId, $rating, $comment);
+	}
+	
+	function rateRating($ratingId, $userId, $rating, $comment = '') {
+		settype($ratingId, 'int');
+		assert($ratingId > 0);
+		return $this->_addUserRatingByClause("d.id = $ratingId", $userId, $rating, $comment);
+	}
+	
+	function _addUserRatingByClause($clause, $userId, $rating, $comment = '') {
+		WCS::assert($this, 'createdoc');
+		settype($userId, 'int');
+		assert(!empty($clause) && $userId > 0);
+		$comment = &$this->cleanHTML($comment);
+		$db = &WCDB::bo();
+		$db->query(sprintf(
+			"INSERT INTO dsratinglog (id, user_id, active, rating, comment, date) SELECT id, $userId, 1, %d, '%s' AS comment, %d FROM {$this->DSTable} d WHERE $clause"
+			, $this->getValidRating($rating), addslashes($comment), time()
+		));
+		if($db->affectedRows() > 0) {
+			$this->_recalculateRating($clause);
+			return true;
+		}
+		return false;
+	}
+	
+	function getValidRating($rating) {
+		settype($rating, 'int');
+		return $rating > $this->maxRating ? $this->maxRating : ($rating < $this->minRating ? $this->minRating : $rating);
+	}
+	
+	function _recalculateRating($clause) {
+		assert(empty($clause) == false);
+		$db = &WCDB::bo();
+		$res = $db->query("SELECT d.id, d.hdoc, SUM(l.votes) AS raters, SUM(l.rating) AS rating FROM {$this->DSTable} d LEFT JOIN dsratinglog l ON (l.id = d.id AND l.active > 0) WHERE  d.ds_id = {$this->ds_id} AND $clause GROUP BY d.id");
+		if(mysql_num_rows($res) > 0) {
+			$hDocs = array();
+			while($r = mysql_fetch_assoc($res)) {
+				settype($r['raters'], 'int');
+				$rating = $r['raters'] > 0 ? round($r['rating'] / $r['raters'], 4) : 0;
+				$db->query(
+					"UPDATE {$this->DSTable} SET raters = {$r['raters']}, rating = {$rating}, date = ".time()." WHERE id = {$r['id']}"
+				);
+				$hDocs[] = $r['hdoc'];
+			}
+			if($col = $this->_getHybridDocColumn()) {
+				$smc = &WCDataSource::_getSmartyCache();
+				$smc->record_updated('hybrid', $col[0], $hDocs);
+			}
+		}
+		mysql_free_result($res);
+	}
+	
+	function _setRatingBounds($min, $max) {
+		$this->_newBounds = array($min, $max);
+	}
+	
+	function _getHybridDocColumn() {
+		if(!isset($this->_hdColumn)) {
+			$db = &WCDB::bo();
+			$res = $db->query("SELECT ds_id, name FROM dshfields WHERE fromds = {$this->ds_id} AND family='rating' LIMIT 1");
+			$this->_hdColumn = mysql_fetch_row($res);
+			mysql_free_result($res);
+		}
+		return $this->_hdColumn;
+	}
+	
+	function _getFakeUserFor($id) {
+		$result = null;
+		if($this->fakeRaters > 0) {
+			$db = &WCDB::bo();
+			$res = $db->query("SELECT m.user_id FROM wcsmembership m LEFT JOIN dsratinglog l ON (l.id = $id AND l.user_id = m.user_id) WHERE m.group_id = {$this->fakeRaters} AND l.user_id IS NULL LIMIT 1");
+			if($r = mysql_fetch_row($res))
+				$result = $r[0];
+			elseif(DSR_FAKE_LOGIN_PREFIX)
+				$result = $this->_createFakeUser();
+			mysql_free_result($res);
+		}
+		return $result;
+	}
+	
+	function _createFakeUser() {
+		$result = null;
+		assert($this->fakeRaters > 0 && DSR_FAKE_LOGIN_PREFIX);
+		require_once(LIBDIR.'/security/userfactory._wc');
+		$db = &WCDB::bo();
+		$res = $db->query(sprintf(
+				'SELECT SUBSTRING(login, %1$d + 1) FROM wcsusers WHERE LEFT(login, %1$d) = "%2$s" ORDER BY login DESC'
+				, strlen(DSR_FAKE_LOGIN_PREFIX), addslashes(DSR_FAKE_LOGIN_PREFIX)
+			));
+		$last = intval($r = mysql_fetch_row($res) ? $r[0] : 0);
+		$user = & new User(null, null); $user->active = false;
+		$uf = &UserFactory::getInstance();
+		$user->pwd = $uf->generatePwd(8);
+		WCS::runAs(WCS_ROOT_ID);
+		for($i = $last + 1; !$result && ($i <= $last + 5); $i++) {
+			$user->login = DSR_FAKE_LOGIN_PREFIX.str_pad($i, 5, '0', STR_PAD_LEFT);
+			$user->name = DSR_FAKE_USERNAME_PREFIX.$i;
+			if($uf->isLoginValid($user->login) && $uf->createUser($this->fakeRaters, $user))
+				$result = $user->id;
+		}
+		WCS::stopRunAs();
+		unset($uf, $user);
+		return $result;
+	}
+	
+	function &get_record($id) {
+		settype($id, 'int');
+		$result = null;
+		$db = &WCDB::bo();
+		$res = $db->query("SELECT d.*, h.header FROM {$this->DSTable} d, dshybrid h WHERE d.id = $id AND h.id = d.hdoc LIMIT 1");
+		if($r = mysql_fetch_assoc($res)) {
+			$result = $r;
+			$resRR = $db->query("SELECT SUM(rating), SUM(votes) FROM dsratinglog WHERE id = {$result['id']} AND fake = 0 AND active > 0");
+			if($r = mysql_fetch_row($resRR)) {
+				$result['realRating'] = $r[1] ? (float) $r[0] / $r[1] : 0;
+				$result['realVotes'] = (int) $r[1];
+			}
+			mysql_free_result($resRR);
+			$resFR = $db->query("SELECT SUM(rating), SUM(votes), COUNT(user_id) FROM dsratinglog WHERE id = {$result['id']} AND fake > 0 AND active > 0");
+			if($r = mysql_fetch_row($resFR)) {
+				$result['fakeRating'] = $r[1] ? (float) $r[0] / $r[1] : 0;
+				$result['fakeVotes'] = (int) $r[1];
+				$result['fakeRaters'] = (int) $r[2];
+			}
+			mysql_free_result($resFR);
+		}
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function getVote($ratingId, $userId) {
+		settype($ratingId, 'int');
+		settype($userId, 'int');
+		$db = &WCDB::bo();
+		$res = $db->query("SELECT l.*, u.login, u.name FROM dsratinglog l LEFT JOIN wcsusers u ON (l.user_id = u.id) WHERE l.id = $ratingId AND l.user_id = $userId");
+		$result = mysql_fetch_assoc($res);
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function updateVote($ratingId, $userId, $active, $comment, $rating = null, $votes = null, $date = null) {
+		$doc = &$this->getDocument($ratingId);
+		assert($doc->id > 0);
+		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
+		$vote = $this->getVote($doc->id, $userId);
+		assert($vote != null);
+		settype($rating, 'int');
+		assert(!$vote['fake'] || ($rating >= $this->minRating && $rating <= $this->maxRating && $votes > 0));
+		$comment = &$this->cleanHTML($comment);
+		$extra = ''; $dirty = false;
+		if($vote['fake']) {
+			if($vote['rating'] != ($rating * $votes) || $vote['votes'] != $votes) {
+				$extra .= sprintf(', l.rating = %d, l.votes = %d', $rating * $votes, $votes);
+				$dirty = true;
+			}
+			if($date && (($time = strtotime($date)) != -1) && $time != $vote['date'])
+				$extra .= ", l.date = $time";
+		}
+		if(intval($active) != $vote['active']
+			&& (WCS::decide($this, 'publishdoc')
+				 || (WCS::ownerAllowed($this->getSDoc(), 'publishdoc') && $doc->sRes->owner == Authentication::getUserId())
+				)
+			) {
+			$extra .= ', l.active = '.($active ? 1 : 0);
+			$dirty = true;
+		}
+		$query = sprintf(
+			"UPDATE dsrating d, dsratinglog l SET l.comment = '%s' %s WHERE d.id = {$doc->id} AND d.ds_id = {$this->ds_id} AND l.id = d.id AND l.user_id = {$vote['user_id']}"
+			, addslashes($comment), $extra
+		);
+		$db = &WCDB::bo();
+		$db->query($query);
+		$result = $db->errorCode() == 0;
+		if($result && $dirty)
+			$this->_recalculateRating("d.id = {$doc->id}");
+		return $result;
+	}
+	
+	function save() {
+		assert($this->ds_id > 0);
+		WCS::assert($this, 'editds');
+		if(isset($this->_newBounds)) {
+			if(is_array($this->_newBounds) && sizeof($this->_newBounds) == 2) {
+				list($min, $max) = $this->_newBounds;
+				settype($min, 'int');
+				settype($max, 'int');
+				if($min < $max && ($min != $this->minRating || $max != $this->maxRating)) {
+					$m = ($max - $min) / ($this->maxRating - $this->minRating);
+					$o = $min - $this->minRating * ($max - $min) / ($this->maxRating - $this->minRating);
+					$db = &WCDB::bo();
+					$db->query("UPDATE {$this->DSTable} d, dsratinglog l SET l.rating = ((l.rating / l.votes) * $m + $o) * l.votes WHERE d.ds_id = {$this->ds_id} AND l.id = d.id");
+					$this->minRating = (int) $min;
+					$this->maxRating = (int) $max;
+					$this->_recalculateRating('1');
+				}
+			}
+			unset($this->_newBounds);
+		}
+		return WCDataSource::save();
+	}
+	
+	function setIndexable() {assert(true === false);}
+	function setSize() {assert(true === false);}
+}
+?>

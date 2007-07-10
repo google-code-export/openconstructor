@@ -1,0 +1,103 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: structure._wc,v 1.13 2007/02/27 11:23:19 sanjar Exp $
+ */
+	error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
+	
+	//----------------------------
+	//Диалоговые окна в карте сайта
+	//----------------------------
+	
+	
+	//Создать страницу
+	define('NEW_PAGE','New Page');
+	define('PAGE_FOLDER','Folder');
+	define('PAGE_NAME','Name');
+	define('PAGE_URI','Page URI');
+	define('PARENT_PAGE','Parent Page');
+	define('CREATE_PAGE_IN','Create Page In');
+	@define('BTN_CREATE','Create');
+	@define('BTN_SAVE','Save');
+	@define('BTN_CANCEL','Cancel');
+	
+	//Добавиь объект
+	define('ADD_OBJECT','Object Addition');
+	
+	//Редактировать страницу
+	define('PAGE_GENERAL','General');
+	define('PAGE_STATUS','Status');
+	define('PAGE_IS_PUBLISHED','Published');
+	define('PAGE_IS_UNPUBLISHED','Unpublished');
+	define('PAGE_STATUS_AFFECTS_CHILDREN','Including SubSections');
+	define('PAGE_TEMPLATE','Template');
+	define('PAGE_WEB','Page');
+	define('PAGE_TITLE','Title');
+	define('PAGE_ADD_PARENTS_TITLE','Add Parent\'s Title');
+	define('PAGE_CSS','Style(CSS)');
+	define('PAGE_META_INFO','META Info');
+	define('PAGE_CONTENT_TYPE','Content Type');
+	define('PAGE_INHERIT_CONTENT_TYPE','Inherit from Parent');
+	define('PAGE_META_KEYWORDS','Keywords');
+	define('PAGE_META_DESCRIPTION','Description');
+	define('PAGE_REDIRECT_URI','Redirect(URI)');
+	define('PAGE_ROBOTS','Search Robots');
+	define('PAGE_ROBOTS_INDEX','INDEX');
+	define('PAGE_ROBOTS_NOINDEX','NOINDEX');
+	define('PAGE_ROBOTS_FOLLOW','FOLLOW');
+	define('PAGE_ROBOTS_NOFOLLOW','NOFOLLOW');
+	define('PAGE_USERS','Users');
+	define('PAGE_SELECT_ALL_USERS','Select All');
+	define('PAGE_UNSELECT_ALL_USERS','Unselect All');
+	
+	//Переместить страницу
+	define('MOVE_TO','Move To');
+	define('BTN_MOVE','Move');
+	
+	define('H_SELECT_OBJECT_I','Select object');
+	define('BTN_ADD_OBJECT','Add');
+	define('PAGE_ROUTE','Route virtual URIs to sub-sections');
+	define('H_MAKE_CHILDS_USR_THE_SAME','Set same values for sub-sections');
+	define('PAGE_URI_CURRENT','Current URI');
+	define('PAGE_URI_NEW','New URI');
+	
+	define('H_CREATE_PAGE','Create page');
+	define('H_EDIT_PAGE','Edit page');
+	define('PAGE_CACHING','Page output caching');
+	define('PAGE_ENABLE_CACHING','Enable caching');
+	define('PAGE_CACHE_PROPS','Cache settings');
+	define('PAGE_CACHE_LIFETIME','Cache lifetime in seconds');
+	define('PAGE_CACHE_VARY','Cache dependencies');
+	define('PAGE_CACHE_VARY_SUGGEST','Suggest...');
+	define('PAGE_TRY_TO_GZIP_CACHE','Try to Gzip cache when possible');
+	define('H_MOVE_PAGE','Move page');
+	define('H_CACHE_VARY_SUGGEST','Cache dependencies suggestion');
+	define('SUGGESTTIONS_MAY_BE_INVALID','System may be mistaken during automatic determination of dependencies. Especially if injection work at the page.'); 
+	define('H_SUGGESTIONS','Suggestions'); 
+	define('H_NO_SUGGESTIONS','No suggestions');
+	define('BTN_INSERT','Insert');
+	
+	define('H_PAGE_USER_PROFILES','User Profiles');
+	define('PAGE_PROFILES_INHERIT','Inherit parent\'s preferences');
+	define('PAGE_PROFILES_LOADER','Profile loading object');
+	define('PAGE_PROFILES_LOAD_ONCE','Do not load profile if it exists in session');
+	
+	error_reporting($_oldLevel);
+?>

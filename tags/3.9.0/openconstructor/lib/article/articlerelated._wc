@@ -1,0 +1,100 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Выводит ссылки по тематике статьи.
+ * 
+ * Объект вывода.
+ * 
+ * @author Rustam Akhmedov
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: articlerelated._wc,v 1.9 2007/02/27 11:23:21 sanjar Exp $
+ */
+
+class ArticleRelated extends WCObject {
+	var $header;
+	var $articleid;
+	var $master;
+	var $dateFormat;
+
+	function ArticleRelated() {
+		$this->DSTable='dsarticle';
+		$this->ds_type='article';
+		$this->obj_type='articlerelated';
+		$this->dateFormat='[j.m.Y]';
+		$this->articleid = 'articleid';
+		$this->master=NULL;
+		$this->caching=2;
+		$this->cached_by_WC=true;
+	}
+	
+	function getCacheId() {
+		$cacheId = null;
+		$ctx = &Context::getInstance();
+		if($master = &$ctx->getObject((int) $this->master)) {
+			$articleId = $master->getDocId();
+			$cacheId = $this->obj_id.'|'.$articleId;
+		}
+		return $cacheId;
+	}
+	
+	function fetchData(&$smarty) {
+		$result = false;
+		$ctx = &Context::getInstance();
+		$master = &$ctx->getObject((int) $this->master);
+		if(!$master) return $result;
+		$article_id = $master->getDocId();
+		if(!$article_id) return $result;
+		
+		$db = &$this->ctx->_getDB();
+		$res = $db->query(
+			'SELECT t2.id, t2.real_id as rid, t2.header, t2.date'.
+			' FROM '.$this->DSTable.' t1, '.$this->DSTable.' t2'.
+			' WHERE t1.id = '.$article_id.' AND t1.published AND FIND_IN_SET(t2.id, t1.related) AND t2.real_id != t1.id AND t2.published '.
+			' ORDER BY date DESC '
+		);
+		
+		if(mysql_num_rows($res) > 0) {
+			$fet = array();
+			$ctx = &Context::getInstance();
+			$href = $ctx->getPatternFor('.', $this->articleid);
+			
+			while($row = mysql_fetch_assoc($res)) {
+				if(isset($fet[$row['rid']])) continue;
+				$fet[$row['rid']] = true;
+				$article[$row['id']]['header'] = escapeTags($row['header']);
+				$article[$row['id']]['href'] = sprintf($href, $row['id']);
+				$article[$row['id']]['date'] = wcfFormatTime($this->dateFormat, $row['date']);
+			}
+			$smarty->assign('header',$this->header);
+			$smarty->assign_by_ref('articles',$article);
+			$result = array('header', 'articles');
+		}
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &_getDSFields() {
+		static $result;
+		if(!is_array(&$result)) $result = array('master');
+		return $result;
+	}
+}
+?>

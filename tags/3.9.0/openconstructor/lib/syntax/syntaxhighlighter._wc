@@ -1,0 +1,122 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: syntaxhighlighter._wc,v 1.7 2007/02/28 06:38:34 sanjar Exp $
+ */
+
+class SyntaxHighlighter {
+	function SyntaxHighlighter() {
+		
+	}
+	
+	function getPhpEditor() {
+		$result = 
+			SyntaxHighlighter::_getCommonParams("php").
+			SyntaxHighlighter::_getStylesFor("php")
+			;
+		return $result;
+	}
+	
+	function getHtmlEditor() {
+		$result = 
+			SyntaxHighlighter::_getCommonParams("html").
+			SyntaxHighlighter::_getStylesFor("html")
+			;
+		return $result;
+	}
+	
+	function _getCommonParams($lang) {
+		$result = "
+			<param name=\"type\" value=\"application/x-java-applet; version=1.4\">
+			<param name=\"CACHE_ARCHIVE\" value=\"".WCHOME."/lib/syntax/syntax-highlighter.jar\">
+			<param name=\"code\" value=\"org.openconstructor.syntax.JEditApplet.class\">
+			<param name=\"CACHE_OPTION\" value=\"Plugin\">
+			<param name=\"ContentType\" value=\"{$lang}\">";
+		return $result;
+	}
+	
+	function _getStylesFor($lang) {
+		$result = '';
+		$styles = &SyntaxHighlighter::getStyles();
+		if(is_array($styles) && isset($styles[$lang]))
+			foreach($styles[$lang] as $k => $v)
+				$result .= "\n\t<param name='$k' value='$v'>";
+		return $result;
+	}
+	
+	function &getStyles() {
+		static $styles;
+		if(!is_array($styles)) {
+			$styles = array(
+				'php' => array(
+					'comment1'	=> '0x999999, italic',	// html comment
+					'comment2'	=> '0x999999, italic',	// code comment (php, js)
+					
+					'keyword1'	=> '0xbb7977, bold',	// Language constructs(for, if, return...) & tags
+					'keyword2'	=> '0x800000, bold',	// Html entities and keywords like function, var...
+					'keyword3'	=> '0x000060',			// Function and variable names
+					
+					'literal1'	=> '0x2a00ff',			// String literals
+					'literal2'	=> '0x2a00ff',			// N/A
+					
+					'label'		=> '0x9900bb, italic, bold',	// Script tags (<?php or <script>)
+					'operator'	=> '0x808030',
+					'invalid'	=> '0xff0000, bold'
+				),
+				
+				'html' => array(
+					'comment1'	=> '0x999999, italic',	// Html comments
+					'comment2'	=> '0x999999, italic',	// js comment
+					
+					'keyword1'	=> '0x3f7f7f',	// Tags & js language constructs
+					'keyword2'	=> '0x3f7f7f, italic',	// Html entities
+					'keyword3'	=> '0x2a00ff',			// js keywords var & function
+					
+					'literal1'	=> '0x008200',			// String literals
+					'literal2'	=> '0x650099, bold',
+					
+					'label'		=> '0x990033',	// js: this, true, false
+					'operator'	=> '0x808030',
+					'invalid'	=> '0xff0000, bold'		// Invalid
+				),
+				
+				'javascript' => array(
+					'comment1'	=> '0x999999, italic',
+					'comment2'	=> '0x990033, italic',
+					
+					'keyword1'	=> '0x000000, bold',
+					'keyword2'	=> '0xff0000',
+					'keyword3'	=> '0x009600',
+					
+					'literal1'	=> '0x650099',
+					'literal2'	=> '0x650099, bold',
+					
+					'label'		=> '0x990033, bold',
+					'operator'	=> '0x000000, bold',
+					'invalid'	=> '0xff0000, bold'
+				)
+			);
+		}
+		return $styles;
+	}
+}
+?>

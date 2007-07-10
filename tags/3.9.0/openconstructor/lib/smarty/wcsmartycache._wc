@@ -1,0 +1,167 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Класс отвечающий за правильное поведение кеша Smarty;
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: wcsmartycache._wc,v 1.2 2007/02/27 11:23:26 sanjar Exp $
+ */
+require_once('wcsmarty._wc');
+
+class WCSmartyCache {
+	var $smarty;
+	
+	function WCSmartyCache(){
+		$this->smarty = & new WCSmarty();
+	}
+	
+	function page_updated($ids, $updateObj = true) {
+		settype($ids, 'array');
+		foreach($ids as $id)
+			$this->smarty->clear_cache(null, 'p'.$id);
+		if($updateObj) {
+			$db = &WCDB::bo();
+			$res = $db->query('SELECT id FROM objects WHERE obj_type IN ("htmltexthl", "htmltexthlintro", "misccrumbs") AND cache_by_wc > 0');
+			for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++) {
+				$r = mysql_fetch_row($res);
+				foreach($ids as $id)
+					$this->smarty->clear_cache(null, $r[0].'|'.$id);
+			}
+			mysql_free_result($res);
+		}
+	}
+	
+	function object_updated($dsType, $ids) {
+		if(!is_array($ids))
+			$ids = explode(',', $ids);
+		for($i = 0, $l = sizeof($ids); $i < $l; $i++)
+			$this->smarty->clear_cache(null, (string) $ids[$i]);
+		$this->clear_page_cache($ids);
+	}
+	
+	function clear_page_cache($objIds) {
+		if(is_array($objIds))
+			$objIds = implode(',', $objIds);
+		if($objIds) {
+			$db = &WCDB::bo();
+			$res = $db->query('SELECT page_id FROM siteobjects WHERE obj_id IN ('.$objIds.') GROUP BY page_id');
+			for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++) {
+				$r = mysql_fetch_row($res);
+				$this->smarty->clear_cache(null, 'p'.$r[0]);
+			}
+		}
+	}
+	
+	function tpl_updated($ids, $clear_cache=true, $clear_compiled=true) {
+		if(is_array($ids))
+			$ids=implode(',',$ids);
+		$db = &WCDB::bo();
+		$res = $db->query('SELECT id, tpl FROM objects WHERE tpl IN ('.$ids.')');
+		$obj = $o = array();
+		if(mysql_num_rows($res) > 0)
+			while($r = mysql_fetch_assoc($res)) {
+				$obj[$r['tpl']][] = $r['id'];
+				$o = $r['id'];
+			}
+		mysql_free_result($res);
+		$ids = explode(',', $ids);
+		for($i = 0, $l = sizeof($ids); $i < $l; $i++) {
+			if($clear_cache && isset($obj[$ids[$i]]))
+				for($j = 0, $s = sizeof($obj[$ids[$i]]); $j < $s; $j++)
+					$this->smarty->clear_cache(null, $obj[$ids[$i]][$j]);
+			if($clear_compiled)
+				$this->smarty->clear_compiled_tpl($ids[$i].'.tpl');
+		}
+		$this->clear_page_cache($o);
+	}
+	
+	function pagetpl_updated($ids, $clearCompiled = true, $clearCache = true) {
+		if(is_array($ids))
+			$ids = implode(',', $ids);
+		$db = &WCDB::bo();
+		$res = $db->query('SELECT id, tpl FROM sitepages WHERE tpl IN ('.$ids.') AND caching > 0');
+		for($i = 0, $p = array(), $l = mysql_num_rows($res); $i < $l; $i++) {
+			$r = mysql_fetch_row($res);
+			$p[$r[1]][] = $r[0];
+		}
+		mysql_free_result($res);
+		$ids = explode(',', $ids);
+		for($i = 0, $l = sizeof($ids); $i < $l; $i++) {
+			if($clearCompiled)
+				$this->smarty->clear_compiled_tpl($ids[$i].'.tpl');
+			if($clearCache && isset($p[$ids[$i]]))
+				for($j = 0, $s = sizeof($p[$ids[$i]]); $j < $s; $j++)
+					$this->smarty->clear_cache(null, 'p'.$p[$ids[$i]][$j]);
+		}
+	}
+	
+	function record_updated($ds_type, $ds_id, $ids){
+		settype($ids, 'array');
+		$db = &WCDB::bo();
+		$res = $db->query('SELECT id, tpl, obj_type, cache_by_wc AS cbw FROM objects WHERE ds_type="'.$ds_type.'"');
+		$objects=array();
+		if(mysql_num_rows($res)>0)
+			while($r=mysql_fetch_assoc($res))
+				$objects[] = array('id' => $r['id'], 'tpl' => $r['tpl'].'.tpl', 'type' => $r['obj_type'], 'cbw' => $r['cbw'] > 0);
+		mysql_free_result($res);
+		$s = sizeof($ids);
+		$o = array();
+		for($i = 0, $l = sizeof($objects); $i < $l; $i++) {
+			$obj = &$objects[$i];
+			switch($obj['type']) {
+				case 'htmltextbody':
+				case 'phpinclude':
+				case 'eventbody':
+				case 'articlerelated':
+				case 'articlebody':
+				case 'articlebodypager':
+				case 'galleryimage':
+				case 'publicationbody':
+				case 'hybridbody':
+				case 'hybridbodyedit':
+					$o[] = $obj['id'];
+					if($obj['cbw'])
+						for($j = 0; $j < $s; $j++)
+							$this->smarty->clear_cache(null, $obj['id'].'|'.$ids[$j]);
+					break;
+				case 'htmltexthl':
+				case 'misccrumbs':
+				case 'gbaddmsglogic':
+				case 'usersauthorize':
+				case 'ratingratelogic':
+					break;
+				default:
+					$o[] = $obj['id'];
+					if($obj['cbw'])
+						$this->smarty->clear_cache(null, $obj['id']);
+			}
+		}
+		$this->clear_page_cache($o);
+	}
+	
+	function &getInstance() {
+		static $instance;
+		if(!is_object($instance))
+			$instance = new WCSmartyCache();
+		return $instance;
+	}
+}
+?>

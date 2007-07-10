@@ -1,0 +1,214 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: data._wc,v 1.11 2007/02/27 11:23:19 sanjar Exp $
+ */
+	error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
+	
+	//----------------------------
+	//Диалоговые окна в данных
+	//----------------------------
+	
+	//Создание раздела данных
+	define('DS_GENERAL_PROPS','General');
+	define('DS_NAME','Section Name');
+	define('DS_DESCRIPTION','Section Description');
+	define('BTN_CREATE_DS','Create');
+	define('BTN_SAVE_CHANGES_DS','Save');
+	@define('BTN_CANCEL','Cancel');
+	
+	define('CREATE_DS_FAILED_W','Error occured. Section was not created.');
+	define('SAVE_DS_FAILED_W','Error occured. Section was not saved.');
+	define('SAVE_DS_SUCCESS_I','Section was saved successfuly.');
+	
+	define('DS_ENABLE_EMAIL_ENCODING','Encode email addresses');
+	
+	//HTML код
+	define('EDIT_DS_HTMLTEXT','HTML Source Section Editing');
+	define('DS_PROPS','Properties');
+	define('DS_INTROSIZE','Intro Size');
+	define('DS_CHARS','Charts');
+	define('DS_ALLOW_AUTOPUBLISHING','Allow Autopublication');
+	define('DS_CLEAN_HTML','HTML Filtration');
+	define('DS_ENABLE_CLEAN_HTML','HTML Filtration Switch on');
+	define('DS_ALLOWED_TAGS','Allow only');
+	
+	//Публикации
+	define('EDIT_DS_PUBLICATION','Edit a Publication Section');
+	define('DS_RECORD_INTRO','Intro');
+	define('DS_GRAPH_PROPS','Graphics');
+	define('DS_GRAPH_BOUNDS','Restrictions');
+	define('DS_GRAPH_MIN_RECT','Small Rectangle');
+	define('DS_GRAPH_WIDTH','Width');
+	define('DS_GRAPH_HEIGHT','Height');
+	define('DS_GRAPH_MAX_RECT','Large Rectangle');
+	define('DS_GRAPH_IMAGES','Illustration');
+	define('DS_GRAPH_IMAGEMAIN','Big Picture');
+	define('DS_GRAPH_IMAGEINTRO','Intro Picture');
+	define('DS_GRAPH_IMAGEINTRO_SIZE','Size');
+	define('DS_GRAPH_PERCENT_10_100','% of restrictions (10%-100%)');
+	define('DS_ATTACHED_GALLERY','Gallery');
+	define('DS_AUTO_ATTACH_GALLERY','Attach a Gallery');
+	
+	//Календарь событий
+	define('EDIT_DS_EVENT','Events Section Editing');
+	define('DS_EVENTS_YEAR','Year');
+	
+	//Фото галерея
+	define('EDIT_DS_GALLERY','Photogallery Editing');
+	
+	//Статьи
+	define('EDIT_DS_ARTICLE','Articles Section Editing');
+	
+	//Пул текстов
+	define('EDIT_DS_TEXTPOOL','Text Pool Editing');
+	
+	//Гостевая книга
+	define('EDIT_DS_GUESTBOOK','Guest Book Editing');
+	
+	//PHP код
+	define('EDIT_DS_PHPSOURCE','PHP Source Section Edition');
+	
+	//Файлы
+	define('EDIT_DS_FILE','Files Section Edition');
+	define('DS_FOLDER_NAME','Folder Name');
+	define('DS_TT_FOLDER_NAME','Tooltip');
+	define('BTN_CORRECT_FOLDER_NAME','Adjust');
+	define('DS_TT_CORRECT_FOLDER_NAME','Make a transliteration and remove restricted symbols');
+	
+	define('FILE_HAVE_NOT_BEEN_UPLOADED_W','File hasn\'t been uploaded');
+	define('DISALLOWED_FILETYPE_W','Kiaaa! My kung fu is better.');
+	define('INCORRECT_FILENAME_I','Filename contains restricted characters');
+	define('FILE_WAS_RENAMED_TO_I','renamed to');
+	define('FILE_EXISTS_I','File with specified name already exists');
+	define('INCORRECT_FOLDERNAME_I','Foldername contains restricted characters');
+	define('FOLDER_EXISTS_I','Specified folder already exists');
+	
+	//Создание алиасов
+	define('CREATE_ALIASES','Aliases creation');
+	@define('SEARCH_FOR_KEYWORD','Please enter a keyword');
+	@define('FIND_NOW','Search');
+	define('BTN_CREATE_ALIASES','Create');
+	@define('H_NO_RESULTS_FOR_KEYWORD','No pages were found containing');
+	define('BTN_SELECT_ALL','Select all');
+	define('H_HEADER','Header');
+	define('H_DATE','Date');
+	define('H_DS_NAME','Section');
+	
+	//Перемещение документов
+	define('PROPS_DATASOURCES','Sections');
+	define('CURRENT_DS','Current Section');
+	define('DESTINATION_DS','Destination Section');
+	define('BTN_MOVE_DOCUMENTS','Move');
+	
+	@define('CREATE_DS_HTMLTEXT','Create HTML code section');
+	define('DS_SIZE','size of a section');
+	define('DS_RECORDS','documents');
+	@define('CREATE_DS_PUBLICATION','Create new Publications section');
+	@define('CREATE_DS_EVENT','Create new Events section');
+	@define('CREATE_DS_GALLERY','Create new Photo Gallery section');
+	@define('CREATE_DS_ARTICLE','Create new Articles section');
+	@define('CREATE_DS_TEXTPOOL','Create new Text Pool');
+	@define('CREATE_DS_GUESTBOOK','Create new Guest Book section');
+	@define('CREATE_DS_PHPSOURCE','Create new PHP code section');
+	@define('CREATE_DS_FILE','create new File section');
+	define('DS_ALLOWED_FILETYPES','Allowed file types');
+	define('DS_TT_ALLOWED_FILETYPES','List of allowed file types divided by commas');
+	define('DS_AUTONAME_FILES','Set names automaticaly when createting files');
+	define('DS_SECURITY','Security');
+	define('DS_ALLOWED_GROUPS','Allowed groups');
+	@define('CREATE_DS_HYBRID','Create Hybrid data section');
+	define('EDIT_DS_HYBRID','Edit Hybrid data section');
+	define('DS_KEY','Key');
+	define('DS_PARENT','Inherit section');
+	define('DS_HYBRID_FIELDS','Fields');
+	define('BTN_ADD_FIELD','Add a field');
+	define('BTN_SAVE_FIELD','Save');
+	define('BTN_REMOVE_FIELDS','Delete fields');
+	define('H_ADD_FIELD','rus: Add field');
+	define('H_EDIT_FIELD','Edit field');
+	define('H_DSH_FIELD_KEY','Field ID');
+	define('H_DSH_FIELD_NAME','Field name');
+	define('H_DSH_FIELD_TYPE','Type');
+	define('H_DSH_FIELD_ISREQUIRED','Required field');
+	define('H_DSH_FIELD_DEFAULT','By default');
+	define('H_DSH_FIELD_BOUNDS','Restrictions');
+	define('H_DSH_FIELD_FROM','From');
+	define('H_DSH_FIELD_TO','To');
+	define('H_DSH_FIELD_LENGTH','length');
+	define('H_DSH_FIELD_ALLOWED_TAGS','Allow tags');
+	define('H_DSH_FIELD_VALIDATOR','Validator (PCRE)');
+	define('H_DSH_FIELD_FILETYPES','File types');
+	define('H_DSH_FIELD_MAX_SIZE','Max file size');
+	define('H_DSH_FIELD_IMG_BOUNDS','Graphic files restrictions');
+	define('H_DSH_FIELD_DOCTYPE','Document type');
+	define('H_DSH_FIELD_DSTYPE','Section type');
+	define('H_DSH_FIELD_CHOOSEFROM','Choose from / Example');
+	define('H_DSH_FIELD_ONETOONE','Connect by scheme "One to one"');
+	define('H_DSH_FIELD_ONETOMANY','Connect by cheme "one to many"');
+	define('H_DSH_FIELD_IS_ARRAY','Field can take more than one value');
+	define('H_DSH_PRIMITIVE_FIELD','Primitive type');
+	define('H_DSH_FILE_FIELD','File');
+	define('H_DSH_DATASOURCE_FIELD','Data section');
+	define('H_DSH_DOCUMENT_FIELD','Document');
+	define('H_DSH_ARRAY_FIELD','Document array');
+	define('H_DSH_WCTREE_FIELD','Tree');
+	define('H_DSH_WCENUM_FIELD','Ennumeration (enum)');
+	define('H_DSH_WCENUM','Ennumeration');
+	define('H_DSH_FIELD_PROPS','Type properties');
+	define('H_MANAGE_ENUMS','Manage Ennumerations');
+	define('BTN_CREATE_ENUM','Create new Ennumeration');
+	define('BTN_CREATE_ENUMVALUE','Create new value');
+	define('BTN_EDIT_ENUM','Edit');
+	define('BTN_REMOVE','Delete');
+	@define('BTN_CREATE','Create');
+	@define('BTN_SAVE','Save');
+	define('CREATE_ENUM','Create new Ennumeration');
+	define('CREATE_ENUMVALUE','Create new value');
+	define('EDIT_ENUM','Edit Ennumeration');
+	define('H_ENUM_PROPERTIES','Properties');
+	define('ENUM_HEADER','Header');
+	define('EDIT_ENUMVALUE','Edit Ennumeration value');
+	define('H_ENUMVALUE_PROPERTIES','Properties');
+	define('ENUMVALUE_HEADER','Header');
+	define('ENUMVALUE_KEY','Value');
+	define('REMOVE_ENUM_Q','Delete Ennumeration');
+	define('SURE_REMOVE_ENUM_Q','Are you sure you want to delete Ennumeration');
+	define('REMOVE_SELECTED_ENUMVALUES_Q','Delete selected values?');
+	@define('SELECT_ALL','select all');
+	@define('MOVE_DOCUMENTS','Move documents');
+	@define('DS_SEARCH','Search');
+	define('IS_INDEXABLE','Index?');
+	define('H_INDEX_PROPS','Index properties');
+	define('INDEXED_DOC_PATTERN','Indexed document template');
+	define('INDEX_INTRO_FIELD','Document intro');
+	
+	define('REMOVE_SELECTED_FIELDS_Q','Remove selected fields?');
+	define('DS_DOC_EDIT_TPL','Template of editor');
+
+	define('H_DSH_RATING_FIELD','Rating');
+	@define('CREATE_DS_RATING','Create Rating log');
+	define('EDIT_DS_RATING','Edit Rating Log');
+	define('DS_MIN_RATING','Minimal Rating');
+	define('DS_MAX_RATING','Maximal Rating');
+	define('DS_FAKE_RATERS_GROUP','Fake Group');
+	
+	error_reporting($_oldLevel);
+?>

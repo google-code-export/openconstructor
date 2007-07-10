@@ -1,0 +1,190 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: backupjob._wc,v 1.2 2007/02/27 11:23:26 sanjar Exp $
+ */
+require_once('zipfile._wc');
+require_once(LIBDIR.'/db/dbsetup._wc');
+require_once(LIBDIR.'/db/sqldumper._wc');
+
+class BackupJob {
+	var $_ftp, $_zip, $_zipName;
+	var $_folder;
+	var $_maxFileSize, $_largeFiles = array(), $_lfIndex = 0, $_lfClusterSize = 500;
+	var $_maxDumpSize, $_dumpIndex = 0;
+	var $_startTime;
+	var $_ignore = array(
+		'/res/backup',
+		'/res/log/.*\.txt', '/res/captcha/.*\.png',
+		'/res/smarty/compiled/.*', '/res/smarty/cache/.*',
+		'/res/config\._wc', '/res/map\._wc'
+	);
+	
+	function BackupJob($folder, $id) {
+		$this->_folder = $folder.'/'.$id;
+		$this->setMaxFileSize(1);
+		$this->_maxDumpSize = intval(1 * 1024 * 1024);
+		$this->_compileIgnores();
+	}
+	
+	function setMaxFileSize($sizeMb) {
+		$this->_maxFileSize = intval($sizeMb * 1024 * 1024);
+	}
+	
+	function run() {
+		$this->_startTime = time();
+		
+		$this->_lockTables();
+		
+		$this->_ftp->open();
+		$this->_ftp->md($this->_folder);
+		$this->_ftp->close();
+		
+		$this->_zipName = tempnam('*', 'backup_');
+		$this->_zip = & ZipFile::newWriter($this->_zipName);
+		$this->_zip->setOnAddEntry(array(&$this, '_onZip'));
+		
+		$this->_backupRes();
+		$this->_backupLargeFiles();
+		
+		$this->_zip->setOnAddEntry(null);
+		$this->_backupDB();
+		
+		$this->_zip->save();
+		
+		$this->_ftp->open();
+		$this->_ftp->copy_local_file($this->_zipName, $this->_folder.'/backup.zip');
+		$this->_saveBackupMeta();
+		$this->_ftp->close();
+		
+		$this->_unlockTables();
+		
+		unlink($this->_zipName);
+	}
+	
+	function setFtp(&$ftp) {
+		$this->_ftp = &$ftp;
+	}
+	
+	function _backupRes() {
+		$this->_zip->addDir($_SERVER['DOCUMENT_ROOT'].FILES);
+	}
+	
+	function _backupLargeFiles() {
+		if($l = sizeof($this->_largeFiles)) {
+			$this->_ftp->open();
+			$lf = $this->_folder.'/large-files/';
+			if($this->_lfIndex == 0) {
+				$this->_zip->mkDir('.large-files');
+				$this->_ftp->md($lf);
+			}
+			$lf .= $this->_lfIndex.'/';
+			$this->_ftp->md($lf);
+			$rl = strlen($_SERVER['DOCUMENT_ROOT'].FILES) + 1;
+			for($i = 0; $i < $l; $i++) {
+				$this->_ftp->copy_local_file($this->_largeFiles[$i], $lf.$i);
+				$this->_largeFiles[$i] = substr($this->_largeFiles[$i], $rl);
+			}
+			$this->_ftp->close();
+			
+			$this->_zip->addAsFile(implode('?', $this->_largeFiles), ".large-files/{$this->_lfIndex}");
+			$this->_lfIndex++;
+			unset($this->_largeFiles);
+			$this->_largeFiles = array();
+		}
+	}
+	
+	function _backupDB() {
+		$dump = new SqlDumper(DBSetup::getWCTables());
+		$sql = ''; $size = 0;
+		while($q = $dump->next()) {
+			$l = strlen($q);
+			if($size + $l > $this->_maxDumpSize) {
+				$this->_zipDBDump($sql);
+				unset($sql); $sql = ''; $size = 0;
+			}
+			$sql .= $q; $size += $l;
+			if($dump->cursor == SD_CURSOR_TABLE_CREATE && $dump->table == 'index')
+				$dump->skipTableData();
+		}
+		if($size > 0)
+			$this->_zipDBDump($sql);
+	}
+	
+	function _zipDBDump($dump) {
+		if($this->_dumpIndex == 0)
+			$this->_zip->mkDir('.db-dump');
+		$this->_zip->addAsFile($dump, ".db-dump/vol-{$this->_dumpIndex}.sql");
+		$this->_dumpIndex++;
+	}
+	
+	function _saveBackupMeta() {
+		$finished = time();
+		$meta = array(
+			'version' => WC_VERSION,
+			'version.full' => WC_VERSION_FULL,
+			'time.started' => $this->_startTime,
+			'time.finished' => $finished,
+			'time.executed' => gmdate('H:i:s', $finished - $this->_startTime),
+			'db.dumps' => $this->_dumpIndex,
+			'largefiles.clusters' => $this->_lfIndex
+		);
+		$ini = array();
+		foreach($meta as $k => $v)
+			$ini[] = sprintf('%s = "%s"', $k, addslashes($v));
+		$ini = implode("\n", $ini);
+		$this->_ftp->open();
+		$this->_ftp->write_file($this->_folder.'/backup.ini', $ini);
+		$this->_ftp->close();
+	}
+	
+	function _lockTables() {
+		$db = &WCDB::bo();
+		$tables = DBSetup::getWCTables();
+		$db->query('LOCK TABLES `'.implode('` READ, `',$tables).'` READ');
+	}
+	
+	function _unlockTables() {
+		$db = &WCDB::bo();
+		$db->query('UNLOCK TABLES');
+	}
+	
+	function _onZip($name, $isDir) {
+		for($i = 0, $l = sizeof($this->_ignore); $i < $l; $i++)
+			if(preg_match($this->_ignore[$i], $name))
+				return false;
+		if(!$isDir && $this->_maxFileSize > 0 && filesize($name) > $this->_maxFileSize) {
+			$this->_largeFiles[] = $name;
+			if(sizeof($this->_largeFiles) == $this->_lfClusterSize)
+				$this->_backupLargeFiles();
+			return false;
+		}
+		return true;
+	}
+	
+	function _compileIgnores() {
+		$docRoot = preg_quote($_SERVER['DOCUMENT_ROOT'], '~');
+		for($i = 0, $l = sizeof($this->_ignore); $i < $l; $i++)
+			$this->_ignore[$i] = '~^'.$docRoot.$this->_ignore[$i].'$~';
+	}
+}
+?>

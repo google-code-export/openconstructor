@@ -1,0 +1,105 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Класс для токенизации SQL запросов. Подходит для токенизации дампов базы.
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: sqltokenizer._wc,v 1.2 2007/02/27 11:23:25 sanjar Exp $
+ */
+
+class SqlTokenizer {
+	var $dump;
+	var $position;
+	var $separator;
+	var $block;
+	var $escape;
+
+	var $length;
+	
+	function SqlTokenizer($dump = null) {
+		$this->dump = null;
+		$this->length = 0;
+		$this->position = 0;
+		$this->separator = ';';
+		$this->block = array("'"=>"'", '"'=>'"', '`'=>'`', '/*'=>'*/', '--'=>"\n", '#'=>"\n");
+		$this->escape = '\\';
+		if($dump)
+			$this->bind($dump);
+	}
+	
+	function bind(&$dump) {
+		$this->dump = &$dump;
+		$this->length = strlen($dump);
+		$this->position = 0;
+	}
+	
+	function next() {
+		$firstBlock = $this->firstBlock($this->position);
+		$queryEnd = strpos($this->dump, $this->separator, $this->position);
+		$position = $firstBlock[1];
+		while($position >0 && $position < $queryEnd) {
+			$position = $this->closeBlock($firstBlock[0], $position);
+			if($position < 0)
+				return null;
+			$firstBlock = $this->firstBlock($position);
+			$queryEnd = strpos($this->dump, $this->separator, $position);
+			$position = $firstBlock[1];
+		}
+
+		if($queryEnd < $this->position)
+			return null;
+		$query = substr($this->dump, $this->position, $queryEnd - $this->position);
+		$this->position = $queryEnd + strlen($this->separator);
+		return $query;
+	}
+	
+	function firstBlock($from) {
+		$blockStart = array();
+		foreach($this->block as $k => $v) {
+			$blockStart[$k] = strpos($this->dump, $k, $from);
+			if($blockStart[$k] === false)
+				unset($blockStart[$k]);
+		}
+		if(sizeof($blockStart)) {
+			$k = array_search(min($blockStart), $blockStart);
+			return array($k, $blockStart[$k]);
+		} else
+			return array(null, -1);
+	}
+	
+	function closeBlock($block, $from) {
+		$from = $from + strlen($block);
+		while($from < $this->length) {
+			$from = strpos($this->dump, $this->block[$block], $from);
+			if($from === false)
+				break;
+			$i = 1;
+			if($this->block[$block] == $block)
+				while($this->dump{$from - $i} == $this->escape)
+					$i++;
+			$from += strlen($this->block[$block]);
+			if($i % 2 == 1)
+				return $from;
+		}
+		return -1;
+	}
+}
+?>
