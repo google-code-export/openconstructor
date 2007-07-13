@@ -335,7 +335,7 @@
 		if(sizeof($primitive)):?>
 		<fieldset>
 			<legend>Primitives</legend>
-			<table>
+			<table width=100%>
 			<?php
 				foreach($primitive as $key=>$type){
 					echo '<tr>';
