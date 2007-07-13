@@ -280,14 +280,14 @@ class HybridHL extends WCObject {
 				$rootT = '';
 				$root = 't0.id '.($cnt > 1 ? 'IN' : '=')."($key)";
 			} else {
-				$rootT = 'catalognode n,';
+				$rootT = 'catalognode n JOIN ';
 				$root = 'n.name '.($cnt > 1 ? 'IN' : '=')."($key) AND t0.id = n.id";
 			}
 			$and = $cnt > 1 && $this->nodeType == NID_AND;
 			$result = '
 				SELECT SQL_CALC_FOUND_ROWS '.$props['fields'].($and ? ', COUNT(DISTINCT t0.id) AS _cnt' : '').($props['group'] ? ', COUNT(DISTINCT c.node)' : ', 1').' AS _dh
-				FROM '.$rootT.' catalogtree t0, catalogtree t FORCE INDEX(num)
-					INNER JOIN catalogdocs c IGNORE INDEX(doc) ON (t.id = c.node),
+				FROM '.$rootT.' catalogtree t0 JOIN catalogtree t FORCE INDEX(num)
+					INNER JOIN catalogdocs c IGNORE INDEX(doc) ON (t.id = c.node) JOIN
 					'.$props['tables'].$searchQuery['from'].'
 				WHERE '.$root.'
 					AND t.num >= t0.num AND (t0.next = 0 OR t0.next > t.num)

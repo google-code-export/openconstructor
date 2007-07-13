@@ -174,7 +174,7 @@ class HybridAgent {
 		$ctx = &$this->ctx;
 		$result = array(
 			'fields' => 'd.id, d.ds_id, d.header',
-			'tables' => 'dshybrid_'.$this->dsId.' ds, dshybrid d',
+			'tables' => 'dshybrid_'.$this->dsId.' ds JOIN dshybrid d',
 			'where' => 'd.id = ds.id',
 			'group' => false,
 			'order' => ''
@@ -189,7 +189,7 @@ class HybridAgent {
 			$f = &$dsf[$fId];
 			if(!$f) continue;
 			if(!isset($t[$f['ds_id']])) {
-				$result['tables'] .= ', dshybrid_'.$f['ds_id'].' d'.$i;
+				$result['tables'] .= ' JOIN dshybrid_'.$f['ds_id'].' d'.$i;
 				$result['where'] .= ' AND d'.$i.'.id = ds.id';
 				$t[$f['ds_id']] = true;
 			}
@@ -240,7 +240,7 @@ class HybridAgent {
 				}
 				if($f) {
 					if(!isset($t[$f['ds_id']])) {
-						$result['tables'] .= ', dshybrid_'.$f['ds_id'].' d'.($i + $j);
+						$result['tables'] .= ' JOIN dshybrid_'.$f['ds_id'].' d'.($i + $j);
 						$result['where'] .= ' AND d'.($i + $j).'.id = ds.id';
 						$t[$f['ds_id']] = true;
 					}
@@ -305,7 +305,7 @@ class HybridAgent {
 					if($f['type'] == DSF_ENUM && !($type == COND_EQ || ($f['isarray'] && $type == COND_CONTAINS) || ($f['isarray'] && $type == COND_BTW)))
 						continue;
 					if(!isset($t[$f['ds_id']])) {
-						$result['tables'] .= ', dshybrid_'.$f['ds_id'].' d'.($i + $j);
+						$result['tables'] .= ' JOIN dshybrid_'.$f['ds_id'].' d'.($i + $j);
 						$result['where'] .= ' AND d'.($i + $j).'.id = ds.id';
 						$t[$f['ds_id']] = true;
 					}

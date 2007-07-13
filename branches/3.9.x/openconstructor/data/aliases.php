@@ -53,7 +53,7 @@
 			$page = 0;
 		$query = 
 			'SELECT SQL_CALC_FOUND_ROWS d1.id, d1.date, d.name as dsName, '.preg_replace('/(^|,)\s*([A-Za-z0-9_])/u', '$1d1.$2', $fields).
-			' FROM datasources d, '.$table.' d1 LEFT JOIN '.$table.' d2 ON(d1.id=d2.real_id AND d2.ds_id='.$ds_id.')'.
+			' FROM datasources d JOIN '.$table.' d1 LEFT JOIN '.$table.' d2 ON(d1.id=d2.real_id AND d2.ds_id='.$ds_id.')'.
 			' WHERE d.ds_id!='.$ds_id.' AND d.ds_id=d1.ds_id '.$searchclause.
 			' AND d2.real_id IS NULL'.
 			' ORDER BY d1.date DESC'.
