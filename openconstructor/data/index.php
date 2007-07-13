@@ -87,7 +87,7 @@
 			isLocked=<?=@$ds->lock?'true':'false'?>
 			;
 		<?php
-			define("SURE_REMOVE_LOCKED_DS_Q", sprintf(TPL_SURE_REMOVE_LOCKED_DS_Q, $ds->lock));
+			define("SURE_REMOVE_LOCKED_DS_Q", sprintf(TPL_SURE_REMOVE_LOCKED_DS_Q, @$ds->lock));
 			set_js_vars(array(
 				'REMOVE_DS_Q',
 				'SURE_REMOVE_DS_Q',
@@ -127,7 +127,7 @@
 		} else echo '&#160;';
 	?>
 	<settings display="<?=@$_COOKIE['panelstate']?$_COOKIE['panelstate']:'inline'?>">
-		<searchbar title="<?=htmlspecialchars(RP_SEARCH_FOR_DOCUMENTS)?>" text="<?=htmlspecialchars(@$_GET['search'], ENT_COMPAT, 'UTF-8')?>" showNoIndex="<?=$ds->isIndexable ? 'yes' : 'no'?>" useIndex="<?=@$_GET['noindex'] == 'on' ? 'no' : 'yes'?>"/>
+		<searchbar title="<?=htmlspecialchars(RP_SEARCH_FOR_DOCUMENTS)?>" text="<?=htmlspecialchars(@$_GET['search'], ENT_COMPAT, 'UTF-8')?>" showNoIndex="<?=@$ds->isIndexable ? 'yes' : 'no'?>" useIndex="<?=@$_GET['noindex'] == 'on' ? 'no' : 'yes'?>"/>
 	</settings>
 	<postscript>
 	<![CDATA[
