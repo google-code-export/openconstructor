@@ -163,7 +163,7 @@ class HybridTree extends WCObject {
 		} else
 			$result = '
 				SELECT t.id, t.parent, t.name, t.header
-				FROM catalogtree t1, catalogtree t FORCE INDEX(num)
+				FROM catalogtree t1 JOIN catalogtree t FORCE INDEX(num)
 				WHERE t1.id IN ('.$treeIds.')
 					AND t.num >= t1.num AND	(t1.next = 0 OR t1.next > t.num)
 					AND t.level <= t1.level + '.$this->deepness.'

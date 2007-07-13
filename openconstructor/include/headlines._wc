@@ -29,7 +29,7 @@ function get_headline($table, $ds_id, $fields, $pagesize, $page = 1, $searchclau
 	if(is_array($searchclause)) {
 		$query = 
 			'SELECT SQL_CALC_FOUND_ROWS id, d.date, '.preg_replace('/(^|,)\s*([A-Za-z0-9_])/u', '$1d.$2', $fields).' '.
-			'FROM '.$table.' d, '.$searchclause['from'].' '.
+			'FROM '.$table.' d JOIN '.$searchclause['from'].' '.
 			'WHERE d.ds_id='.$ds_id.' AND '.$searchclause['clause'].' '.
 			'ORDER BY '.$searchclause['order'].' DESC '.
 			'LIMIT '.($page * $pagesize).','.$pagesize;
@@ -87,14 +87,14 @@ function &get_filtered_headline($ds_id, $nodeId, &$tree, $fetchSub, $fetchDS, $p
 	}
 	if($fetchSub) {
 		$query = 'SELECT SQL_CALC_FOUND_ROWS '.($fetchNode ? 'GROUP_CONCAT(c.node ORDER BY c.node SEPARATOR ",") as node, ' : '').'ds.id'.($fetchDS ? ', d.ds_id AS ds_id': '').', dss.name, d.published, d.header, d.date AS date'.
-			" FROM ".($nodeId ? "catalogdocs c, " : '')."dshybrid_{$ds_id} ds, dshybrid d, datasources dss%2\$s".
+			" FROM ".($nodeId ? "catalogdocs c JOIN " : '')."dshybrid_{$ds_id} ds JOIN dshybrid d JOIN datasources dss%2\$s".
 			' WHERE '.($nodeId ? "c.node IN ($nodeId) AND c.doc = ds.id AND " : '' ).'ds.id = d.id AND d.ds_id = dss.ds_id %1$s'.
 			($nodeId ? ' GROUP BY c.doc' : '').
 			' ORDER BY %3$s d.date DESC'.
 			' LIMIT '.intval($page * $pagesize).','.intval($pagesize);
 	} else {
 		$query = 'SELECT SQL_CALC_FOUND_ROWS '.($fetchNode ? 'GROUP_CONCAT(c.node ORDER BY c.node SEPARATOR ",") as node, ' : '').'d.id, d.published, d.header, d.date AS date'.
-			' FROM '.($nodeId ? "catalogdocs c, " : '').'dshybrid d, datasources dss%2$s'.
+			' FROM '.($nodeId ? "catalogdocs c JOIN " : '').'dshybrid d JOIN datasources dss%2$s'.
 			' WHERE '.($nodeId ? "c.node IN ($nodeId) AND c.doc = d.id AND " : '' ).'d.ds_id = '.$ds_id.' AND d.ds_id = dss.ds_id %1$s'.
 			($nodeId ? ' GROUP BY c.doc' : '').
 			' ORDER BY %3$s d.date DESC'.
@@ -103,7 +103,7 @@ function &get_filtered_headline($ds_id, $nodeId, &$tree, $fetchSub, $fetchDS, $p
 	if(!is_array($searchclause))
 		$query = sprintf($query, $searchclause, '', '');
 	else
-		$query = sprintf($query, 'AND '.$searchclause['clause'], ', '.$searchclause['from'], $searchclause['order'].', ');
+		$query = sprintf($query, 'AND '.$searchclause['clause'], ' JOIN '.$searchclause['from'], $searchclause['order'].', ');
 	$res = $db->query($query);
 	if(mysql_num_rows($res) > 0) {
 		$r = $db->query('SELECT FOUND_ROWS()');

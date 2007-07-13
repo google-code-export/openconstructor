@@ -125,7 +125,7 @@ class WCObject {
 			if($keyword) {
 				loadClass('searcher', '/search/searcher._wc');
 				$part = &Searcher::getQueryPart($keyword, &$docsTable);
-				$result['from'] = ','.$part['from'];
+				$result['from'] = ' JOIN '.$part['from'];
 				$result['where'] = ' AND '.$part['clause'];
 				$result['order'] = &$part['order'];
 			}
