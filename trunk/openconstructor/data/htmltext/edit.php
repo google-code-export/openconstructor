@@ -28,10 +28,9 @@
 	require_once($_SERVER['DOCUMENT_ROOT'].WCHOME.'/include/toolbar._wc');
 	require_once(LIBDIR.'/site/pagereader._wc');
 	$pr = &PageReader::getInstance();
-	require_once(LIBDIR.'/wcdatasource._wc');
-	require_once(LIBDIR.'/htmltext/dshtmltext._wc');
-	$_ds = & new DSHTMLText();
-	$_ds->load($_GET['ds_id']);
+	require_once(LIBDIR.'/dsmanager._wc');
+	$dsm = new DSManager();
+	$_ds = &$dsm->load($_GET['ds_id']); 
 	assert($_ds->ds_id > 0);
 	
 	if($_GET['id'] == 'new') {
@@ -52,7 +51,8 @@
 		assert($_doc != null);
 	}
 	require_once(LIBDIR.'/syntax/syntaxhighlighter._wc');
-	preg_match_all('~<([A-Z0-9]+)~', strtoupper($_ds->allowedTags), $m = array(), PREG_PATTERN_ORDER);
+	$m = array();
+	preg_match_all('~<([A-Z0-9]+)~', strtoupper($_ds->allowedTags), $m, PREG_PATTERN_ORDER);
 	$allowed = (array) @$m[1];
 	$sDoc = $_ds->wrapDocument($_doc);
 	$save = $_GET['id'] == 'new' ? WCS::decide($_ds, 'createdoc') && sizeof($pages) > 0 : WCS::decide($_ds, 'editdoc') || WCS::decide($sDoc, 'editdoc');

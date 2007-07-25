@@ -25,10 +25,9 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/editors._wc');
 	
 	if(!isset($_GET['ds_id'])||!isset($_GET['id'])) die();
-	require_once(LIBDIR.'/wcdatasource._wc');
-	require_once(LIBDIR.'/file/dsfile._wc');
-	$_ds=new DSFile();
-	$_ds->load($_GET['ds_id']);
+	require_once(LIBDIR.'/dsmanager._wc');
+	$dsm = new DSManager();
+	$_ds = &$dsm->load($_GET['ds_id']);
 //	require_once($_SERVER['DOCUMENT_ROOT'].WCHOME.'/include/toolbar._wc');
 	//userfriendly names
 	$uf['name']=F_FILE_HEADER;

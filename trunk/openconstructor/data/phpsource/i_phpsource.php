@@ -22,15 +22,14 @@
  */
 require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
 WCS::requireAuthentication();
-require_once(LIBDIR.'/wcdatasource._wc');
+require_once(LIBDIR.'/dsmanager._wc');
+$dsm = new DSManager();
 
 switch(@$_POST['action'])
 {
 	case 'create_source':
-		require_once(LIBDIR.'/phpsource/dsphpsource._wc');
 		assert(trim(@$_POST['header']) != '');
-		$_ds=new DSPHPSource();
-		$_ds->load(@$_POST['ds_id']);
+		$_ds = &$dsm->load(@$_POST['ds_id']);
 		$result=$_ds->add($_POST['header'], @$_POST['html']);
 		if($result) {
 			echo '<script>try{window.opener.location.href=window.opener.location.href;}catch(RuntimeException){}';
@@ -39,11 +38,9 @@ switch(@$_POST['action'])
 	break;
 	
 	case 'edit_source':
-		require_once(LIBDIR.'/phpsource/dsphpsource._wc');
 		assert(@$_POST['id'] > 0);
 		assert(trim(@$_POST['header']) != '');
-		$_ds=new DSPHPSource();
-		$_ds->load(@$_POST['ds_id']);
+		$_ds = &$dsm->load(@$_POST['ds_id']);
 		$result=$_ds->update($_POST['id'], $_POST['header'], @$_POST['html']);
 		if($result) {
 			$ref = $_SERVER['HTTP_REFERER'];
@@ -60,9 +57,7 @@ switch(@$_POST['action'])
 	case 'delete_source':
 		if(isset($_POST['ds_id']))
 		{
-			require_once(LIBDIR.'/phpsource/dsphpsource._wc');
-			$_ds=new DSPHPSource();
-			$_ds->load($_POST['ds_id']);
+			$_ds = &$dsm->load($_POST['ds_id']);
 			$_ds->delete(implode(',',@$_POST['ids']));
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -72,9 +67,7 @@ switch(@$_POST['action'])
 	case 'remove_ds':
 		if(isset($_POST['ds_id']))
 		{
-			require_once(LIBDIR.'/phpsource/dsphpsource._wc');
-			$_ds=new DSPHPSource();
-			$_ds->load($_POST['ds_id']);
+			$_ds = &$dsm->load($_POST['ds_id']); 
 			$_ds->remove();
 		}
 //		header('Location: http://'.$_host.WCHOME.'/data/');
@@ -84,11 +77,8 @@ switch(@$_POST['action'])
 	case 'move_documents':
 		assert(@$_POST['ds_id'] > 0 && @$_POST['dest_ds_id'] > 0);
 		if(isset($_POST['ids'])) {
-			require_once(LIBDIR.'/phpsource/dsphpsource._wc');
-			$_ds = new DSPHPSource();
-			assert($_ds->load($_POST['ds_id']));
-			$_dest_ds = new DSPHPSource();
-			assert($_dest_ds->load($_POST['dest_ds_id']));
+			assert($_ds = &$dsm->load($_POST['ds_id'])); 
+			assert($_dest_ds = &$dsm->load($_POST['dest_ds_id']));
 			assert($_ds->ds_id != $_dest_ds->ds_id);
 			$_dest_ds->moveDocuments($_ds, $_POST['ids']);
 		}

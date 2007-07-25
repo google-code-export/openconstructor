@@ -244,8 +244,7 @@ class ObjManager {
 		if(mysql_num_rows($res) == 1) {
 			$r = mysql_fetch_assoc($res);
 			require_once($r['ds_type'].($r['ds_type'] == 'hybrid' ? '/view/' : '/').$r['obj_type'].'._wc');
-			$result = & new $r['obj_type'];
-			$result->_loadFrom($r);
+			$result = &WCObject::_loadFrom($r);
 			ObjManager::loadAuths($result, $r['wcsowner'], $r['wcsgroup'], $r['oauths'], $r['gauths']);
 		}
 		mysql_free_result($res);
@@ -294,8 +293,8 @@ class ObjManager {
 			assert($obj != null);
 			$obj->obj_id = 0;
 			$result = array($obj, $obj);
-			unset($result[1]->sRes);
-			$result[1]->sRes = $result[0]->sRes;
+//			unset($result[1]->sRes);
+			$result[1]->sRes = &$result[0]->sRes->copy();
 			$r = mysql_fetch_row($res);
 			$result[0]->sRes->setAuthorities($r[0], $r[1]);
 			$result[1]->sRes->setAuthorities($r[2], $r[3]);

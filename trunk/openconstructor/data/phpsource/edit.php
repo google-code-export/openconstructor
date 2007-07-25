@@ -25,10 +25,9 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/editors._wc');
 	
 	if(!isset($_GET['ds_id'])||!isset($_GET['id'])) die();
-	require_once(LIBDIR.'/wcdatasource._wc');
-	require_once(LIBDIR.'/phpsource/dsphpsource._wc');
-	$_ds=new DSPHPSource();
-	$_ds->load($_GET['ds_id']);
+	require_once(LIBDIR.'/dsmanager._wc');
+	$dsm = new DSManager();
+	$_ds = &$dsm->load($_GET['ds_id']);
 	if($_GET['id']!='new') {
 		$_doc=$_ds->get_record($_GET['id']);
 		assert($_doc != null);

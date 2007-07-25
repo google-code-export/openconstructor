@@ -254,8 +254,8 @@ class WCTemplates {
 			assert($tpl != null);
 			$tpl->id = 0;
 			$result = array($tpl, $tpl);
-			unset($result[1]->sRes);
-			$result[1]->sRes = $result[0]->sRes;
+//			unset($result[1]->sRes);
+			$result[1]->sRes = $result[0]->sRes->copy();
 			$r = mysql_fetch_row($res);
 			$result[0]->sRes->setAuthorities($r[0], $r[1]);
 			$result[1]->sRes->setAuthorities($r[2], $r[3]);

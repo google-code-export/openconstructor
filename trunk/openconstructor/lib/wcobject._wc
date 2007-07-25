@@ -32,10 +32,11 @@ class WCObject {
 	// var $ctx, $crumbs, $block; Эти поля создаются в runtime
 	
 	
-	function _loadFrom(&$row) {
-		$this = @unserialize($row['code']); // TODO: Здесь PHP5 умрет. Нужно переделать на стат-метод генерации
-		$this->obj_id = (int) @$row['id'];
-		$this->tpl = (int) @$row['tpl'];
+	function &_loadFrom(&$row) {
+		$result = @unserialize($row['code']); 
+		$result->obj_id = (int) @$row['id'];
+		$result->tpl = (int) @$row['tpl'];
+		return $result;
 	}
 	
 	function exec(&$smarty, $params = array()) {

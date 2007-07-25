@@ -276,20 +276,21 @@ class EnglishStemmer {
 		$str = preg_replace("~^$c+~", '', $str);
 		$str = preg_replace("~$v+$~", '', $str);
 		
-		preg_match_all("~($v+$c+)~", $str, $matches = array());
-		
-		return count($matches[1]);
+		$matches = array();
+		return preg_match_all("~($v+$c+)~", $str, $matches) !== false ? count($matches[1]) : 0;
 	}
 	
 	function _doubleConsonant($str) {
 		$c = &$this->_c;
-		return preg_match("~$c{2}$~", $str, $matches = array()) && substr($matches[0], 0, 1) == $matches[0]{1};
+		$matches = array();
+		return preg_match("~$c{2}$~", $str, $matches) && substr($matches[0], 0, 1) == $matches[0]{1};
 	}
 	
 	function _cvc($str) {
 		$c = &$this->_c;
 		$v = &$this->_v;
-		return preg_match("~($c$v$c)$~", $str, $matches = array()) && strlen($matches[1]) == 3
+		$matches = array();
+		return preg_match("~($c$v$c)$~", $str, $matches) && strlen($matches[1]) == 3
 				&& ($l = substr($matches[1], 2, 1)) != 'w' && $l != 'x' && $l != 'y';
 	}
 	

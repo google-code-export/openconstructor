@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
  * 
@@ -22,20 +22,20 @@
  */
 	require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
 	WCS::requireAuthentication();
+	require_once(LIBDIR.'/dsmanager._wc');
 	require_once(LIBDIR.'/wcdatasource._wc');
+	$dsm = new DSManager();
 	
 switch(@$_POST['action'])
 {
 	case 'create_event':
-		require_once(LIBDIR.'/event/dsevent._wc');
 		assert(trim(@$_POST['header']) != '');
 		if(@$_POST['hybridid'] > 0) {
 			$hDoc = &WCDataSource::getHybridDoc($_POST['hybridid']);
 			WCS::assert($hDoc, 'editdoc');
 			WCS::runAs(WCS_ROOT_ID);
 		}
-		$_ds=new DSEvent();
-		$_ds->load(@$_POST['ds_id']);
+		$_ds = &$dsm->load(@$_POST['ds_id']);
 		$date = getTimestamp(@$_POST['year'], @$_POST['month'], @$_POST['day'], @$_POST['time']);
 		$enddate = getTimestamp(@$_POST['end_year'], @$_POST['end_month'], @$_POST['end_day'], @$_POST['end_time']);
 		if(@$_POST['autointro']!='true') {
@@ -62,11 +62,9 @@ switch(@$_POST['action'])
 	break;
 	
 	case 'edit_event':
-		require_once(LIBDIR.'/event/dsevent._wc');
 		assert(@$_POST['id'] > 0);
 		assert(trim(@$_POST['header']) != '');
-		$_ds=new DSEvent();
-		$_ds->load(@$_POST['ds_id']);
+		$_ds = &$dsm->load(@$_POST['ds_id']);
 		$date = getTimestamp(@$_POST['year'], @$_POST['month'], @$_POST['day'], @$_POST['time']);
 		$enddate = getTimestamp(@$_POST['end_year'], @$_POST['end_month'], @$_POST['end_day'], @$_POST['end_time']);
 		if(@$_POST['published']=='true')
@@ -95,9 +93,7 @@ switch(@$_POST['action'])
 	
 	case 'delete_event':
 		if(isset($_POST['ds_id'])) {
-			require_once(LIBDIR.'/event/dsevent._wc');
-			$_ds=new DSEvent();
-			$_ds->load($_POST['ds_id']);
+			$_ds = &$dsm->load($_POST['ds_id']);
 			$_ds->delete(implode(',',@$_POST['ids']));
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -106,9 +102,7 @@ switch(@$_POST['action'])
 	
 	case 'remove_ds':
 		if(isset($_POST['ds_id'])) {
-			require_once(LIBDIR.'/event/dsevent._wc');
-			$_ds=new DSEvent();
-			$_ds->load($_POST['ds_id']);
+			$_ds = &$dsm->load($_POST['ds_id']);
 			$_ds->remove();
 		}
 //		header('Location: http://'.$_host.WCHOME.'/data/');
@@ -119,11 +113,8 @@ switch(@$_POST['action'])
 		assert(@$_POST['ds_id'] > 0 && @$_POST['dest_ds_id'] > 0);
 		$failed = false;
 		if(isset($_POST['ids'])) {
-			require_once(LIBDIR.'/event/dsevent._wc');
-			$_ds = new DSEvent();
-			$_ds->load($_POST['ds_id']);
-			$dest_ds = new DSEvent();
-			$dest_ds->load($_POST['dest_ds_id']);
+			$_ds = &$dsm->load($_POST['ds_id']);
+			$dest_ds = &$dsm->load($_POST['dest_ds_id']);
 			assert($_ds->ds_id > 0 && $dest_ds->ds_id > 0 && $_ds->ds_id != $dest_ds->ds_id);
 			$real_ids=$dest_ds->get_real_ids();
 			$ids=$_POST['ids'];
@@ -169,9 +160,7 @@ switch(@$_POST['action'])
 	case 'publish_documents':
 		if(isset($_POST['ds_id']))
 		{
-			require_once(LIBDIR.'/event/dsevent._wc');
-			$_ds=new DSEvent();
-			$_ds->load($_POST['ds_id']);
+			$_ds = &$dsm->load($_POST['ds_id']);
 			$_ds->publish(implode(',',@$_POST['ids']));
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -181,9 +170,7 @@ switch(@$_POST['action'])
 	case 'unpublish_documents':
 		if(isset($_POST['ds_id']))
 		{
-			require_once(LIBDIR.'/event/dsevent._wc');
-			$_ds=new DSEvent();
-			$_ds->load($_POST['ds_id']);
+			$_ds = &$dsm->load($_POST['ds_id']);
 			$_ds->unpublish(implode(',',@$_POST['ids']));
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -191,10 +178,8 @@ switch(@$_POST['action'])
 	break;
 	
 	case 'create_alias':
-		require_once(LIBDIR.'/event/dsevent._wc');
 		assert(@sizeof($_POST['ids']) > 0);
-		$_ds = new DSEvent();
-		assert($_ds->load(@$_POST['ds_id']));
+		assert($_ds = &$dsm->load(@$_POST['ds_id']));
 		$_ids = $_POST['ids'];
 		foreach($_ids as $id){
 			$_ds->create_alias($id);//$result=

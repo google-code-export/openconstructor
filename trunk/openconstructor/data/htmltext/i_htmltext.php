@@ -22,14 +22,13 @@
  */
 	require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
 	WCS::requireAuthentication();
-	require_once(LIBDIR.'/wcdatasource._wc');
+	require_once(LIBDIR.'/dsmanager._wc');
+	$dsm = new DSManager();
 	
 switch(@$_POST['action'])
 {
 	case 'create_html':
-		require_once(LIBDIR.'/htmltext/dshtmltext._wc');
-		$_ds=new DSHTMLText();
-		$_ds->load(@$_POST['ds_id']);
+		$_ds = &$dsm->load(@$_POST['ds_id']); 
 		if(@$_POST['autointro'] != 'true') {
 			$intro = @$_POST['intro'];
 			if(substr($intro, 0, 2) == '<P')
@@ -56,9 +55,7 @@ switch(@$_POST['action'])
 	break;
 	
 	case 'edit_html':
-		require_once(LIBDIR.'/htmltext/dshtmltext._wc');
-		$_ds=new DSHTMLText();
-		$_ds->load(@$_POST['ds_id']);
+		$_ds = &$dsm->load(@$_POST['ds_id']); 
 		$intro=@$_POST['intro'];
 		if(substr($intro, 0, 2) == '<P')
 			$intro = utf8_substr($intro, utf8_strpos($intro, '>', 1) + 1);
@@ -70,9 +67,7 @@ switch(@$_POST['action'])
 	break;
 	
 	case 'delete_html':
-		require_once(LIBDIR.'/htmltext/dshtmltext._wc');
-		$_ds=new DSHTMLText();
-		$_ds->load(@$_POST['ds_id']);
+		$_ds = &$dsm->load(@$_POST['ds_id']);
 		$_ds->delete(implode(',',@$_POST['ids']));
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
 		die('<meta http-equiv="Refresh" content="0; URL='.$_SERVER['HTTP_REFERER'].'">');
@@ -81,9 +76,7 @@ switch(@$_POST['action'])
 	case 'remove_ds':
 		if(isset($_POST['ds_id']))
 		{
-			require_once(LIBDIR.'/htmltext/dshtmltext._wc');
-			$_ds=new DSHTMLText();
-			$_ds->load($_POST['ds_id']);
+			$_ds = &$dsm->load($_POST['ds_id']); 
 			$_ds->remove();
 		}
 //		header('Location: http://'.$_host.WCHOME.'/data/');
@@ -93,11 +86,8 @@ switch(@$_POST['action'])
 	case 'move_documents':
 		assert(@$_POST['ds_id'] > 0 && @$_POST['dest_ds_id'] > 0);
 		if(isset($_POST['ids'])) {
-			require_once(LIBDIR.'/htmltext/dshtmltext._wc');
-			$_ds = new DSHTMLText();
-			assert($_ds->load($_POST['ds_id']));
-			$dest_ds = new DSHTMLText();
-			assert($dest_ds->load($_POST['dest_ds_id']));
+			assert($_ds = &$dsm->load($_POST['ds_id']));
+			assert($dest_ds = &$dsm->load($_POST['dest_ds_id']));
 			assert($_ds->ds_id != $dest_ds->ds_id);
 			$dest_ds->delete(implode(',',$_POST['ids']));
 			foreach($_POST['ids'] as $id)
@@ -114,9 +104,7 @@ switch(@$_POST['action'])
 	case 'publish_documents':
 		if(isset($_POST['ds_id']))
 		{
-			require_once(LIBDIR.'/htmltext/dshtmltext._wc');
-			$_ds=new DSHTMLText();
-			$_ds->load($_POST['ds_id']);
+			$_ds = &$dsm->load($_POST['ds_id']); 
 			$_ds->publish(implode(',',@$_POST['ids']));
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -126,9 +114,7 @@ switch(@$_POST['action'])
 	case 'unpublish_documents':
 		if(isset($_POST['ds_id']))
 		{
-			require_once(LIBDIR.'/htmltext/dshtmltext._wc');
-			$_ds=new DSHTMLText();
-			$_ds->load($_POST['ds_id']);
+			$_ds = &$dsm->load($_POST['ds_id']); 
 			$_ds->unpublish(implode(',',@$_POST['ids']));
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);

@@ -135,5 +135,13 @@ class WCSResource {
 	function getGroupBit($act) {
 		return $this->decision($act, $this->authorities[1]);
 	}
+	
+	function &copy() {
+		$result = new WCSResource($this->name, $this->owner, $this->group);
+		foreach($this->actions as $act)
+			$result->addAction($act);
+		$result->setAuthorities($this->getOwnerAuths(), $this->getGroupAuths());
+		return $result;
+	}
 }
 ?>

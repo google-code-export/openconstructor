@@ -130,8 +130,7 @@ class DSManager {
 			$class = 'ds'.$dsType;
 			require_once('wcdatasource._wc');
 			require_once($dsType.'/'.$class.'._wc');
-			$result = new $class;
-			$result->load($dsId);
+			$result = &WCDataSource::_load($dsId);
 		}
 		mysql_free_result($res);
 		return $result;

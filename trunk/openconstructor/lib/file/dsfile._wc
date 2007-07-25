@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
  * 
@@ -41,29 +41,29 @@ class DSFile extends WCDataSource {
 		$this->ftp=NULL;
 		$this->setTypes(array());
 		$this->autoName = false;
-		if($folder !== false)
-			$this->initFilePath($folder);
+		$this->filePath = $folder;
 		$this->groups = array(WCS_EVERYONE_ID);
 		umask(0);
 	}
 	
-	// TODO: перделать так чтоб папка создаваласть при WCDatasource::create()
-	function initFilePath($folder) {
+	function create($name, $description, $internal = 0) {
+		$result = null;
 		System::assert('data.dsfile');
-		if($this->filePath)
-			return;
-		if($folder === true) {
+		if($this->filePath != false && substr((string) $this->filePath, 0, 1) != '/') {
+			if($this->filePath === true) {
 			do {
-				$folder = 'auto/'.sprintf('%x', crc32(microtime()));
-			} while(file_exists(ROOT.FILES.'/'.$folder));
-			$result=$this->createFolder($folder, false);
+					$this->filePath = 'auto/'.sprintf('%x', crc32(microtime()));
+				} while(file_exists(ROOT.FILES.'/'.$this->filePath));
+				$result = $this->createFolder($this->filePath, false);
 		} else
-			$result=$this->createFolder($folder);
-		if($result !== true){
-			$this=$result;
-			return false;
+				$result = $this->createFolder($this->filePath);
+				
+			if($result === true){
+				$this->filePath = '/'.$this->filePath.'/';
+				return WCDataSource::create($name, $description, $internal);
 		}
-		$this->filePath='/'.$folder.'/';
+		}
+		return $result;
 	}
 	
 	function add($name, $description, $fname, $type, $file) {

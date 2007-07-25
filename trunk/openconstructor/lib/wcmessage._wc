@@ -196,7 +196,8 @@ class WCMessage {
 	
 	function _encodeAddrHeader($header) {
 		$result = str_replace(array("\r", "\n"), ' ', $header);
-		if(preg_match_all('~(?:(?:(.*?) *(<[^>]+@[^>]+>)|([^@]+@[^@]+)) *,? *)~us', $header, $m = array())) {
+		$m = array();
+		if(preg_match_all('~(?:(?:(.*?) *(<[^>]+@[^>]+>)|([^@]+@[^@]+)) *,? *)~us', $header, $m)) {
 			$result = array();
 			for($i = 0, $l = sizeof($m[0]); $i < $l; $i++)
 				$result[] = $m[3][$i] ? $m[3][$i] : $this->_encodeHeaderPart($m[1][$i]).' '.$m[2][$i];
@@ -206,11 +207,13 @@ class WCMessage {
 	}
 	
 	function _encodeHeaderPart($text) {
+		$m = array();
 		if(!preg_match('~[\200-\377]~', $text)) {
 			$result = addcslashes($text, "\0..\37\177\\\"");
 			if(!(($text == $result) && !preg_match('~[^A-Za-z0-9!#$%&\'*+\/=?^_`{|}\~ \-]~u', $text)))
 				$result = "\"$result\"";
-		} elseif(preg_match_all('~[^\040\041\043-\133\135-\176]~', $text, $m = array())) {
+				
+		} elseif(preg_match_all('~[^\040\041\043-\133\135-\176]~', $text, $m)) {
 			$result = trim(chunk_split(base64_encode($text), 60, "\n"));
 			$result = substr(preg_replace('/^(.*)$/m', " =?UTF-8?B?\\1?=", $result), 1);
 		} else
