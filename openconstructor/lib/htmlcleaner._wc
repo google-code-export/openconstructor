@@ -65,7 +65,8 @@ class HtmlCleaner {
 			$single = HtmlCleaner::isSingleTag($tagName);
 			if($this->_rules->matchTag($tagName)) {
 				$attrs = '';
-				if(preg_match_all($this->_attrExp, $tag[3], $m = array())) {
+				$m = array();
+				if(preg_match_all($this->_attrExp, $tag[3], $m)) {
 					for($i = 0, $l = sizeof($m[0]); $i < $l; $i++)
 						if($this->_rules->matchAttribute($tagName, strtolower($m[1][$i])))
 							$attrs .= " {$m[0][$i]}";
@@ -213,7 +214,8 @@ class HtmlCleanerRules {
 	 */
 	function &fromPattern($pattern) {
 		$result = & new HtmlCleanerRules();
-		if($pattern && preg_match_all('~<([a-z0-9_\-]+|\*\*?)\s*(?:(\*?)[\s,]*(\!?)\s*(\*|(?:[\w,]+)))?\s*>~us', utf8_strtolower($pattern), $m = array()))
+		$m = array();
+		if($pattern && (preg_match_all('~<([a-z0-9_\-]+|\*\*?)\s*(?:(\*?)[\s,]*(\!?)\s*(\*|(?:[\w,]+)))?\s*>~us', utf8_strtolower($pattern), $m) > 0))
 			for($i = 0, $l = sizeof($m[0]); $i < $l; $i++) {
 				if($m[1][$i] != '**')
 					$result->addTag($m[1][$i]);

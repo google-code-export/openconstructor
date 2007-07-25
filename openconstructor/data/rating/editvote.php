@@ -25,17 +25,17 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/editors._wc');
 	
 	assert(@$_GET['ds_id'] > 0 && @$_GET['rid'] > 0 && @$_GET['id'] > 0);
-	require_once(LIBDIR.'/wcdatasource._wc');
-	require_once(LIBDIR.'/rating/dsrating._wc');
-	$_ds = & new DSRating();
-	$_ds->load($_GET['ds_id']);
+	require_once(LIBDIR.'/dsmanager._wc');
+	$dsm = new DSManager();
+	$_ds = &$dsm->load($_GET['ds_id']); 
 	$_doc = $_ds->get_record($_GET['rid']);
 	assert($_doc !== null);
 	$vote = $_ds->getVote($_doc['id'], $_GET['id']);
 	assert($vote != null);
 	require_once(LIBDIR.'/syntax/syntaxhighlighter._wc');
 	require_once($_SERVER['DOCUMENT_ROOT'].WCHOME.'/include/toolbar._wc');
-	preg_match_all('~<([A-Z0-9]+)~', strtoupper($_ds->allowedTags), $m = array(), PREG_PATTERN_ORDER);
+	$m = array();
+	preg_match_all('~<([A-Z0-9]+)~', strtoupper($_ds->allowedTags), $m, PREG_PATTERN_ORDER);
 	$allowed = (array) @$m[1];
 	$sDoc = $_ds->wrapDocument($_doc);
 	$save = WCS::decide($_ds, 'editdoc') || WCS::decide($sDoc, 'editdoc');

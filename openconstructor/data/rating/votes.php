@@ -24,13 +24,12 @@
 	WCS::requireAuthentication();
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/main._wc');
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/editors._wc');
-	require_once(LIBDIR.'/wcdatasource._wc');
-	require_once(LIBDIR.'/rating/dsrating._wc');
+	require_once(LIBDIR.'/dsmanager._wc');
+	$dsm = new DSManager();
 	
 	
 	
-	$_ds = & new DSRating();
-	$_ds->load($_GET['ds_id']);
+	$_ds = &$dsm->load($_GET['ds_id']);
 	$_doc = $_ds->get_record($_GET['id']);
 	assert($_doc !== null);
 	

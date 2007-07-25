@@ -22,20 +22,20 @@
  */
 require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
 WCS::requireAuthentication();
+require_once(LIBDIR.'/dsmanager._wc');
 require_once(LIBDIR.'/wcdatasource._wc');
+$dsm = new DSManager();
 
 switch(@$_POST['action'])
 {
 	case 'create_text':
-		require_once(LIBDIR.'/textpool/dstextpool._wc');
 		assert(trim(@$_POST['header']) != '');
 		if(@$_POST['hybridid'] > 0) {
 			$hDoc = &WCDataSource::getHybridDoc($_POST['hybridid']);
 			WCS::assert($hDoc, 'editdoc');
 			WCS::runAs(WCS_ROOT_ID);
 		}
-		$_ds=new DSTextPool();
-		$_ds->load(@$_POST['ds_id']);
+		$_ds = &$dsm->load(@$_POST['ds_id']);
 		$result=$_ds->add($_POST['header'], @$_POST['html']);
 		if($result)
 		{
@@ -54,11 +54,9 @@ switch(@$_POST['action'])
 	break;
 	
 	case 'edit_text':
-		require_once(LIBDIR.'/textpool/dstextpool._wc');
 		assert(@$_POST['id'] > 0);
 		assert(trim(@$_POST['header']) != '');
-		$_ds = new DSTextPool();
-		$_ds->load(@$_POST['ds_id']);
+		$_ds = &$dsm->load(@$_POST['ds_id']); 
 		$result=$_ds->update($_POST['id'], $_POST['header'], @$_POST['html']);
 		if($result)
 			header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -67,9 +65,7 @@ switch(@$_POST['action'])
 	case 'delete_text':
 		if(isset($_POST['ds_id']))
 		{
-			require_once(LIBDIR.'/textpool/dstextpool._wc');
-			$_ds=new DSTextPool();
-			$_ds->load($_POST['ds_id']);
+			$_ds = &$dsm->load($_POST['ds_id']);
 			$_ds->delete(implode(',',@$_POST['ids']));
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -79,9 +75,7 @@ switch(@$_POST['action'])
 	case 'remove_ds':
 		if(isset($_POST['ds_id']))
 		{
-			require_once(LIBDIR.'/textpool/dstextpool._wc');
-			$_ds=new DSTextPool();
-			$_ds->load($_POST['ds_id']);
+			$_ds = &$dsm->load($_POST['ds_id']);
 			$_ds->remove();
 		}
 //		header('Location: http://'.$_host.WCHOME.'/data/');
@@ -91,11 +85,8 @@ switch(@$_POST['action'])
 	case 'move_documents':
 		assert(@$_POST['ds_id'] > 0 && @$_POST['dest_ds_id'] > 0);
 		if(isset($_POST['ids'])) {
-			require_once(LIBDIR.'/textpool/dstextpool._wc');
-			$_ds = new DSTextPool();
-			assert($_ds->load($_POST['ds_id']));
-			$dest_ds = new DSTextPool();
-			assert($dest_ds->load($_POST['dest_ds_id']));
+			assert($_ds = &$dsm->load($_POST['ds_id']));
+			assert($dest_ds = &$dsm->load($_POST['dest_ds_id']));
 			assert($_ds->ds_id != $dest_ds->ds_id);
 			$real_ids=$dest_ds->get_real_ids();
 			$ids=$_POST['ids'];
@@ -121,9 +112,7 @@ switch(@$_POST['action'])
 	case 'publish_documents':
 		if(isset($_POST['ds_id']))
 		{
-			require_once(LIBDIR.'/textpool/dstextpool._wc');
-			$_ds=new DSTextPool();
-			$_ds->load($_POST['ds_id']);
+			$_ds = &$dsm->load($_POST['ds_id']); 
 			$_ds->publish(implode(',',@$_POST['ids']));
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -133,9 +122,7 @@ switch(@$_POST['action'])
 	case 'unpublish_documents':
 		if(isset($_POST['ds_id']))
 		{
-			require_once(LIBDIR.'/textpool/dstextpool._wc');
-			$_ds=new DSTextPool();
-			$_ds->load($_POST['ds_id']);
+			$_ds = &$dsm->load($_POST['ds_id']);
 			$_ds->unpublish(implode(',',@$_POST['ids']));
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -143,10 +130,8 @@ switch(@$_POST['action'])
 	break;
 	
 	case 'create_alias':
-		require_once(LIBDIR.'/textpool/dstextpool._wc');
 		assert(@sizeof($_POST['ids']) > 0);
-		$_ds = new DSTextPool();
-		assert($_ds->load(@$_POST['ds_id']));
+		assert($_ds = &$dsm->load(@$_POST['ds_id']));
 		$_ids = @$_POST['ids'];
 		foreach($_ids as $id){
 			$_ds->create_alias($id);//$result=

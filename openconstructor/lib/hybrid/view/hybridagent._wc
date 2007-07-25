@@ -344,10 +344,9 @@ class HybridAgent {
 		static $datasources;
 		settype($dsId, 'int');
 		if(!isset($datasources[$dsId])) {
-			loadClass('wcdatasource', '/wcdatasource._wc');
-			loadClass('dshybrid', '/hybrid/dshybrid._wc');
-			$ds = new DSHybrid();
-			$ds->load($dsId);
+			require_once(LIBDIR.'/dsmanager._wc');
+			$dsm = new DSManager();
+			$ds = &$dsm->load($dsId);
 			$datasources[$dsId] = & $ds;
 		}
 		return $datasources[$dsId];

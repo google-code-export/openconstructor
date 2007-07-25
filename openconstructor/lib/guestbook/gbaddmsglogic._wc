@@ -78,8 +78,8 @@ class GBAddMsgLogic extends WCObject {
 			return;
 		$ds_id = $this->getDsId();
 		
-		require_once(LIBDIR.'/wcdatasource._wc');
-		require_once(LIBDIR.'/guestbook/dsguestbook._wc');
+		require_once(LIBDIR.'/dsmanager._wc');
+		$dsm = new DSManager();
 		$ref = parse_url($_SERVER['HTTP_REFERER']);
 		$query = array();
 		parse_str(@$ref['query'], $query);
@@ -120,8 +120,7 @@ class GBAddMsgLogic extends WCObject {
 			sendRedirect($ref.'?'.implode('&', $query));
 			die();
 		}
-		$ds = & new DSGuestBook();
-		if(!$ds->load($ds_id)) {
+		if(!$ds = &$dsm->load($ds_id)) {
 			return;
 		}
 		$subject = @$_POST[$this->fields['subject']['id']];

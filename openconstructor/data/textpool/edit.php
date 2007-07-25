@@ -26,21 +26,21 @@
 	
 	if(!isset($_GET['ds_id'])||!isset($_GET['id'])) die();
 	require_once($_SERVER['DOCUMENT_ROOT'].WCHOME.'/include/toolbar._wc');
-	require_once(LIBDIR.'/wcdatasource._wc');
-	require_once(LIBDIR.'/textpool/dstextpool._wc');
-	$_ds=new DSTextPool();
-	$_ds->load($_GET['ds_id']);
+	require_once(LIBDIR.'/dsmanager._wc');
+	$dsm = new DSManager();
+	$_ds = &$dsm->load($_GET['ds_id']); 
 	if($_GET['id']!='new')
 	{
 		$_doc=$_ds->get_record($_GET['id']);
 		assert($_doc !== null);
 		if($_doc['id']!= $_doc['real_id']) {
-			$_ds->load($_doc['realDsId']);
+			$_ds = &$dsm->load($_doc['realDsId']);
 			$_doc = &$_ds->get_record($_doc['real_id']);
 		}
 	} else
 		$_doc['real_id']=NULL;
-	preg_match_all('~<([A-Z0-9]+)~', strtoupper($_ds->allowedTags), $m = array(), PREG_PATTERN_ORDER);
+	$m = array();	
+	preg_match_all('~<([A-Z0-9]+)~', strtoupper($_ds->allowedTags), $m, PREG_PATTERN_ORDER);
 	$allowed = (array) @$m[1];
 	$sDoc = $_ds->wrapDocument($_doc);
 ?>

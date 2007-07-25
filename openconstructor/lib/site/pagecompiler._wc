@@ -536,7 +536,8 @@ class PageCompiler {
 	
 	function _compileCacheVary($cacheVary) {
 		$result = '';
-		$found = preg_match_all('/\{(ctx|get|route)\.([\-\.a-z0-9_]+)\}/ui', $cacheVary, $params = array());
+		$params = array();
+		$found = preg_match_all('/\{(ctx|get|route)\.([\-\.a-z0-9_]+)\}/ui', $cacheVary, $params);
 		if($found) {
 			foreach($params[1] as $i => $v)
 				switch($v) {

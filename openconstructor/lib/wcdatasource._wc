@@ -71,26 +71,25 @@ class WCDataSource {
 			'VALUES '.
 				"('$this->ds_type', $indexed, '".addslashes($this->name)."', '".addslashes($description)."', '".time()."','".addslashes(serialize($this))."', $internal, $ownerId, $groupId, CONV('$oAuths', 2, 10), CONV('$gAuths', 2, 10), CONV('$dAuths', 2, 10))"
 		);
-		$this->load($db->lastInsertId());
+		$this->_load($db->lastInsertId());
 		return $this->ds_id;
 	}
 	
-	function load($id) {
-		$result = false;
+	function &_load($id) {
+		$result = null;
 		settype($id, 'int');
 		$db = &WCDB::bo();
 		$res = $db->query('SELECT wcsowner, wcsgroup, BIN(ROUND(oauths)) as oauths, BIN(ROUND(gauths)) as gauths, BIN(ROUND(docauths)) as docauths, docs, indexed, locks, code, internal FROM datasources WHERE ds_id='.$id);
 		if(mysql_num_rows($res) > 0) {
 			$r = mysql_fetch_assoc($res);
-			$this = unserialize($r['code']);
-			$this->ds_id = $id;
-			$this->lock = (int) $r['locks'];
-			$this->isInternal = $r['internal'] != 0;
-			$this->isIndexable = $r['indexed'] != 0;
-			$this->docs = (int) $r['docs'];
-			$this->docAuths = $r['docauths'];
-			$this->loadAuths($r['wcsowner'], $r['wcsgroup'], $r['oauths'], $r['gauths']);
-			$result = true;
+			$result = unserialize($r['code']);
+			$result->ds_id = $id;
+			$result->lock = (int) $r['locks'];
+			$result->isInternal = $r['internal'] != 0;
+			$result->isIndexable = $r['indexed'] != 0;
+			$result->docs = (int) $r['docs'];
+			$result->docAuths = $r['docauths'];
+			$result->loadAuths($r['wcsowner'], $r['wcsgroup'], $r['oauths'], $r['gauths']);
 		}
 		mysql_free_result($res);
 		return $result;

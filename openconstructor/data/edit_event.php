@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
  * 
@@ -25,10 +25,9 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/data._wc');
 	assert(@$_GET['ds_id'] > 0);
 	
-	require_once(LIBDIR.'/wcdatasource._wc');
-	require_once(LIBDIR.'/event/dsevent._wc');
-	$_ds=new DSEvent();
-	assert($_ds->load($_GET['ds_id']));
+	require_once(LIBDIR.'/dsmanager._wc');
+	$dsm = new DSManager();
+	assert($_ds = &$dsm->load($_GET['ds_id']));
 	WCS::request($_ds, 'editds');
 	//userfriendly names
 	$uf['ds_name']=DS_NAME;

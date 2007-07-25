@@ -104,7 +104,8 @@ switch(@$_POST['action'])
 			assert(@$_POST['user_id'] > 0);
 			$user = &User::load(WCS_ROOT_ID);
 			$user->sRes->setAuthorities(0, 0);
-			$setSRes = $unsetSRes = $user->sRes;
+			$setSRes = &$user->sRes->copy();
+			$unsetSRes = &$user->sRes->copy();
 			foreach($user->sRes->actions as $act) {
 				$setSRes->setOwnerBit($act, @$_POST['oAuths'][$act] == 1);
 				$setSRes->setGroupBit($act, @$_POST['gAuths'][$act] == 1);
@@ -133,7 +134,8 @@ switch(@$_POST['action'])
 			$obj = &ObjManager::load((int) $_POST['obj_id']);
 			$obj->sRes->setAuthorities(0, 0);
 			$obj->sRes->setOwner(0); $obj->sRes->setGroup(0);
-			$setSRes = $unsetSRes = $obj->sRes;
+			$setSRes = &$obj->sRes->copy();
+			$unsetSRes = &$obj->sRes->copy();
 			foreach($obj->sRes->actions as $act) {
 				$setSRes->setOwnerBit($act, @$_POST['oAuths'][$act] == 1);
 				$setSRes->setGroupBit($act, @$_POST['gAuths'][$act] == 1);
@@ -170,7 +172,8 @@ switch(@$_POST['action'])
 			$tpl = &WCTemplates::load((int) $_POST['tpl_id']);
 			$tpl->sRes->setAuthorities(0, 0);
 			$tpl->sRes->setOwner(0); $tpl->sRes->setGroup(0);
-			$setSRes = $unsetSRes = $tpl->sRes;
+			$setSRes = &$tpl->sRes->copy();
+			$unsetSRes = &$tpl->sRes->copy();
 			foreach($tpl->sRes->actions as $act) {
 				$setSRes->setOwnerBit($act, @$_POST['oAuths'][$act] == 1);
 				$setSRes->setGroupBit($act, @$_POST['gAuths'][$act] == 1);

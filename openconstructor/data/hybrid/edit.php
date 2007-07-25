@@ -25,10 +25,9 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/editors._wc');
 	assert(isset($_GET['ds_id']) && isset($_GET['id']));
 	
-	require_once(LIBDIR.'/wcdatasource._wc');
-	require_once(LIBDIR.'/hybrid/dshybrid._wc');
-	$ds = new DSHybrid();
-	$ds->load($_GET['ds_id']);
+	require_once(LIBDIR.'/dsmanager._wc');
+	$dsm = new DSManager();
+	$ds = &$dsm->load($_GET['ds_id']);
 	if(@$ds->editTpl > 0) {
 		require_once(LIBDIR.'/smarty/wcsmarty._wc');
 		require_once(LIBDIR.'/wcobject._wc');

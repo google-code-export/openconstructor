@@ -67,7 +67,8 @@ class Page {
 	
 	function setCacheVary($cacheVary) {
 		$this->cacheVary = '';
-		if(preg_match_all('/(\{(ctx|get|route)\.[\-\.a-z0-9_\/]+\})/ui', $cacheVary, $params = array())) {
+		$params = array();
+		if(preg_match_all('/(\{(ctx|get|route)\.[\-\.a-z0-9_\/]+\})/ui', $cacheVary, $params)) {
 			asort($params[1]); 
 			$this->cacheVary = implode("\n", array_unique($params[1]));
 		}

@@ -55,11 +55,9 @@ class FieldUtils {
 	}
 	
 	function &loadDS($type, $ds_id) {
-		$ds = null;
-		$class = 'ds' . $type;
-		loadClass($class, '/'.$type.'/'.$class.'._wc');
-		$ds=new $class;
-		$ds->load($ds_id);
+		require_once(LIBDIR.'/dsmanager._wc');
+		$dsm = new DSManager();
+		$ds = &$dsm->load($ds_id);
 		return $ds;
 	}
 	

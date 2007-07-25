@@ -224,12 +224,12 @@ class DSPublication extends WCDataSource
 			'SELECT gallery FROM '.$this->DSTable.' WHERE id IN ('.$ids.') AND ds_id='.$this->ds_id
 		);
 		if(mysql_num_rows($res) > 0) {
-			require_once(LIBDIR.'/gallery/dsgallery._wc');
+			require_once(LIBDIR.'/dsmanager._wc');
+			$dsm = new DSManager();
 			$gIds = array();
-			$ds = new DSGallery();
 			WCS::runAs(WCS_ROOT_ID);
 			while($r = mysql_fetch_assoc($res)) {
-				$ds->load((int) $r['gallery']);
+				$ds = &$dsm->load((int) $r['gallery']);
 				$ds->remove();
 			}
 			WCS::stopRunAs();

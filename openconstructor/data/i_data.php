@@ -23,6 +23,8 @@
 	require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
 	WCS::requireAuthentication();
 	require_once(LIBDIR.'/wcdatasource._wc');
+	require_once(LIBDIR.'/dsmanager._wc');
+	$dsm = new DSManager();
 	
 switch(@$_POST['action'])
 {
@@ -49,9 +51,6 @@ switch(@$_POST['action'])
 	break;
 	
 	case 'edit_dshtmltext':
-		require_once(LIBDIR.'/htmltext/dshtmltext._wc');
-		$_ds=new DSHTMLText();
-
 		assert(@$_POST['ds_id'] > 0);
 
 		$fail=array();
@@ -63,7 +62,7 @@ switch(@$_POST['action'])
 			die();
 		}
 
-		$_ds->load($_POST['ds_id']);
+		$_ds = &$dsm->load($_POST['ds_id']);
 		if(is_numeric(@$_POST['dssize']))
 			$_ds->setSize($_POST['dssize']);
 		if(intval(@$_POST['introsize'])>0)
@@ -136,7 +135,7 @@ switch(@$_POST['action'])
 			die();
 		}
 
-		$_ds->load($_POST['ds_id']);
+		$_ds = &$dsm->load($_POST['ds_id']);
 		if(is_numeric(@$_POST['dssize']))
 			$_ds->setSize($_POST['dssize']);
 		if(intval(@$_POST['introsize'])>0)
@@ -209,7 +208,7 @@ switch(@$_POST['action'])
 			header('Location: '.$ref);
 			die();
 		}
-		$_ds->load($_POST['ds_id']);
+		$_ds = &$dsm->load($_POST['ds_id']);
 		if(is_numeric(@$_POST['dssize']))
 			$_ds->setSize($_POST['dssize']);
 		if(@$_POST['stripHTML']=='true')
@@ -270,7 +269,7 @@ switch(@$_POST['action'])
 			header('Location: '.$ref);
 			die();
 		}
-		$_ds->load($_POST['ds_id']);
+		$_ds = &$dsm->load($_POST['ds_id']);
 		if(is_numeric(@$_POST['dssize']))
 			$_ds->setSize($_POST['dssize']);
 		$_ds->name=$_POST['ds_name'];
@@ -289,19 +288,15 @@ switch(@$_POST['action'])
 		$message=array();
 		if(!@$_POST['ds_name'])
 			$fail[]='ds_name';
-		if(!is_object($_ds)){
-			$fail[]='folder';
-			$message[]=$_ds;
-		}
-		if($ref=make_fail_header($message,$fail,$_POST)){
-			header('Location: '.$ref);
-			die();
-		}
 		if(is_numeric(@$_POST['dssize'])) $_ds->setSize($_POST['dssize']);
 		$result=$_ds->create($_POST['ds_name'],$_POST['description']);
-		if($result)
+		if($result && is_numeric($result)) { // папка создана, в result id раздела
 			echo '<script>window.opener.location.href="'.WCHOME.'/data/?node='.$result.'";window.location.href="edit_file.php?ok=1&ds_id='.$result.'";</script>Succesfully created!';
-		else
+		} elseif($result) { // папка не создана, в result текст ошибки
+			$fail[]='folder';
+			$message[]=$_ds;
+			header('Location: '.make_fail_header($message,$fail,$_POST));
+		} else
 			header('Location: '.make_fail_header(array(),$fail,$_POST));
 	break;
 	
@@ -318,7 +313,7 @@ switch(@$_POST['action'])
 			header('Location: '.$ref);
 			die();
 		}
-		$_ds->load($_POST['ds_id']);
+		$_ds = &$dsm->load($_POST['ds_id']);
 		if(is_numeric(@$_POST['dssize']))
 			$_ds->setSize($_POST['dssize']);
 		$_ds->name=$_POST['ds_name'];
@@ -372,7 +367,7 @@ switch(@$_POST['action'])
 			header('Location: '.$ref);
 			die();
 		}
-		$_ds->load($_POST['ds_id']);
+		$_ds = &$dsm->load($_POST['ds_id']);
 		if(is_numeric(@$_POST['dssize']))
 			$_ds->setSize($_POST['dssize']);
 		if(intval(@$_POST['introsize'])>0)
@@ -443,7 +438,7 @@ switch(@$_POST['action'])
 			header('Location: '.$ref);
 			die();
 		}
-		$_ds->load($_POST['ds_id']);
+		$_ds = &$dsm->load($_POST['ds_id']);
 		if(is_numeric(@$_POST['dssize']))
 			$_ds->setSize($_POST['dssize']);
 		$_ds->name=$_POST['ds_name'];
@@ -508,7 +503,7 @@ switch(@$_POST['action'])
 			header('Location: '.$ref);
 			die();
 		}
-		$_ds->load($_POST['ds_id']);
+		$_ds = &$dsm->load($_POST['ds_id']);
 		if(is_numeric(@$_POST['dssize']))
 			$_ds->setSize($_POST['dssize']);
 		if(@$_POST['stripHTML']=='true')
@@ -572,7 +567,7 @@ switch(@$_POST['action'])
 			header('Location: '.$ref);
 			die();
 		}
-		$_ds->load($_POST['ds_id']);
+		$_ds = &$dsm->load($_POST['ds_id']);
 		if(is_numeric(@$_POST['dssize']))
 			$_ds->setSize($_POST['dssize']);
 		if(intval(@$_POST['introsize'])>0)
@@ -638,7 +633,7 @@ switch(@$_POST['action'])
 			header('Location: '.$ref);
 			die();
 		}
-		$_ds->load($_POST['ds_id']);
+		$_ds = &$dsm->load($_POST['ds_id']);
 		$_ds->name=$_POST['ds_name'];
 		$_ds->description=@$_POST['description'];
 		$_ds->editTpl = (int) @$_POST['editTpl'];
@@ -684,7 +679,7 @@ switch(@$_POST['action'])
 			header('Location: '.$ref);
 			die();
 		}
-		$_ds->load($_POST['ds_id']);
+		$_ds = &$dsm->load($_POST['ds_id']);
 		$_ds->name = $_POST['ds_name'];
 		$_ds->description = (string) @$_POST['description'];
 		

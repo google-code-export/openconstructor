@@ -22,15 +22,14 @@
  */
 require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
 WCS::requireAuthentication();
-require_once(LIBDIR.'/wcdatasource._wc');
+require_once(LIBDIR.'/dsmanager._wc');
+$dsm = new DSManager();
 
 
 switch(@$_POST['action'])
 {
 	case 'add_field':
-		require_once(LIBDIR.'/hybrid/dshybrid._wc');
-		$ds=new DSHybrid();
-		$ds->load(@$_POST['ds_id']);
+		$ds = &$dsm->load(@$_POST['ds_id']);
 		assert($ds->ds_id > 0 && @$_POST['fieldclass'] != '' && utf8_strpos($_POST['fieldclass'], '/') === false);
 		
 		require_once(LIBDIR.'/hybrid/fields/'.$_POST['fieldclass'].'field._wc');
@@ -138,9 +137,7 @@ switch(@$_POST['action'])
 	break;
 		
 	case 'remove_field':
-		require_once(LIBDIR.'/hybrid/dshybrid._wc');
-		$ds=new DSHybrid();
-		$ds->load(@$_POST['ds_id']);
+		$ds = &$dsm->load(@$_POST['ds_id']);
 		assert($ds->ds_id > 0);
 		
 		if(@sizeof($_POST['field']))
@@ -150,6 +147,7 @@ switch(@$_POST['action'])
 	break;
 		
 	case 'create_hybrid':
+		require_once(LIBDIR.'/wcdatasource._wc');
 		require_once(LIBDIR.'/hybrid/hybriddocument._wc');
 		require_once(LIBDIR.'/hybrid/dshybrid._wc');
 		assert(isset($_POST['header']) && trim($_POST['header']) !='' && @$_POST['ds_id'] > 0);
@@ -158,8 +156,7 @@ switch(@$_POST['action'])
 			WCS::assert($hDoc, 'editdoc');
 			WCS::runAs(WCS_ROOT_ID);
 		}
-		$ds=new DSHybrid();
-		$ds->load($_POST['ds_id']);
+		$ds = &$dsm->load($_POST['ds_id']);
 		
 		$doc = $ds->getEmptyDocument();
 		$doc->readValues($_POST);
@@ -185,10 +182,8 @@ switch(@$_POST['action'])
 
 	case 'edit_hybrid':
 		require_once(LIBDIR.'/hybrid/hybriddocument._wc');
-		require_once(LIBDIR.'/hybrid/dshybrid._wc');
 		assert(isset($_POST['header']) && trim($_POST['header']) !='' && @$_POST['ds_id'] > 0);
-		$ds=new DSHybrid();
-		$ds->load($_POST['ds_id']);
+		$ds = &$dsm->load($_POST['ds_id']);
 		
 		$doc = $ds->getEmptyDocument();
 		$doc->readValues($_POST);

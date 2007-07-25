@@ -43,9 +43,9 @@ class FieldFactory {
 	}
 	
 	function updateField(&$old, &$new) {
-		loadClass('dshybrid', '/hybrid/dshybrid._wc');
-		$ds = new DSHybrid();
-		$ds->load($old->ds_id);
+		require_once(LIBDIR.'/dsmanager._wc');
+		$dsm = new DSManager();
+		$ds = &$dsm->load($old->ds_id);
 		WCS::assert($ds, 'editds');
 		switch ($old->family) {
 			case 'primitive':

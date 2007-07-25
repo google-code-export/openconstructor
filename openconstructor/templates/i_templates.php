@@ -25,7 +25,8 @@
 	$dstype = @$_POST['dstype'];
 	if(!$dstype)
 		$dstype = @$_GET['dstype'];
-	require_once(LIBDIR.'/wcdatasource._wc');
+	require_once(LIBDIR.'/dsmanager._wc');
+	$dsm = new DSManager();
 	
 switch(@$_POST['action'])
 {
@@ -86,9 +87,7 @@ switch(@$_POST['action'])
 		die();
 		if(isset($_POST['ds_id']))
 		{
-			require_once(LIBDIR.'/phpsource/dsphpsource._wc');
-			$_ds=new DSPHPSource();
-			$_ds->load($_POST['ds_id']);
+			$_ds = &$dsm->load($_POST['ds_id']);
 			$_ds->remove();
 		}
 //		header('Location: http://'.$_host.WCHOME.'/data/');

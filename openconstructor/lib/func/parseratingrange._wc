@@ -11,13 +11,15 @@ function wcfParseRatingRange($range, $salt = '') {
 	if(!empty($from) || !empty($len)) {
 		$ctx = &Context::getInstance();
 		$preg = '~^\{\$([A-Za-z0-9_\-\./]+)\}$~u';
-		if(preg_match($preg, $from, $matches = array()))
+		$matches = array();
+		if(preg_match($preg, $from, $matches))
 			$from = (int) $ctx->getParam($matches[1]);
 		else
 			$from = @$from{0} == '#' && ($t = @strtotime(strftime(substr($from, 1)))) != -1 ? $t : intval($from);
 		$from = $from < 0 ? time() + $from : $from;
 		if(@$len{0} != '#' || ($to = @strtotime(strftime(substr($len, 1)))) == -1) {
-			$len = intval(preg_match($preg, $len, $matches = array()) ? $ctx->getParam($matches[1]) : $len);
+			$matches = array();
+			$len = intval(preg_match($preg, $len, $matches) ? $ctx->getParam($matches[1]) : $len);
 			$to = $len <= 0 ? time() + $len : $from + $len;
 		}
 		$result = array('uid' => sprintf('%X', crc32("$salt::$from::$to")), 'from' => $from, 'to' => $to);

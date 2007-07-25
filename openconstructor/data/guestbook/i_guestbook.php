@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
  * 
@@ -22,20 +22,20 @@
  */
 require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
 WCS::requireAuthentication();
+require_once(LIBDIR.'/dsmanager._wc');
 require_once(LIBDIR.'/wcdatasource._wc');
+$dsm = new DSManager();
 
 switch(@$_POST['action'])
 {
 	case 'create_message':
-		require_once(LIBDIR.'/guestbook/dsguestbook._wc');
 		assert(trim(@$_POST['subject']) != '');
 		if(@$_POST['hybridid'] > 0) {
 			$hDoc = &WCDataSource::getHybridDoc($_POST['hybridid']);
 			WCS::assert($hDoc, 'editdoc');
 			WCS::runAs(WCS_ROOT_ID);
 		}
-		$_ds=new DSGuestBook();
-		$_ds->load(@$_POST['ds_id']);
+		$_ds = &$dsm->load(@$_POST['ds_id']); 
 		$date = strtotime(@$_POST['date']);
 		$result=$_ds->add($_POST['subject'], @$_POST['html'], $date, @$_POST['author'], @$_POST['email']);
 		if($result)
@@ -55,11 +55,9 @@ switch(@$_POST['action'])
 	break;
 	
 	case 'edit_message':
-		require_once(LIBDIR.'/guestbook/dsguestbook._wc');
 		assert(@$_POST['id'] > 0);
 		assert(trim(@$_POST['subject']) != '');
-		$_ds=new DSGuestBook();
-		$_ds->load(@$_POST['ds_id']);
+		$_ds = &$dsm->load(@$_POST['ds_id']);
 		$date = strtotime(@$_POST['date']);
 		if(@$_POST['published']=='true')
 			$_ds->publish($_POST['id']);
@@ -73,9 +71,7 @@ switch(@$_POST['action'])
 	case 'delete_message':
 		if(isset($_POST['ds_id']))
 		{
-			require_once(LIBDIR.'/guestbook/dsguestbook._wc');
-			$_ds=new DSGuestBook();
-			$_ds->load($_POST['ds_id']);
+			$_ds = &$dsm->load($_POST['ds_id']);
 			$_ds->delete(implode(',',@$_POST['ids']));
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -85,9 +81,7 @@ switch(@$_POST['action'])
 	case 'remove_ds':
 		if(isset($_POST['ds_id']))
 		{
-			require_once(LIBDIR.'/guestbook/dsguestbook._wc');
-			$_ds=new DSGuestBook();
-			$_ds->load($_POST['ds_id']);
+			$_ds = &$dsm->load($_POST['ds_id']); 
 			$_ds->remove();
 		}
 //		header('Location: http://'.$_host.WCHOME.'/data/');
@@ -97,11 +91,8 @@ switch(@$_POST['action'])
 	case 'move_documents':
 		assert(@$_POST['ds_id'] > 0 && @$_POST['dest_ds_id'] > 0);
 		if(isset($_POST['ids'])) {
-			require_once(LIBDIR.'/guestbook/dsguestbook._wc');
-			$_ds = new DSGuestBook();
-			assert($_ds->load($_POST['ds_id']));
-			$dest_ds = new DSGuestBook();
-			assert($dest_ds->load($_POST['dest_ds_id']));
+			assert($_ds = &$dsm->load($_POST['ds_id']));
+			assert($dest_ds = &$dsm->load($_POST['dest_ds_id']));
 			assert($_ds->ds_id != $dest_ds->ds_id);
 			$real_ids=$dest_ds->get_real_ids();
 			$ids=$_POST['ids'];
@@ -127,9 +118,7 @@ switch(@$_POST['action'])
 	case 'publish_documents':
 		if(isset($_POST['ds_id']))
 		{
-			require_once(LIBDIR.'/guestbook/dsguestbook._wc');
-			$_ds=new DSGuestBook();
-			$_ds->load($_POST['ds_id']);
+			$_ds = &$dsm->load($_POST['ds_id']); 
 			$_ds->publish(implode(',',@$_POST['ids']));
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -139,9 +128,7 @@ switch(@$_POST['action'])
 	case 'unpublish_documents':
 		if(isset($_POST['ds_id']))
 		{
-			require_once(LIBDIR.'/guestbook/dsguestbook._wc');
-			$_ds=new DSGuestBook();
-			$_ds->load($_POST['ds_id']);
+			$_ds = &$dsm->load($_POST['ds_id']); 
 			$_ds->unpublish(implode(',',@$_POST['ids']));
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -149,10 +136,8 @@ switch(@$_POST['action'])
 	break;
 	
 	case 'create_alias':
-		require_once(LIBDIR.'/guestbook/dsguestbook._wc');
 		assert(@sizeof($_POST['ids']) > 0);
-		$_ds=new DSGuestBook();
-		assert($_ds->load(@$_POST['ds_id']));
+		assert($_ds = &$dsm->load(@$_POST['ds_id'])); 
 		$_ids = $_POST['ids'];
 		foreach($_ids as $id)
 			$_ds->create_alias($id);//$result=

@@ -61,12 +61,13 @@ class DSHybridFactory {
 		$ids = $this->getChildren($id);
 		if(!sizeof($ids))
 			return;
-		$ds = new DSHybrid();
-		$ds->load($id);
+		require_once(LIBDIR.'/dsmanager._wc');
+		$dsm = new DSManager();
+		$ds = &$dsm->load($id);
 		WCS::assert($ds, 'removeds');
 		WCS::runAs(WCS_ROOT_ID);
 		foreach($ids as $id) {
-			$ds->load($id);
+			$ds = &$dsm->load($id);
 			$ds->remove();
 			$this->removeTable($id);
 			$this->removeFolder($id);
@@ -79,6 +80,8 @@ class DSHybridFactory {
 	}
 	
 	function removeDocuments($docids) {
+		require_once(LIBDIR.'/dsmanager._wc');
+		$dsm = new DSManager();
 		$ids = implode(',', $docids); 
 		$db = &WCDB::bo();
 		$res = $db->query("SELECT id, ds_id FROM dshybrid WHERE id IN($ids) ORDER BY ds_id DESC");
@@ -87,8 +90,7 @@ class DSHybridFactory {
 			while($r = mysql_fetch_assoc($res))
 				$type[(int) $r['ds_id']][] = (int) $r['id'];
 			foreach($type as $id=>$docs) {
-				$ds = new DSHybrid();
-				$ds->load($id);
+				$ds = &$dsm->load($id);
 				$ds->removeOwnDocuments(&$docs);
 			}
 			unset($ds, $type);
@@ -121,15 +123,14 @@ class DSHybridFactory {
 			}
 			mysql_free_result($res);
 			if(sizeof($docs)) {
-				loadClass('wcdatasource', '/wcdatasource._wc');
-				loadClass('dshybrid', '/hybrid/dshybrid._wc');
+				require_once(LIBDIR.'/dsmanager._wc');
+				$dsm = new DSManager();
 				loadClass('wcsmartycache', '/smarty/wcsmartycache._wc');
 				$dsIds = array_keys($docs);
 				$smc = &WCSmartyCache::getInstance();
 				WCS::runAs(WCS_ROOT_ID);
 				foreach($dsIds as $dsId) {
-					$ds = & new DSHybrid();
-					$ds->load($dsId);
+					$ds = &$dsm->load($dsId);
 					assert($ds->ds_id > 0);
 					$_ids = implode(',', $docs[$dsId]);
 					if($value)
@@ -149,9 +150,9 @@ class DSHybridFactory {
 	function castDocuments(&$ids, $fromId, $toId) {
 		assert($fromId > 0 && $toId > 0 && $fromId != $toId);
 		if(sizeof($ids) > 0) {
-			$from = & new DSHybrid();
-			$to = & new DSHybrid();
-			assert($from->load($fromId) && $to->load($toId));
+			require_once(LIBDIR.'/dsmanager._wc');
+			$dsm = new DSManager();
+			assert($from = &$dsm->load($fromId) && $to = &$dsm->load($toId));
 			WCS::assert($to, 'createdoc');
 			$ids = implode(',', $ids);
 			$db = &WCDB::bo();
