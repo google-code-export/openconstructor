@@ -60,7 +60,7 @@ class PageFactory {
 					$page->loadAuths($auth->userId, $auth->groupId, constant('WCS_PAGE_MASK'), null);
 					$db->query(sprintf(
 						"UPDATE {$this->treeTable} SET wcsowner = {$page->sRes->owner}, wcsgroup = {$page->sRes->group}".
-						" , oauths = CONV('%s', 2, 10), gauths = CONV('%s', 2, 10)"
+						" , oauths = CONV('%s', 2, 10), gauths = CONV('%s', 2, 10) WHERE id = $result"
 						, $page->sRes->getOwnerAuths(), $page->sRes->getGroupAuths()
 					));
 					$db->query(
