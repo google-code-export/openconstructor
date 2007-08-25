@@ -62,7 +62,7 @@
 			$presetValue[$fieldName] = $fieldName.'='.implode(',', $presetValue[$fieldName]);
 		}
 		$presetValue = implode('&', $presetValue);
-		setcookie('dsh', $currentDs, 0, WCHOME.'/catalog/');
+		setcookie('dsh', $currentDs, 0, WCHOME);
 	} else {
 		$tree = $reader->getTree(1);
 		if(!$tmp || !$tree->exists($tmp))
