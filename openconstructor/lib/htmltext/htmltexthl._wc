@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
  * 
@@ -56,7 +56,7 @@ class HTMLTextHL extends WCObject {
 		if($this->level > 0 && isset($this->ctx->map->id[$pageId])) {
 			$page = &$this->ctx->map->id[$pageId];
 			$pages = array();
-			$baseHref = $this->ctx->getPatternFor($page['uri']);
+			$baseHref = $page['router'] ? $this->ctx->getPatternFor($page['uri']) : $this->ctx->getPatternFor($page['uri'].'?');
 			
 			$this->_fetchChildren($page, $pages, $this->ctx->map, $baseHref, $this->level - 1);
 			

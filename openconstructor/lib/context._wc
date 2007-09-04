@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
  * 
@@ -103,10 +103,19 @@ class Context {
 		}
 		$params = array_flip(&$params);
 		foreach($get as $name => $value)
-			if($value)
-				$get[$name] = urlencode($name).'='.(isset($params[$name]) ? $value : str_replace('%', '%%', urlencode($value)));
-			else
+			if (!is_array($value)) {
+				if($value)
+					$get[$name] = urlencode($name).'='.(isset($params[$name]) ? $value : str_replace('%', '%%', urlencode($value)));
+				else
+					unset($get[$name]);
+			} else {
+				foreach ($value as $k => $v) 
+					if ($v)
+						$get["{$name}[$k]"] = urlencode($name).'['.urlencode($k).']'.'='.(isset($params["{$name}[$k]"]) ? $v : str_replace('%', '%%', urlencode($v)));
+					else
+						unset($get["{$name}[$k]"]);
 				unset($get[$name]);
+			}
 		$result = $path.(sizeof($get) ? '?'.implode('&', &$get) : '').($anchor ? "#$anchor" : '');
 		return $result;
 	}
