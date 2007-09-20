@@ -58,7 +58,7 @@
 	
 	require_once(LIBDIR.'/db/dbsetup._wc');
 	
-	$noAutoFtpSiteroot = false;
+	$noAutoFtpSiteroot = isset($params['no_ftpsiteroot_auto']);
 	$err = array();
 	if(is_array($params) && isset($params['install']) && isset($params['iAccept'])) {
 //		assert(strpos(@$_SERVER['HTTP_REFERER'], 'http://'.$_SERVER['HTTP_HOST']) === 0);
@@ -83,6 +83,8 @@
 			$err['ftplogin'] = $err['ftppwd'] = true;
 			$err['ftpsiteroot'] = true;
 		}
+		if(!$ftp->success())
+			$err['ftp'] = $ftp->get_message(true);
 		$dbconn = @mysql_connect( @$params['dbserver'], @$params['dblogin'], @$params['dbpwd']);
 		if(!$dbconn) {
 			$params['dbserver'] = $params['dblogin'] = $params['dbpwd'] = '';
@@ -114,7 +116,7 @@
 			}
 			die();
 		}
-	} else {
+	} elseif(!$noAutoFtpSiteroot) {
 		$params['ftpsiteroot_auto'] = true;
 	}
 ?>
@@ -193,6 +195,11 @@
 				<fieldset>
 					<legend><?=H_INSTALLER_FTP_PREFS?></legend>
 					<table cellspacing="5">
+						<?php if(isset($err['ftp'])) {?>
+							<tr class="err">
+								<td colspan="2"><?=$err['ftp']?><hr /></td>
+							</tr>
+						<?php } ?>
 						<tr <?=isset($err['ftphost']) ? 'class="err"' : ''?>>
 							<td><?=PR_INSTALLER_FTP_HOST?>:</td>
 							<td><input name="ftphost" type="text" value="<?=@$params['ftphost'] ? $params['ftphost'] : 'localhost' ?>"></td>
@@ -217,6 +224,7 @@
 								<script type="text/javascript">
 									document.forms.f_install.ftpsiteroot_auto.onclick();
 								</script>
+								<input name="no_ftpsiteroot_auto" type="hidden" value="yes" <?=!$noAutoFtpSiteroot ? 'disabled' : ''?>>
 							</td>
 						</tr>
 					</table>

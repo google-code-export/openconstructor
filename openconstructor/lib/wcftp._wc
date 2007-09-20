@@ -42,7 +42,7 @@ class WCFTP {
 	
 	function configure($host, $user, $password, $siteroot='.', $port=21){
 		$this->host=$host;
-		$this->port=$port;
+		$this->port = $port ? $port : 21;
 		$this->user=$user;
 		$this->password=$password;
 		$this->siteroot=$siteroot;
@@ -314,13 +314,14 @@ class WCFTP {
 			$this->apply_result(false);
 			return false;
 		}
-		$root = $_SERVER['DOCUMENT_ROOT'];
+		$root = $_SERVER['DOCUMENT_ROOT'].'/';
 		$l = sizeof(explode('/', $root));
+		$wchome = substr(WCHOME, 1);
 		for($i = 0; $i < $l; $i++) {
 			list($j, $root) = explode('/', $root, 2);			
-			if(@ftp_chdir($this->_con, $root.WCHOME)) {
+			if(@ftp_chdir($this->_con, $root.$wchome)) {
 				ftp_chdir($this->_con, '..');
-				$this->siteroot = $root;
+				$this->siteroot = $root ? substr($root, 0, -1) : '.';
 				$result = $this->siteroot;
 				break;
 			}
@@ -335,13 +336,18 @@ class WCFTP {
 				$testFile = '/wchosttest_'.md5(rand().microtime().$_SERVER['HTTP_HOST'].$suffix++);
 			} while(@file_exists($_SERVER['DOCUMENT_ROOT'].$testFile));
 			$uid = md5(rand().'/'.microtime().'/'.$_SERVER['HTTP_HOST']);
-			$this->write_file($testFile, $uid);
-			$limit = time() + 2; // timeout
-			do {
-				$auid = @file_get_contents($_SERVER['DOCUMENT_ROOT'].$testFile);
-			} while((time() < $limit) && !$auid);
-			$this->_isHostValid = $uid == $auid;
-			$this->unlink($testFile);
+			if($this->write_file($testFile, $uid)) {
+				$limit = time() + 2; // timeout
+				do {
+					$auid = @file_get_contents($_SERVER['DOCUMENT_ROOT'].$testFile);
+				} while((time() < $limit) && !$auid);
+				$this->_isHostValid = $uid == $auid;
+				$this->unlink($testFile);
+			} else {
+				$this->message[] = 'Siteroot not writable';
+				$this->apply_result(false);
+				$this->_isHostValid = false;
+			}
 		}
 		return $this->_isHostValid;
 	}
@@ -405,6 +411,7 @@ class WCFTP {
 	
 	function &getNew($host = null, $port = 21, $username = null, $pwd = null, $siteroot = '.') {
 		static $regisered;
+		settype($port, 'int');
 		if(!isset($regisered)) {
 			$regisered = true;
 			register_shutdown_function(array('WCFTP', 'performGC'));
