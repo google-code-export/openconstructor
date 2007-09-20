@@ -44,6 +44,7 @@
 	define('PR_INSTALLER_FTP_LOGIN', 'Логин');
 	define('PR_INSTALLER_FTP_PWD', 'Пароль');
 	define('PR_INSTALLER_FTP_SITEROOT', 'Корень сайта');
+	define('PR_INSTALLER_FTP_SITEROOT_AUTO', 'Определять автоматически');
 	
 	define('H_INSTALLER_DB_PREFS', 'База Данных');
 	define('PR_INSTALLER_DB_SERVER', 'Сервер');
