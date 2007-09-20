@@ -302,6 +302,32 @@ class WCFTP {
 		return $this->_con ? true : false;
 	}
 	
+	function suggestSiteroot() {
+		$result = null;
+		if(!$this->_con){
+			$this->message[] = 'Offline: Cannot suggest site root';
+			$this->apply_result(false);
+			return false;
+		}
+		if($this->siteroot != '.') {
+			$this->message[] = 'Cannot suggest site root: site root already set';
+			$this->apply_result(false);
+			return false;
+		}
+		$root = $_SERVER['DOCUMENT_ROOT'];
+		$l = sizeof(explode('/', $root));
+		for($i = 0; $i < $l; $i++) {
+			list($j, $root) = explode('/', $root, 2);			
+			if(@ftp_chdir($this->_con, $root.WCHOME)) {
+				ftp_chdir($this->_con, '..');
+				$this->siteroot = $root;
+				$result = $this->siteroot;
+				break;
+			}
+		}
+		return $result;
+	}
+	
 	function isHostValid() {
 		if($this->_isHostValid === null && $this->isOnline()) {
 			$suffix = 0;

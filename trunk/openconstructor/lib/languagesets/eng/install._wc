@@ -40,6 +40,7 @@
 	define('PR_INSTALLER_FTP_LOGIN', 'Login');
 	define('PR_INSTALLER_FTP_PWD', 'Password');
 	define('PR_INSTALLER_FTP_SITEROOT', 'Site Root');
+	define('PR_INSTALLER_FTP_SITEROOT_AUTO', 'Suggest');
 	
 	define('H_INSTALLER_DB_PREFS', 'Database Settings');
 	define('PR_INSTALLER_DB_SERVER', 'Database Server');

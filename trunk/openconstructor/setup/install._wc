@@ -58,18 +58,23 @@
 	
 	require_once(LIBDIR.'/db/dbsetup._wc');
 	
+	$noAutoFtpSiteroot = false;
 	$err = array();
 	if(is_array($params) && isset($params['install']) && isset($params['iAccept'])) {
 //		assert(strpos(@$_SERVER['HTTP_REFERER'], 'http://'.$_SERVER['HTTP_HOST']) === 0);
 		require_once(LIBDIR.'/wcftp._wc');
 		$port = (int) @$params['ftpport'];
-		$ftp = & WCFTP::getNew($params['ftphost'], $port, $params['ftplogin'], $params['ftppwd'], $params['ftpsiteroot']);
+		$ftp = & WCFTP::getNew($params['ftphost'], $port, $params['ftplogin'], $params['ftppwd'], isset($params['ftpsiteroot_auto']) ? '.' : $params['ftpsiteroot']);
 		if($ftp->open(8)) { // timeout 8 seconds
+			if(isset($params['ftpsiteroot_auto']))
+				$params['ftpsiteroot'] = $ftp->suggestSiteroot();
 			if($ftp->isHostValid()){
 				list($ftp_host, $ftp_port, $ftp_username, $ftp_password, $ftp_siteroot) =
 					array($params['ftphost'], $port, $params['ftplogin'], $params['ftppwd'], $params['ftpsiteroot']);
 			} else {
 				$err['ftpsiteroot'] = true;
+				if(isset($params['ftpsiteroot_auto']))
+					$noAutoFtpSiteroot = true;
 			}
 			$ftp->close();
 		} else {
@@ -109,6 +114,8 @@
 			}
 			die();
 		}
+	} else {
+		$params['ftpsiteroot_auto'] = true;
 	}
 ?>
 <html>
@@ -204,7 +211,13 @@
 						</tr>
 						<tr <?=isset($err['ftpsiteroot']) ? 'class="err"' : ''?>>
 							<td><?=PR_INSTALLER_FTP_SITEROOT?>:</td>
-							<td><input name="ftpsiteroot" type="text" value="<?=@$params['ftpsiteroot']?>"></td>
+							<td>
+								<input name="ftpsiteroot" type="text" value="<?=@$params['ftpsiteroot']?>">
+								<input name="ftpsiteroot_auto" type="checkbox" <?=$noAutoFtpSiteroot ? 'disabled' : (@$params['ftpsiteroot_auto'] ? 'checked' : '')?> onclick="document.forms.f_install.ftpsiteroot.disabled = this.checked;"> <span style="color: black;"><?=PR_INSTALLER_FTP_SITEROOT_AUTO?></span>
+								<script type="text/javascript">
+									document.forms.f_install.ftpsiteroot_auto.onclick();
+								</script>
+							</td>
 						</tr>
 					</table>
 				</fieldset>
