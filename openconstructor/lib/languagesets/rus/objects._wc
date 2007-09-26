@@ -312,6 +312,8 @@
 	define('PR_FILE_SORT_NONE','Не сортировать');
 	define('PR_FILE_SORT_BASENAME','Название файла');
 	define('PR_FILE_SORT_EXT','Расширение файла');
+	define('PR_FILE_SORT_SIZE','Размер файла');
+	define('PR_FILE_SORT_NAME','Название файла');
 	define('PR_FILE_SORT_CREATED','Дата создания');
 	define('PR_FILE_SORT_UPDATED','Дата обновления');
 	define('PR_FILE_SORT_ASC','ASC');
