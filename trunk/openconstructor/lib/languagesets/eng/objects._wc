@@ -278,6 +278,8 @@
 	define('PR_FILE_SORT_NONE','do not sort');
 	define('PR_FILE_SORT_BASENAME','File name');
 	define('PR_FILE_SORT_EXT','File extension');
+	define('PR_FILE_SORT_SIZE','File size');
+	define('PR_FILE_SORT_NAME','File title');
 	define('PR_FILE_SORT_CREATED','Created');
 	define('PR_FILE_SORT_UPDATED','Updated');
 	define('PR_FILE_SORT_ASC','Ascending');

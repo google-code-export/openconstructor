@@ -29,10 +29,12 @@
  */
 
 define('FHL_SORT_NONE', 0);
-define('FHL_SORT_BASENAME', 1);
-define('FHL_SORT_EXT', 2);
-define('FHL_SORT_CREATED', 3);
-define('FHL_SORT_UPDATED', 4);
+define('FHL_SORT_NAME', 1);
+define('FHL_SORT_BASENAME', 2);
+define('FHL_SORT_EXT', 3);
+define('FHL_SORT_SIZE', 4);
+define('FHL_SORT_CREATED', 5);
+define('FHL_SORT_UPDATED', 6);
 
 class FileHL extends WCObject {
 	var $header;
@@ -115,7 +117,7 @@ class FileHL extends WCObject {
 		if($searchQuery['order'])
 			$order = " ORDER BY {$searchQuery['order']} DESC";
 		elseif($this->order != 0 && is_numeric($this->order)) {
-			$orderFields = array('d.basename', 'd.type', 'd.created', 'd.date');
+			$orderFields = array('d.name', 'd.basename', 'd.type', 'd.size', 'd.created', 'd.date');
 			$abs = abs($this->order) - 1;
 			if(isset($orderFields[$abs]))
 				$order = ' ORDER BY '.$orderFields[$abs].($this->order > 0 ? ' ASC' : ' DESC');
