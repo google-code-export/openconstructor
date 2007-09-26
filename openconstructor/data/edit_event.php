@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
  * 
