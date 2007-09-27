@@ -318,7 +318,7 @@ class WCFTP {
 		$l = sizeof(explode('/', $root));
 		$wchome = substr(WCHOME, 1);
 		for($i = 0; $i < $l; $i++) {
-			list($j, $root) = explode('/', $root, 2);			
+			$root = substr($root, strpos($root, '/') + 1);
 			if(@ftp_chdir($this->_con, $root.$wchome)) {
 				ftp_chdir($this->_con, '..');
 				$this->siteroot = $root ? substr($root, 0, -1) : '.';
