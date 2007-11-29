@@ -22,6 +22,7 @@
  * 
  * $Id: dsfile._wc,v 1.18 2007/02/27 11:23:25 sanjar Exp $
  */
+require_once(LIBDIR.'/wcdatasource._wc');
 require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/data._wc');
 require_once(LIBDIR.'/wcftp._wc');
 	

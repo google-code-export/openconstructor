@@ -27,6 +27,7 @@
  * 
  * $Id: dsarticle._wc,v 1.18 2007/02/27 11:23:21 sanjar Exp $
  */
+require_once(LIBDIR.'/wcdatasource._wc');
 
 class DSArticle extends WCDataSource
 {

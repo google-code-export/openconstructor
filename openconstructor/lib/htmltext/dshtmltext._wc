@@ -22,6 +22,8 @@
  * 
  * $Id: dshtmltext._wc,v 1.21 2007/03/05 12:36:17 sanjar Exp $
  */
+require_once(LIBDIR.'/wcdatasource._wc');
+
 class DSHTMLText extends WCDataSource {
 	var $stripHTML;
 	var $allowedTags;
