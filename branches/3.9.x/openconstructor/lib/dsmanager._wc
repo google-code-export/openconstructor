@@ -128,7 +128,6 @@ class DSManager {
 		if(mysql_num_rows($res) > 0) {
 			list($dsType) = mysql_fetch_row($res);
 			$class = 'ds'.$dsType;
-			require_once('wcdatasource._wc');
 			require_once($dsType.'/'.$class.'._wc');
 			$result = new $class;
 			$result->load($dsId);

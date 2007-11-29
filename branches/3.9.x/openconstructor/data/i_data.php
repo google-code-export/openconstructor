@@ -20,9 +20,8 @@
  * 
  * $Id: i_data.php,v 1.12 2007/03/02 10:06:41 sanjar Exp $
  */
-	require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
-	WCS::requireAuthentication();
-	require_once(LIBDIR.'/wcdatasource._wc');
+require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
+WCS::requireAuthentication();
 	
 switch(@$_POST['action'])
 {
@@ -606,7 +605,6 @@ switch(@$_POST['action'])
 	break;
 	
 	case 'create_dshybrid':
-		require_once(LIBDIR.'/hybrid/dshybrid._wc');
 		require_once(LIBDIR.'/hybrid/dshybridfactory._wc');
 		$dsf=new DSHybridFactory();
 

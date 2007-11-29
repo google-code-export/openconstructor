@@ -22,6 +22,7 @@
  * 
  * $Id: dshybridfactory._wc,v 1.13 2007/03/24 20:14:34 sanjar Exp $
  */
+require_once('dshybrid._wc');
 
 class DSHybridFactory {
 	var $prefix;
@@ -121,8 +122,6 @@ class DSHybridFactory {
 			}
 			mysql_free_result($res);
 			if(sizeof($docs)) {
-				loadClass('wcdatasource', '/wcdatasource._wc');
-				loadClass('dshybrid', '/hybrid/dshybrid._wc');
 				loadClass('wcsmartycache', '/smarty/wcsmartycache._wc');
 				$dsIds = array_keys($docs);
 				$smc = &WCSmartyCache::getInstance();
