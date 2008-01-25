@@ -1,23 +1,23 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: miscsendmail.php,v 1.15 2007/03/22 13:05:31 sanjar Exp $
  */
 	require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
@@ -25,7 +25,7 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/objects._wc');
 	require_once(LIBDIR.'/objmanager._wc');
 	require_once(LIBDIR.'/dsmanager._wc');
-	
+
 	$obj = &ObjManager::load(@$_GET['id']);
 	assert($obj != null);
 ?>
@@ -266,7 +266,6 @@ function ftypeChanged(att) {
 			<tr>
 				<td colspan="4"><input type="checkbox" value="true" name="attachIsReq[]"><?=H_MSG_ATTACH_IS_REQ?></td>
 			</tr>
-			</tbody>
 		</table>
 		</fieldset>
 		</div>
@@ -332,7 +331,6 @@ function ftypeChanged(att) {
 				<td style="padding-left:5px; padding-right:10px; font-size:115%;"><?=H_MSG_FIELD_ERROR?></td>
 				<td colspan="3"><input type="text" size="60" name="error[]"></td>
 			</tr>
-			</tbody>
 		</table>
 		</fieldset>
 		</div>

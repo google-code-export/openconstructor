@@ -1,23 +1,23 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: i_data.php,v 1.12 2007/03/02 10:06:41 sanjar Exp $
  */
 	require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
@@ -25,7 +25,7 @@
 	require_once(LIBDIR.'/wcdatasource._wc');
 	require_once(LIBDIR.'/dsmanager._wc');
 	$dsm = new DSManager();
-	
+
 switch(@$_POST['action'])
 {
 	case 'create_dshtmltext':
@@ -49,7 +49,7 @@ switch(@$_POST['action'])
 		else
 			header('Location: '.make_fail_header(array(),$fail,$_POST));
 	break;
-	
+
 	case 'edit_dshtmltext':
 		assert(@$_POST['ds_id'] > 0);
 
@@ -75,7 +75,7 @@ switch(@$_POST['action'])
 		}
 		else
 			$_ds->stripHTML=false;
-		
+
 		if(@$_POST['isindexable'] == true) {
 			$_ds->setIndexable(true);
 		} else {
@@ -90,11 +90,11 @@ switch(@$_POST['action'])
 		else
 			header('Location: '.make_fail_header(array(),$fail,$_POST));
 	break;
-	
+
 	case 'create_dspublication':
 		require_once(LIBDIR.'/publication/dspublication._wc');
 		$_ds=new DSPublication();
-		
+
 		$fail=array();
 		$message=array();
 		if(!@$_POST['ds_name'])
@@ -119,11 +119,11 @@ switch(@$_POST['action'])
 		else
 			header('Location: '.make_fail_header(array(),$fail,$_POST));
 	break;
-	
+
 	case 'edit_dspublication':
 		require_once(LIBDIR.'/publication/dspublication._wc');
 		$_ds=new DSPublication();
-	
+
 		assert(@$_POST['ds_id'] > 0);
 
 		$fail=array();
@@ -150,13 +150,13 @@ switch(@$_POST['action'])
 		}
 		else
 			$_ds->stripHTML=false;
-			
+
 		if(@$_POST['isindexable'] == true) {
 			$_ds->setIndexable(true);
 		} else {
 			$_ds->setIndexable(false);
 		}
-		
+
 		if((@$_POST['autoPublish']=='true') != $_ds->autoPublish && WCS::decide($_ds, 'publishdoc'))
 			$_ds->autoPublish=!$_ds->autoPublish;
 		if($_ds->attachGallery) {
@@ -172,11 +172,11 @@ switch(@$_POST['action'])
 		else
 			header('Location: '.make_fail_header(array(),$fail,$_POST));
 	break;
-	
+
 	case 'create_dstextpool':
 		require_once(LIBDIR.'/textpool/dstextpool._wc');
 		$_ds=new DSTextPool();
-		
+
 		$fail=array();
 		$message=array();
 		if(!@$_POST['ds_name'])
@@ -193,13 +193,13 @@ switch(@$_POST['action'])
 		else
 			header('Location: '.make_fail_header(array(),$fail,$_POST));
 	break;
-	
+
 	case 'edit_dstextpool':
 		require_once(LIBDIR.'/textpool/dstextpool._wc');
 		$_ds=new DSTextPool();
 
 		assert(@$_POST['ds_id'] > 0);
-		
+
 		$fail=array();
 		$message=array();
 		if(!@$_POST['ds_name'])
@@ -219,13 +219,13 @@ switch(@$_POST['action'])
 		}
 		else
 			$_ds->stripHTML=false;
-			
+
 		if(@$_POST['isindexable'] == true) {
 			$_ds->setIndexable(true);
 		} else {
 			$_ds->setIndexable(false);
 		}
-			
+
 		if((@$_POST['autoPublish']=='true') != $_ds->autoPublish && WCS::decide($_ds, 'publishdoc'))
 			$_ds->autoPublish=!$_ds->autoPublish;
 		$_ds->name=$_POST['ds_name'];
@@ -235,7 +235,7 @@ switch(@$_POST['action'])
 		else
 			header('Location: '.make_fail_header(array(),$fail,$_POST));
 	break;
-	
+
 	case 'create_dsphpsource':
 		require_once(LIBDIR.'/phpsource/dsphpsource._wc');
 		$_ds=new DSPHPSource();
@@ -255,12 +255,12 @@ switch(@$_POST['action'])
 		else
 			header('Location: '.make_fail_header(array(),$fail,$_POST));
 	break;
-	
+
 	case 'edit_dsphpsource':
 		require_once(LIBDIR.'/phpsource/dsphpsource._wc');
 		$_ds=new DSPHPSource();
 		assert(@$_POST['ds_id'] > 0);
-		
+
 		$fail=array();
 		$message=array();
 		if(!@$_POST['ds_name'])
@@ -279,7 +279,7 @@ switch(@$_POST['action'])
 		else
 			header('Location: '.make_fail_header(array(),$fail,$_POST));
 	break;
-	
+
 	case 'create_dsfile':
 		require_once(LIBDIR.'/file/dsfile._wc');
 		$_ds=new DSFile(@$_POST['folder'] ? $_POST['folder'] : true);
@@ -294,17 +294,17 @@ switch(@$_POST['action'])
 			echo '<script>window.opener.location.href="'.WCHOME.'/data/?node='.$result.'";window.location.href="edit_file.php?ok=1&ds_id='.$result.'";</script>Succesfully created!';
 		} elseif($result) { // папка не создана, в result текст ошибки
 			$fail[]='folder';
-			$message[]=$_ds;
+			$message[]=$result;
 			header('Location: '.make_fail_header($message,$fail,$_POST));
 		} else
 			header('Location: '.make_fail_header(array(),$fail,$_POST));
 	break;
-	
+
 	case 'edit_dsfile':
 		require_once(LIBDIR.'/file/dsfile._wc');
 		$_ds=new DSFile();
 		assert(@$_POST['ds_id'] > 0);
-		
+
 		$fail=array();
 		$message=array();
 		if(!@$_POST['ds_name'])
@@ -327,7 +327,7 @@ switch(@$_POST['action'])
 		else
 			header('Location: '.make_fail_header(array(),$fail,$_POST));
 	break;
-	
+
 	case 'create_dsevent':
 		require_once(LIBDIR.'/event/dsevent._wc');
 		$_ds=new DSEvent();
@@ -343,7 +343,7 @@ switch(@$_POST['action'])
 		}
 
 		if(@$_POST['isindexable'] == false)  $_ds->setIndexable(false);
-		
+
 		if(is_numeric(@$_POST['dssize'])) $_ds->setSize($_POST['dssize']);
 		if(intval(@$_POST['introsize'])>0) $_ds->introSize=$_POST['introsize'];
 		$_ds->set_images(@$_POST['xmin'],@$_POST['ymin'],@$_POST['xmax'],@$_POST['ymax'],isset($_POST['img_main']),isset($_POST['img_intro'])?@$_POST['intro']:false);
@@ -353,12 +353,12 @@ switch(@$_POST['action'])
 		else
 			header('Location: '.make_fail_header(array(),$fail,$_POST));
 	break;
-	
+
 	case 'edit_dsevent':
 		require_once(LIBDIR.'/event/dsevent._wc');
 		$_ds=new DSEvent();
 		assert(@$_POST['ds_id'] > 0);
-		
+
 		$fail=array();
 		$message=array();
 		if(!@$_POST['ds_name'])
@@ -382,13 +382,13 @@ switch(@$_POST['action'])
 		}
 		else
 			$_ds->stripHTML=false;
-		
+
 		if(@$_POST['isindexable'] == true) {
 			$_ds->setIndexable(true);
 		} else {
 			$_ds->setIndexable(false);
-		}	
-			
+		}
+
 		if((@$_POST['autoPublish']=='true') != $_ds->autoPublish && WCS::decide($_ds, 'publishdoc'))
 			$_ds->autoPublish=!$_ds->autoPublish;
 		if($_ds->images)
@@ -399,7 +399,7 @@ switch(@$_POST['action'])
 		else
 			header('Location: '.make_fail_header(array(),$fail,$_POST));
 	break;
-	
+
 	case 'create_dsgallery':
 		require_once(LIBDIR.'/gallery/dsgallery._wc');
 		$_ds=new DSGallery();
@@ -412,9 +412,9 @@ switch(@$_POST['action'])
 			header('Location: '.$ref);
 			die();
 		}
-		
+
 		if(@$_POST['isindexable'] == false) $_ds->setIndexable(false);
-		
+
 		if(is_numeric(@$_POST['dssize'])) $_ds->setSize($_POST['dssize']);
 		$_ds->set_images(@$_POST['xmin'],@$_POST['ymin'],@$_POST['xmax'],@$_POST['ymax'],isset($_POST['img_main']),isset($_POST['img_intro'])?@$_POST['intro']:false);
 
@@ -424,12 +424,12 @@ switch(@$_POST['action'])
 		else
 			header('Location: '.make_fail_header(array(),$fail,$_POST));
 	break;
-	
+
 	case 'edit_dsgallery':
 		require_once(LIBDIR.'/gallery/dsgallery._wc');
 		$_ds=new DSGallery();
 		assert(@$_POST['ds_id'] > 0);
-		
+
 		$fail=array();
 		$message=array();
 		if(!@$_POST['ds_name'])
@@ -451,13 +451,13 @@ switch(@$_POST['action'])
 		}
 		else
 			$_ds->stripHTML=false;
-			
+
 		if(@$_POST['isindexable'] == true) {
 			$_ds->setIndexable(true);
 		} else {
 			$_ds->setIndexable(false);
-		}			
-			
+		}
+
 		if((@$_POST['autoPublish']=='true') != $_ds->autoPublish && WCS::decide($_ds, 'publishdoc'))
 			$_ds->autoPublish=!$_ds->autoPublish;
 		if($_ds->images)
@@ -468,7 +468,7 @@ switch(@$_POST['action'])
 		else
 			header('Location: '.make_fail_header(array(),$fail,$_POST));
 	break;
-	
+
 	case 'create_dsguestbook':
 		require_once(LIBDIR.'/guestbook/dsguestbook._wc');
 		$_ds=new DSGuestBook();
@@ -489,12 +489,12 @@ switch(@$_POST['action'])
 		else
 			header('Location: '.make_fail_header(array(),$fail,$_POST));
 	break;
-	
+
 	case 'edit_dsguestbook':
 		require_once(LIBDIR.'/guestbook/dsguestbook._wc');
 		$_ds=new DSGuestBook();
 		assert(@$_POST['ds_id'] > 0);
-				
+
 		$fail=array();
 		$message=array();
 		if(!@$_POST['ds_name'])
@@ -514,13 +514,13 @@ switch(@$_POST['action'])
 		}
 		else
 			$_ds->stripHTML=false;
-			
+
 		if(@$_POST['isindexable'] == true) {
 			$_ds->setIndexable(true);
 		} else {
 			$_ds->setIndexable(false);
-		}		
-			
+		}
+
 		if((@$_POST['autoPublish']=='true') != $_ds->autoPublish && WCS::decide($_ds, 'publishdoc'))
 			$_ds->autoPublish=!$_ds->autoPublish;
 		$_ds->name=$_POST['ds_name'];
@@ -530,7 +530,7 @@ switch(@$_POST['action'])
 		else
 			header('Location: '.make_fail_header(array(),$fail,$_POST));
 	break;
-	
+
 	case 'create_dsarticle':
 		require_once(LIBDIR.'/article/dsarticle._wc');
 		$_ds=new DSArticle();
@@ -553,12 +553,12 @@ switch(@$_POST['action'])
 		else
 			header('Location: '.make_fail_header(array(),$fail,$_POST));
 	break;
-	
+
 	case 'edit_dsarticle':
 		require_once(LIBDIR.'/article/dsarticle._wc');
 		$_ds=new DSArticle();
 		assert(@$_POST['ds_id'] > 0);
-		
+
 		$fail=array();
 		$message=array();
 		if(!@$_POST['ds_name'])
@@ -582,16 +582,16 @@ switch(@$_POST['action'])
 		}
 		else
 			$_ds->stripHTML=false;
-			
+
 		if(@$_POST['isindexable'] == true) {
 			$_ds->setIndexable(true);
 		} else {
 			$_ds->setIndexable(false);
 		}
-			
+
 		if((@$_POST['autoPublish']=='true') != $_ds->autoPublish && WCS::decide($_ds, 'publishdoc'))
 			$_ds->autoPublish=!$_ds->autoPublish;
-			
+
 		if($_ds->images)
 			$_ds->set_images(@$_POST['xmin'],@$_POST['ymin'],@$_POST['xmax'],@$_POST['ymax'],@$_ds->images['intro']);
 		if($_ds->save())
@@ -599,7 +599,7 @@ switch(@$_POST['action'])
 		else
 			header('Location: '.make_fail_header(array(),$fail,$_POST));
 	break;
-	
+
 	case 'create_dshybrid':
 		require_once(LIBDIR.'/hybrid/dshybrid._wc');
 		require_once(LIBDIR.'/hybrid/dshybridfactory._wc');
@@ -619,12 +619,12 @@ switch(@$_POST['action'])
 		else
 			header('Location: '.make_fail_header(array(),$fail,$_POST));
 	break;
-	
+
 	case 'edit_dshybrid':
 		require_once(LIBDIR.'/hybrid/dshybrid._wc');
 		$_ds=new DSHybrid();
 		assert(@$_POST['ds_id'] > 0);
-		
+
 		$fail=array();
 		$message=array();
 		if(!@$_POST['ds_name'])
@@ -649,7 +649,7 @@ switch(@$_POST['action'])
 		else
 			header('Location: '.make_fail_header(array(),$fail,$_POST));
 	break;
-	
+
 	case 'create_dsrating':
 		require_once(LIBDIR.'/rating/dsrating._wc');
 		$_ds = & new DSRating();
@@ -666,12 +666,12 @@ switch(@$_POST['action'])
 		else
 			header('Location: '.make_fail_header(array(), $fail, $_POST));
 	break;
-	
+
 	case 'edit_dsrating':
 		assert(@$_POST['ds_id'] > 0);
 		require_once(LIBDIR.'/rating/dsrating._wc');
 		$_ds = & new DSRating();
-		
+
 		$fail = $message = array();
 		if(!@$_POST['ds_name'])
 			$fail[] = 'ds_name';
@@ -682,19 +682,19 @@ switch(@$_POST['action'])
 		$_ds = &$dsm->load($_POST['ds_id']);
 		$_ds->name = $_POST['ds_name'];
 		$_ds->description = (string) @$_POST['description'];
-		
+
 		$_ds->stripHTML = @$_POST['stripHTML'] == 'true';
 		if($_ds->stripHTML)
 			$_ds->setAllowedTags(@$_POST['allowedTags']);
 		$_ds->fakeRaters = (int) @$_POST['fakeRaters'];
-		
+
 		$_ds->_setRatingBounds(@$_POST['minRating'], @$_POST['maxRating']);
 		if($_ds->save())
 			header('Location: '.$_SERVER['HTTP_REFERER'].'&ok=1');
 		else
 			header('Location: '.make_fail_header(array(),$fail,$_POST));
 	break;
-	
+
 	default:
 	break;
 }
