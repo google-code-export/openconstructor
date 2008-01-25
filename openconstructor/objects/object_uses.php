@@ -1,41 +1,41 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: object_uses.php,v 1.10 2007/03/02 10:06:41 sanjar Exp $
  */
 	require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
 	WCS::requireAuthentication();
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/objects._wc');
 	require_once(LIBDIR.'/objmanager._wc');
-	
+
 	$om = new ObjManager();
 	$obj = &ObjManager::load(@$_GET['id']);
 	assert($obj != null);
 	$objId = $obj->obj_id;
-	
+
 	require_once(LIBDIR.'/site/pagereader._wc');
 	$pr = &PageReader::getInstance();
 	$uses = array();
 	$used = array();
 	$blocks = array();
-	
+
 	$db = &WCDB::bo();
 	$res = $db->query(
 		"SELECT p.id, o.obj_id, o.block, o.observer FROM sitepages p, siteobjects o WHERE p.id = o.page_id AND (o.observer = 0 || o.obj_id = $objId)"
@@ -68,14 +68,14 @@
 		$uses[$id]['blocks'] = '"'.implode('","', $uses[$id]['blocks']).'"';
 		$blocks[] = $uses[$id]['blocks'];
 	}
-	
+
 	$blocks = array_values(array_unique($blocks));
 	$ref = array_flip($blocks);
 	foreach($uses as $pid => $v) {
 		$uses[$pid]['blocks_ref'] = $ref[$v['blocks']];
 		unset($uses[$pid]['blocks']);
 	}
-	
+
 	if(ObjManager::isObserverClass($obj->obj_type)) {
 		$events = Page::getAllEvents();
 	} else
@@ -105,7 +105,7 @@
 }
 #sitemap SELECT {
 	visibility: hidden;
-	
+
 }
 #sitemap THEAD TD {
 	font-size: 14px;
@@ -193,7 +193,6 @@
 			</td>
 		</tr>
 	</table>
-	</div>
 	</fieldset><br>
 	<script>
 		var blocks = [[<?=implode('],[', $blocks)?>]];

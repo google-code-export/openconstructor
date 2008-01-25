@@ -1,30 +1,30 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: htmltexthl.php,v 1.12 2007/03/02 10:06:44 sanjar Exp $
  */
 	require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
 	WCS::requireAuthentication();
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/objects._wc');
 	require_once(LIBDIR.'/objmanager._wc');
-	
+
 	$obj = &ObjManager::load(@$_GET['id']);
 	assert($obj != null);
 	require_once(LIBDIR.'/site/pagereader._wc');
@@ -123,7 +123,6 @@ function markLi(value) {
 			<td nowrap><?=PR_PAGE_FETCH_LEVEL?>:</td>
 			<td><input type="text" name="level" value="<?=$obj->level?>"></td>
 		</tr>
-		</tr>
 	</table>
 	<fieldset style="padding:10" id="sitemap"><legend><?=H_EXCLUDE_PAGES?></legend>
 	<div style="padding: 10px;">
@@ -158,7 +157,7 @@ function markLi(value) {
 				li[i].innerHTML = "<input type='checkbox' name='exclude[]' value='" + Math.abs(id) + "' id='ex" + Math.abs(id) + "'> " + li[i].innerHTML;
 				if(id < 0)
 					document.getElementById("ex" + Math.abs(id)).checked = true;
-			} 
+			}
 		})();
 	</script>
 	</fieldset><br>

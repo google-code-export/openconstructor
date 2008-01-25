@@ -1,23 +1,23 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: index.php,v 1.9 2007/03/05 19:25:34 sanjar Exp $
  */
 	require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
@@ -26,7 +26,7 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/data._wc');
 	require_once('../../../include/sections._wc');
 	require_once(LIBDIR.'/enum/wcenumfactory._wc');
-	
+
 	$ef = &WCEnumFactory::getInstance();
 	$current = (int) @$_GET['enum'];
 	$enum = $ef->load($current);
@@ -142,9 +142,7 @@
 		<?php
 			}
 		?>
-		</ul>
-		</td></tr></table>
-	</form>
+		</table>
 	<script>
 		if(!(canRemoveEnum || canRemoveValue))
 			disableButton(btn_remove, imghome + '/tool/remove_.gif');
