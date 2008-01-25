@@ -1,63 +1,63 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * @author Sanjar Akhmedov
- * 
+ *
  * $Id: install._wc,v 1.14 2007/04/13 12:28:12 sanjar Exp $
  */
 	assert(@!file_exists($_SERVER['DOCUMENT_ROOT'].FILES));
-	
+
 	if(strpos($_SERVER['REQUEST_URI'], WCHOME.'/setup/') !== 0) {
 		header('Location: http://'.$_SERVER['HTTP_HOST'].WCHOME.'/setup/'.(@$_SERVER['QUERY_STRING'] ? '?'.$_SERVER['QUERY_STRING'] : ''));
 		die();
 	}
-	
+
 	$params = &$_POST;
 	if(isset($_GET['params_from_get']) && $_GET['params_from_get'])
 		$params = &$_GET;
-	
+
 	$lng = 'rus'; // default
 	$langs = array('eng' => 'PR_INSTALLER_ENGLISH', 'rus' => 'PR_INSTALLER_RUSSIAN');
-	
+
 	if(isset($_GET['lng']) && isset($langs[$_GET['lng']])) {
 		$lng = $_GET['lng'];
 	} else {
-		
+
 		$lcPriority = array('rus' => 2, 'eng' => 1);
 		$lcMap = array('en' => 'eng', 'ru' => 'rus', 'uz' => 'rus');
-		
+
 		foreach(explode(';', $_SERVER['HTTP_ACCEPT_LANGUAGE']) as $al)
 			foreach(explode(',', $al) as $lc)
 				if(isset($lcMap[$lc]) && $lcPriority[$lcMap[$lc]] > $lcPriority[$lng])
 					$lng = $lcMap[$lc];
-		
+
 	}
-	
+
 	$language = isset($langs[@$params['language']]) ? $params['language'] : $lng;
-		
+
 	require_once(LIBDIR.'/languagesets/'.$lng.'/classes._wc');
 	require_once(LIBDIR.'/languagesets/'.$lng.'/main._wc');
 	require_once(LIBDIR.'/languagesets/'.$lng.'/install._wc');
-	
+
 	require_once(LIBDIR.'/db/dbsetup._wc');
-	
+
 	$noAutoFtpSiteroot = isset($params['no_ftpsiteroot_auto']);
 	$err = array();
 	if(is_array($params) && isset($params['install']) && isset($params['iAccept'])) {
@@ -206,7 +206,7 @@
 						</tr>
 						<tr <?=isset($err['ftpport']) ? 'class="err"' : ''?>>
 							<td><?=PR_INSTALLER_FTP_PORT?>:</td>
-							<td><input name="ftpport" type="text" value="<?=@$params['ftpport'] ? $params['ftpport'] : (sizeof($params) ? '' : 21) ?>"></td>
+							<td><input name="ftpport" type="text" value="<?=@array_key_exists('ftpport', $params) ? $params['ftpport'] : 21 ?>"></td>
 						</tr>
 						<tr <?=isset($err['ftplogin']) ? 'class="err"' : ''?>>
 							<td><?=PR_INSTALLER_FTP_LOGIN?>:</td>
@@ -262,7 +262,7 @@
 								$first = true;
 								foreach($t as $table) {
 									echo $first ? '' :', &nbsp;', $table;
-									$first = false; 
+									$first = false;
 								}
 							?>.
 								</div>
