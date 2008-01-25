@@ -1,25 +1,25 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * @author Sanjar Akhmedov
- * 
+ *
  * $Id: dshybrid._wc,v 1.13 2007/02/27 11:23:19 sanjar Exp $
  */
 require_once('hybriddocument._wc');
@@ -32,7 +32,7 @@ class DSHybrid extends WCDataSource {
 	var $autoPublish;
 	var $indexedDoc, $docIntro, $indexedDocQuery;
 	var $editTpl;
-	
+
 	function DSHybrid($key = null, $parent = null) {
 		$this->DSTable = 'dshybrid';
 		$this->ds_type = 'hybrid';
@@ -44,19 +44,16 @@ class DSHybrid extends WCDataSource {
 		$this->autoPublish = true;
 		$this->editTpl = null;
 	}
-	
+
 	function save() {
 		unset($this->record,  $this->readSQL, $this->indexedDocQuery);
 		return WCDataSource::save();
 	}
-	
+
 	function remove() {
 		WCS::assert($this, 'removeds');
 		$db = &WCDB::bo();
-		$res = $db->query(
-			'SELECT id'.
-			' FROM dshybrid_'.$this->ds_id
-		);
+		$res = $db->query('SELECT id FROM dshybrid WHERE ds_id = '.$this->ds_id);
 		if(mysql_num_rows($res)>0) {
 			$ids = array();
 			while($r = mysql_fetch_assoc($res))
@@ -70,7 +67,7 @@ class DSHybrid extends WCDataSource {
 		$record = &$this->getRecord();
 		$record->destroy();
 	}
-	
+
 	function createDocument(&$doc, $ownerId = null) {
 		WCS::assert($this, 'createdoc');
 		$doc->sRes = $this->sRes;
@@ -100,7 +97,7 @@ class DSHybrid extends WCDataSource {
 			$doc->id = 0;
 		}
 	}
-	
+
 	function updateDocument(&$doc) {
 		$old = $this->getDocument($doc->id);
 		if(!$old->id)
@@ -108,15 +105,15 @@ class DSHybrid extends WCDataSource {
 		WCS::assertValue(WCS::decide($old, 'editdoc') || WCS::decide($this, 'editdoc'), $old, 'editdoc');
 		if(!(WCS::decide($this, 'publishdoc') || WCS::decide($old, 'publishdoc')))
 			$doc->isPublished = $old->isPublished;
-		$record = &$this->getRecord(); 
+		$record = &$this->getRecord();
 		$record->documentChanged($old, $doc);
 		$query = $record->getSQL($doc);
-		
+
 		$result = true;
 		$db = &WCDB::bo();
 		foreach($query as $q)
 			$result = $db->query($q) && $result;
-		
+
 		if($old->isPublished != $doc->isPublished) {
 			if($doc->isPublished)
 				$this->addToIndex($old->id);
@@ -124,14 +121,14 @@ class DSHybrid extends WCDataSource {
 				$this->removeFromIndex($old->id);
 		} elseif($old->isPublished)
 			$this->updateIndex($old->id);
-		
+
 		$this->evictDocCache($doc->id);
-		
+
 		return $result;
 	}
-	
+
 	function removeOwnDocuments($ids) {
-		$record = &$this->getRecord(); 
+		$record = &$this->getRecord();
 		foreach($ids as $k => $id) {
 			$doc = &$this->getDocument($id);
 			if(!((WCS::decide($doc, 'removedoc') || WCS::decide($this, 'removedoc')) && $record->destroyDocument($doc)))
@@ -141,13 +138,13 @@ class DSHybrid extends WCDataSource {
 		$this->updateSize();
 		$this->evictDocCache(&$ids);
 	}
-	
+
 	function &getDocument($id) {
 		$doc = null;
 		if($id > 0) {
 			$doc = new HybridDocument($this->getRecord());
 			if(!$this->readSQL) {
-				$record = &$this->getRecord(); 
+				$record = &$this->getRecord();
 				$parents = explode(',', $this->path);
 				unset($parents[0]);
 				foreach($parents as $parent) {
@@ -158,7 +155,7 @@ class DSHybrid extends WCDataSource {
 				$where = implode('AND', $where);
 				$fields = implode(',', array_keys($record->fields));
 				if($fields) $fields = ', '.$fields;
-				$this->readSQL = "SELECT dshybrid.id as id, ds_id, published, header, wcsowner $fields FROM $tables WHERE dshybrid.id=%d AND $where LIMIT 1"; 
+				$this->readSQL = "SELECT dshybrid.id as id, ds_id, published, header, wcsowner $fields FROM $tables WHERE dshybrid.id=%d AND $where LIMIT 1";
 			}
 			$db = &WCDB::bo();
 			$res = $db->query(sprintf($this->readSQL, $id));
@@ -171,19 +168,19 @@ class DSHybrid extends WCDataSource {
 		}
 		return $doc;
 	}
-	
+
 	function &getEmptyDocument() {
 		$record = &$this->getRecord();
 		$doc = new HybridDocument($record);
 		return $doc;
 	}
-	
+
 	function &getRecord() {
 		if(!is_object($this->record))
 			$this->record = new HybridRecord($this);
-		return $this->record; 
+		return $this->record;
 	}
-	
+
 	function createEmptyDocument($header, $ownerId) {
 		assert(trim($header) != '');
 		$db = &WCDB::bo();
@@ -205,7 +202,7 @@ class DSHybrid extends WCDataSource {
 		$db->query("DELETE FROM dshybrid WHERE id = $id");
 		return null;
 	}
-	
+
 	function removeEmptyDocuments($ids) {
 		$ids = implode(',',$ids);
 		$db = &WCDB::bo();
@@ -216,14 +213,14 @@ class DSHybrid extends WCDataSource {
 			$db->query("DELETE FROM dshybrid_$parent WHERE id IN ($ids)");
 		$this->removeFromIndex(&$ids);
 	}
-	
+
 	function delete($ids) {
 		loadClass('dshybridfactory', '/hybrid/dshybridfactory._wc');
 		$dsf = new DSHybridFactory();
 		$ids = explode(',', $ids);
 		$dsf->removeDocuments(&$ids);
 	}
-	
+
 	function &getIndexableDocs($id = null) {
 		$result = array();
 		$doc = new HybridDocument($this->getRecord());
@@ -289,7 +286,7 @@ class DSHybrid extends WCDataSource {
 		mysql_free_result($res);
 		return $result;
 	}
-	
+
 	function &getCopiableProps() {
 		assert(true === false);
 	}
