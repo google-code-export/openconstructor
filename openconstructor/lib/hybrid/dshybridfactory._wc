@@ -1,25 +1,25 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * @author Sanjar Akhmedov
- * 
+ *
  * $Id: dshybridfactory._wc,v 1.13 2007/03/24 20:14:34 sanjar Exp $
  */
 
@@ -28,13 +28,13 @@ class DSHybridFactory {
 	var $separator;
 	var $table;
 	var $ftp;
-	
+
 	function DSHybridFactory() {
 		$this->prefix = 'dshybrid_';
 		$this->separator = '.';
 		$this->table = 'hybriddatasources';
 	}
-	
+
 	function create($key, $name, $description, $parent) {
 		$parent = intval($parent);
 		$key = $this->getFullKey($key, $parent);
@@ -51,12 +51,12 @@ class DSHybridFactory {
 				WCS::stopRunAs();
 				return $ds;
 			}
-			$this->removeFolder($ds->ds_id);
+			$this->removeTable($ds->ds_id);
 		}
-		$this->removeTable($ds->ds_id);
+		$ds->remove();
 		return null;
 	}
-	
+
 	function remove($id) {
 		$ids = $this->getChildren($id);
 		if(!sizeof($ids))
@@ -78,11 +78,11 @@ class DSHybridFactory {
 			"DELETE FROM $this->table WHERE ds_id IN(" . implode(',', $ids) . ")"
 		);
 	}
-	
+
 	function removeDocuments($docids) {
 		require_once(LIBDIR.'/dsmanager._wc');
 		$dsm = new DSManager();
-		$ids = implode(',', $docids); 
+		$ids = implode(',', $docids);
 		$db = &WCDB::bo();
 		$res = $db->query("SELECT id, ds_id FROM dshybrid WHERE id IN($ids) ORDER BY ds_id DESC");
 		if(mysql_num_rows($res) > 0){
@@ -97,7 +97,7 @@ class DSHybridFactory {
 		}
 		mysql_free_result($res);
 	}
-	
+
 	function publishDocuments(&$ids) {
 		$this->setPublished(&$ids,1);
 	}
@@ -164,7 +164,7 @@ class DSHybridFactory {
 				$removeDs = array_diff($path1, $path2);
 				$addDs = array_diff($path2, $path1);
 				$commonDs = intval(max(array_intersect($path1, $path2)));
-				
+
 				foreach($fromRec->fields as $key => $field)
 					if(!(isset($toRec->fields[$key]) && $toRec->fields[$key]->ds_id == $field->ds_id))
 						$remove[] = &$fromRec->fields[$key];
@@ -173,7 +173,7 @@ class DSHybridFactory {
 						$add[] = &$toRec->fields[$key];
 				$lr = sizeof($remove); $la = sizeof($add);
 				$ids = array();
-				
+
 				for($i = 0; $i < $l; $i++) {
 					list($docId) = mysql_fetch_row($res);
 					$doc = &$from->getDocument($docId);
@@ -183,7 +183,7 @@ class DSHybridFactory {
 						$ids[] = $doc->id;
 					}
 				}
-				
+
 				if(sizeof($ids)) {
 					$failed = array();
 					$_ids = implode(',', $ids);
@@ -231,7 +231,7 @@ class DSHybridFactory {
 			mysql_free_result($res);
 		}
 	}
-	
+
 	function &getChildren($ds_id) {
 		settype($ds_id, 'int');
 		$db = &WCDB::bo();
@@ -245,7 +245,7 @@ class DSHybridFactory {
 		mysql_free_result($res);
 		return $ids;
 	}
-	
+
 	function getFullKey($key, $parent) {
 		$key = $this->validateKey($key);
 		if(!$parent)
@@ -257,13 +257,13 @@ class DSHybridFactory {
 		if(mysql_num_rows($res) > 0) {
 			$r = mysql_fetch_assoc($res);
 			$fullkey = $r['ds_key'] . $this->separator . $key;
-		} 
+		}
 		else
 			$fullkey = null;
 		mysql_free_result($res);
 		return $fullkey;
 	}
-	
+
 	function exists($key) {
 		$db = &WCDB::bo();
 		$res = $db->query("SELECT ds_id FROM $this->table WHERE ds_key = '$key'");
@@ -271,7 +271,7 @@ class DSHybridFactory {
 		mysql_free_result($res);
 		return $exists;
 	}
-	
+
 	function createTable($id) {
 		$name = $this->prefix . $id;
 		$db = &WCDB::bo();
@@ -283,13 +283,13 @@ class DSHybridFactory {
 		);
 		return $db->errorCode() == 0;
 	}
-	
+
 	function removeTable($id) {
 		$name = $this->prefix . $id;
 		$db = &WCDB::bo();
 		$db->query("DROP TABLE `$name`");
 	}
-	
+
 	function createFolder($folder) {
 		settype($folder, 'int');
 		if($folder > 0 && !@file_exists(ROOT.FILES.'/hyb/'.$folder)) {
@@ -303,7 +303,7 @@ class DSHybridFactory {
 		}
 		return false;
 	}
-	
+
 	function removeFolder($folder) {
 		settype($folder, 'int');
 		if($folder > 0 && @file_exists(ROOT.FILES.'/hyb/'.$folder)) {
@@ -317,7 +317,7 @@ class DSHybridFactory {
 		}
 		return !@file_exists(ROOT.FILES.'/hyb/'.$folder);
 	}
-	
+
 	function updateStruct(&$ds) {
 		$db = &WCDB::bo();
 		if($ds->parent) {
@@ -335,7 +335,7 @@ class DSHybridFactory {
 			" ($ds->ds_id, $ds->parent, '$ds->key', '$ds->path')"
 		);
 	}
-	
+
 	function validateKey($key) {
 		$key = preg_replace('/[^A-Za-z0-9]+/', '', $key);
 		$key = strtolower($key);
@@ -343,7 +343,7 @@ class DSHybridFactory {
 			$key = substr($key, 0, 16);
 		return $key;
 	}
-	
+
 	function &getFtp() {
 		if(!is_object(&$this->ftp)) {
 			loadClass('wcftp', '/wcftp._wc');
