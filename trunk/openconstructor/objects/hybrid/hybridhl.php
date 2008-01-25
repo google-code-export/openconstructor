@@ -1,23 +1,23 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: hybridhl.php,v 1.22 2007/04/20 07:55:13 sanjar Exp $
  */
 	require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
@@ -26,7 +26,7 @@
 	require_once(LIBDIR.'/objmanager._wc');
 	require_once(LIBDIR.'/hybrid/fields/fieldfactory._wc');
 	require_once(LIBDIR.'/dsmanager._wc');
-	
+
 	$obj = &ObjManager::load(@$_GET['id']);
 	assert($obj != null);
 	$_dsm=new DSManager();
@@ -198,7 +198,7 @@ function orderFieldClicked() {
 	foreach($ds as $v)
 		echo '<OPTION VALUE="'.$v['id'].'"'.($v['id'] == $obj->ds_id ? ' SELECTED':'').'>'.
 			$v['name'];
-?>	
+?>
 			</select></td>
 		</tr>
 		<tr>
@@ -265,7 +265,7 @@ function orderFieldClicked() {
 						$tmp = $tpls->get_all_tpls('searchdss');
 						foreach($tmp as $tpl_id => $name)
 							echo '<OPTION VALUE="'.$tpl_id.'"'.($tpl_id == $obj->noResTpl?' SELECTED':'').'>'.$name;
-					?></select>	
+					?></select>
 					</td>
 				</tr>
 				<tr>
@@ -334,7 +334,7 @@ function orderFieldClicked() {
 				for($i = 0, $l = sizeof($fields); $i < $l; $i++)
 					if(isset($docOrder[$fields[$i]->id]) || isset($docOrder['-'.$fields[$i]->id]))
 						$fs[$fields[$i]->id] = &$fields[$i];
-				foreach($docOrder as $id => $j) 
+				foreach($docOrder as $id => $j)
 					if(is_numeric($id)) {
 						$f = &$fs[abs($id)];
 						if($id > 0)
@@ -378,7 +378,7 @@ function orderFieldClicked() {
 					//echo '<li><input '.(isset($docFields[$f->id])? 'checked':'').' type="checkbox" name="field[]" value="'.$f->id.'"> <a href="javascript:wxyopen(\'../../data/hybrid/field/'.$f->family.'.php?id='.$f->id.'\',550,430)" title="'.$f->key.'">'.$f->header.'</a></li>';
 				}
 			?></select>
-			
+
 			</td>
 		</tr>
 		<?php
@@ -440,7 +440,6 @@ function orderFieldClicked() {
 					<input type="text" name="value[]">
 				</td>
 			</tr>
-			</tbody>
 		</table>
 		</fieldset>
 		</div>
