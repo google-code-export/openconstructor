@@ -70,6 +70,7 @@ function newHead(text)
 function switchTo(pageNum)
 {
 	pageNum=parseInt(pageNum);
+	if(content.source) {theHTML=content;editsource();}
 	saveState();
 	updateMenuItem(curIndex);
 	setView(pageNum)
@@ -119,7 +120,7 @@ function moveTo(from,to)
 	if(from==to) return;
 
 	step=to>from?1:-1;
-	
+
 	for(var i=from+step;i!=to+step;i+=step){
 
 		if(from==curIndex)
@@ -149,15 +150,15 @@ function moveTo(from,to)
 			setItemText(menu[i],pageText+i);
 		if(menu[i].isChecked)
 			menu[i].all('ch').checked=true;
-		
+
 		temp=head[i];
 		head[i]=head[from];
 		head[from]=temp;
-	
+
 		temp=cont[i];
 		cont[i]=cont[from];
 		cont[from]=temp;
-	
+
 		from=i;
 	}
 }

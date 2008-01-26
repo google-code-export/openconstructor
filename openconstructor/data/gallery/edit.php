@@ -146,8 +146,9 @@
 		BTN_INSERT_OL=>array('pic'=>'olist','action'=>'excmd("InsertOrderedList")'),
 		'separator',
 		BTN_EDIT_STYLE=>array('pic'=>'style','action'=>'editStyle()'),
-		BTN_EDIT_TAG_PROPS=>array('pic'=>'attribute','action'=>'editProps()')
-	));
+		BTN_EDIT_TAG_PROPS=>array('pic'=>'attribute','action'=>'editProps()'),
+		BTN_EDIT_SOURCE=>array('pic'=>'editsrc','action'=>'editsource()')
+		));
 ?><wbr><IMG SRC="<?=WCHOME?>/i/default/e/separator.gif" align="top"> <SELECT size=1 id="tagID" align="absmiddle"><?php
 	foreach(explode(',','H1,H2,H3,H4,DIV,SPAN,NOBR') as $tag)
 		if(array_search($tag,$allowed)!==false)
