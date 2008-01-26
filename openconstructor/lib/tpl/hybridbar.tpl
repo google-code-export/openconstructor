@@ -4,9 +4,8 @@
 {/if}
 	<div class="blockcont">
 	{foreach from=$docs item=doc}
-		{foreach from=$doc item=props key=id}
-		<p><b>{$id}</b> : {$props}</p>
-		{/foreach}
+		<h3>{$doc.header}</h3>
+		<p>{$doc|@debug_print_var}</p>
 	{/foreach}
 	</div>
 </div>
