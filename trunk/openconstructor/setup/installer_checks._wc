@@ -1,0 +1,18 @@
+<?php
+function _ic_envCheckTmpDir($tmpDir = null) {
+	$result = array();
+	$dir = $tmpDir == null ? 'wctmp_'.md5($_SERVER['REMOTE_ADDR'].'/'.$_SERVER['HTTP_HOST'].'/'.microtime()) : $tmpDir;
+	$name = tempnam($dir, 'wctmp_');
+	$file = @fopen($name, 'wb');
+	if($file !== false) {
+		fwrite($file, time());
+		fclose($file);
+		@unlink($name);
+	} else {
+		$result[] = $tmpDir == null
+			? 'Cannot write to default temp directory'
+			: "Cannot write to temp directory [dir = '.$tmpDir.']";
+	}
+	return $result;
+}
+?>

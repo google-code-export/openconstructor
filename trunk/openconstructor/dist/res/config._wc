@@ -20,6 +20,9 @@
 
 	define('WC_SITE_HOST', '%site_host%'); // with "www" prefix if possible
 
+	// Absolute path to tmp dir (for example /home/me/tmp). Leave empty to fallback to system default
+	define('WC_TMP_DIR', '%tmp_dir%');
+
 	define('WC_SMARTY_TEMPLATES', FILES.'/smarty/templates');
 
 	define('WC_BLOCK_CACHING', 0);
