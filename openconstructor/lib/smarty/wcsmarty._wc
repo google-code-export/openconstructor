@@ -1,25 +1,25 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * @author Sanjar Akhmedov
- * 
+ *
  * $Id: wcsmarty._wc,v 1.7 2007/04/24 21:49:07 sanjar Exp $
  */
 require(SMARTY_DIR.'Smarty.class.php');
@@ -29,20 +29,20 @@ class WCSmarty extends Smarty {
 	var $_fr = array(); // used by foreach_row plugin
 	var $_ctx = null;
 	var $_fetchLevel = 0;
-	
+
 	function WCSmarty() {
 		$this->Smarty();
 		$this->use_sub_dirs = true;
 		$this->template_dir = ROOT.WC_SMARTY_TEMPLATES;
 		$this->plugins_dir = array(SMARTY_DIR.'plugins', LIBDIR.'/smarty/plugins');
-		$this->compile_dir = ROOT.FILES.'/smarty/compiled/';
-		$this->config_dir = ROOT.FILES.'/smarty/configs/';
-		$this->cache_dir = ROOT.FILES.'/smarty/cache/';
+		$this->compile_dir = ROOT.FILES.'/smarty/compiled';
+		$this->config_dir = ROOT.FILES.'/smarty/configs';
+		$this->cache_dir = ROOT.FILES.'/smarty/cache';
 		$this->compile_check = false;
 		$this->caching = false;
-		
+
 		$this->security = true;
-		$this->secure_dir = array(ROOT.WC_SMARTY_TEMPLATES, LIBDIR.'/tpl/');
+		$this->secure_dir = array(ROOT.WC_SMARTY_TEMPLATES, LIBDIR.'/tpl');
 		$this->security_settings = array(
 			'IF_FUNCS' => array('count', 'isset', 'sizeof', 'is_array'),
 			'INCLUDE_ANY' => false,
@@ -50,7 +50,7 @@ class WCSmarty extends Smarty {
 			'MODIFIER_FUNCS' => array('sprintf', 'count', 'sizeof', 'join', 'explode', 'substr'),
 			'ALLOW_CONSTANTS' => false
 		);
-		$this->trusted_dir = array(ROOT.FILES.'/php/');
+		$this->trusted_dir = array(ROOT.FILES.'/php');
 		$this->register_function('run_block', 'smarty_func_run_block', true);
 		$this->register_function('href', 'smarty_func_href', true);
 		$this->register_modifier('implode', 'smarty_mod_implode', true);
@@ -60,7 +60,7 @@ class WCSmarty extends Smarty {
 		$this->_dir_perms = 0777;
 		$this->_file_perms = 0777;
 	}
-	
+
     function &fetch($resource_name, $cache_id = null, $compile_id = null, $display = false) {
 		if($this->_fetchLevel == 1) {
 			$oldOutputFilters = $this->_plugins['outputfilter'];
@@ -74,7 +74,7 @@ class WCSmarty extends Smarty {
 		return $result;
     }
 }
-	
+
 function smarty_func_run_block($params, &$smarty) {
 	$ctx = &$smarty->_ctx;
 	if($ctx->page->status == 404)
@@ -83,7 +83,7 @@ function smarty_func_run_block($params, &$smarty) {
 	if($obj !== null) {
 		if(!isset($smarty->_object_stack[$obj->obj_id])) {
 			$smarty->_object_stack[$obj->obj_id] = true;
-			unset($params['id']); 
+			unset($params['id']);
 			if(is_array($obj)) {
 				for($i = 0, $l = sizeof($obj); $i < $l; $i++)
 					$obj[$i]->exec(&$smarty, $params);
@@ -112,7 +112,7 @@ function smarty_func_href($params, &$smarty) {
 	static $cache;
 	if(isset($params['uri'])) {
 		$uri = $params['uri']; unset($params['uri']);
-		// ksort($params); 
+		// ksort($params);
 		$p = array_keys($params); $v = array_values($params);
 		$uid = $uri.' '.implode(' ', $p);
 		if(isset($cache[$uid])) {
