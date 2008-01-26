@@ -1,23 +1,23 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: index.php,v 1.13 2007/03/02 10:06:41 sanjar Exp $
  */
 	require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
@@ -26,7 +26,7 @@
 	require_once(LIBDIR.'/tree/sqltreereader._wc');
 	require_once(LIBDIR.'/dsmanager._wc');
 	require_once('../include/sections._wc');
-	
+
 	$dsm = new DSManager();
 	$dsh = &$dsm->getAll('hybrid');
 	$reader = new SqlTreeReader();
@@ -138,7 +138,7 @@
 				'UNPUBLISH_SELECTED_DOCUMENTS_Q'
 				));
 		?>
-	]]>	
+	]]>
 	</script>
 	<script src="<?=WCHOME?>/lib/js/base.js"></script>
 	<script src="<?=WCHOME?>/common.js"></script>
@@ -155,7 +155,7 @@
 	<?php
 		menu('catalog');
 		include('toolbar._wc');
-		
+
 		echo '<pretoolbar><![CDATA[<select size="1" onchange="setCookie(\'dsh\', this.options[this.selectedIndex].value, wchome + \'/\'); location.href = location.href;" style="margin-right:10px;">';
 		foreach($dsh as $v)
 			echo "<option value='{$v['id']}'".($v['id'] == $currentDs ? ' selected>' : '>').str_repeat('&#160;', (substr_count($v['path'],',') - 1) * 3)."{$v['name']}</option>";
@@ -169,15 +169,16 @@
 			</tabs>
 	<?php
 		if($curtab == 'browse') {
-			foreach($treeFields as $fieldName=>$nodeId) {
-				$sub = $tree->getSubTree($nodeId);
-				$sub->export($view);
-			}
+			foreach($treeFields as $fieldName => $nodeId)
+				if($tree->exists($nodeId)) {
+					$sub = $tree->getSubTree($nodeId);
+					$sub->export($view);
+				}
 			echo '<postscript>tree.root = 0;';
 			foreach($selected as $id)
 				if(@$tree->node[$id])
 					echo "setNodeState({$tree->node[$id]->index},1);";
-			
+
 			echo '</postscript><apply/>';
 		} else
 			$tree->export($view);
@@ -202,7 +203,7 @@
 		{
 			<?php
 			if(is_array(@$fieldnames)) foreach($fieldnames as $k=>$v) echo 'if(!frm_v.'.$k.'.checked) setCookie("vf['.$k.']","disabled","'.WCHOME.'/catalog/"); else setCookie("vf['.$k.']","enabled","'.WCHOME.'/catalog/");';
-			?>	
+			?>
 			setCookie("pagesize",frm_v.pagesize.value,"<?=WCHOME?>/data/");
 			window.location.reload();
 		}

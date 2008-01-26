@@ -1,39 +1,44 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: toolbar._wc,v 1.5 2007/02/27 11:23:25 sanjar Exp $
  */
 //echo "<postscript>alert({$tree->node[$curnode]->index});</postscript>";
-	$isFirst = @$tree->node[$curnode]->index == 0 || @$tree->node[$curnode]->index == @$tree->node[$curnode]->parent->index + 1;
-	$isLast = @$tree->node[$curnode]->next == @$tree->node[$curnode]->parent->next;
-	$toolbar=array(
+	$toolbar = array(
 		'separator',
 		CREATE_DOCUMENT=>array('pic'=>'addrecord','action'=>'create_record()'),
-		'separator',
-		CREATE_TREE=>array('pic'=>'newtree','action'=> System::decide('catalog.tree') ? 'wxyopen(wchome+"/catalog/addnode.php?in='.$tree->root->id.'",550,500)':''),
-		CREATE_NODE=>array('pic'=>'newpage','action'=> ($curnode == 1 ? System::decide('catalog.tree') : WCS::decide($rootNode, 'managetree')) ? 'wxyopen(wchome+"/catalog/addnode.php?in='.$curnode.'",550,500)':''),
-		'separator',
-		MOVE_NODE_UP=>array('pic'=>'nodeup','action'=> (!$isFirst ? ($curnode == $rootNode->id ? System::decide('catalog.tree') : WCS::decide($rootNode, 'managetree')) : false) ? "moveUp()":''),
-		MOVE_NODE_DOWN=>array('pic'=>'nodedown','action'=> (!$isLast ? ($curnode == $rootNode->id ? System::decide('catalog.tree') : WCS::decide($rootNode, 'managetree')) : false) ? 'moveDown()':''),
-		'separator',
-		EDIT_NODE=>array('pic'=>'editpage','action'=> WCS::decide($rootNode, 'edittree') ? 'wxyopen(wchome+"/catalog/editnode.php?id='.$curnode.'",550,270)':''),
+		'separator');
+	if($curtab == 'trees'){
+		$isFirst = @$tree->node[$curnode]->index == 0 || @$tree->node[$curnode]->index == @$tree->node[$curnode]->parent->index + 1;
+		$isLast = @$tree->node[$curnode]->next == @$tree->node[$curnode]->parent->next;
+		$toolbar = array_merge($toolbar, array(
+			CREATE_TREE=>array('pic'=>'newtree','action'=> System::decide('catalog.tree') ? 'wxyopen(wchome+"/catalog/addnode.php?in='.$tree->root->id.'",550,500)':''),
+			CREATE_NODE=>array('pic'=>'newpage','action'=> ($curnode == 1 ? System::decide('catalog.tree') : WCS::decide($rootNode, 'managetree')) ? 'wxyopen(wchome+"/catalog/addnode.php?in='.$curnode.'",550,500)':''),
+			'separator',
+			MOVE_NODE_UP=>array('pic'=>'nodeup','action'=> (!$isFirst ? ($curnode == $rootNode->id ? System::decide('catalog.tree') : WCS::decide($rootNode, 'managetree')) : false) ? "moveUp()":''),
+			MOVE_NODE_DOWN=>array('pic'=>'nodedown','action'=> (!$isLast ? ($curnode == $rootNode->id ? System::decide('catalog.tree') : WCS::decide($rootNode, 'managetree')) : false) ? 'moveDown()':''),
+			'separator',
+			EDIT_NODE=>array('pic'=>'editpage','action'=> WCS::decide($rootNode, 'edittree') ? 'wxyopen(wchome+"/catalog/editnode.php?id='.$curnode.'",550,270)':'')
+		));
+	}
+	$toolbar = array_merge($toolbar, array(
 		EDIT_SECURITY => array('pic'=>'editsec','action'=> 'edit_security()'),
 		'separator',
 		PUBLISH_DOCUMENTS=>array('pic'=>'publish','action'=> WCS::decide($ds, 'publishdoc') ? 'publish_docs(true)' : ''),
@@ -42,12 +47,5 @@
 		REFRESH=>array('pic'=>'reload','action'=>'window.location.href += ""'),
 		'separator',
 		REMOVE=>array('pic'=>'remove','action'=> ($curtab == 'trees' ? WCS::decide($rootNode, 'removetree') : true) ? 'remove()' : ''),
-	);
-	if($curtab == 'browse'){
-		unset($toolbar[CREATE_TREE]);
-		unset($toolbar[CREATE_NODE]);
-		unset($toolbar[MOVE_NODE_UP]);
-		unset($toolbar[MOVE_NODE_DOWN]);
-		unset($toolbar[EDIT_NODE]);
-	}
+	));
 ?>
