@@ -1,29 +1,29 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * Выводит список гибридных документов.
- * 
+ *
  * Объект вывода ВК.
- * 
+ *
  * @author Sanjar Akhmedov
- * 
+ *
  * $Id: hybridhl._wc,v 1.41 2007/04/23 09:50:22 sanjar Exp $
  */
 require_once('hybridagent._wc');
@@ -33,7 +33,7 @@ define('NID_OR', 1);
 define('NID_AND', 2);
 
 class HybridHL extends WCObject {
-	
+
 	var $srvUri, $docId, $nodeId, $nodeType;
 	var $dsIdKey, $onlySub;
 	var $docFields, $docOrder, $docFilter;
@@ -60,18 +60,18 @@ class HybridHL extends WCObject {
 		$this->caching = 0;
 		$this->cached_by_WC = true;
 	}
-	
+
 	function getCacheId() {
 		$agent = &$this->getAgent();
 		$nodeId = str_replace(array('/', '\\'), array('', ''), $this->ctx->getParam($this->nodeId));
 		return $this->obj_id.'|'.$agent->dsId.'|'.$nodeId.'-o'.$this->listOffset.'-'.$this->listSize;
 	}
-	
+
 	function onPageLoad() {
 		if(!$this->no404 && !is_object($agent = &$this->getAgent()))
 			$this->ctx->throw404();
 	}
-	
+
 	function changeCrumbs(&$crumbs) {
 		$agent = &$this->getAgent();
 		if(is_object($agent)) {
@@ -79,7 +79,7 @@ class HybridHL extends WCObject {
 			$agent->_changeNodeCrumbs($crumbs, $this->nodeId);
 		}
 	}
-	
+
 	function fetchData(&$smarty) {
 		$result = false;
 		$docs = &$this->getDocuments();
@@ -101,7 +101,7 @@ class HybridHL extends WCObject {
 			$this->ctx->throw404();
 		return $result;
 	}
-	
+
 	function &getDocuments() {
 		$ctx = &Context::getInstance();
 		$nodeId = addslashes($ctx->getParam($this->nodeId));
@@ -135,7 +135,8 @@ class HybridHL extends WCObject {
 				if($dsf[$this->docFields[$i]['id']]) $fIds[] = $this->docFields[$i]['id'];
 			$enums = '0'; $nodes = array();
 			for($i = 0, $docIds = array(), $l = sizeof($fIds); $r = mysql_fetch_assoc($res); $i++) {
-				$docIds[] = $id = (int) $r['id'];;
+				$docIds[] = $id = (int) $r['id'];
+				$result[$id] = array();
 				$doc = &$result[$id];
 				$doc['id'] = $doc['_id'] = $id;
 				$doc['_dsKey'] = $agent->dsPath[$r['ds_id']];
@@ -180,7 +181,7 @@ class HybridHL extends WCObject {
 							$doc[$f['name']] = $r[$fId];
 					}
 				}
-				if(!isset($doc[$this->nodeId]))
+				if($this->nodeId && !isset($doc[$this->nodeId]))
 					$doc[$this->nodeId] = $nodeId;
 				unset($doc);
 			}
@@ -223,7 +224,7 @@ class HybridHL extends WCObject {
 		$this->documents[$nodeId][$this->ids] = &$result;
 		return $result;
 	}
-	
+
 	function countAvailableDocs() {
 		if(!isset($this->availableDocsCount)) {
 			$db = &$this->ctx->_getDB();
@@ -232,21 +233,21 @@ class HybridHL extends WCObject {
 			mysql_free_result($res);
 		}
 	}
-	
+
 	function &getAgent() {
 		if($this->_agent === null)
 			if(!($this->_agent = &HybridAgent::getInstance($this->dsIdKey && ($dsId = $this->ctx->getParam($this->dsIdKey)) ? $dsId : $this->ds_id, $this->ds_id, $this->onlySub)))
 				$this->_agent = false;
 		return $this->_agent;
 	}
-	
+
 	function setDocOrder($order) {
 		if($order && ($agent = &$this->getAgent())) {
 			require_once(LIBDIR.'/func/parsedocorder._wc');
 			$this->docOrder = wcfParseDocOrder($order, $agent);
 		}
 	}
-	
+
 	function &_getQuery($nodeId, &$searchQuery) {
 		$result = null;
 		$agent = &$this->getAgent();
@@ -300,12 +301,12 @@ class HybridHL extends WCObject {
 		}
 		return $result;
 	}
-	
+
 	function _inlineEditGetDsId() {
 		$agent = &$this->getAgent();
 		return is_object($agent) ? $agent->dsId : null;
 	}
-	
+
 	function &_getDSFields() {
 		static $result;
 		if(!is_array(&$result)) $result = array('ds_id', 'dsIdKey');
