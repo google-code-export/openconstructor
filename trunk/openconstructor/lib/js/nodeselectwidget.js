@@ -16,7 +16,7 @@ Tree.prototype = {
 					return this.node[i];
 			return null;
 		},
-	
+
 	importXml :
 		function(xml) {
 			var root = null;
@@ -74,7 +74,7 @@ Node.prototype = {
 			this.index = tag.getAttribute("i");
 			this.next = tag.getAttribute("n");
 		},
-	
+
 	toString :
 		function() {
 			return this.name + " [id = " + this.id + "]";
@@ -116,7 +116,7 @@ NodeSelectWidget.prototype = {
 			var self = this;
 			var req = newXmlHttp();
 			this.control.childNodes[0].innerHTML = "<div class='load'>" + this.loadingText + "</div>";
-			req.open("GET", "http://" + document.location.hostname + wchome + this.url + self.treeId, true);
+			req.open("GET", document.location.protocol + "//" + document.location.host + wchome + this.url + self.treeId, true);
 			req.onreadystatechange = function() {
 				if(req.readyState == 4) {
 					if(req.status == 200) {
@@ -133,7 +133,7 @@ NodeSelectWidget.prototype = {
 			}
 			req.send(null);
 		},
-	
+
 	init :
 		function() {
 			if(this.control == null) {
@@ -182,7 +182,7 @@ NodeSelectWidget.prototype = {
 					tpl(this.select.selectedIndex);
 			}
 		},
-	
+
 	show :
 		function() {
 			this.init();
@@ -195,7 +195,7 @@ NodeSelectWidget.prototype = {
 			this.control.style.display = "";
 			this.docOnclick.enable();
 		},
-	
+
 	hide :
 		function() {
 			this.docOnclick.disable();
@@ -203,7 +203,7 @@ NodeSelectWidget.prototype = {
 			this.updateSelect();
 			this.displaySelected();
 		},
-	
+
 	updateSelect :
 		function() {
 			while(this.select.options.length > 0)
@@ -219,7 +219,7 @@ NodeSelectWidget.prototype = {
 						return;
 				}
 		},
-	
+
 	displaySelected :
 		function() {
 			if(!this.initialOutput)
@@ -237,7 +237,7 @@ NodeSelectWidget.prototype = {
 				html = this.viewStrategy(sel);
 			this.output.innerHTML = html;
 		},
-	
+
 	setNodeState :
 		function(node, state) {
 			if(!this.multiple && this.lastSelected) {
@@ -248,25 +248,25 @@ NodeSelectWidget.prototype = {
 			this.drawer.repaint(node);
 			this.lastSelected = node;
 		},
-	
+
 	setViewStrategy :
 		function(strategy) {
 			this.viewStrategy = strategy;
 			this.displaySelected();
 		},
-	
+
 	setDrawer :
 		function(drawer) {
 			this.drawer = drawer;
 			this.drawer.widget = this;
 		},
-	
+
 	drawControl :
 		function() {
 			this.treeElement = this.drawer.drawRoot(this.tree.root, this.control.childNodes[0])
 			this.drawChildNodes(this.tree.root, this.treeElement);
 		},
-	
+
 	drawChildNodes :
 		function(node, el) {
 			for(var i = 0, n = null; i < node.child.length; i++) {
@@ -292,7 +292,7 @@ DefaultTreeDrawer.prototype = {
 				"</tr></tbody></table>";
 			return el.childNodes[0].childNodes[0];
 		},
-	
+
 	drawLeafNode :
 		function(node, el) {
 			this.drawNode(node, el);
@@ -307,7 +307,7 @@ DefaultTreeDrawer.prototype = {
 			td.innerHTML = "<table class='tree' cellspacing='0' cellpadding='0'><tbody></tbody></table>";
 			return td.childNodes[0].childNodes[0];
 		},
-	
+
 	drawNode :
 		function(node, el) {
 			var self = this;
@@ -349,14 +349,14 @@ DefaultTreeDrawer.prototype = {
 			}
 			tdn.className = "n";
 		},
-	
+
 	repaint :
 		function(node) {
 			var tr = document.getElementById("n" + node.id);
 			tr.className = node.state ? "selected" : "";
 			tr.childNodes[0].childNodes[0].checked = node.state;
 		},
-	
+
 	setSubTreeState :
 		function(node, state) {
 			var a = document.getElementById("s" + node.id);
@@ -370,7 +370,7 @@ DefaultTreeDrawer.prototype = {
 			}
 			tr.style.display = a.childNodes[1].style.display;
 		},
-	
+
 	signClicked :
 		function(a, node) {
 			var opened = a.childNodes[0].style.display == "none";
