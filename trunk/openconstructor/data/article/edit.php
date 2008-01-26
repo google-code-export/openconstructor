@@ -1,29 +1,29 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: edit.php,v 1.10 2007/03/02 10:06:44 sanjar Exp $
  */
 	require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
 	WCS::requireAuthentication();
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/editors._wc');
-	
+
 	if(!isset($_GET['ds_id'])||!isset($_GET['id'])) die();
 	require_once($_SERVER['DOCUMENT_ROOT'].WCHOME.'/include/toolbar._wc');
 	require_once(LIBDIR.'/dsmanager._wc');
@@ -33,7 +33,7 @@
 		$_doc = $_ds->get_record($_GET['id']);
 		assert($_doc !== null);
 		if($_doc['id']!= $_doc['real_id']) {
-			$_ds = &$dsm->load($_doc['realDsId']); 
+			$_ds = &$dsm->load($_doc['realDsId']);
 			$_doc = &$_ds->get_record($_doc['real_id']);
 		}
 	} else {
@@ -61,7 +61,7 @@
 			REMOVE_SELECTED_PAGES_Q='<?=REMOVE_SELECTED_PAGES_Q?>';
 			;
 		var pageText='<?=H_PAGE?> ', headText='<?=H_ENTIRE_ARTICLE?>';
-		
+
 		function sendData()
 		{
 			var ci = curIndex;
@@ -71,7 +71,7 @@
 				repairHRefs(content);
 			}
 			switchTo(ci);
-			
+
 			for(var i = 0; i < pages + 1; i++)
 			{
 				head[i].setAttribute("name","header["+i+"]");
@@ -89,7 +89,7 @@
 			if(!mopen("../deleteimg.php?ds=<?=$_ds->ds_id?>&id=<?=$_doc['real_id']?>&type="+type+'&j='+Math.ceil(d.getTime()/1000),350,150)) return;
 			disableButton(document.all('btn_delimg'+type),"<?=WCHOME?>/i/default/e/deleteimg_.gif");
 			document.all('ref_showimg'+type).outerHTML=document.all('ref_showimg'+type).innerHTML;
-		}		
+		}
 		function setRelated()
 		{
 			var vars='related='+f.related.value+'&id=<?=$_doc['real_id']?>&';
@@ -121,7 +121,7 @@
 		));
 	?>
 	</div>
-	</td>	
+	</td>
 </tr>
 <tr>
 	<td height=100% width="30%" valign="top" style="display:<?=@$_COOKIE['panelstate']?>;padding:5 0 0 10;word-wrap:break-word;" id="view">
@@ -135,8 +135,8 @@
 		</div>
 	</td>
 	<td height=100% valign="top" style="padding-left:10px;">
-	<table cellpadding=0 cellspacing=0 width="100%" height=100% border=0>	
-	<tr>	
+	<table cellpadding=0 cellspacing=0 width="100%" height=100% border=0>
+	<tr>
 		<td colspan=2 valign="top" style="padding:5 10 0 0;">
 		<div id="acl"><?=F_ARTICLE_HEADER?>:</div>
 		<div id="pge" style="display:none;"><?=F_PAGE_HEADER?>:</div>
@@ -152,7 +152,7 @@
 			?>
 			<textarea name="theader<?=$i?>" style="display:none;"><?=$_GET['id']=='new'?'':htmlspecialchars($_doc['header'][$i], ENT_COMPAT, 'UTF-8')?></textarea>
 			<textarea name="thtml<?=$i?>" style="display:none;"><?=$_GET['id']=='new'?'':htmlspecialchars($_doc['content'][$i], ENT_COMPAT, 'UTF-8')?></textarea>
-			<?php	
+			<?php
 				}
 			?>
 			<textarea name="intro" style="display:none;"><?=$_GET['id']=='new'?'':htmlspecialchars($_doc['intro'], ENT_COMPAT, 'UTF-8')?></textarea>
@@ -204,7 +204,7 @@
 	<input type="file" name="image">&nbsp;&nbsp;<a href="javascript:deleteimg('main')" class="tool1"><img src="<?=WCHOME?>/i/default/e/deleteimg.gif" align=absmiddle alt="<?=BTN_REMOVE_IMAGE?>" name="btn_delimgmain"></a>
 	<script>
 		if(!document.all('ref_showimgmain')&&f.image) disableButton(f.btn_delimgmain,"<?=WCHOME?>/i/e/deleteimg_.gif");
-	</script>				
+	</script>
 
 <?php }?>
 	<input type="button" accesskey="s" onclick="if(!document.all('btn_saveart').dbtn) sendData()" value="save" style="width:0px;height:0px;">
@@ -214,7 +214,7 @@
 				</tr>
 				<tr>
 					<td colspan=4>
-						<hr size="2"> 
+						<hr size="2">
 					</td>
 				</tr>
 			</table>
@@ -253,6 +253,7 @@
 					'separator_',
 					BTN_EDIT_STYLE=>array('pic'=>'style','action'=>'editStyle()'),
 					BTN_EDIT_TAG_PROPS=>array('pic'=>'attribute','action'=>'editProps()'),
+					BTN_EDIT_SOURCE=>array('pic'=>'editsrc','action'=>'editsource()'),
 					BTN_IMPORT_TABLE=>array('pic'=>'importtbl','action'=>'editTable()')
 				));
 			?>
@@ -261,7 +262,7 @@
 				foreach(explode(',','H1,H2,H3,H4,DIV,SPAN,NOBR') as $tag)
 					if(array_search($tag,$allowed)!==false)
 						echo '<OPTION value="'.$tag.'">&lt;'.$tag.'&gt;';
-			?></SELECT> 
+			?></SELECT>
 				<input align="top" type="button" value="<?=BTN_INSERT_TAG?>" onclick="if(tagID.options.length) intoTags(tagID.options(tagID.selectedIndex).value)" style="width:80px;margin-top:0px;">
 			</div>
 			</nobr>
@@ -273,7 +274,7 @@
 		</td></tr>
 	</table>
 	</td>
-</tr>	
+</tr>
 </table>
 <script defer>
 	theHTML=content;
