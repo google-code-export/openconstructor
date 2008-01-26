@@ -1,25 +1,25 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * @author Sanjar Akhmedov
- * 
+ *
  * $Id: wcftp._wc,v 1.14 2007/05/02 20:31:27 sanjar Exp $
  */
 require_once(LIBDIR_THIRD.'/phputf8/utf8.php'); // need this for intsaller
@@ -28,9 +28,10 @@ class WCFTP {
 	var $host, $port, $user, $password, $siteroot;
 	var $_con, $opened;
 	var $_isHostValid;
+	var $_tmpDir;
 	var $message;
 	var $result;
-	
+
 	function WCFTP($autoconfig = true, $autoopen = false){
 		$this->_con = null;
 		$this->result = true;
@@ -39,7 +40,7 @@ class WCFTP {
 		if($autoopen)
 			$this->open();
 	}
-	
+
 	function configure($host, $user, $password, $siteroot='.', $port=21){
 		$this->host=$host;
 		$this->port = $port ? $port : 21;
@@ -50,7 +51,7 @@ class WCFTP {
 		$this->opened = 0;
 		$this->message=array();
 	}
-	
+
 	function open($timeout = null) {
 		if($this->_con == null && $this->opened == 0) {
 			settype($timeout, 'int');
@@ -82,7 +83,7 @@ class WCFTP {
 			$this->opened++;
 		return $this->opened;
 	}
-	
+
 	function close() {
 		if($this->opened > 0) {
 			$this->opened--;
@@ -91,7 +92,7 @@ class WCFTP {
 		}
 		return $this->opened;
 	}
-	
+
 	function _close() {
 		if($this->_con != null) {
 			@ftp_close($this->_con);
@@ -100,7 +101,7 @@ class WCFTP {
 			$this->opened = 0;
 		}
 	}
-	
+
 	function md($dir,$access=NULL,$owner=NULL) {
 		if(!$this->_con){
 			$this->message[]='Offline: Cannot create dir ['.$dir.']';
@@ -119,7 +120,7 @@ class WCFTP {
 			@ftp_site($this->_con,'chown '.$owner.' '.$dir);
 		return true;
 	}
-	
+
 	function rd($dir){
 		if(!$this->_con){
 			$this->message[]='Offline: Cannot remove dir ['.$dir.']';
@@ -134,7 +135,7 @@ class WCFTP {
 		}
 		return true;
 	}
-	
+
 	function write_file($file,&$content,$mode='wb'){
 		if(!$this->_con){
 			$this->message[]='Offline: Cannot write to file ['.$file.']';
@@ -142,8 +143,8 @@ class WCFTP {
 			return false;
 		}
 		$file=$this->_normalize($file);
-		$tmp=tempnam('invalid_directory_name','wcftp_');
-		$fp=fopen($tmp,$mode);
+		$tmp = WCFTP::_newTmpFilename();
+		$fp = fopen($tmp,$mode);
 		fwrite($fp,$content);
 		fclose($fp);
 		$result=@ftp_put($this->_con,$file,$tmp,FTP_BINARY);
@@ -155,7 +156,7 @@ class WCFTP {
 		}
 		return true;
 	}
-	
+
 	function copy_local_file($from,$to,$mode=NULL){
 		if(!$this->_con){
 			$this->message[]='Offline: Cannot copy local file ['.$from.'=>'.$to.']';
@@ -172,7 +173,7 @@ class WCFTP {
 		}
 		return true;
 	}
-	
+
 	function move($from,$to){
 		if(!$this->_con){
 			$this->message[]='Offline: Cannot move ['.$from.'=>'.$to.']';
@@ -188,7 +189,7 @@ class WCFTP {
 		}
 		return true;
 	}
-	
+
 	function copy_local_dir($from, $to) {
 		if(!$this->_con){
 			$this->message[] = 'Offline: Cannot copy dir ['.$from.']';
@@ -214,7 +215,7 @@ class WCFTP {
 		}
 		return true;
 	}
-	
+
 	function rdEntire($dir){
 		if(!$this->_con){
 			$this->message[]='Offline: Cannot remove dir ['.$dir.']';
@@ -238,7 +239,7 @@ class WCFTP {
 		}
 		return true;
 	}
-	
+
 	function unlink($file){
 		if(!$this->_con){
 			$this->message[]='Offline: Cannot remove file ['.$file.']';
@@ -253,7 +254,7 @@ class WCFTP {
 		}
 		return true;
 	}
-	
+
 	function chmod($file, $mode){
 		if(!$this->_con) {
 			$this->message[] = 'Offline: Cannot set mode to '.$mode.' ['.$file.']';
@@ -268,7 +269,7 @@ class WCFTP {
 		}
 		return true;
 	}
-	
+
 	function inline($func){
 		if(!$this->_con){
 			$this->message[]='Offline: Cannot execute function ['.$func.']';
@@ -278,7 +279,7 @@ class WCFTP {
 		call_user_func($func);
 		return true;
 	}
-	
+
 	function &get_message($html=false){
 		$message=$this->message;
 		$this->message=array();
@@ -286,22 +287,22 @@ class WCFTP {
 			$message='<ul><li>'.implode('</li><li>',$message).'</li></ul>';
 		return $message;
 	}
-	
+
 	function success($flush=true){
 		$result=$this->result;
 		if($flush)
 			$this->result=true;
 		return $result;
 	}
-	
+
 	function apply_result($result){
 		$this->result=$this->result&&$result;
 	}
-	
+
 	function isOnline() {
 		return $this->_con ? true : false;
 	}
-	
+
 	function suggestSiteroot() {
 		$result = null;
 		if(!$this->_con){
@@ -328,7 +329,11 @@ class WCFTP {
 		}
 		return $result;
 	}
-	
+
+	function setTmpDir($tmpDir) {
+		$this->_tmpDir = $tmpDir;
+	}
+
 	function isHostValid() {
 		if($this->_isHostValid === null && $this->isOnline()) {
 			$suffix = 0;
@@ -351,7 +356,7 @@ class WCFTP {
 		}
 		return $this->_isHostValid;
 	}
-	
+
 	function &_normalize($name){
 		$new = $name;
 		if(@$name{0} == '/')
@@ -360,7 +365,7 @@ class WCFTP {
 			$new = substr($new, 0, -1);
 		return $new;
 	}
-	
+
 	function _define_mode($filename){
 //		return FTP_BINARY;
 		$type = utf8_substr($filename, utf8_strrpos($filename, '.') + 1);
@@ -369,7 +374,7 @@ class WCFTP {
 			return FTP_ASCII;
 		return FTP_BINARY;
 	}
-	
+
 	function &_getAllEntries($dir, $ignore = array(), $includeSelf = false) {
 		$list=array();
 		$d = dir($dir);
@@ -388,16 +393,25 @@ class WCFTP {
 		$d->close();
 		return $list;
 	}
-	
+
+	function _newTmpFilename() {
+		if($this->_tmpDir) {
+			return tempnam($this->_tmpDir, 'wcftp_');
+		} elseif(defined('WC_TMP_DIR') && constant('WC_TMP_DIR')) {
+			return tempnam(constant('WC_TMP_DIR'), 'wcftp_');
+		}
+		return tempnam('invalid_directory_name', 'wcftp_');
+	}
+
 	function performGC() {
 		$con = null;
 		WCFTP::_gc(false, true, $con);
 	}
-	
+
 	function _addToGC(&$con) {
 		WCFTP::_gc(true, false, $con);
 	}
-	
+
 	function _gc($register, $gc, &$res) {
 		static $con;
 		if($register) {
@@ -408,7 +422,7 @@ class WCFTP {
 			$con = array();
 		}
 	}
-	
+
 	function &getNew($host = null, $port = 21, $username = null, $pwd = null, $siteroot = '.') {
 		static $regisered;
 		settype($port, 'int');

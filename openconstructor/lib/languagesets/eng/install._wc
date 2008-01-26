@@ -1,39 +1,40 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: install._wc,v 1.4 2007/02/27 11:23:19 sanjar Exp $
  */
 	error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
-	
+
 	define('H_INSTALL_SYSTEM', 'Open Constructor Setup');
 	define('H_INSTALLER_ENGLISH', 'In English');
 	define('H_INSTALLER_RUSSIAN', 'На Русском');
-	
+
 	define('H_INVALID_PREFS_GIVEN', 'Fields highlighted with red colorwere filled incorrectly, Please enter correct data.');
-	
+
 	define('H_INSTALLER_GENERAL_PREFS', 'Common Settings');
 	define('PR_INSTALLER_HTTP_HOST', 'Hostname');
 	define('PR_INSTALLER_LANGUAGE', 'Interface Language');
 	define('PR_INSTALLER_ENGLISH', 'English');
 	define('PR_INSTALLER_RUSSIAN', 'Russian');
-	
+	define('PR_INSTALLER_TMP_DIR', 'Path to temp dir');
+
 	define('H_INSTALLER_FTP_PREFS', 'FTP Settings');
 	define('PR_INSTALLER_FTP_HOST', 'FTP Host');
 	define('PR_INSTALLER_FTP_PORT', 'FTP Port');
@@ -41,22 +42,22 @@
 	define('PR_INSTALLER_FTP_PWD', 'Password');
 	define('PR_INSTALLER_FTP_SITEROOT', 'Site Root');
 	define('PR_INSTALLER_FTP_SITEROOT_AUTO', 'Suggest');
-	
+
 	define('H_INSTALLER_DB_PREFS', 'Database Settings');
 	define('PR_INSTALLER_DB_SERVER', 'Database Server');
 	define('PR_INSTALLER_DB_NAME', 'Database Name');
 	define('PR_INSTALLER_DB_LOGIN', 'Username');
 	define('PR_INSTALLER_DB_PWD', 'Password');
-	
+
 	define('TT_INSTALLER_WILL_DROP_TABLES', 'If database contains tables with same names as Open Constructor\'s, they will be dropped.');
 	define('H_INSTALLER_SHOW_TABLES', 'See list');
 	define('H_INSTALLER_HIDE_TABLES', 'Hide list');
 	define('H_INSTALLER_TABLE_LIST', 'Open Constructor tables list');
-	
+
 	define('H_INSTALLER_ABOUT_SYSTEM', 'About');
-	
+
 	define('PR_INSTALLER_I_ACCEPT', 'Yes, I accept terms of the License Agreement');
 	define('BTN_INSTALL', 'Install');
-	
+
 	error_reporting($_oldLevel);
 ?>

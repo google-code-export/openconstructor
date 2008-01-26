@@ -57,34 +57,40 @@
 	require_once(LIBDIR.'/languagesets/'.$lng.'/install._wc');
 
 	require_once(LIBDIR.'/db/dbsetup._wc');
+	require_once('installer_checks._wc');
 
 	$noAutoFtpSiteroot = isset($params['no_ftpsiteroot_auto']);
 	$err = array();
 	if(is_array($params) && isset($params['install']) && isset($params['iAccept'])) {
 //		assert(strpos(@$_SERVER['HTTP_REFERER'], 'http://'.$_SERVER['HTTP_HOST']) === 0);
-		require_once(LIBDIR.'/wcftp._wc');
-		$port = (int) @$params['ftpport'];
-		$ftp = & WCFTP::getNew($params['ftphost'], $port, $params['ftplogin'], $params['ftppwd'], isset($params['ftpsiteroot_auto']) ? '.' : $params['ftpsiteroot']);
-		if($ftp->open(8)) { // timeout 8 seconds
-			if(isset($params['ftpsiteroot_auto']))
-				$params['ftpsiteroot'] = $ftp->suggestSiteroot();
-			if($ftp->isHostValid()){
-				list($ftp_host, $ftp_port, $ftp_username, $ftp_password, $ftp_siteroot) =
-					array($params['ftphost'], $port, $params['ftplogin'], $params['ftppwd'], $params['ftpsiteroot']);
-			} else {
-				$err['ftpsiteroot'] = true;
-				if(isset($params['ftpsiteroot_auto']))
-					$noAutoFtpSiteroot = true;
-			}
-			$ftp->close();
+		if(sizeof($e = _ic_envCheckTmpDir(@$_params['tmpDir']))) {
+			$err['tmpDir'] = $e;
 		} else {
-			$params['ftppwd'] = '';
-			$err['ftphost'] = $err['ftpport'] = true;
-			$err['ftplogin'] = $err['ftppwd'] = true;
-			$err['ftpsiteroot'] = true;
+			require_once(LIBDIR.'/wcftp._wc');
+			$port = (int) @$params['ftpport'];
+			$ftp = & WCFTP::getNew($params['ftphost'], $port, $params['ftplogin'], $params['ftppwd'], isset($params['ftpsiteroot_auto']) ? '.' : $params['ftpsiteroot']);
+			$ftp->setTmpDir(@$_params['tmpDir']);
+			if($ftp->open(8)) { // timeout 8 seconds
+				if(isset($params['ftpsiteroot_auto']))
+					$params['ftpsiteroot'] = $ftp->suggestSiteroot();
+				if($ftp->isHostValid()){
+					list($ftp_host, $ftp_port, $ftp_username, $ftp_password, $ftp_siteroot) =
+						array($params['ftphost'], $port, $params['ftplogin'], $params['ftppwd'], $params['ftpsiteroot']);
+				} else {
+					$err['ftpsiteroot'] = true;
+					if(isset($params['ftpsiteroot_auto']))
+						$noAutoFtpSiteroot = true;
+				}
+				$ftp->close();
+			} else {
+				$params['ftppwd'] = '';
+				$err['ftphost'] = $err['ftpport'] = true;
+				$err['ftplogin'] = $err['ftppwd'] = true;
+				$err['ftpsiteroot'] = true;
+			}
+			if(!$ftp->success())
+				$err['ftp'] = $ftp->get_message(true);
 		}
-		if(!$ftp->success())
-			$err['ftp'] = $ftp->get_message(true);
 		$dbconn = @mysql_connect( @$params['dbserver'], @$params['dblogin'], @$params['dbpwd']);
 		if(!$dbconn) {
 			$params['dbserver'] = $params['dblogin'] = $params['dbpwd'] = '';
@@ -104,7 +110,7 @@
 				@$params['ftpsiteroot'],
 				$params['dbserver'], @$params['dbname'],
 				@$params['dblogin'], @$params['dbpwd'],
-				@$params['httpHost'], $language
+				@$params['httpHost'], $language, @$params['tmpDir']
 			);
 			if($result) {
 				if(!headers_sent()) {
@@ -117,6 +123,8 @@
 			die();
 		}
 	} elseif(!$noAutoFtpSiteroot) {
+		if(sizeof(_ic_envCheckTmpDir()))
+			$promptTmpDir = true;
 		$params['ftpsiteroot_auto'] = true;
 	}
 ?>
@@ -190,6 +198,12 @@
 								</select>
 							</td>
 						</tr>
+						<?php if(isset($err['tmpDir']) || isset($promptTmpDir)) {?>
+							<tr <?=isset($err['tmpDir']) ? 'class="err"' : ''?>>
+								<td><?=PR_INSTALLER_TMP_DIR?>:</td>
+								<td><input name="tmpDir" type="text" value="<?=@$params['tmpDir']?>"></td>
+							</tr>
+						<?php }?>
 					</table>
 				</fieldset>
 				<fieldset>
