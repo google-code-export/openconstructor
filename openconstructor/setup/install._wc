@@ -63,13 +63,13 @@
 	$err = array();
 	if(is_array($params) && isset($params['install']) && isset($params['iAccept'])) {
 //		assert(strpos(@$_SERVER['HTTP_REFERER'], 'http://'.$_SERVER['HTTP_HOST']) === 0);
-		if(sizeof($e = _ic_envCheckTmpDir(@$_params['tmpDir']))) {
+		if(sizeof($e = _ic_envCheckTmpDir(@$params['tmpDir']))) {
 			$err['tmpDir'] = $e;
 		} else {
 			require_once(LIBDIR.'/wcftp._wc');
 			$port = (int) @$params['ftpport'];
 			$ftp = & WCFTP::getNew($params['ftphost'], $port, $params['ftplogin'], $params['ftppwd'], isset($params['ftpsiteroot_auto']) ? '.' : $params['ftpsiteroot']);
-			$ftp->setTmpDir(@$_params['tmpDir']);
+			$ftp->setTmpDir(@$params['tmpDir']);
 			if($ftp->open(8)) { // timeout 8 seconds
 				if(isset($params['ftpsiteroot_auto']))
 					$params['ftpsiteroot'] = $ftp->suggestSiteroot();
@@ -123,7 +123,7 @@
 			die();
 		}
 	} elseif(!$noAutoFtpSiteroot) {
-		if(sizeof(_ic_envCheckTmpDir()))
+		if(sizeof(_ic_envCheckTmpDir()) || @$params['tmpDir'])
 			$promptTmpDir = true;
 		$params['ftpsiteroot_auto'] = true;
 	}
