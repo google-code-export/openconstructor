@@ -1,105 +1,155 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * Класс для токенизации SQL запросов. Подходит для токенизации дампов базы.
- * 
+ *
  * @author Sanjar Akhmedov
- * 
+ *
  * $Id: sqltokenizer._wc,v 1.2 2007/02/27 11:23:25 sanjar Exp $
  */
+define('SQLT_SEEK', 1);
+define('SQLT_QUERY_END', 2);
+define('SQLT_EOF', 3);
+define('SQLT_PARSE_ERROR', 4);
 
 class SqlTokenizer {
 	var $dump;
-	var $position;
-	var $separator;
-	var $block;
-	var $escape;
-
 	var $length;
-	
+
+	var $cursor, $queryEnd;
+	var $status;
+	var $block, $blockEnd, $escape, $blockEnclosed;
+
+
+
 	function SqlTokenizer($dump = null) {
-		$this->dump = null;
-		$this->length = 0;
-		$this->position = 0;
-		$this->separator = ';';
-		$this->block = array("'"=>"'", '"'=>'"', '`'=>'`', '/*'=>'*/', '--'=>"\n", '#'=>"\n");
-		$this->escape = '\\';
-		if($dump)
-			$this->bind($dump);
+		if($dump == null)
+			$dump = '';
+		$this->bind($dump);
 	}
-	
+
 	function bind(&$dump) {
 		$this->dump = &$dump;
 		$this->length = strlen($dump);
-		$this->position = 0;
+		$this->status = SQLT_SEEK;
+		$this->queryEnd = 0;
+		$this->cursor = 0;
+		$this->_leaveBlock();;
 	}
-	
-	function next() {
-		$firstBlock = $this->firstBlock($this->position);
-		$queryEnd = strpos($this->dump, $this->separator, $this->position);
-		$position = $firstBlock[1];
-		while($position >0 && $position < $queryEnd) {
-			$position = $this->closeBlock($firstBlock[0], $position);
-			if($position < 0)
-				return null;
-			$firstBlock = $this->firstBlock($position);
-			$queryEnd = strpos($this->dump, $this->separator, $position);
-			$position = $firstBlock[1];
-		}
 
-		if($queryEnd < $this->position)
-			return null;
-		$query = substr($this->dump, $this->position, $queryEnd - $this->position);
-		$this->position = $queryEnd + strlen($this->separator);
-		return $query;
-	}
-	
-	function firstBlock($from) {
-		$blockStart = array();
-		foreach($this->block as $k => $v) {
-			$blockStart[$k] = strpos($this->dump, $k, $from);
-			if($blockStart[$k] === false)
-				unset($blockStart[$k]);
+	function &next() {
+		$result = null;
+		while($this->status == SQLT_SEEK) {
+			$r = $this->length - $this->cursor;
+			if($r > 0) {
+				$ch = $this->dump{$this->cursor};
+
+				if($this->block > 0) {
+
+					if($this->blockEnd == $ch) {
+						if($this->escape != null) {
+							for($i = $this->cursor - 1; $i > 0; $i--)
+								if($this->dump{$i} != $this->escape)
+									break;
+							if(($this->cursor - $i) % 2 == 1)
+								$this->_leaveBlock();
+						} else {
+							$this->_leaveBlock();
+						}
+					} elseif($this->block > 1) {
+						if($r > $this->block) {
+							if($ch == $this->blockEnd{0} && substr($this->dump, $this->cursor, $this->block) == $this->blockEnd)
+								$this->_leaveBlock();
+						} else {
+							$this->status = SQLT_PARSE_ERROR;
+						}
+					}
+
+				} else {
+
+					switch($ch) {
+						case ';':
+							$this->status = SQLT_QUERY_END;
+							break;
+						case '-':
+							if($r > 1) {
+								if($this->dump{$this->cursor + 1} == '-') {
+									$this->_enterBlock("\n", null, false);
+									$this->cursor++;
+								}
+							} else {
+								$this->status = SQLT_PARSE_ERROR;
+							}
+							break;
+						case '/':
+							if($r > 1) {
+								if($this->dump{$this->cursor + 1} == '*') {
+									$this->_enterBlock('*/');
+									$this->cursor++;
+								}
+							} else {
+								$this->status = SQLT_PARSE_ERROR;
+							}
+							break;
+						case '#':
+							$this->_enterBlock("\n", null, false);
+							break;
+						case '\'':
+							$this->_enterBlock('\'', '\\');
+							break;
+						case '"':
+							$this->_enterBlock('"', '\\');
+							break;
+						case '`':
+							$this->_enterBlock('`');
+							break;
+						default:
+					}
+
+				}
+				$this->cursor++;
+			} else {
+				if($this->block && $this->blockEnclosed) {
+					$this->status = SQLT_PARSE_ERROR;
+				} else {
+					$this->status = SQLT_EOF;
+				}
+			}
 		}
-		if(sizeof($blockStart)) {
-			$k = array_search(min($blockStart), $blockStart);
-			return array($k, $blockStart[$k]);
-		} else
-			return array(null, -1);
-	}
-	
-	function closeBlock($block, $from) {
-		$from = $from + strlen($block);
-		while($from < $this->length) {
-			$from = strpos($this->dump, $this->block[$block], $from);
-			if($from === false)
-				break;
-			$i = 1;
-			if($this->block[$block] == $block)
-				while($this->dump{$from - $i} == $this->escape)
-					$i++;
-			$from += strlen($this->block[$block]);
-			if($i % 2 == 1)
-				return $from;
+		if($this->status != SQLT_PARSE_ERROR) {
+			$result = substr($this->dump, $this->queryEnd, $this->cursor - $this->queryEnd - ($this->status == SQLT_QUERY_END ? 1 : 0));
+			$this->status = SQLT_SEEK;
+			$this->queryEnd = $this->cursor;
 		}
-		return -1;
+		return $result;
+	}
+
+	function _enterBlock($blockEnd, $escape = null, $mustClose = true) {
+		$this->block = strlen($blockEnd);
+		$this->blockEnd = $blockEnd;
+		$this->escape = $escape;
+		$this->blockEnclosed = $mustClose;
+	}
+
+	function _leaveBlock() {
+		$this->block = 0;
 	}
 }
 ?>
