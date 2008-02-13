@@ -188,7 +188,7 @@
 		} else echo '&#160;';
 	?>
 	<settings display="<?=@$_COOKIE['panelstate']?$_COOKIE['panelstate']:'inline'?>">
-		<searchbar title="<?=htmlspecialchars(RP_SEARCH_FOR_DOCUMENTS, ENT_COMPAT, 'UTF-8')?>" text="<?=htmlspecialchars(@$_GET['search'], ENT_COMPAT, 'UTF-8')?>" showNoIndex="<?=$ds->isIndexable ? 'yes' : 'no'?>" useIndex="<?=@$_GET['noindex'] == 'on' ? 'no' : 'yes'?>"/>
+		<searchbar title="<?=htmlspecialchars(RP_SEARCH_FOR_DOCUMENTS, ENT_COMPAT, 'UTF-8')?>" text="<?=htmlspecialchars(@$_GET['search'], ENT_COMPAT, 'UTF-8')?>" showNoIndex="<?=@$ds->isIndexable ? 'yes' : 'no'?>" useIndex="<?=@$_GET['noindex'] == 'on' ? 'no' : 'yes'?>"/>
 	</settings>
 	<postscript>
 	<![CDATA[
