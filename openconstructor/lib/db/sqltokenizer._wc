@@ -56,6 +56,7 @@ class SqlTokenizer {
 
 	function &next() {
 		$result = null;
+		$foundQuery = false;
 		while($this->status == SQLT_SEEK) {
 			$r = $this->length - $this->cursor;
 			if($r > 0) {
@@ -121,6 +122,8 @@ class SqlTokenizer {
 							$this->_enterBlock('`');
 							break;
 						default:
+							if(!$foundQuery && preg_match('~\w~', $ch))
+								$foundQuery = true;
 					}
 
 				}
@@ -133,8 +136,11 @@ class SqlTokenizer {
 				}
 			}
 		}
-		if($this->status != SQLT_PARSE_ERROR) {
-			$result = substr($this->dump, $this->queryEnd, $this->cursor - $this->queryEnd - ($this->status == SQLT_QUERY_END ? 1 : 0));
+
+		if($this->status == SQLT_EOF && $foundQuery) {
+			$result = substr($this->dump, $this->queryEnd, $this->cursor - $this->queryEnd);
+		} elseif($this->status == SQLT_QUERY_END) {
+			$result = substr($this->dump, $this->queryEnd, $this->cursor - $this->queryEnd - 1);
 			$this->status = SQLT_SEEK;
 			$this->queryEnd = $this->cursor;
 		}
