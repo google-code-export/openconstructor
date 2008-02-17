@@ -50,7 +50,10 @@ function _installer_install_db() {
 	$result = true;
 	while($query = $tok->next()) {
 		mysql_query($query);
-		$result = $result && (mysql_errno() == 0);
+		$success = mysql_errno() == 0;
+		if(!$success)
+			printf("<pre>\n<b>Error while executing query:</b> %s<br><b>Error:</b> %s\n</pre>", htmlspecialchars($query), htmlspecialchars(mysql_error()));
+		$result = $result && $success;
 	}
 	if(!$result)
 		echo "<pre>\nInstaller: Failed to set up database...\n</pre>";
