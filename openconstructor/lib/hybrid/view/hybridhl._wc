@@ -36,7 +36,7 @@ class HybridHL extends WCObject {
 
 	var $srvUri, $docId, $nodeId, $nodeType;
 	var $dsIdKey, $onlySub;
-	var $docFields, $docOrder, $docFilter;
+	var $docFields, $docOrder, $docFilter, $sortByRand;
 	var $listOffset, $listSize;
 	var $keywordKey, $sortByRank, $noResTpl;
 	var $ids;
@@ -252,7 +252,9 @@ class HybridHL extends WCObject {
 		$result = null;
 		$agent = &$this->getAgent();
 		$props = $agent->_getQueryProps($this->docFields, &$this->docOrder, &$this->docFilter);
-		if($searchQuery['order'] && $this->sortByRank)
+		if($this->sortByRand) {
+			$props['order'] = 'RAND()';
+		} elseif ($searchQuery['order'] && $this->sortByRank)
 			$props['order'] = $searchQuery['order'].' DESC'.($props['order'] ? ',' : '').$props['order'];
 		if($this->ids && (strspn($this->ids, ' ,-0123456789') == strlen($this->ids))) {
 			if(!$this->ids) $this->ids = 0;

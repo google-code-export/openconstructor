@@ -1,32 +1,32 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: objects._wc,v 1.43 2007/03/12 14:37:19 sanjar Exp $
  */
 	error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
-	
+
 	//----------------------------
 	//Диалоговые окна создания и редакторования объектов
 	//----------------------------
-	
-	
+
+
 	//Создание объекта
 	define('CREATE_OBJECT','Создание объекта');
 	define('OBJECT','Объект');
@@ -49,9 +49,9 @@
 	define('PR_ENABLE_CACHING','Включить кэширование');
 	define('PR_WC_CACHE_MANAGEMENT','Автоматическое обновление кеша');
 	define('PR_TIME_CACHE_MANAGEMENT','Задать интервал обновления кэша(в секундах)');
-	
+
 	// Использования объекта
-	
+
 	define('H_OBJECT_USES','Места применения объекта');
 	define('PR_OBJ_TYPE','Тип');
 	@define('H_PAGE_BLOCK','Блок');
@@ -59,12 +59,12 @@
 	define('H_BULK_SELECT_BLOCK','Выбрать блок для всех страниц');
 	define('BTN_BULK_SELECT_BLOCK','Выбрать');
 	define('BTN_MANAGE_OBJECT_USES','Места применения объекта');
-	
-	
+
+
 	//-------------------
 	//HTML текст
 	//-------------------
-	
+
 	//HTML текст
 	define('EDIT_OBJECT','Редактирование объекта');
 	define('PR_PAGE_SHOW_TITLE','Заголовок страницы');
@@ -78,11 +78,11 @@
 	define('H_NOT_SELECTED', 'Не выбрано');
 	define('PR_PAGE_MORE_HREF_TEXT','Текст ссылки на страницу');
 	define('H_OPEN_DATASOURCE','Открыть раздел в новом окне');
-	
+
 	//-------------------
 	//Публикации
 	//-------------------
-	
+
 	//Список публикаций
 	define('PR_NO_404', 'Не генерировать 404-ю ошибку при пустом контенте');
 	define('PR_DATE_FORMAT','Формат даты');
@@ -94,20 +94,20 @@
 	define('PR_SHOW_IN_REVERSE_ORDER','Выводить в обратном порядке');
 	define('PR_HIDE_MAIN_PUBLICATION','Не выводить главную публикацию');
 	define('PR_SHOW_CURRENT_PUBLICATION','Выводить текущую публикацию');
-	
+
 	//Список публикаций с интро
 	define('PR_CUT_INTRO','Резать инрто(0-не резать)');
 	define('PR_GALLERY_URI','Страница галереи(URI)');
 	define('PR_PUBLICATION_MORE_HREF_TEXT','Текст ссылки на публикацию');
-	
+
 	//Главная публикация, интро
-	
+
 	//Публикация
 	define('PR_LEAVE_CRUMBS_AS_IS','Не изменять хлебные кошки');
-	
+
 	//Листалка для списка публикаций
 	define('PR_PAGER_SIZE','Количество отображаемых страниц');
-	
+
 	//Публикации по алфовиту
 	define('PR_FILTER_BY_HEADERS','Фильтровать по алфавиту');
 	define('PR_FILTER_FROM','От');
@@ -119,7 +119,7 @@
 	//Календарь событий
 	//-------------------
 	define('PR_SHOW_COMING_EVENTS_ONLY','Показывать только предстоящие события');
-	
+
 	//Календарь событий
 	define('OBJ_HEADERS','Заголовки');
 	define('PR_CALENDAR_HEADER','Заголовок календаря');
@@ -135,21 +135,21 @@
 	define('PR_MO_WEEK','Первый день недели');
 	define('PR_MO_WEEK_SU','Воскресенье');
 	define('PR_MO_WEEK_MO','Понедельник');
-	
+
 	//Список событий
 	define('PR_EVENTS_PER_PAGE','Количество отображаемых событий');
-	
+
 	//Список событий с интро
 	define('PR_EVENT_MORE_HREF_TEXT','Текст ссылки на событие');
-	
+
 	//Событие
 
 	//Листалка для списка событий
-	
+
 	//-------------------
 	//Фотогалерея
 	//-------------------
-	
+
 	//Список картинок
 	define('PR_STATIC_GALLERIES','Статический список');
 	define('PR_PHOTO_PUBLICATION_ID','Идентификатор галлереи(GET)');
@@ -158,47 +158,47 @@
 	define('PR_IMAGE_URI','Страница картинки(URI)');
 	define('PR_IMAGE_ID','Идентификатор картинки(Ctx)');
 	define('PR_GET_IMAGE_BY_ID','Выбирать картинку по ID, а не по индексу');
-	
+
 	//Листалка для галереи
-	
+
 	//Картинка галереи
 	define('PR_IS_PUBLICATION_ID','Фотопубликация');
-	
+
 	//Листалка для картинки
-	
+
 	//-------------------
 	//Статьи
 	//-------------------
-	
+
 	//Статья
 	define('PR_ARTICLE_ID','Идентификатор статьи(GET)');
 	define('PR_ARTICLE_PAGE_ID','Идентификатор страницы статьи(GET)');
-	
+
 	//Листалка для статьи
 	define('PR_PAGER','Листалка');
 	define('PR_PAGER_AS_MENU','Отображать меню');
-	
+
 	//Список статей
 	define('PR_ARTICLES_PER_PAGE','Количество отображаемых статей');
 	define('PR_ARTICLE_URI','Страница статьи(URI)');
-	
+
 	//Список статей с интро
 	define('PR_ARTICLE_MORE_HREF_TEXT','Текст ссылки на статью');
-	
+
 	//Листалка для списка статей
-	
+
 	//Ссылки по теме
-	
+
 	//-------------------
 	//Пул текстов
 	//-------------------
-	
+
 	//Произвольный текст
-	
+
 	//-------------------
 	//Гостевая книга
 	//-------------------
-	
+
 	//Список всех сообщений
 	define('PR_DEFINE_GB_DYNAMICALLY_BY_GET','Определять раздел динамически (по Ctx)');
 	define('PR_DEFAULT_GB','Раздел данных по умолчанию');
@@ -206,7 +206,7 @@
 	define('PR_SHOW_EMAIL','Показывать Email');
 	define('PR_SHOW_SUBJECT','Показывать тему');
 	define('PR_SHOW_DATE','Показывать дату');
-	
+
 	//Обработчик добавления сообщений
 	define('PR_DEFINE_GB_DYNAMICALLY_BY_POST','Определять раздел динамически (по Ctx/POST)');
 	define('PR_NOTIFICATION','Уведомление');
@@ -222,12 +222,12 @@
 	define('H_GBAML_ADD_AS_DSOWNER','Добавлять от имени владельца раздела данных');
 	define('H_GBAML_ADD_AS_SPECIFIED','Добавлять от имени');
 	define('PR_IGNORE_DS_AUTHS','Игнорировать настройки безопастности раздела данных');
-	
+
 	//Список гостевых книг
 	define('PR_SHOW_DESCRIPTION','Показывать описание');
 	define('PR_GB_URI','Страница темы(URI)');
 	define('PR_GB_ID','Идентификатор темы(GET)');
-	
+
 	//Сообщение
 	define('PR_MESSAGE_ID','Идентификатор сообщения(GET)');
 
@@ -239,23 +239,23 @@
 	define('PR_GB_SHOW_UNPUBLISHED','Выводить неопубликованные сообщения');
 
 	//Листалка для список сообщений
-	
+
 	//-------------------
 	//PHP код
 	//-------------------
-	
+
 	//Включение кода
 	define('PR_PHP_SOURCE','PHP код');
 	define('PR_INCLUDE_ONCE','Одноразовое включение');
 	define('PR_CACHE_CUSTOM_PART','Идентификатор кеша');
-	
+
 	//-------------------
 	//Разное
 	//-------------------
-	
+
 	//Хлебные крошки
 	define('OBJ_SITEMAP','Карта сайта');
-	
+
 	//Инъекция объектов
 	define('OBJ_INJECTIONS','Инъекции');
 	define('H_INJECT', 'Вставить');
@@ -269,7 +269,7 @@
 	define('H_INJECT_DEST_BLOCK', 'Блок');
 	define('BTN_ADD_INJECTION', 'Создать инъекцию');
 	define('BTN_REMOVE_INJECTION', 'Удалить инъекцию');
-	
+
 	//Отправка писем
 	define('PR_MAIL_SUBJECT', 'Тема');
 	define('PR_MAIL_FROM', 'Отправитель');
@@ -305,7 +305,7 @@
 	define('H_MSG_FIELD_ERROR_TEXT', 'Текст ошибки');
 	define('BTN_ADD_MSG_FIELD', 'Добавить поле');
 	define('BTN_REMOVE_MSG_FIELD', 'Удалить поле');
-	
+
 	//Список файлов
 	define('PR_FILE_HREF_TEXT', 'Текст ссылки на файл');
 	define('PR_FILES_PER_PAGE', 'Количество отображаемых файлов');
@@ -318,7 +318,7 @@
 	define('PR_FILE_SORT_UPDATED','Дата обновления');
 	define('PR_FILE_SORT_ASC','ASC');
 	define('PR_FILE_SORT_DESC','DESC');
-	
+
 	//Авторизация
 	define('PR_DEFAULT_NEXT_PAGE','Следующая страница по умолчанию(URI)');
 	define('PR_NEXT_PAGE_KEY','Идентификатор следующей страницы(POST)');
@@ -331,11 +331,11 @@
 	define('PR_DEFAULT_NEXT_PAGES','Следующая страница');
 	define('H_GROUP','Группа');
 	define('H_NEXTPAGE_URI', 'URI');
-	
+
 	//Аннулирование аутентификации
 	define('PR_KILL_SESSION','Уничтожать и сессию тоже');
-	
-	
+
+
 	//-------------------
 	//Гибридные данные
 	//-------------------
@@ -348,7 +348,7 @@
 	define('PR_HL_URI', 'Страница списка(URI)');
 	define('PR_NODE_ID', 'Идентификатор узла(Ctx)');
 	define('PR_TREE_FIELDS', 'Поля по которым формируется иерархия');
-	
+
 	//Список гибридных документов
 	define('PR_DOCUMENTS_LIST_SIZE', 'Количество отображаемых документов');
 	define('PR_DOCUMENTS_LIST_OFFSET', 'Количество пропускаемых документов');
@@ -361,6 +361,7 @@
 	define('PR_DOCUMENT_ID_FIELD', 'Поле идентификатор');
 	define('H_SYS_ID_FIELD', 'Системный ID (по умолчанию)');
 	define('PR_GROUP_PRIMITIVES_AS_ARRAYS', 'Группировать поля примитивного типа по знаку "_" в массивы');
+	define('PR_SORT_BY_RAND', 'Выбирать документы в произвольном порядке');
 	define('PR_FETCH_FIELDS', 'Запрашиваемые поля документа');
 	define('OBJ_DOC_ORDER', 'Упорядочивание списка');
 	define('OBJ_SEARCH_PROPS', 'Поиск');
@@ -380,7 +381,7 @@
 	define('H_COND_VALUE', 'Значение');
 	define('BTN_ADD_CONDITION', 'Добавить условие');
 	define('BTN_REMOVE_CONDITION', 'Удалить условие');
-	
+
 	//Гибридные "Ad Hoc Side Bar"-ы
 	define('OBJ_DS_DOCS', 'Документы');
 	define('H_FETCHED_DOCS', 'Выводимые документы');
@@ -388,28 +389,28 @@
 	define('H_CREATE_DOC', 'Создать');
 	define('H_ADD_DOC', 'Добавить');
 	define('H_REMOVE_DOC', 'Удалить');
-	
+
 	//Листалка
-	define('PR_DOCUMENTS_LIST_SIZE_KEY', 'Идентификатор размера списка(Ctx)'); 
-	
+	define('PR_DOCUMENTS_LIST_SIZE_KEY', 'Идентификатор размера списка(Ctx)');
+
 	//-------------------
 	//Поиск
 	//-------------------
-	
+
 	//Поиск по разделам
 	define('PR_KEYWORD_KEY','Идентификатор искомой фразы(Ctx)');
 	define('PR_ORDERBY_RANK','Сортировать по релевантности');
 	define('PR_DS_HREFS', 'Ссылки');
-	
-	
+
+
 	//-------------------
 	//Рейтинг
 	//-------------------
-	
+
 	//Обработчик оценивания документа
 	define('PR_RATED_DOC_KEY','Идентификатор документа(POST)');
 	define('PR_RATING_VALUE_KEY','Идентификатор оценки(POST)');
 	define('PR_RATING_COMMENT_KEY','Идентификатор комментария(POST)');
-	
+
 	error_reporting($_oldLevel);
 ?>

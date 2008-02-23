@@ -300,6 +300,9 @@ function orderFieldClicked() {
 			<td nowrap colspan=2><input type=checkbox name="no404" value="true" <?=@$obj->no404?'checked':''?>> <?=PR_NO_404?></td>
 		</tr>
 		<tr>
+			<td nowrap colspan=2><input type=checkbox name="sortByRand" value="true" <?=@$obj->sortByRand ? 'checked' : '' ?>> <?=PR_SORT_BY_RAND?></td>
+		</tr>
+		<tr>
 			<td colspan="2" width="100%">
 			<fieldset style="padding:10"><legend><?=OBJ_SEARCH_PROPS?></legend>
 			<table style="margin:5 0" cellspacing="3">

@@ -1,30 +1,30 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: i_hybrid.php,v 1.16 2007/03/02 10:06:41 sanjar Exp $
  */
 	require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
 	WCS::requireAuthentication();
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/objects._wc');
 	require_once(LIBDIR.'/objmanager._wc');
-	
+
 	if (isset($_POST['action'])) {
 		$obj = &ObjManager::load(@$_POST['obj_id']);
 		assert($obj != null);
@@ -47,7 +47,7 @@
 				ObjManager::save($obj);
 				header('Location: '.$_SERVER['HTTP_REFERER']);
 			break;
-			
+
 			case 'edit_hybridhl':
 				require_once(LIBDIR.'/hybrid/fields/fieldfactory._wc');
 				$obj->header=@$_POST['header'];
@@ -78,6 +78,7 @@
 						isset($fields[$_POST['filter'][$i]]) ? $fields[$_POST['filter'][$i]]->id : $_POST['filter'][$i]
 					);
 				}
+				$obj->sortByRand = @$_POST['sortByRand'] == 'true';
 				$obj->keywordKey = @$_POST['keywordKey'];
 				$obj->sortByRank = @$_POST['sortByRank'] == 'true';
 				$obj->noResTpl = (int) @$_POST['noResTpl'];
@@ -91,7 +92,7 @@
 				ObjManager::save($obj);
 				header('Location: '.$_SERVER['HTTP_REFERER']);
 			break;
-			
+
 			case 'edit_hybridpager':
 				$obj->header=@$_POST['header'];
 				$obj->pageNumberKey = @$_POST['pageNumberKey'];
@@ -102,7 +103,7 @@
 				ObjManager::save($obj);
 				header('Location: '.$_SERVER['HTTP_REFERER']);
 			break;
-			
+
 			case 'edit_hybridbody':
 				$obj->header=@$_POST['header'];
 				$obj->ds_id = (int) @$_POST['ds_id'];
@@ -127,7 +128,7 @@
 				ObjManager::save($obj);
 				header('Location: '.$_SERVER['HTTP_REFERER']);
 			break;
-			
+
 			case 'edit_hybridbodyedit':
 				$obj->header=@$_POST['header'];
 				$obj->ds_id = (int) @$_POST['ds_id'];
@@ -139,7 +140,7 @@
 				ObjManager::save($obj);
 				header('Location: '.$_SERVER['HTTP_REFERER']);
 			break;
-			
+
 			case 'edit_hybridbar':
 				$obj->header=@$_POST['header'];
 				$obj->ds_id = (int) $_POST['ds_id'];
@@ -151,8 +152,8 @@
 						$obj->docOrder[$i]['range'] = (string) $_POST['rRange'][abs($id)];
 				}
  				$obj->fetchedDocs = implode(',', (array) @$_POST['fetchedDocs']);
-				$obj->rotate = @$_POST['rotate']?true:false;
-				$obj->dsIdKey = @$_POST['dsIdKey'];
+				$obj->sortByRand = @$_POST['sortByRand'] == 'true';
+ 				$obj->dsIdKey = @$_POST['dsIdKey'];
 				$obj->onlySub = @$_POST['onlySub'] == 'true';
 				$obj->srvUri = @$_POST['srvUri'] ? $_POST['srvUri'] : $obj->srvUri;
 				$obj->docId = @$_POST['docId'] ? str_replace("\r\n", "\n", $_POST['docId']) : $obj->docId;
@@ -161,7 +162,7 @@
 				ObjManager::save($obj);
 				header('Location: '.$_SERVER['HTTP_REFERER']);
 			break;
-			
+
 			default:
 			break;
 		}
