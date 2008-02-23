@@ -1,32 +1,32 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: objects._wc,v 1.15 2007/03/09 20:37:11 sanjar Exp $
  */
 	error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
-	
+
 	//----------------------------
 	//Диалоговые окна создания и редакторования объектов
 	//----------------------------
-	
-	
+
+
 	//Создание объекта
 	define('CREATE_OBJECT','Object Creation');
 	define('OBJECT','Object');
@@ -47,11 +47,11 @@
 	define('PR_ENABLE_CACHING','Enable Caching');
 	define('PR_WC_CACHE_MANAGEMENT','Cache auto update');
 	define('PR_TIME_CACHE_MANAGEMENT','Set Cache update interval (in seconds)');
-	
+
 	//-------------------
 	//HTML текст
 	//-------------------
-	
+
 	//HTML текст
 	define('EDIT_OBJECT','Object Edition');
 	define('PR_PAGE_SHOW_TITLE','Page title');
@@ -59,11 +59,11 @@
 	define('PR_HEADER','Header');
 	define('PR_PAGE_URI','Page');
 	define('PR_PAGE_MORE_HREF_TEXT','Text of the link for the page');
-	
+
 	//-------------------
 	//Публикации
 	//-------------------
-	
+
 	//Список публикаций
 	define('PR_DATE_FORMAT','Date Format');
 	define('PR_OFFSET','Number of top records to omit');
@@ -74,20 +74,20 @@
 	define('PR_SHOW_IN_REVERSE_ORDER','Show in Reverse Order');
 	define('PR_HIDE_MAIN_PUBLICATION','Do not Show Main Publication');
 	define('PR_SHOW_CURRENT_PUBLICATION','Show Current Publication');
-	
+
 	//Список публикаций с интро
 	define('PR_CUT_INTRO','Cut Intro(0-do not cut)');
 	define('PR_GALLERY_URI','Gallery Page(URI)');
 	define('PR_PUBLICATION_MORE_HREF_TEXT','Text of the Link to a Publication');
-	
+
 	//Главная публикация, интро
-	
+
 	//Публикация
 	define('PR_LEAVE_CRUMBS_AS_IS','Do not Change Bread Crumbs');
-	
+
 	//Листалка для списка публикаций
 	define('PR_PAGER_SIZE','Quantity of Pages Shown');
-	
+
 	//Публикации по алфовиту
 	define('PR_FILTER_BY_HEADERS','Filter');
 	define('PR_FILTER_FROM','From');
@@ -98,7 +98,7 @@
 	//-------------------
 	//Календарь событий
 	//-------------------
-	
+
 	//Календарь событий
 	define('OBJ_HEADERS','Headers');
 	define('PR_CALENDAR_HEADER','Calendar Header');
@@ -110,15 +110,15 @@
 	define('PR_EVENT_URI','Event Page (URI)');
 	define('PR_EVENT_ID','Event ID (GET)');
 	define('PR_MONTH_ID','Month ID(GET)');
-	
+
 	//Список событий
-	
+
 	//Событие
-	
+
 	//-------------------
 	//Фотогалерея
 	//-------------------
-	
+
 	//Список картинок
 	define('PR_PHOTO_PUBLICATION_ID','Photo-publication ID (GET)');
 	define('PR_STATIC_GALLERIES','Static List');
@@ -126,46 +126,46 @@
 	define('PR_CUT_NAMES','Cut Names(0-do not cut)');
 	define('PR_IMAGE_URI','Image Page (URI)');
 	define('PR_IMAGE_ID','Picture ID (GET)');
-	
+
 	//Листалка для галереи
-	
+
 	//Картинка галереи
-	
+
 	//Листалка для картинки
-	
+
 	//-------------------
 	//Статьи
 	//-------------------
-	
+
 	//Статья
 	define('PR_ARTICLE_ID','Article ID (GET)');
 	define('PR_ARTICLE_PAGE_ID','Article Page ID (GET)');
-	
+
 	//Листалка для статьи
 	define('PR_PAGER','Pager');
 	define('PR_PAGER_AS_MENU','Show Menu');
-	
+
 	//Список статей
 	define('PR_ARTICLES_PER_PAGE','Articles per Page');
 	define('PR_ARTICLE_URI','Article Page (URI)');
-	
+
 	//Список статей с интро
 	define('PR_ARTICLE_MORE_HREF_TEXT','Text of the Link to an Article');
-	
+
 	//Листалка для списка статей
-	
+
 	//Ссылки по теме
-	
+
 	//-------------------
 	//Пул текстов
 	//-------------------
-	
+
 	//Произвольный текст
-	
+
 	//-------------------
 	//Гостевая книга
 	//-------------------
-	
+
 	//Список сообщений
 	define('PR_DEFINE_GB_DYNAMICALLY_BY_GET','Define Section Dynamically (by Ctx)');
 	define('PR_DEFAULT_GB','Data Section by Default');
@@ -173,44 +173,44 @@
 	define('PR_SHOW_EMAIL','Show E-mail');
 	define('PR_SHOW_SUBJECT','Show Subject');
 	define('PR_SHOW_DATE','Show Date');
-	
+
 	//Обработчик добавления сообщений
 	define('PR_DEFINE_GB_DYNAMICALLY_BY_POST','Define Section Dynamically (by Ctx/POST)');
 	define('PR_GB_SUBJECT_ID','Subject (POST)');
 	define('PR_GB_MESSAGE_ID','Message (POST)');
 	define('PR_GB_AUTHOR_ID','Author (POST)');
 	define('PR_GB_EMAIL_ID','E-mail (POST)');
-	
+
 	//Список гостевых книг
 	define('PR_SHOW_DESCRIPTION','Show Description');
 	define('PR_GB_URI','Subject Page (URI)');
 	define('PR_GB_ID','Subject ID (GET)');
-	
+
 	//-------------------
 	//PHP код
 	//-------------------
-	
+
 	//Включение кода
 	define('PR_PHP_SOURCE','PHP Source');
 	define('PR_INCLUDE_ONCE','Include once');
-	
+
 	//-------------------
 	//Разное
 	//-------------------
-	
+
 	//Хлебные крошки
 	define('OBJ_SITEMAP','Sitemap');
-	
+
 	//Отправка писем
-	
+
 	//Список файлов
 	define('PR_FILE_HREF_TEXT','Text of the Link to a File');
-	
+
 	//Авторизация
 	define('PR_LOGIN_ID','Login ID');
 	define('PR_PASSWORD_ID','Password ID');
 	define('PR_AUTOLOGIN_ID','Autologin ID');
-	
+
 	define('H_OPEN_DATASOURCE','Open section in a new window');
 	define('PR_NO_404','Do not generate error 404 when page has no content');
 	define('PR_CALENDAR_YEAR','Calendar year');
@@ -335,7 +335,7 @@
 	define('PR_KEYWORD_KEY','Keyword to search (Ctx)');
 	define('PR_ORDERBY_RANK','Sort by relevance');
 	define('PR_DS_HREFS','Links');
-	
+
 	define('PR_PAGE_CHILDREN','Show list of subsections');
 	define('H_EXCLUDE_PAGES','Exclude pages');
 	define('BTN_SELECT','Select');
@@ -347,7 +347,7 @@
 	define('PR_CAPTCHA_VALUE','Ticket key');
 	define('PR_CLOSE_SESS','Close empty session');
 	define('PR_REQUIRE_SUB_DS','Use subsections only');
-	
+
 	define('PR_GB_CAPTCHA_VALUE','Value of Captcha key (POST)');
 
 	define('PR_MO_WEEK','First day of a week');
@@ -357,7 +357,7 @@
 	define('PR_RATED_DOC_KEY','Document ID(POST)');
 	define('PR_RATING_VALUE_KEY','Rating ID(POST)');
 	define('PR_RATING_COMMENT_KEY','Comment ID(POST)');
-	
+
 	define('H_OBJECT_USES','Object usage');
 	define('PR_OBJ_TYPE','Type');
 	@define('H_PAGE_BLOCK','Block');
@@ -366,12 +366,13 @@
 	define('BTN_BULK_SELECT_BLOCK','Select for all');
 	define('BTN_MANAGE_OBJECT_USES','Object usage');
 	define('PR_GROUP_PRIMITIVES_AS_ARRAYS','Group primitives to arrays by "_"');
+	define('PR_SORT_BY_RAND', 'Select random documents');
 	define('H_INVERT_COND','Invert Condition');
-	
+
 	define('BTN_NEW_TEMPLATE','New Template');
 	define('PR_TEMPLATE_ARGS','Template Params');
 	define('PR_PAGE_FETCH_LEVEL','List Deepness');
 	define('PR_AUTOLOGIN_TIMEOUT','Autologin Timeout');
-	
+
 	error_reporting($_oldLevel);
 ?>
