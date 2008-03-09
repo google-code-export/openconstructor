@@ -102,7 +102,7 @@ class HybridHL extends WCObject {
 		return $result;
 	}
 
-	function &getDocuments() {
+	function &getDocuments($recurse = 3) {
 		$ctx = &Context::getInstance();
 		$nodeId = addslashes($ctx->getParam($this->nodeId));
 		if(isset($this->documents[$nodeId][$this->ids]))
@@ -130,11 +130,11 @@ class HybridHL extends WCObject {
 			$params[0] = $href;
 			$paramNames = &$paramValues;
 			$dsf = &$agent->getFields();
-			$fIds = array();
+			$fields = array();
 			for($i = 0, $l = sizeof($this->docFields); $i < $l; $i++)
-				if($dsf[$this->docFields[$i]['id']]) $fIds[] = $this->docFields[$i]['id'];
-			$enums = '0'; $nodes = array();
-			for($i = 0, $docIds = array(), $l = sizeof($fIds); $r = mysql_fetch_assoc($res); $i++) {
+				if($dsf[$this->docFields[$i]['id']]) $fields[] = $this->docFields[$i];
+			$enums = '0'; $nodes = array(); $arrays = array();
+			for($i = 0, $docIds = array(), $l = sizeof($fields); $r = mysql_fetch_assoc($res); $i++) {
 				$docIds[] = $id = (int) $r['id'];
 				$result[$id] = array();
 				$doc = &$result[$id];
@@ -143,7 +143,7 @@ class HybridHL extends WCObject {
 				$doc['header'] = escapeTags($r['header']);
 				$dh = $r['_dh'] > 0 ? $r['_dh'] : 1;
 				for($j = 0; $j < $l; $j++) {
-					$fId = $fIds[$j];
+					$fId = $fields[$j]['id'];
 					$f = &$dsf[$fId];
 					switch($f['type']) {
 						case DSF_ENUM :
@@ -163,7 +163,25 @@ class HybridHL extends WCObject {
 							$doc[$f['name']] = array('id' => $r[$fId], 'docs' => $r[$fId.'docs']);
 						break;
 						case DSF_DOCUMENT :
-							$doc[$f['name']] = array('id' => $r[$fId], 'header' => htmlspecialchars($r[$fId.'header'], ENT_COMPAT, 'UTF-8'));
+							if($recurse > 0 && @$fields[$j]['fetcher']) {
+								$doc[$f['name']] = $r[$fId];
+								if($r[$fId])
+									$arrays[$fields[$j]['fetcher']][$f['name']] = (@$arrays[$fields[$j]['fetcher']][$f['name']] ? "," : "").$r[$fId];
+							} else{
+								$doc[$f['name']] = array('id' => $r[$fId], 'header' => htmlspecialchars($r[$fId.'header'], ENT_COMPAT, 'UTF-8'));
+							}
+						break;
+						case DSF_ARRAY :
+							if($recurse > 0 && @$fields[$j]['fetcher']) {
+								if($r[$fId]) {
+									$doc[$f['name']] = array_flip(explode(',', $r[$fId]));
+									$arrays[$fields[$j]['fetcher']][$f['name']] = (@$arrays[$fields[$j]['fetcher']][$f['name']] ? "," : "").$r[$fId];
+								} else{
+									$doc[$f['name']] = array();
+								}
+							} else{
+								$doc[$f['name']] = $r[$fId];
+							}
 						break;
 						case DSF_RATING :
 							$doc[$f['name']] = array('id' => $r[$fId], 'value' => (int) $r[$fId.'value'], 'votes' => (int) $r[$fId.'votes'], 'voted' => $r[$fId.'voted'] > 0, 'vote' => (int) $r[$fId.'vote']);
@@ -207,6 +225,44 @@ class HybridHL extends WCObject {
 								$doc[$efn][$k] = array('value' => $enums[$doc[$efn][$k]]['value'], 'id' => $doc[$efn][$k], 'header' => $enums[$doc[$efn][$k]]['header']);
 				}
 				unset($doc);
+			}
+			if(sizeof($arrays) > 0) {
+				foreach($arrays as $objId => $v) {
+					if(($obj = &$ctx->getObject((int) $objId)) != null) {
+						$obj->ids = implode(',', $v);
+						if(($sub = &$obj->getDocuments(--$recurse)) != null) {
+							$ids = array_keys($sub);
+							foreach($v as $fname => $j)
+								foreach($docIds as $id) {
+									$f = &$result[$id][$fname];
+									if(is_array($f)) {
+										foreach($f as $k => $j)
+											if(isset($sub[$k])) {
+												$f[$k] = &$sub[$k];
+											} else {
+												unset($f[$k]);
+											}
+										if(sizeof($obj->docOrder) && sizeof($f) > 1) {
+											$s = array();
+											for($i = 0, $j = 0, $l = sizeof($ids), $l1 = sizeof($f); $i < $l && $j < $l1; $i++)
+												if(isset($f[$ids[$i]])) {
+													unset($f[$ids[$i]]);
+													$s[$ids[$i]] = &$sub[$ids[$i]];
+												}
+											$result[$id][$fname] = $s;
+										}
+									} else {
+										if(isset($sub[$f])) {
+											$result[$id][$fname] = &$sub[$f];
+										} else {
+											$result[$id][$fname] = null;
+										}
+									}
+								}
+						}
+					}
+
+				}
 			}
 			foreach($docIds as $id) {
 				if(($lj = sizeof($paramNames)) && array_key_exists($paramNames[0], $result[$id]))

@@ -364,7 +364,25 @@ function orderFieldClicked() {
 				<td><input type="text" size="40" disabled name="field[<?=$f->id?>][range]" value="<?=htmlspecialchars(@$obj->docFields[$docFields[$f->id]]['range'])?>" id="ep<?=$f->id?>"></td>
 			</tr>
 	<?php
-			endif;
+			elseif($f->family == 'array' || $f->family == 'document'):
+				if(!isset($hlid)) {
+					$objm = new ObjManager();
+					$objm->pageSize = 50;
+					$hlid = $objm->get_objects('hybrid', 'hybridbar', 1, '', -1);
+				}
+	?>
+			<tr class="extraprop" id="trep<?=$f->id?>">
+				<td colspan="2">&nbsp;</td>
+				<td><?=H_NESTED_LOADER?>:</td>
+				<td><select size="1" disabled name="field[<?=$f->id?>][fetcher]" id="ep<?=$f->id?>">
+					<option value="0" style="background: #eee;">- &nbsp; &nbsp;</option>
+					<?php foreach($hlid as $k => $v):?>
+						<option value="<?=$k?>"<?=@$obj->docFields[$docFields[$f->id]]['fetcher'] == $k ? " selected":""?>><?=$v['name']?></option>
+					<?php endforeach; ?>
+				</select></td>
+			</tr>
+	<?php
+	endif;
 			echo "<script>fieldClicked({$f->id});</script>";
 			$lastDs = $f->ds_id;
 			$first = false;
