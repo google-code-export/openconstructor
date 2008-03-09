@@ -1,29 +1,29 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: backup.php,v 1.5 2007/03/02 10:06:41 sanjar Exp $
  */
 	require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
 	WCS::requireAuthentication();
 	WCS::_request(Authentication::getUserId() == WCS_ROOT_ID);
-	
+
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/classes._wc');
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/setup._wc');
 ?>
@@ -37,7 +37,7 @@
 </head>
 <body style="padding:3%">
 <h1><?=H_SETUP_BACKUPS?></h1>
-<form name="f_restore" action="i_backup.php" method="POST" target="restore_results" onsubmit="document.getElementById('fs.backup').disabled = true; this.restore.disabled = true; return true;">
+<form name="f_restore" action="i_backup.php?disableGzResponse=1" method="POST" target="restore_results" onsubmit="document.getElementById('fs.backup').disabled = true; this.restore.disabled = true; return true;">
 <input type="hidden" name="action" value="restore_backup">
 <fieldset id="fs.restore">
 	<legend><?=H_SETUP_RESTORE_BACKUP?></legend>
