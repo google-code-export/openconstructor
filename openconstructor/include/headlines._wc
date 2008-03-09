@@ -1,23 +1,23 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: headlines._wc,v 1.13 2007/02/27 11:23:26 sanjar Exp $
  */
 function get_headline($table, $ds_id, $fields, $pagesize, $page = 1, $searchclause = '') {
@@ -27,14 +27,14 @@ function get_headline($table, $ds_id, $fields, $pagesize, $page = 1, $searchclau
 	if(--$page < 0)
 		$page = 0;
 	if(is_array($searchclause)) {
-		$query = 
+		$query =
 			'SELECT SQL_CALC_FOUND_ROWS id, d.date, '.preg_replace('/(^|,)\s*([A-Za-z0-9_])/u', '$1d.$2', $fields).' '.
 			'FROM '.$table.' d JOIN '.$searchclause['from'].' '.
 			'WHERE d.ds_id='.$ds_id.' AND '.$searchclause['clause'].' '.
 			'ORDER BY '.$searchclause['order'].' DESC '.
 			'LIMIT '.($page * $pagesize).','.$pagesize;
 	} else {
-		$query = 
+		$query =
 			'SELECT SQL_CALC_FOUND_ROWS id, date, '.$fields.' '.
 			'FROM '.$table.' '.
 			'WHERE ds_id='.$ds_id.' '.$searchclause.
@@ -46,16 +46,16 @@ function get_headline($table, $ds_id, $fields, $pagesize, $page = 1, $searchclau
 		$r = $db->query('SELECT FOUND_ROWS()');
 		list($result[0]) = mysql_fetch_row($r);
 		mysql_free_result($r);
-		
+
 		$fields = explode(',', strtolower($fields));
 		for($i = 0, $l = sizeof($fields); $i < $l; $i++)
 			if(utf8_strpos($fields[$i], ' as ') > 0)
 				list($tmp, $fields[$i]) = explode(' as ', $fields[$i]);
-			
+
 		while($row = mysql_fetch_assoc($res)) {
 			for($i = 0; $i < $l; $i++)
 				$hl[$row['id']][$fields[$i]] = $row[$fields[$i]];
-			$hl[$row['id']]['date'] = date('j M Y', ($t = strtotime($row['date'])) != -1 ? $t : $row['date']);
+			$hl[$row['id']]['date'] = date('j M Y', $row['date']);
 		}
 		$result[1] = &$hl;
 	}
@@ -109,7 +109,7 @@ function &get_filtered_headline($ds_id, $nodeId, &$tree, $fetchSub, $fetchDS, $p
 		$r = $db->query('SELECT FOUND_ROWS()');
 		list($result[0]) = mysql_fetch_row($r);
 		mysql_free_result($r);
-		
+
 		while($row = mysql_fetch_assoc($res)) {
 			$id = intval($row['id']);
 			$hl[$id] = array(
@@ -133,7 +133,7 @@ function &get_filtered_headline($ds_id, $nodeId, &$tree, $fetchSub, $fetchDS, $p
 	mysql_free_result($res);
 	return $result;
 }
-	
+
 function get_index_clause($subj){
 	$clause = '';
 	if($subj) {
