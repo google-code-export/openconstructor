@@ -1,31 +1,33 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * @author Sanjar Akhmedov
- * 
+ *
  * $Id: fieldutils._wc,v 1.6 2007/02/27 11:23:19 sanjar Exp $
  */
+require_once(LIBDIR.'/dsmanager._wc');
+
 class FieldUtils {
 	function FieldUtils() {
 	}
-	
+
 	function createInternalDS($name, $type, $orig_id = null, $ownerId = null) {
 		$ds = null;
 		$class = 'ds' . $type;
@@ -33,14 +35,15 @@ class FieldUtils {
 		WCS::runAs(WCS_ROOT_ID);
 		$ds=new $class;
 		$ds->create($name, $name.' (Internal Datasource)', 1);
+		pr($ds);
 		if($orig_id) {
-			$prototype = new $class;
-			$prototype->load($orig_id);
+			$prototype = &DSManager::load($orig_id);
 			$ds->copyProps($prototype);
 			if($type == 'file')
 				$ds->initFilePath(true);
 			$ds->save();
 		}
+		pr($ds);
 		if($ownerId) {
 			loadClass('user', '/security/user._wc');
 			$owner = &User::load($ownerId);
@@ -53,14 +56,14 @@ class FieldUtils {
 		WCS::stopRunAs();
 		return $ds->ds_id;
 	}
-	
+
 	function &loadDS($type, $ds_id) {
 		require_once(LIBDIR.'/dsmanager._wc');
 		$dsm = new DSManager();
 		$ds = &$dsm->load($ds_id);
 		return $ds;
 	}
-	
+
 	function getDocumentHeader($type, $ds_id, $id) {
 		if(!$id)
 			return '';
@@ -74,7 +77,7 @@ class FieldUtils {
 		mysql_free_result($res);
 		return $header;
 	}
-	
+
 	function getRatingDetails($dsId, $id) {
 		$db = &WCDB::bo();
 		$res = $db->query(sprintf('SELECT rating, raters FROM dsrating WHERE id = %d AND ds_id = %d', $id, $dsId));
@@ -82,7 +85,7 @@ class FieldUtils {
 		mysql_free_result($res);
 		return $result;
 	}
-	
+
 	function getDocumentHeaders($type, $ds_id, $ids) {
 		$result = array();
 		if(sizeof($ids) > 0) {
@@ -96,7 +99,7 @@ class FieldUtils {
 		}
 		return $result;
 	}
-	
+
 	function &queryDocumentHeaders($type, $ds_id, $ids) {
 		$limit = sizeof($ids);
 		$ids = implode(',', $ids);
@@ -104,7 +107,7 @@ class FieldUtils {
 			$col = 'name';
 		else if($type == 'guestbook')
 			$col = 'subject';
-		else 
+		else
 			$col = 'header';
 		$db = &WCDB::bo();
 		if($type == 'htmltext')
@@ -115,7 +118,7 @@ class FieldUtils {
 			$res = $db->query("SELECT id, $col as header FROM ds$type WHERE id IN ($ids) AND ds_id=$ds_id LIMIT $limit");
 		return $res;
 	}
-	
+
 	function getNodeHeaders($parentId, $ids) {
 		if(empty($ids))
 			return array();

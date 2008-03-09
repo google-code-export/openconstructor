@@ -100,7 +100,7 @@ class WCDataSource {
 		if(!@$this->ds_id) return NULL;
 		WCS::assert($this, 'editds');
 		$indexed = $this->isIndexable ? 1 : 0;
-		$ds = $this;
+		$ds = &wcfClone($this);
 		unset($ds->docs, $ds->sRes, $ds->docAuths, $ds->isIndexable, $ds->ftp, $ds->smartycache);
 		$db = &WCDB::bo();
 		$db->query(
