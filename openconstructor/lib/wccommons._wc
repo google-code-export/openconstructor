@@ -1,56 +1,56 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: wccommons._wc,v 1.11 2007/02/27 11:23:18 sanjar Exp $
  */
 	require_once('commons._wc');
 	require_once('security/wcs._wc');
 	require_once('security/system._wc');
 	require_once('db/wcdb._wc');
-	
+
 	assert_options(ASSERT_CALLBACK, 'wcAssertHandler');
-	
+
 	if(!headers_sent()) {
-		if(WC_GZIP_OUTPUT && (strpos(@$_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false)) {
+		if(WC_GZIP_OUTPUT && (strpos(@$_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false) && !isset($_GET['disableGzResponse'])) {
 			header('Content-Type: text/html; charset=utf-8');
 			header('Vary: Accept-Encoding');
 			ob_start('ob_gzhandler');
 		}
 		session_start();
 	}
-	
+
 	Authentication::importFromSession();
 	$sys = &System::getInstance();
 	$auth = &Authentication::getInstance();
-	
+
 	define('LANGUAGE', @$auth->profile['language'] ? $auth->profile['language'] : DEFAULT_LANGUAGE);
 	define('SKIN', @$auth->profile['skin'] ? $auth->profile['skin'] : DEFAULT_SKIN);
 	define('WC_USE_SYNTAX', WC_SYNTAX_ENABLE ? (@$auth->profile['syntax'] ? $auth->profile['syntax'] : WC_SYNTAX_DEFAULT) : 0);
-	
+
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/classes._wc');
-		
+
 	function wcAssertHandler($file, $line, $code) {
 		include(LIBDIR.'/../assertions.php');
 		defaultAssertHandler($file, $line, $code);
 	}
-	
+
 	function make_fail_header($message,$failed,$data,$ref=NULL)
 	{
 		if(!(sizeof($message)||sizeof($failed)))
@@ -58,7 +58,7 @@
 		if(!$ref)
 			$ref=$_SERVER['HTTP_REFERER'];
 		$uri=parse_url($ref);
-		$q = array(); 
+		$q = array();
 		parse_str(@$uri['query'],$q);
 //		$failed=explode(',',$failed);
 		foreach($data as $k=>$v)
@@ -80,26 +80,26 @@
 		$query=implode('&',$query);
 		return $uri['scheme'].'://'.$uri['host'].$uri['path'].'?'.$query;
 	}
-	
+
 	function read_fail_header()
 	{
-		
+
 		foreach($_GET as $k=>$v)
 			$GLOBALS[$k]=$v;
 	}
-	
+
 	function report_results($failmessage,$okmessage=false)
 	{
 		global $result,$ok,$failed,$uf;
-		
+
 		if($ok&&$okmessage)
 			echo '<div class="sresult"><div><h4>'.$okmessage.'</h4></div></div>';
-		else 
+		else
 			if($result)
 				echo '<div class="fresult"><div><h4>'.$failmessage.'</h4>'
 					,$result
 					,'</div></div>';
-		
+
 		if(sizeof($failed)){
 			echo '<div class="fresult"><div><h4>Следующие поля заполнены неправильно:</h4><ul>'; // TODO: externalize
 			foreach($failed as $v)
@@ -112,7 +112,7 @@
 		global $failed;
 		return @array_search($field,$failed)!==false?' id="fail"':'';
 	}
-	
+
 	function getTimestamp($year, $month, $day, $time) {
 		$result = strtotime("$year-$month-$day $time");
 		return $result != -1 ? $result : time();
