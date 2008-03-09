@@ -367,6 +367,7 @@
 	define('OBJ_SEARCH_PROPS', 'Поиск');
 	define('PR_NO_RESULTS_TPL', 'Шаблон при поиске без результатов');
 	define('H_RATING_PERIOD', 'Период оценок');
+	define('H_NESTED_LOADER', 'Объект для подгрузки');
 	define('H_ORDER_LIST_BY', 'Упорядочивать по');
 	define('H_AVAILABLE_DSH_FIELDS', 'Доступные поля');
 	define('BTN_ADD_FIELD', 'Добавить');

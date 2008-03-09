@@ -309,6 +309,7 @@
 	define('PR_DOCUMENT_ID_FIELD','Identificator field');
 	define('H_SYS_ID_FIELD','System ID (by default)');
 	define('PR_FETCH_FIELDS','Fetched document fields');
+	define('H_NESTED_LOADER', 'Loader object');
 	define('OBJ_DOC_ORDER','Document order');
 	define('OBJ_SEARCH_PROPS','Search');
 	define('PR_NO_RESULTS_TPL','No results - template');

@@ -1,25 +1,25 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * @author Sanjar Akhmedov
- * 
+ *
  * $Id: hybridagent._wc,v 1.34 2007/04/29 09:51:20 sanjar Exp $
  */
 define('DSF_PRIMITIVE', 1);
@@ -48,14 +48,14 @@ class HybridAgent {
 	var $dsFields = null, $dsTrees = null, $dsFieldNames = null, $sysFields = null;
 	var $dsCrumbs = array(), $nodeCrumbs = array();
 	var $ctx = null;
-	
+
 	function HybridAgent($dsId, $dsKey, $dsPath, $dsName) {
 		$this->dsId = $dsId;
 		$this->dsKey = $dsKey;
 		$this->dsPath = $dsPath;
 		$this->dsName = $dsName;
 	}
-	
+
 	function &getFields() {
 		if($this->dsFields === null) {
 			$this->dsFields = array();
@@ -84,19 +84,19 @@ class HybridAgent {
 		}
 		return $this->dsFields;
 	}
-	
+
 	function &getFieldNames() {
 		if($this->dsFields === null)
 			$this->getFields();
 		return $this->dsFieldNames;
 	}
-	
+
 	function &getTrees() {
 		if($this->dsFields === null)
 			$this->getFields();
 		return $this->dsTrees;
 	}
-		
+
 	function &getNodes($nodeIds) {
 		$result = array();
 		$nodes = &HybridAgent::_getNodesCache();
@@ -120,7 +120,7 @@ class HybridAgent {
 			$result[$nodeIds[$i]] = &$nodes[$nodeIds[$i]];
 		return $result;
 	}
-	
+
 	function &getEnumValues($valueIds) {
 		$result = array();
 		$values = &HybridAgent::_getEnumValuesCache();
@@ -141,7 +141,7 @@ class HybridAgent {
 			$result[$valueIds[$i]] = &$values[$valueIds[$i]];
 		return $result;
 	}
-	
+
 	function &getAllEnumValues($fieldName, $dsId = null) {
 		static $cache;
 		$result = null;
@@ -169,7 +169,7 @@ class HybridAgent {
 		}
 		return $result;
 	}
-	
+
 	function &_getQueryProps(&$fields, $order = array(), $filter = array()) {
 		$ctx = &$this->ctx;
 		$result = array(
@@ -198,7 +198,7 @@ class HybridAgent {
 				$result['tables'] .= ' LEFT JOIN datasources dss'.$fId.' ON (f_'.$f['name'].' = dss'.$fId.'.ds_id)';
 				$result['fields'] .= ',dss'.$fId.'.docs AS "'.$fId.'docs"';
 				$dss[$fId] = true;
-			} elseif($f['type'] == DSF_DOCUMENT) {
+			} elseif($f['type'] == DSF_DOCUMENT && !@$fields[$i]['fetcher']) {
 				$result['tables'] .= " LEFT JOIN ds{$f['ds_type']} dds{$fId} ON (f_{$f['name']} = dds{$fId}.id".($f['ds_type'] != 'file' ? " AND dds{$fId}.published)" : ')');
 				$result['fields'] .= ',dds'.$fId.($f['ds_type'] == 'file' ? '.name' : ($f['ds_type'] == 'guestbook' ? '.subject ' : '.header ')).' AS "'.$fId.'header"';
 				$dds[$fId] = true;
@@ -281,7 +281,7 @@ class HybridAgent {
 		}
 		if($result['order']) $result['order'] = substr($result['order'], 1);
 		$i += $j;
-		
+
 		if(sizeof($filter)) {
 			$fn = &$this->getFieldNames();
 			for($j = 0, $l = sizeof($filter); $j < $l; $j++) {
@@ -330,7 +330,7 @@ class HybridAgent {
 		if($result['order']) $result['order'] = substr($result['order'], 1);
 		return $result;
 	}
-	
+
 	function &_getSystemFields() {
 		if(!isset($this->sysFields))
 			$this->sysFields = array(
@@ -339,7 +339,7 @@ class HybridAgent {
 			);
 		return $this->sysFields;
 	}
-	
+
 	function &_getDs($dsId) {
 		static $datasources;
 		settype($dsId, 'int');
@@ -351,12 +351,12 @@ class HybridAgent {
 		}
 		return $datasources[$dsId];
 	}
-	
+
 	function &_parseRatingRange($range, $salt = '') {
 		require_once(LIBDIR.'/func/parseratingrange._wc');
 		return wcfParseRatingRange($range, $salt);
 	}
-	
+
 	function &getInstance($dsId, $type = null, $onlySub = false) {
 		static $instance;
 		if(!isset($instance[$dsId])) {
@@ -400,14 +400,14 @@ class HybridAgent {
 		} else
 			return $instance[$dsId];
 	}
-	
+
 	function _changeDsCrumbs(&$crumbs, $key) {
 		if($key && !isset($this->dsCrumbs[$key])) {
 			$this->dsCrumbs[$key] = true;
 			$crumbs->set($key, $this->dsName);
 		}
 	}
-	
+
 	function _changeNodeCrumbs(&$crumbs, $key) {
 		if($key && !isset($this->nodeCrumbs[$key])) {
 			$this->nodeCrumbs[$key] = true;
@@ -420,7 +420,7 @@ class HybridAgent {
 			}
 		}
 	}
-	
+
 	function _compileClause($name, $type, $value, $invert = false) {
 		$quote = utf8_substr($value, 0, 1); $in = false;
 		if($quote == utf8_substr($value, -1) && ($quote == '"' || $quote == '\'' || $quote == '`'))
@@ -447,7 +447,7 @@ class HybridAgent {
 				$value = sprintf('"%s" AND "%s"', addslashes($value[0]), addslashes($value[1]));
 			break;
 			case COND_CONTAINS: // This function will not work properly if $value contains a comma (',') character  -- (C) MySQL Doc.
-				$name = 'FIND_IN_SET("'.addslashes($value)."\", $name)";	
+				$name = 'FIND_IN_SET("'.addslashes($value)."\", $name)";
 				$value = 0;
 			default:
 				$value = '"'.addslashes($value).'"';
@@ -455,12 +455,12 @@ class HybridAgent {
 		$cond = array($in ? 'IN' : '=', 'BETWEEN', '>', '<', '>=', '<=', '>', 'LIKE');
 		return $invert ? "NOT ($name {$cond[$type]} $value)" : "$name {$cond[$type]} $value";
 	}
-	
+
 	function &_getNodesCache() {
 		static $nodes;
 		return $nodes;
 	}
-	
+
 	function &_getEnumValuesCache() {
 		static $values;
 		return $values;
