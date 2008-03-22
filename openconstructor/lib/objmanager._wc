@@ -244,7 +244,6 @@ class ObjManager {
 			$r = mysql_fetch_assoc($res);
 			require_once($r['ds_type'].($r['ds_type'] == 'hybrid' ? '/view/' : '/').$r['obj_type'].'._wc');
 			$result = &WCObject::_loadFrom($r);
-			pr($result);
 			ObjManager::loadAuths($result, $r['wcsowner'], $r['wcsgroup'], $r['oauths'], $r['gauths']);
 		}
 		mysql_free_result($res);
