@@ -1,25 +1,25 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * Класс представляющий гибридные поля типа "Файл"
- * 
+ *
  * @author Sanjar Akhmedov
  */
 
@@ -28,7 +28,7 @@ class FileField extends HybridField {
 	var $minX, $minY, $maxX, $maxY;
 	var $folder;
 	var $ftp, $ic;
-	
+
 	function FileField($key, $header, $types, $required) {
 		$this->HybridField($key, $header, 'file', 'file', $required);
 		$this->setTypes($types);
@@ -37,7 +37,7 @@ class FileField extends HybridField {
 		$this->minX = $this->minY = $this->maxX = $this->maxY = 0;
 		$this->ftp = null;
 	}
-	
+
 	function create() {
 		HybridField::create();
 		if($this->id) {
@@ -49,7 +49,7 @@ class FileField extends HybridField {
 		}
 		return false;
 	}
-	
+
 	function update() {
 		$db = &WCDB::bo();
 		$db->query(sprintf(
@@ -57,27 +57,27 @@ class FileField extends HybridField {
 			, addslashes($this->header), intval($this->isRequired), intval($this->maxSize), addslashes(implode(',', $this->types)), $this->getImgBounds())
 		);
 	}
-	
+
 	function remove() {
 		$this->removeFolder();
 		HybridField::remove();
 	}
-	
+
 	function setDS($ds_id) {
 		HybridField::setDS($ds_id);
 		if($this->ds_id)
 			$this->folder = '/hyb/'.$this->ds_id.'/'.substr($this->key, 2);
 	}
-	
+
 	function onCreateDocument(&$doc) {
 		$this->onUpdateDocument($doc, $doc);
 	}
-	
+
 	function onUpdateDocument(&$old, &$new) {
 		if($new->fields[$this->key]) {
 			list($value['name'], $value['type'], $value['size'], $isImg) = FileField::getFileDetails($new->fields[$this->key]);
 			if($this->isValid($value, false) && $isImg && $this->maxX > 0 && $this->maxY > 0) {
-				$tmp = tempnam(':::', '');
+				$tmp = wcfTmpFilename();
 				$ic = &$this->_getImgCopier();
 				if(!$ic->setSource($value['name']))
 					return;
@@ -107,14 +107,14 @@ class FileField extends HybridField {
 		}
 		$new->fields[$this->key] = $old->fields[$this->key];
 	}
-	
+
 	function onRemoveDocument(&$doc) {
 		if($doc->fields[$this->key]) {
 			@unlink(ROOT.$doc->fields[$this->key]);
 			$doc->fields[$this->key] = '';
 		}
 	}
-	
+
 	function isValid($value, $checkSize = true) {
 		if(is_array($value) && $value['name'] && $value['type'] && (!$checkSize || $value['size'] <= $this->maxSize) && @file_exists($value['name'])) {
 			for($i = 0, $l = sizeof($this->types); $i < $l; $i++)
@@ -124,11 +124,11 @@ class FileField extends HybridField {
 		}
 		return is_string($value);
 	}
-	
+
 	function getMysqlType() {
 		return 'VARCHAR (64)';
 	}
-	
+
 	function &getFtp() {
 		if(!is_object(&$this->ftp)) {
 			loadClass('wcftp', '/wcftp._wc');
@@ -136,7 +136,7 @@ class FileField extends HybridField {
 		}
 		return $this->ftp;
 	}
-	
+
 	function setTypes($types) {
 		static $disallowed;
 		if(!is_array($disallowed))
@@ -156,18 +156,18 @@ class FileField extends HybridField {
 		}
 		unset($types);
 	}
-	
+
 	function setImgBounds($bounds) {
 		$bounds = strtolower(str_replace(' ', '', $bounds));
 		$r = sscanf($bounds, '%dx%d-%dx%d');
 		if($r[0] > 1 && $r[1] > 1 && $r[2] >= $r[0] && $r[3] >= $r[1])
 			list($this->minX, $this->minY, $this->maxX, $this->maxY) = $r;
 	}
-	
+
 	function getImgBounds() {
 		return sprintf('%dx%d - %dx%d', $this->minX, $this->minY, $this->maxX, $this->maxY);
 	}
-	
+
 	function createFolder() {
 		$folder = $this->folder;
 		if(!empty($folder) && $this->ds_id && !@file_exists(ROOT.FILES.$folder)) {
@@ -181,7 +181,7 @@ class FileField extends HybridField {
 		}
 		return false;
 	}
-	
+
 	function removeFolder() {
 		$folder = $this->folder;
 		if(!empty($folder) && @file_exists(ROOT.FILES.$folder)) {
@@ -195,7 +195,7 @@ class FileField extends HybridField {
 		}
 		return !@file_exists(ROOT.FILES.$folder);
 	}
-	
+
 	function &getFileDetails(&$file) {
 		$result = array(null, null, null, null);
 		if(!is_array($file)) {
@@ -207,7 +207,7 @@ class FileField extends HybridField {
 		$result[3] = $result[1] == 'png' || $result[1] == 'jpg' || $result[1] == 'jpeg' || $result[1] == 'gif';
 		return $result;
 	}
-	
+
 	function &_getImgCopier() {
 		if(!is_object($this->ic)) {
 			require_once(LIBDIR.'/imgcopier._wc');

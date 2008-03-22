@@ -395,12 +395,7 @@ class WCFTP {
 	}
 
 	function _newTmpFilename() {
-		if($this->_tmpDir) {
-			return tempnam($this->_tmpDir, 'wcftp_');
-		} elseif(defined('WC_TMP_DIR') && constant('WC_TMP_DIR')) {
-			return tempnam(constant('WC_TMP_DIR'), 'wcftp_');
-		}
-		return tempnam('invalid_directory_name', 'wcftp_');
+		return wcfTmpFilename('ocm_ftp_', $this->_tmpDir);
 	}
 
 	function performGC() {
