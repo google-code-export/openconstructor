@@ -127,7 +127,7 @@
 			curDS = '<?=$currentDs?>',
 			curnode = '<?=$curnode?>',
 			preset = '<?=@$presetValue?>',
-			rootNode = <?=$curnode > 1 && $curnode == $rootNode->id ? $curnode : 0?>
+			rootNode = <?=@$curnode > 1 && $curnode == @$rootNode->id ? $curnode : 0?>
 			;
 		<?php
 			set_js_vars(array(
