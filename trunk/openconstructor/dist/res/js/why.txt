@@ -1,0 +1,2 @@
+Store your javascript files here.
+Do not remove this file.

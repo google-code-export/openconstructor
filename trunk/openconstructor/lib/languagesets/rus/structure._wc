@@ -1,32 +1,32 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: structure._wc,v 1.12 2007/02/27 11:23:19 sanjar Exp $
  */
 	error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
-	
+
 	//----------------------------
 	//Диалоговые окна в карте сайта
 	//----------------------------
-	
-	
+
+
 	//Создать страницу
 	define('H_CREATE_PAGE','Создание страницы');
 	define('NEW_PAGE','Новая страница');
@@ -38,12 +38,12 @@
 	@define('BTN_CREATE','Создать');
 	@define('BTN_SAVE','Сохранить');
 	@define('BTN_CANCEL','Отмена');
-	
+
 	//Добавиь объект
 	define('ADD_OBJECT','Добавление объекта');
 	define('H_SELECT_OBJECT_I','Выберите объект');
 	define('BTN_ADD_OBJECT','Добавить');
-	
+
 	//Редактировать страницу
 	define('H_EDIT_PAGE','Редактирование страницы');
 	define('PAGE_GENERAL','Общие');
@@ -57,6 +57,7 @@
 	define('PAGE_TITLE','Заголовок');
 	define('PAGE_ADD_PARENTS_TITLE','Добавить заголовок предка');
 	define('PAGE_CSS','Стиль(CSS)');
+	define('TT_PAGE_CSS','Из папки %s');
 	define('PAGE_META_INFO','META информация');
 	define('PAGE_CONTENT_TYPE','Тип');
 	define('PAGE_INHERIT_CONTENT_TYPE','Наследовать у предка');
@@ -83,20 +84,20 @@
 	define('H_MAKE_CHILDS_USR_THE_SAME', 'Задать этиже значения и для подразделов');
 	define('PAGE_SELECT_ALL_USERS','Выделить все');
 	define('PAGE_UNSELECT_ALL_USERS','Сбросить все');
-	
+
 	//Переместить страницу
 	define('H_MOVE_PAGE','Перемещение страницы');
 	define('MOVE_TO','Переместить в');
 	define('PAGE_URI_CURRENT','Текущий URI');
 	define('PAGE_URI_NEW','Новый URI');
 	define('BTN_MOVE','Переместить');
-	
+
 	// Предположение cache id
 	define('H_CACHE_VARY_SUGGEST', 'Предположение зависимостей кеша');
 	define('SUGGESTTIONS_MAY_BE_INVALID', 'Система может ошибатся при автоматичеком определении идентификатора кеша. Особенно если на странице работает инъекция объектов.');
 	define('H_SUGGESTIONS', 'Варианты');
 	define('H_NO_SUGGESTIONS', 'Вариантов нет');
 	define('BTN_INSERT', 'Вставить');
-	
+
 	error_reporting($_oldLevel);
 ?>

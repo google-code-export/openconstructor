@@ -1,23 +1,23 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: edit_page.php,v 1.22 2007/04/23 09:50:05 sanjar Exp $
  */
 	require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
@@ -25,7 +25,7 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/main._wc');
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/structure._wc');
 	require_once(LIBDIR.'/site/pagereader._wc');
-	
+
 	$pr = &PageReader::getInstance();
 	$page = &$pr->getPage(@$_GET['node']);
 	assert($page != null);
@@ -111,15 +111,15 @@ function suggestCacheVary() {
 <?php
 	foreach($tpls->get_all_tpls('page') as $tpl_id=>$name)
 		echo '<OPTION VALUE="'.$tpl_id.'"'.($tpl_id == $page->tpl ? ' SELECTED' : '').'>'.$name;
-?>	
+?>
 		</select>
 			</td>
 		</tr>
 		<tr>
 			<td colspan="2">
-<?php 
+<?php
 	if($tpl != null && $tpl->mockup > '') {
-		echo '<div class="mockGroup">'.$tpl->mockup.'</div>';	
+		echo '<div class="mockGroup">'.$tpl->mockup.'</div>';
 	} elseif($tpl == null && $page->tpl > 0)
 		echo '<span style="color:red;">'.TPL_NOT_FOUND_W.'</span>';
 ?>
@@ -138,12 +138,16 @@ function suggestCacheVary() {
 			<td><input type="checkbox" name="appendparent" id="f.appendparent" value="true"<?=$page->addTitle ? ' CHECKED' : ''?> <?=$page->uri == '/' ? ' DISABLED' : ''?>> <label for="f.appendparent"><?=PAGE_ADD_PARENTS_TITLE?></label><p></td>
 		</tr>
 		<tr>
-			<td valign="top"><?=PAGE_CSS?>:</td>
+			<td valign="top">
+				<?=PAGE_CSS?>:
+				<div style="font-size:90%;"><?=sprintf(TT_PAGE_CSS, FILES.'/css');?></div>
+			</td>
 			<td><select size="5" name="css[]" multiple><?php
-				if(@is_dir($_SERVER['DOCUMENT_ROOT'].'/css')) {
-					$d = dir($_SERVER['DOCUMENT_ROOT'].'/css');
+				$cssDir = $_SERVER['DOCUMENT_ROOT'].FILES.'/css';
+				if(@is_dir($cssDir)) {
+					$d = dir($cssDir);
 					while (false !== ($entry = $d->read()))
-					    if(substr($entry, 0, 1) != '_' && substr($entry, strrpos($entry, '.')) == '.css' && is_file($_SERVER['DOCUMENT_ROOT'].'/css/'.$entry))
+					    if(substr($entry, 0, 1) != '_' && substr($entry, strrpos($entry, '.')) == '.css' && is_file($cssDir.'/'.$entry))
 							echo '<option value="'.$entry.'"'.(array_search($entry, $page->css) !== false ? ' SELECTED' : '').'>'.$entry;
 					$d->close();
 				}
