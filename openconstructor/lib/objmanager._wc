@@ -200,7 +200,7 @@ class ObjManager {
 		if(!WCS::decide($old, 'editobj.ds'))
 			for($i = 0, $ds = $obj->_getDSFields(), $l = sizeof($ds); $i < $l; $i++)
 				$obj->$ds[$i] = @$old->$ds[$i];
-		$clone = wcfClone($obj->sRes);
+		$clone = wcfClone($obj);
 		unset($clone->sRes);
 		$db = &WCDB::bo();
 		$db->query(
@@ -244,6 +244,7 @@ class ObjManager {
 			$r = mysql_fetch_assoc($res);
 			require_once($r['ds_type'].($r['ds_type'] == 'hybrid' ? '/view/' : '/').$r['obj_type'].'._wc');
 			$result = &WCObject::_loadFrom($r);
+			pr($result);
 			ObjManager::loadAuths($result, $r['wcsowner'], $r['wcsgroup'], $r['oauths'], $r['gauths']);
 		}
 		mysql_free_result($res);
