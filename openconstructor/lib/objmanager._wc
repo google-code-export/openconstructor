@@ -1,25 +1,25 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * @author Sanjar Akhmedov
- * 
+ *
  * $Id: objmanager._wc,v 1.17 2007/02/27 11:23:18 sanjar Exp $
  */
 require_once('wcobject._wc');
@@ -28,7 +28,7 @@ class ObjManager {
 	var $map;
 	var $pageSize;
 	var $smartycache;
-	
+
 	function ObjManager() {
 		$this->map=array(
 			'htmltext'=>array(DS_HTMLTEXT=>array(
@@ -111,11 +111,11 @@ class ObjManager {
 				'miscsendmail'=>OBJ_MISC_SENDMAIL,
 				'miscinjector'=>OBJ_MISC_INJECTOR
 			))
-			
+
 		);
 		$this->pageSize=30;
 	}
-	
+
 	function &get_objects($ds_type, $obj_type, $page=1, $searchclause='', $pageSize = null) {
 		$result = array();
 		$page = intval($page);
@@ -145,7 +145,7 @@ class ObjManager {
 		mysql_free_result($res);
 		return $result;
 	}
-	
+
 	function &get_all_objects() {
 		$result = array();
 		$db = &WCDB::bo();
@@ -163,7 +163,7 @@ class ObjManager {
 				);
 		return $result;
 	}
-	
+
 	function create(&$obj) {
 		System::assert('objects.ds'.$obj->ds_type);
 		assert(!$obj->obj_id > 0);
@@ -188,7 +188,7 @@ class ObjManager {
 		$obj = &ObjManager::load($id);
 		return $id;
 	}
-	
+
 	function save(&$obj) {
 		assert($obj->obj_id > 0 && trim($obj->name) != '');
 		$old = &ObjManager::load($obj->obj_id);
@@ -200,15 +200,14 @@ class ObjManager {
 		if(!WCS::decide($old, 'editobj.ds'))
 			for($i = 0, $ds = $obj->_getDSFields(), $l = sizeof($ds); $i < $l; $i++)
 				$obj->$ds[$i] = @$old->$ds[$i];
-		$sRes = $obj->sRes;
-		unset($obj->sRes);
+		$clone = wcfClone($obj->sRes);
+		unset($clone->sRes);
 		$db = &WCDB::bo();
 		$db->query(
 			'UPDATE objects '.
-			"SET ds_id='$obj->ds_id', tpl='$obj->tpl', cache_by_wc=".intval($obj->cached_by_WC).", name='".addslashes($obj->name)."', description='".addslashes($obj->description)."', date='".time()."', code='".addslashes(serialize(&$obj))."' ".
+			"SET ds_id='$obj->ds_id', tpl='$obj->tpl', cache_by_wc=".intval($obj->cached_by_WC).", name='".addslashes($obj->name)."', description='".addslashes($obj->description)."', date='".time()."', code='".addslashes(serialize($clone))."' ".
 			'WHERE id='.$obj->obj_id
 		);
-		$obj->sRes = &$sRes;
 		if($obj != $old)
 			ObjManager::_republishPages(ObjManager::_getUsingPages('o.id = '.$obj->obj_id));
 		if($obj->cached_by_WC) {
@@ -217,25 +216,25 @@ class ObjManager {
 			$smc->object_updated($obj->ds_type, $obj->obj_id);
 		}
 	}
-	
+
 	function remove($ids) {
 		assert($ids > 0 && strspn($ids, ',0123456789') == strlen($ids));
 		$db = &WCDB::bo();
 		$res = $db->query("SELECT ds_type FROM objects WHERE id IN($ids) LIMIT 1");
 		list($ds_type) = mysql_fetch_row($res);
 		mysql_free_result($res);
-		
+
 		$sCheck = WCS::getAuthCheckQuery('remove', 'o');
 		$pages = ObjManager::_getUsingPages("o.id IN({$ids}) AND {$sCheck}");
 		$db->query("DELETE s.* FROM objects o, siteobjects s WHERE o.id IN($ids) AND $sCheck AND o.id = s.obj_id");
 		$db->query("DELETE o.* FROM objects o WHERE o.id IN($ids) AND $sCheck");
 		ObjManager::_republishPages($pages);
-		
+
 		loadClass('wcsmartycache', '/smarty/wcsmartycache._wc');
 		$smc = &WCSmartyCache::getInstance();
 		$smc->object_updated($ds_type, $ids);
 	}
-	
+
 	function &load($objId) {
 		$result = null;
 		settype($objId, 'int');
@@ -250,7 +249,7 @@ class ObjManager {
 		mysql_free_result($res);
 		return $result;
 	}
-	
+
 	function updateAuths(&$obj) {
 		assert($obj->obj_id > 0);
 		$querySet = '';
@@ -266,7 +265,7 @@ class ObjManager {
 			$db->query("UPDATE objects SET $querySet WHERE id = {$obj->obj_id} AND ".WCS::getAuthCheckQuery('editobj.chmod'));
 		}
 	}
-	
+
 	function updateObjectsAuths(&$ids, &$set, &$unset) {
 		assert($ids > 0 && strspn($ids, ',0123456789') == strlen($ids));
 		$userId = Authentication::getUserId();
@@ -282,7 +281,7 @@ class ObjManager {
 			)
 		);
 	}
-	
+
 	function &getAggregateObject(&$ids) {
 		assert($ids > 0 && strspn($ids, ',0123456789') == strlen($ids));
 		$result = null;
@@ -310,26 +309,26 @@ class ObjManager {
 		mysql_free_result($res);
 		return $result;
 	}
-	
+
 	function loadAuths(&$obj, $owner, $group, $ownerAuths, $groupAuths) {
 		$obj->sRes = new WCSResource(&$obj->name, (int) $owner, (int) $group);
-		
+
 		$obj->sRes->addAction('editobj');
 		$obj->sRes->addAction('editobj.tpl');
 		$obj->sRes->addAction('editobj.chmod');
 		$obj->sRes->addAction('editobj.ds');
 		$obj->sRes->addAction('removeobj');
-		
+
 		$obj->sRes->setAuthorities($ownerAuths, $groupAuths);
 	}
-	
+
 	function isObserverClass($class) {
 		static $observers;
 		if(!is_array($observers))
 			$observers = array_flip(array('phpcallback'));
 		return isset($observers[$class]);
 	}
-	
+
 	function isCrumbsClass($class) {
 		static $crumbs;
 		if(!is_array($crumbs))
@@ -343,7 +342,7 @@ class ObjManager {
 			));
 		return isset($crumbs[$class]);
 	}
-	
+
 	function _getUsingPages($objIdsCheck) {
 		assert(strpos($objIdsCheck, ';') === false);
 		$result = array();
@@ -354,7 +353,7 @@ class ObjManager {
 		mysql_free_result($res);
 		return $result;
 	}
-	
+
 	function _republishPages($pageIds) {
 		if(sizeof($pageIds) > 0) {
 			require_once(LIBDIR.'/site/pagefactory._wc');
