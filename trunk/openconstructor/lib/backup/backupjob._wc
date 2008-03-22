@@ -1,25 +1,25 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * @author Sanjar Akhmedov
- * 
+ *
  * $Id: backupjob._wc,v 1.2 2007/02/27 11:23:26 sanjar Exp $
  */
 require_once('zipfile._wc');
@@ -38,57 +38,57 @@ class BackupJob {
 		'/res/smarty/compiled/.*', '/res/smarty/cache/.*',
 		'/res/config\._wc', '/res/map\._wc'
 	);
-	
+
 	function BackupJob($folder, $id) {
 		$this->_folder = $folder.'/'.$id;
 		$this->setMaxFileSize(1);
 		$this->_maxDumpSize = intval(1 * 1024 * 1024);
 		$this->_compileIgnores();
 	}
-	
+
 	function setMaxFileSize($sizeMb) {
 		$this->_maxFileSize = intval($sizeMb * 1024 * 1024);
 	}
-	
+
 	function run() {
 		$this->_startTime = time();
-		
+
 		$this->_lockTables();
-		
+
 		$this->_ftp->open();
 		$this->_ftp->md($this->_folder);
 		$this->_ftp->close();
-		
-		$this->_zipName = tempnam('*', 'backup_');
+
+		$this->_zipName = wcfTmpFilename('ocm_backup_');
 		$this->_zip = & ZipFile::newWriter($this->_zipName);
 		$this->_zip->setOnAddEntry(array(&$this, '_onZip'));
-		
+
 		$this->_backupRes();
 		$this->_backupLargeFiles();
-		
+
 		$this->_zip->setOnAddEntry(null);
 		$this->_backupDB();
-		
+
 		$this->_zip->save();
-		
+
 		$this->_ftp->open();
 		$this->_ftp->copy_local_file($this->_zipName, $this->_folder.'/backup.zip');
 		$this->_saveBackupMeta();
 		$this->_ftp->close();
-		
+
 		$this->_unlockTables();
-		
+
 		unlink($this->_zipName);
 	}
-	
+
 	function setFtp(&$ftp) {
 		$this->_ftp = &$ftp;
 	}
-	
+
 	function _backupRes() {
 		$this->_zip->addDir($_SERVER['DOCUMENT_ROOT'].FILES);
 	}
-	
+
 	function _backupLargeFiles() {
 		if($l = sizeof($this->_largeFiles)) {
 			$this->_ftp->open();
@@ -105,14 +105,14 @@ class BackupJob {
 				$this->_largeFiles[$i] = substr($this->_largeFiles[$i], $rl);
 			}
 			$this->_ftp->close();
-			
+
 			$this->_zip->addAsFile(implode('?', $this->_largeFiles), ".large-files/{$this->_lfIndex}");
 			$this->_lfIndex++;
 			unset($this->_largeFiles);
 			$this->_largeFiles = array();
 		}
 	}
-	
+
 	function _backupDB() {
 		$dump = new SqlDumper(DBSetup::getWCTables());
 		$sql = ''; $size = 0;
@@ -129,14 +129,14 @@ class BackupJob {
 		if($size > 0)
 			$this->_zipDBDump($sql);
 	}
-	
+
 	function _zipDBDump($dump) {
 		if($this->_dumpIndex == 0)
 			$this->_zip->mkDir('.db-dump');
 		$this->_zip->addAsFile($dump, ".db-dump/vol-{$this->_dumpIndex}.sql");
 		$this->_dumpIndex++;
 	}
-	
+
 	function _saveBackupMeta() {
 		$finished = time();
 		$meta = array(
@@ -156,18 +156,18 @@ class BackupJob {
 		$this->_ftp->write_file($this->_folder.'/backup.ini', $ini);
 		$this->_ftp->close();
 	}
-	
+
 	function _lockTables() {
 		$db = &WCDB::bo();
 		$tables = DBSetup::getWCTables();
 		$db->query('LOCK TABLES `'.implode('` READ, `',$tables).'` READ');
 	}
-	
+
 	function _unlockTables() {
 		$db = &WCDB::bo();
 		$db->query('UNLOCK TABLES');
 	}
-	
+
 	function _onZip($name, $isDir) {
 		for($i = 0, $l = sizeof($this->_ignore); $i < $l; $i++)
 			if(preg_match($this->_ignore[$i], $name))
@@ -180,7 +180,7 @@ class BackupJob {
 		}
 		return true;
 	}
-	
+
 	function _compileIgnores() {
 		$docRoot = preg_quote($_SERVER['DOCUMENT_ROOT'], '~');
 		for($i = 0, $l = sizeof($this->_ignore); $i < $l; $i++)
