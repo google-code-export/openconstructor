@@ -71,7 +71,7 @@ class DSHybrid extends WCDataSource {
 
 	function createDocument(&$doc, $ownerId = null) {
 		WCS::assert($this, 'createdoc');
-		$doc->sRes = $this->sRes;
+		$doc->sRes = wcfClone($this->sRes);
 		settype($ownerId, 'int');
 		if($ownerId > 0 && Authentication::getUserId() == WCS_ROOT_ID)
 			$doc->sRes->setOwner($ownerId);
@@ -269,7 +269,7 @@ class DSHybrid extends WCDataSource {
 		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++) {
 			$r = mysql_fetch_assoc($res);
 			$doc->readValues($r);
-			$doc->sRes = $this->sRes;
+			$doc->sRes = wcfClone($this->sRes);
 			$doc->sRes->setOwner((int) $r['wcsowner']);
 			$doc->fetchValues();
 			$doc->convertToPlain();
