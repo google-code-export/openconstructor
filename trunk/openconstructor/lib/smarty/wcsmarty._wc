@@ -34,7 +34,11 @@ class WCSmarty extends Smarty {
 		$this->Smarty();
 		$this->use_sub_dirs = true;
 		$this->template_dir = ROOT.WC_SMARTY_TEMPLATES;
-		$this->plugins_dir = array(SMARTY_DIR.'plugins', LIBDIR.'/smarty/plugins');
+		$this->plugins_dir = array(
+			SMARTY_DIR.'plugins',
+			LIBDIR.'/smarty/plugins',
+			ROOT.FILES.'/smarty/plugins'
+			);
 		$this->compile_dir = ROOT.FILES.'/smarty/compiled';
 		$this->config_dir = ROOT.FILES.'/smarty/configs';
 		$this->cache_dir = ROOT.FILES.'/smarty/cache';
