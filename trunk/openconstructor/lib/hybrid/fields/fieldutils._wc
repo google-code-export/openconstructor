@@ -35,7 +35,6 @@ class FieldUtils {
 		WCS::runAs(WCS_ROOT_ID);
 		$ds=new $class;
 		$ds->create($name, $name.' (Internal Datasource)', 1);
-		pr($ds);
 		if($orig_id) {
 			$prototype = &DSManager::load($orig_id);
 			$ds->copyProps($prototype);
@@ -43,7 +42,6 @@ class FieldUtils {
 				$ds->initFilePath(true);
 			$ds->save();
 		}
-		pr($ds);
 		if($ownerId) {
 			loadClass('user', '/security/user._wc');
 			$owner = &User::load($ownerId);
