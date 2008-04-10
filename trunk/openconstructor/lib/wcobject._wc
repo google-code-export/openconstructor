@@ -72,7 +72,8 @@ class WCObject {
 				$fetched = $this->fetchData(&$smarty);
 				if($fetched) {
 					if(isset($this->tpl_args)) {
-						parse_str($this->tpl_args, $tpl_params = array());
+						$tpl_params = array();
+						parse_str($this->tpl_args, $tpl_params);
 						$params = array_merge($params, $tpl_params);
 					}
 					$smarty->assign_by_ref('args', $params);
@@ -90,7 +91,8 @@ class WCObject {
 			$fetched = $this->fetchData(&$smarty);
 			if($fetched) {
 				if(isset($this->tpl_args)) {
-					parse_str($this->tpl_args, $tpl_params = array());
+					$tpl_params = array();
+					parse_str($this->tpl_args, $tpl_params);
 					$params = array_merge($params, $tpl_params);
 				}
 				$smarty->assign_by_ref('args', $params);
