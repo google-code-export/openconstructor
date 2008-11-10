@@ -1,25 +1,27 @@
-<?php 
+<?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: sections._wc,v 1.6 2007/02/27 11:23:26 sanjar Exp $
  */
+
+/*
 function menu($cur_section) {
 	$sections = getTabs();
 	echo '<sections>';
@@ -27,8 +29,9 @@ function menu($cur_section) {
 		echo '<item href="'.WCHOME.'/'.$uri.'"'.($uri==$cur_section?' current="yes"':'').'>'.$title.'</item>';
 	echo '</sections>';
 }
+*/
 
-function &getTabs() {
+function getTabs() {
 	$sections = array(
 		'structure' => array('sitemap', SITEMAP),
 		'data' => array('data', DATASOURCES),
@@ -43,7 +46,7 @@ function &getTabs() {
 			$result[$uri] = $v[1];
 	return $result;
 }
-
+/*
 if(!function_exists('toolbar')) {
 	function toolbar($toolbar) {
 		echo '<toolbar>';
@@ -72,7 +75,7 @@ if(!function_exists('toolbar')) {
 		echo '</toolbar>';
 	}
 }
-
+*/
 function print_tree(&$map, $type = 'f')
 {
 	$clickable=@$_GET['search']?' clickable="yes"':'';

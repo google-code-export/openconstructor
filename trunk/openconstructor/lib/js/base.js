@@ -65,7 +65,7 @@ function getTop(el) {
 function getLeft(el, inner) {
 	if(!el || el.tagName == 'BODY')
 		return 0;
-	else 
+	else
 		return el.offsetLeft + getLeft(el.offsetParent, true);
 }
 
@@ -206,7 +206,7 @@ function CaptureEvents(events, exclude, func) {
 
 CaptureEvents.prototype = {
 	instances: new Array(),
-	
+
 	enable :
 		function() {
 			if(this.handler == null)
@@ -217,7 +217,7 @@ CaptureEvents.prototype = {
 				else if(isMoz)
 					document.addEventListener(this.events[i], this.handler, false);
 		},
-	
+
 	disable :
 		function() {
 			for(var i = 0; i < this.events.length; i++)
@@ -226,7 +226,7 @@ CaptureEvents.prototype = {
 				else if(isMoz)
 					document.removeEventListener(this.events[i], this.handler, false);
 		},
-	
+
 	createHandler :
 		function() {
 			if(this.handler == null) {
@@ -292,6 +292,6 @@ KeyBinder.prototype.addShortcut = function(shortcut, func) {
 	this.func[ctrl << 1 | alt][key] = func;
 }
 
-function $(id) {
+/*function $(id) {
 	return document.getElementById(id);
-}
+}*/
