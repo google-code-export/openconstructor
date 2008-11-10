@@ -166,7 +166,7 @@ class HybridHL extends WCObject {
 							if($recurse > 0 && @$fields[$j]['fetcher']) {
 								$doc[$f['name']] = $r[$fId];
 								if($r[$fId])
-									$arrays[$fields[$j]['fetcher']][$f['name']] = (@$arrays[$fields[$j]['fetcher']][$f['name']] ? "," : "").$r[$fId];
+									$arrays[$fields[$j]['fetcher']][$f['name']] .= (@$arrays[$fields[$j]['fetcher']][$f['name']] ? "," : "").$r[$fId];
 							} else{
 								$doc[$f['name']] = array('id' => $r[$fId], 'header' => htmlspecialchars($r[$fId.'header'], ENT_COMPAT, 'UTF-8'));
 							}
