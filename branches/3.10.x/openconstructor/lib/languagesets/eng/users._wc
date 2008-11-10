@@ -1,0 +1,95 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: users._wc,v 1.8 2007/02/27 11:23:19 sanjar Exp $
+ */
+	error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
+	
+	//----------------------------
+	//Диалоговые окна создания и редакторования пользователей
+	//----------------------------
+	
+	
+	//Создание пользователя
+	@define('CREATE_USER','New User Creation');
+	define('USER','User');
+	@define('USR_LOGIN','Login');
+	define('USR_NAME','User Name');
+	define('USR_ADDITIONAL_INFO','Additional Info');
+	define('USR_EMAIL','E-mail');
+	define('USR_SET_PASSWORD','Password');
+	@define('USR_PASSWORD','Password');
+	define('USR_CONFIRM_PASSWORD','Please Confirm your Password');
+	@define('BTN_CREATE','Create');
+	@define('BTN_SAVE','Save');
+	@define('BTN_CANCEL','Cancel');
+	
+	//Редакторование пользователя
+	define('EDIT_USER','User Edition');
+	define('USR_IS_FREEZED','User Frozen');
+	define('USR_SET_NEW_PASSWORD','New Password');
+	define('USR_CHANGE_PASSWORD','Change Password');
+	define('USR_NEW_PASSWORD','New Password');
+	define('USR_CONFIRM_NEW_PASSWORD','Please Confirm new Password');
+	define('USR_PROFILE','Profile');
+	define('USR_WC_LANGUAGE','Interface Language');
+	define('USR_WC_RUSSIAN','Русский');
+	define('USR_WC_ENGLISH','English');
+	define('USR_WC_SKIN','Interface Skin');
+	define('USR_WC_SKIN_METALLIC','Metallic');
+	define('USR_WC_SKIN_CLASSIC','Classic');
+	
+	//Создание группы пользователей
+	@define('CREATE_USERGROUP','New Usergroup Creation');
+	define('USR_NEW_USERGROUP','New Usergroup');
+	define('USR_USERGROUP_KEY','Usergroup Key');
+	define('USR_USERGROUP_NAME','Usergroup Name');
+	
+	//Редакторование группы пользователей
+	@define('EDIT_USERGROUP','Usergroup Edition');
+	define('USR_USERGROUP','Usergroup');
+	
+	define('H_PASSWORDS_DOESNT_MATCH','Passwords do not match');
+	define('USR_SECRETS','Secret question');
+	define('USR_SECRET_QUESTION','Your question');
+	define('USR_SECRET_Q_NOTSET','Not set');
+	define('BTN_USR_SET_SECRETS','Set');
+	define('BTN_USR_CHANGE_SECRETS','Edit');
+	define('USR_PROPS','Properties');
+	define('USR_MEMBERSHIP','Membership');
+	define('USR_MAIN_GROUP','Main group');
+	define('USR_EXPIRES','Experies on');
+	define('USR_EDIT_PROFILE','Edit user profile');
+	define('EDIT_USER_SECRETS','Edit secret question');
+	define('USR_NEW_SECRET_QUESTION','New question');
+	define('USR_SECRET_ANSWER','Answer');
+	define('USR_PROFILES','User profiles');
+	define('USR_MASK','User authorities');
+	define('USR_MASK_PATTERN','Newly created users authorities');
+	define('USR_PROFILES_DS','Profiles section');
+	define('USR_AUTHS','Authorities');
+	define('H_SELECT_USERS','Selct users');
+	define('H_NO_USERS_FOR_KEYWORD','Search came back with no results');
+	define('H_ENTER_USR_KEYWORD','Enter keyword');
+	define('BTN_SEARCH','Search');
+	define('BTN_SELECT','Choose');
+	
+	error_reporting($_oldLevel);
+?>

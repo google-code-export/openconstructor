@@ -1,0 +1,89 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Список страниц.
+ * 
+ * Объект вывода.
+ * 
+ * @author Rustam Akhmedov
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: htmltexthl._wc,v 1.11 2007/04/24 21:50:34 sanjar Exp $
+ */
+
+class HTMLTextHL extends WCObject {
+	var $pageId, $level, $exclude;
+	
+	function HTMLTextHL() {
+		$this->DSTable = 'dshtmltext';
+		$this->ds_type = 'htmltext';
+		$this->obj_type = 'htmltexthl';
+		$this->header = '';
+		$this->pageId = 0;
+		$this->level = 1;
+		$this->exclude = array();
+		$this->caching = 2;
+		$this->cached_by_WC = true;
+	}
+	
+	function getCacheId() {
+		$pageId = $this->pageId ? $this->pageId : $this->ctx->page->id;
+		$cacheId = $this->obj_id.'|'.$pageId.'|'.$this->ctx->page->id;
+		return $cacheId;
+	}
+	
+	function fetchData(&$smarty) {
+		$result = false;
+		$pageId = $this->pageId ? $this->pageId : $this->ctx->page->id;
+		
+		if($this->level > 0 && isset($this->ctx->map->id[$pageId])) {
+			$page = &$this->ctx->map->id[$pageId];
+			$pages = array();
+			$baseHref = $page['router'] ? $this->ctx->getPatternFor($page['uri']) : $this->ctx->getPatternFor($page['uri'].'?');
+			
+			$this->_fetchChildren($page, $pages, $this->ctx->map, $baseHref, $this->level - 1);
+			
+			$smarty->assign('header', $this->header);
+			$smarty->assign_by_ref('pages', $pages);
+			
+			$result = array('header', 'pages');
+		}
+		
+		return $result;
+	}
+	
+	function _fetchChildren(&$page, &$pages, &$map, &$base, $level) {
+		$sub = array_diff($map->getChildrenOf($page['uri']), $this->exclude);
+		foreach($sub as $id) {
+			$p = &$map->id[$id];
+			$pages[$id] = array(
+				'href' => $base.$p['name'].'/',
+				'at' => $this->ctx->page->isChildOf($p['uri'], false),
+				'header' => $p['title'],
+				'children' => array()
+			);
+			if($p['router'] == $id)
+				$pages[$id]['href'] .= 'index.php/';
+			if($pages[$id]['at'] > 0 && $level > 0 && $map->hasChildren($p['uri']))
+				$this->_fetchChildren($p, $pages[$id]['children'], $map, $pages[$id]['href'], $level - 1);
+		}
+	}
+}
+?>

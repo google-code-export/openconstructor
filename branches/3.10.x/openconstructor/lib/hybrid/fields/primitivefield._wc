@@ -1,0 +1,123 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Класс представляющий гибридные поля примитивного типа
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: primitivefield._wc,v 1.13 2007/02/27 11:23:19 sanjar Exp $
+ */
+
+class PrimitiveField extends HybridField {
+	// TODO: добавить свойство $encodeemail как в датасорсах
+	var $default;
+	var $min, $max;
+	var $length;
+	var $allowedTags;
+	var $regexp;
+	
+	function PrimitiveField($key, $header, $type, $required) {
+		$this->HybridField($key, $header, 'primitive', $type, $required);
+	}
+	
+	function create() {
+		if(HybridField::create())
+			$this->update();
+		return $this->id;
+	}
+	
+	function update() {
+		$db = &WCDB::bo();
+		$db->query(
+			sprintf("UPDATE $this->table SET header='%1\$s', isreq='%2\$d', regex='%3\$s', allowedtags='%4\$s', length='%5\$d', default_val='%6\$s', min='%7\$d', max='%8\$d' ".
+					"WHERE id=$this->id", addslashes($this->header), intval($this->isRequired), addslashes($this->regexp), addslashes($this->allowedTags), intval($this->length), addslashes($this->default), intval($this->min), intval($this->max))
+		);
+	}
+	
+	function onCreateDocument(&$doc) {
+		switch($this->type) {
+			case 'date': case 'datetime':
+				$doc->fields[$this->key] = $this->formatDate($doc->fields[$this->key]); break;
+			case 'html':
+				$doc->fields[$this->key] = $this->cleanHTML($doc->fields[$this->key]); break;
+			case 'boolean':
+				$doc->fields[$this->key] = $doc->fields[$this->key] ? 1 : 0; break;
+			case 'integer':
+				settype($doc->fields[$this->key], 'int'); break;
+			case 'float':
+				settype($doc->fields[$this->key], 'float'); break;
+		}
+	}
+	
+	function onUpdateDocument(&$old, &$new) {
+		$this->onCreateDocument($new);
+		if(!$this->isValid($new->fields[$this->key]))
+			$new->fields[$this->key] = $old->fields[$this->key];
+	}
+	
+	function fetchValue(&$doc) {
+		switch($this->type) {
+			case 'date': case 'datetime':
+				$doc->fields[$this->key] = $this->formatDate($doc->fields[$this->key], 'd/m/Y');
+		}
+	}
+	  
+	function formatDate($value, $f = 'Y-m-d') {
+		$time = strtotime($value ? $value : 'now');
+		return $time > 0 ? date($this->type == 'date' ? $f : $f.' H:i:s', $time) : $value;
+	}
+	
+	function &cleanHTML(&$html) {
+		return wcfStripTags($html, $this->allowedTags);
+	}
+	
+	function isValid($value) {
+		switch($this->type) {
+			case 'date': case 'datetime':
+				return @strtotime($value) != -1;
+		}
+		return true;
+	}
+	
+	function getMysqlType() {
+		switch($this->type) {
+			case 'boolean':		return 'TINYINT(1) UNSIGNED NOT NULL';
+			case 'float':		return 'FLOAT NOT NULL';
+			case 'date':		return 'DATE NOT NULL';
+			case 'time':		return 'TIME NOT NULL';
+			case 'datetime':	return 'DATETIME NOT NULL';
+//			case 'pagepath':	return 'INT(11) UNSIGNED NOT NULL';
+			case 'text':
+			case 'html':		return 'TEXT NOT NULL';
+			case 'integer':
+				settype($this->length, 'int');
+				if($this->length < 1 || $this->length > 16)
+					$this->length = 10;
+				return 'INT('.$this->length.') UNSIGNED NOT NULL';
+			case 'string':
+				settype($this->length, 'int');
+				if($this->length < 1 || $this->length > 255)
+					$this->length = 32;
+				return 'VARCHAR ('.$this->length.') NOT NULL';
+		}
+		return null; 
+	}
+}
+?>

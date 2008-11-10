@@ -1,0 +1,235 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: htmlcleaner._wc,v 1.9 2007/02/27 11:23:18 sanjar Exp $
+ */
+
+class HtmlCleaner {
+	var $_rules;
+	var $_cursor, $_inTag;
+	var $_tagExp, $_attrExp;
+	
+	function HtmlCleaner($rules = null) {
+		if(!$rules)
+			$rules = & new HtmlCleanerRules();
+		if(is_object($rules))
+			$this->setRules($rules);
+		elseif($rules)
+			$this->setRulesFromPattern($rules);
+		
+		$this->_attrExp = '~([A-Za-z0-9_\-:]+)(?:\s*=\s*(?:\'[^\']*[\']|"[^"]*["]|[^\s\'"]+))?~us';
+		
+		$tagName = '[A-Za-z][^\s<>]*';
+		$attrName = '[^\s=<>]*';
+		$attr = $attrName.'(?>\s*\=\s*(?>\'[^\']*[\'$]|"[^"]*["$]|[^<>\s]+)?)?';
+		$this->_tagExp = '~<(/?)('.$tagName.')\s*((?>\s+|'.$attr.')*)(>?)~us';
+	}
+	
+	function &clean($html) {
+		$this->_resetCursor();
+		$result = preg_replace_callback($this->_tagExp, array(&$this, 'cleanTag'), $html);
+		$this->_closeOpenedTags($result);
+		return $result;
+	}
+	
+	function &cleanTag($tag) {
+		$tagName = strtolower($tag[2]);
+		if($tag[1]) {
+			$result = '';
+			if(!HtmlCleaner::isSingleTag($tagName) && ($l = $this->_isIn($tagName)))
+				for($i = $l; $i > 0; $i--)
+					if($this->_rules->matchTag($tagName = $this->_goUpper())) 
+						$result .= "</$tagName>";
+		} elseif(!$tag[4]) {
+			$result = htmlspecialchars($tag[0], ENT_COMPAT, 'UTF-8');
+		} else {
+			$single = HtmlCleaner::isSingleTag($tagName);
+			if($this->_rules->matchTag($tagName)) {
+				$attrs = '';
+				$m = array();
+				if(preg_match_all($this->_attrExp, $tag[3], $m)) {
+					for($i = 0, $l = sizeof($m[0]); $i < $l; $i++)
+						if($this->_rules->matchAttribute($tagName, strtolower($m[1][$i])))
+							$attrs .= " {$m[0][$i]}";
+				}
+				if(@substr(rtrim($tag[3]), -1) == '/') {
+					$single = true;
+					$attrs .= ' /';
+				}
+				for($closePrev = ''; $this->_inTag && !$this->isNestingValid($this->_inTag, $tagName); $this->_goUpper())
+					if($this->_rules->matchTag($this->_inTag))
+						$closePrev .= "</{$this->_inTag}>";
+				$result = "{$closePrev}<{$tagName}$attrs>";
+			} else
+				$result = '';
+			if(!$single)
+				$this->_enterTag($tagName);
+		}
+		return $result;
+	}
+	
+	function setRules(&$rules) {
+		$this->_rules = &$rules;
+	}
+	
+	function setRulesFromPattern($pattern) {
+		$this->setRules(HtmlCleanerRules::fromPattern($pattern));
+	}
+	
+	function isSingleTag($tagName) {
+		static $single;
+		if($single == null)
+			$single = array_flip(array('img', 'br', 'hr', 'link', 'base', 'input', 'wbr', 'area'));
+		return isset($single[$tagName]);
+	}
+	
+	function isNestingValid($parent, $child) {
+		static $nnb; // Not nestable block tags
+		if($nnb == null)
+			$nnb = array_flip(array('p'));
+		return HtmlCleaner::isInlineTag($child)
+			|| (!isset($nnb[$parent]) && !HtmlCleaner::isInlineTag($parent));
+	}
+	
+	function isInlineTag($tagName) {
+		static $tags;
+		if($tags == null)
+			$tags = array_flip(array('a', 'b', 'big', 'br', 'cite', 'em', 'font', 'i', 'img', 'input', 'nobr', 's', 'select', 'small', 'span', 'strike', 'strong', 'sub', 'sup', 'u', 'wbr'));
+		return isset($tags[$tagName]);
+	}
+	
+	function _resetCursor() {
+		$this->_cursor = array();
+		$this->_inTag = null;
+	}
+	
+	function _enterTag($tagName) {
+		$this->_cursor[sizeof($this->_cursor)] = $tagName;
+		$this->_inTag = $tagName;
+	}
+	
+	function _goUpper() {
+		$result = null;
+		if($this->_inTag) {
+			$result = $this->_inTag;
+			unset($this->_cursor[$l = sizeof($this->_cursor) - 1]);
+			$this->_inTag = $l > 0 ? $this->_cursor[$l - 1] : null;
+		}
+		return $result;
+	}
+	
+	function _isIn($tagName) {
+		for($l = sizeof($this->_cursor), $i = $l - 1; $i >= 0; $i--)
+			if($this->_cursor[$i] == $tagName)
+				return $l - $i;
+		return 0;
+	}
+	
+	function _closeOpenedTags(&$html) {
+		while($tag = $this->_goUpper())
+			if($this->_rules->matchTag($tag))
+				$html .= "</$tag>";
+	}
+	
+	function &getInstance($allowedTags) {
+		static $instances = array();
+		$crc32 = sprintf('%x', crc32($allowedTags));
+		if(!isset($instances[$crc32]))
+			$instances[$crc32] = new HtmlCleaner($allowedTags);
+		return $instances[$crc32];
+	}
+}
+
+class HtmlCleanerRules {
+	var $_tags = array(), $_attrs = array();
+	var $_gAttrs = array();
+	var $_allowAllTags = false;
+	
+	function HtmlCleanerRules() {
+	}
+	
+	function addTag($tagName) {
+		if(!$this->_allowAllTags) {
+			if($tagName == '*')
+				$this->_allowAllTags = true;
+			else
+				$this->_tags[$tagName] = true;
+		}
+	}
+	
+	function addAttribute($tagName, $attrName, $allow = true) {
+		static $rulePr = 1; // priority
+		if($tagName == null)
+			$a = &$this->_gAttrs;
+		else
+			$a = &$this->_attrs[$tagName];
+		$a[$attrName] = array(0, 0);
+		$a[$attrName][$allow ? 1 : 0] = $rulePr++;
+	}
+	
+	function matchTag($tagName) {
+		return $this->_allowAllTags || isset($this->_tags[$tagName]);
+	}
+	
+	function matchAttribute($tagName, $attrName) {
+		$a = &$this->_attrs; $g = &$this->_gAttrs;
+		return isset($a[$tagName][$attrName]) ? $a[$tagName][$attrName][1] > $a[$tagName][$attrName][0]
+			: (isset($g[$attrName]) ? $g[$attrName][1] > $g[$attrName][0]
+				: ((@$a[$tagName]['*'][1] > @$g['*'][0]) || (@$g['*'][1] > @$a[$tagName]['*'][0]))
+			)
+		;
+	}
+	
+	/**
+	 * @param $pattern - allowed tags and attributes
+	 * 		<tag1>	- allow tag1
+	 * 		<tag1 attr1,attr2>	- allow tag1 with attributes attr1 and attr2
+	 * 		<tag1 *>	- allow tag1 with all attributes
+	 * 		<tag1 *!attr1,attr2>	- allow tag1 with all attributes except attr1 and attr2
+	 * 		<tag1 !attr1,attr2>	- allow tag1 and disallow attributes attr1 and attr2
+	 * 		<tag1 !*>	- allow tag1 with no attributes
+	 * 		<* !*>		- allow all tags with no atributes
+	 * 		<** attr1,attr2>	- allow attributes attr1 and attr2 in all tags
+	 * 		<** !attr1,attr2>	- disallow attributes attr1 and attr2 in all tags 
+	 * @return htmlcleanerrules
+	 */
+	function &fromPattern($pattern) {
+		$result = & new HtmlCleanerRules();
+		$m = array();
+		if($pattern && (preg_match_all('~<([a-z0-9_\-]+|\*\*?)\s*(?:(\*?)[\s,]*(\!?)\s*(\*|(?:[\w,]+)))?\s*>~us', utf8_strtolower($pattern), $m) > 0))
+			for($i = 0, $l = sizeof($m[0]); $i < $l; $i++) {
+				if($m[1][$i] != '**')
+					$result->addTag($m[1][$i]);
+				if($m[2][$i] || $m[4][$i]) {
+					$tag = $m[1][$i]{0} != '*' ? $m[1][$i] : null;
+					if($m[2][$i])
+						$result->addAttribute($tag, '*', true);
+					$attrs = explode(',', $m[4][$i]);
+					foreach($attrs as $attr)
+						if($attr)
+							$result->addAttribute($tag, $attr, $m[3][$i] != '!');
+				}
+			}
+		return $result;
+	}
+}
+?>

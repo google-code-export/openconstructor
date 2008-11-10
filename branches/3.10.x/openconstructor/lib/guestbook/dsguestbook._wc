@@ -1,0 +1,156 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: dsguestbook._wc,v 1.13 2007/02/27 11:23:21 sanjar Exp $
+ */
+require_once(LIBDIR.'/security/wcs._wc');
+
+class DSGuestBook extends WCDataSource
+{
+
+	var $stripHTML;
+	var $allowedTags;
+	var $autoPublish;
+
+	function DSGuestBook()
+	{
+		$this->ds_type='guestbook';
+		$this->DSTable='dsguestbook';
+		$this->size=0;
+		$this->stripHTML=true;
+		$this->allowedTags='<strong><b><em><i><p><br>';
+		$this->autoPublish=true;
+		$this->isIndexable=false;
+	}
+
+	function add($subject, $html, $date, $author = '', $email = '') {
+		WCS::assert($this, 'createdoc');
+		assert(trim($subject) != '');
+		if($this->isFull()) return false;
+		$html = &$this->cleanHTML(&$html);
+		$db = &WCDB::bo();
+		$db->query(
+			'INSERT INTO '.$this->DSTable.
+				' (ds_id, published, subject, author, email, html, date, wcsowner)'.
+			'VALUES'.
+				' ('.$this->ds_id.', '.intval($this->autoPublish).', "'.addslashes($subject).'", "'.addslashes($author).'", "'.addslashes($email).'", "'.addslashes($html).'", '.$date.', '.Authentication::getOriginalUserId().')'
+		);
+		$id = $db->lastInsertId();
+		if($id) {
+			$db->query(
+				'UPDATE '.$this->DSTable.
+				' SET real_id='.$id.
+				' WHERE id='.$id
+			);
+			$this->updateSize();
+			if($this->autoPublish) {
+				$this->addToIndex($id, $subject, &$html, $html);
+				$this->evictDocCache($id);
+			}
+		}
+		return $id;
+	}
+
+	function delete($ids) {
+		WCS::assertValue(WCS::decide($this, 'removedoc') || WCS::ownerAllowed($this->getSDoc(), 'removedoc'), $this, 'removedoc');
+		$this->filterDocs($ids);
+		if(!sizeof($ids)) return;
+		$_ids = implode(',', $ids);
+		
+		$db = &WCDB::bo();
+		$db->query(
+			'DELETE FROM '.$this->DSTable.
+			' WHERE real_id IN('.$_ids.') OR id IN('.$_ids.')'
+		);
+		
+		$this->updateSize();
+
+		$this->removeFromIndex(&$_ids);
+		
+		$this->evictDocCache(&$ids);
+	}
+
+	function update($id, $subject, $html, $date, $author = '', $email = '') {
+		assert(trim($subject) != '');
+		$rec = &$this->get_record($id);
+		assert($rec['id'] == $rec['real_id']);
+		$doc = &$this->wrapDocument($rec);
+		assert($doc->id > 0);
+		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
+		
+		$html = &$this->cleanHTML(&$html);
+		$ids = $this->getAliases($id, true);
+		$db = &WCDB::bo();
+		$db->query(
+			'UPDATE '.$this->DSTable.
+			' SET subject="'.addslashes($subject).
+				'", html="'.addslashes($html).
+				'", author="'.addslashes($author).
+				'", email="'.addslashes($email).
+				'", date='.$date.
+			' WHERE id IN('.implode(',',$ids).')'
+		);
+		
+		$this->updateIndex($id, $subject, &$html, $html);
+		
+		$this->evictDocCache(&$ids);
+		return true;
+	}
+
+	function create_alias($id){
+//			WCS::assert($this, 'createdoc');
+		if(!@$id) return false;
+		$res = $this->get_record($id, true);
+		if($res == NULL) return false;
+		$db = &WCDB::bo();
+		$db->query(
+			'INSERT INTO '.$this->DSTable.
+				' (real_id, ds_id, published, subject, author, email, html, date, wcsowner)'.
+			'VALUES'.
+				' ('.$id.', '.$this->ds_id.', '.intval($this->autoPublish).', "'.addslashes($res['subject']).'", "'.addslashes($res['author']).'", "'.addslashes($res['email']).'", "'.addslashes($res['html']).'", '.$res['date'].', '.Authentication::getOriginalUserId().')'
+		);
+	}
+	
+	function save() {
+		$this->evictDocCache();
+		return parent::save();
+	}
+	
+	function &getIndexableDocs($id = null) {
+		$result = array();
+		$cond = ($id != null ? "id IN ($id) AND " : '')."ds_id = {$this->ds_id}";
+		$db = &WCDB::bo();
+		$res = $db->query("SELECT id, subject as header, html as content, html as intro FROM {$this->DSTable} WHERE $cond AND published");
+		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++)
+			$result[$i] = mysql_fetch_assoc($res);
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &getCopiableProps() {
+		static $result;
+		if(!is_array($result))
+			$result = array('allowedTags', 'stripHTML', 'autoPublish');
+		return $result;
+	}
+}
+?>

@@ -1,0 +1,162 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Выводит редактор для гибридного документа.
+ * 
+ * Объект вывода ВК.
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: hybridbodyedit._wc,v 1.10 2007/04/03 09:00:36 sanjar Exp $
+ */
+require_once(LIBDIR.'/../include/toolbar._wc');
+require_once('hybridagent._wc');
+
+class HybridBodyEdit extends WCObject {
+	var $dsIdKey;
+	var $docId, $docFields;
+	var $agent;
+	var $ds;
+	var $no404;
+	var $header;
+
+	function HybridBodyEdit() {
+		$this->DSTable='dshybrid';
+		$this->ds_type='hybrid';
+		$this->obj_type='hybridbodyedit';
+		$this->docId = 'item';
+		$this->dsIdKey = '';
+		$this->docFields = array();
+		$this->no404 = false;
+		$this->caching = 0;
+		$this->cached_by_WC = true;
+	}
+	
+	function getCacheId() {
+		$ctx = &Context::getInstance();
+		$docId = (int) $ctx->getParam($this->docId);
+		$cacheId = $this->obj_id.'|'.$docId.'|'.$this->agent->dsId;
+		return $cacheId;
+	}
+	
+	function onPageLoad() {
+		$this->agent = &HybridAgent::getInstance($this->dsIdKey ? $this->ctx->getParam($this->dsIdKey) : $this->ds_id);
+	}
+	
+	function fetchData(&$smarty) {
+		$result = false;
+		if($this->agent && sizeof($this->docFields)) {
+			$ctx = &Context::getInstance();
+			$ds = &$this->agent->_getDs($this->agent->dsId);
+			$id = $ctx->getParam($this->docId);
+			if($id == 'new') {
+				$hDoc = &$ds->getEmptyDocument();
+				$preset = array_keys($_GET);
+				for($i = 0; $i < sizeof($preset); $i++)
+					if(array_key_exists($preset[$i], $hDoc->fields))
+						$hDoc->fields[$preset[$i]] = $_GET[$preset[$i]];
+					elseif($preset[$i] == 'header')
+						$hDoc->header = @$_GET['header'];
+			} else {
+				settype($id, 'int');
+				$hDoc = &$ds->getDocument($id);
+			}
+			if($hDoc) {
+				$this->agent->getTrees();
+				$hDoc->fetchValues();
+				$doc = array(
+					'_id' => $hDoc->id,
+					'_header' => $hDoc->header,
+					'_published' => $hDoc->isPublished,
+					'_owner' => $hDoc->sRes->owner,
+					'_dsName' => $ds->name,
+					'_dsId' => $hDoc->ds_id,
+					'_viewDsId' => $this->agent->dsId,
+					'_type' => $this->agent->dsKey
+				);
+				$doc['id'] = $doc['_id'];
+				$fields = array(
+					'_id' => array('key' => 'id'),
+					'_header' => array('key' => 'header'),
+					'_published' => array('key' => 'published'),
+				);
+				$fields['id'] = $fields['_id'];
+				$rec = &$ds->getRecord();
+				for($i = 0, $l = sizeof($this->docFields); $i < $l; $i++) 
+					if(isset($this->agent->dsFields[$this->docFields[$i]['id']])) {
+						$f = &$this->agent->dsFields[$this->docFields[$i]['id']];
+						$hf = $rec->fields['f_'.$f['name']];
+						$doc[$f['name']] = $hDoc->fields[$hf->key];
+						$fields[$f['name']] = array(
+							'key' => $hf->key,
+							'header' => $hf->header
+						);
+						$fld = &$fields[$f['name']];
+						switch($f['type']) {
+							case DSF_PRIMITIVE:
+								$fld['length'] = $hf->length;
+							break;
+							case DSF_DOCUMENT:
+							case DSF_ARRAY:
+								$fld['isOwn'] = $hf->isOwn;
+								$fld['fromDs'] = $hf->fromDS;
+							break;
+							case DSF_TREE:
+								$fld['treeId'] = $hf->treeId;
+								$fld['isArray'] = $hf->isArray;
+							break;
+							case DSF_ENUM:
+								if(!isset($ef)) {
+									loadClass('wcenumfactory', '/enum/wcenumfactory._wc');
+									$ef = &WCEnumFactory::getInstance();
+								}
+								$enum = &$ef->load($hf->enumId);
+								$fld['enumId'] = $hf->enumId;
+								$fld['isArray'] = $hf->isArray;
+								$fld['values'] = $fld['keys'] = $fld['headers'] = array();
+								if($enum) {
+									$values = $enum->getAllValues();
+									foreach($values as $id=>$v) {
+										$fld['values'][] = $id;
+										$fld['keys'][] = $v['value'];
+										$fld['headers'][] = $v['header'];
+									}
+								}
+							break;
+							case DSF_DATASOURCE:
+						}
+					}
+				$smarty->assign('header', $this->header);
+				$smarty->assign_by_ref('doc', $doc);
+				$smarty->assign_by_ref('fields', $fields);
+				$result = array('header', 'doc', 'fields');
+			} elseif(!$this->no404)
+				$this->ctx->throw404();
+		}
+		return $result;
+	}
+	
+	function &_getDSFields() {
+		static $result;
+		if(!is_array(&$result)) $result = array('ds_id', 'dsIdKey');
+		return $result;
+	}
+}
+?>

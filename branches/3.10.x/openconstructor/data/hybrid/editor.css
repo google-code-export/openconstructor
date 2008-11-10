@@ -1,0 +1,130 @@
+DIV.head {
+	background:#ccc;
+	margin:-10px -10px 10px;
+	padding:7px 10px 9px;
+	font-weight:bold;
+}
+DIV.head A {
+	font-weight:normal;
+	text-decoration:none;
+	font-size:10px;
+}
+DIV.pink TEXTAREA {
+	background:pink;
+}
+DIV#wysiwyg, DIV#array {
+	border:solid 1px #999;
+	border-top:none;
+	padding:5px;
+	background:#f2f2f2;
+}
+NOBR.tool {
+	width:100%;
+	padding:3px 0;
+	cursor:default;
+}
+NOBR.tool A {
+	padding:0px;
+	border:solid 1px #f2f2f2;
+}
+NOBR.tool A:hover {
+	border:outset 1px;
+}
+DIV#array TABLE {width:100%;border:solid 1px #ccc;}
+DIV#array TR.r1, DIV.docs TR.r1 {background:#f2f2f2;}
+DIV#array TR.r0, DIV.docs TR.r0 {background:#fff;}
+DIV#array TD {padding:4px 6px 5px;border-bottom:solid 1px #f8f8f8;}
+DIV#array TD.input {width:20px;}
+DIV.tabbed DIV {
+	padding:5px 0;
+}
+DIV.tabbed DIV A {
+	margin-right:5px;
+}
+DIV.tabs {
+	width:100%;
+	border-bottom:solid 1px #999;
+}
+DIV.docs TABLE {
+	width:100%;
+	border:solid 1px #ccc;
+}
+DIV.docs THEAD TD {
+	background:#ccc;
+	padding:7px 5px;
+}
+DIV.docs TBODY TD {
+	padding:5px;
+}
+DIV.docs TD.c3, DIV.docs TD.c4, DIV.docs TD.c5{
+	text-align:center;
+}
+DIV.docs TABLE  TD.c2{
+	width:100%;
+}
+DIV.tabs UL {
+	list-style-type:none;
+	font:12px tahoma,verdana;
+	margin:0px;
+	padding:0px;
+}
+DIV.tabs UL LI {
+	float:left;
+	padding:7px 10px;
+	cursor:pointer;
+	text-decoration:underline;
+	color:#36c;
+	margin:0px 3px;
+	border:solid 1px #f2f2f2;
+	border-bottom:none;
+}
+DIV.tabs UL LI.active {
+	color:#000;
+	cursor:default;
+	text-decoration:none;
+	font-weight:bold;
+	border:solid 1px #999;
+	border-bottom:solid 1px #f2f2f2;
+	margin-bottom:-1px;
+	background:#f2f2f2;
+}
+DIV.tabs UL LI.dropdown {
+	float:right;
+	border:none;
+	font-size:11px;
+}
+IMG.btn {
+	width:24px;
+	height:24px;
+	cursor:pointer;
+}
+DIV.dd {
+	background:#fff;
+	border:solid 1px #ccc;
+	font:12px tahoma,verdana;
+	width:100px;
+}
+DIV.dd UL {
+	list-style-type:none;
+	margin:0px;
+	padding:0px;
+}
+DIV.dd UL LI {
+	padding:5px;
+	border:solid 1px #fff;
+	cursor:pointer;
+	width:100%;
+}
+DIV.dd UL LI.hover {
+	border:solid 1px #39c;
+	background:#69c;
+	color:#fff;
+}
+DIV.select {
+	background:#ccc;
+	padding:2px;
+}
+DIV.select IFRAME {
+	border:solid 1px #999;
+	margin-bottom:2px;
+}

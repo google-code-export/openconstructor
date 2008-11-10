@@ -1,0 +1,192 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id$
+ */
+	error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
+	
+	// ----------------------
+	// Окна
+	// ----------------------
+	
+	define('BTN_SAVE_CHANGES', 'Сохранить');
+	@define('BTN_CANCEL', 'Отмена');
+	define('H_RES_OWNERS', 'Владельцы');
+	define('PR_RES_OWNER', 'Владелец');
+	define('PR_RES_GROUP', 'Группа');
+	define('H_AUTHS', 'Полномочия');
+	define('H_DOC_AUTHS', 'Полномочия (документы раздела)');
+	define('H_ACTION', '&nbsp;');
+	define('H_OWNER_AUTHS', 'Владелец');
+	define('H_GROUP_AUTHS', 'Группа');
+	define('H_ALLOW', 'Разрешить');
+	define('H_DENY', 'Запретить');
+	
+	define('EDIT_DOC_AUTHS', 'Настройка безопастности');
+	define('EDIT_DOCS_AUTHS', 'Настройка безопастности документов');
+	define('EDIT_DS_AUTHS', 'Настройка безопастности');
+	define('EDIT_ENUM_AUTHS', 'Настройка безопастности');
+	define('EDIT_GROUP_AUTHS', 'Настройка безопастности');
+	define('EDIT_OBJECT_AUTHS', 'Настройка безопастности');
+	define('EDIT_OBJECTS_AUTHS', 'Настройка безопастности объектов');
+	define('EDIT_PAGE_AUTHS', 'Настройка безопастности');
+	define('EDIT_TPL_AUTHS', 'Настройка безопастности');
+	define('EDIT_TPLS_AUTHS', 'Настройка безопастности шаблонов');
+	define('EDIT_TREE_AUTHS', 'Настройка безопастности');
+	define('EDIT_USER_AUTHS', 'Настройка безопастности');
+	define('EDIT_USERS_AUTHS', 'Настройка безопастности пользователей');
+	
+	
+	// ------------------------
+	// Действия
+	// ------------------------
+	
+	// Open Constructor
+	define('SYS_SITEMAP', 'Видеть вкладку "Карта Сайта"');
+	define('SYS_DATA', 'Видеть вкладку "Данные"');
+	define('SYS_INLINEEDIT', 'Видеть сайт в режиме редактора');
+	define('SYS_OBJECTS', 'Видеть вкладку "Объекты"');
+	define('SYS_TPLS', 'Видеть вкладку "Шаблоны"');
+	define('SYS_CATALOG', 'Видеть вкладку "Каталог"');
+	define('SYS_USERS', 'Видеть вкладку "Пользователи"');
+	
+	define('SYS_DATA_DSHTMLTEXT', 'Создавать разделы HTML текст');
+	define('SYS_DATA_DSPUBLICATION', 'Создавать разделы Публикаций');
+	define('SYS_DATA_DSEVENT', 'Создавать Календари событий');
+	define('SYS_DATA_DSGALLERY', 'Создавать Фото галереи');
+	define('SYS_DATA_DSARTICLE', 'Создавать разделы Статей');
+	define('SYS_DATA_DSTEXTPOOL', 'Создавать Пулы текстов');
+	define('SYS_DATA_DSGUESTBOOK', 'Создавать Гостевые книги');
+	define('SYS_DATA_DSPHPSOURCE', 'Создавать разделы PHP кода');
+	define('SYS_DATA_DSFILE', 'Создавать разделы Файлов');
+	define('SYS_DATA_DSHYBRID', 'Создавать Гибридные разделы');
+	define('SYS_DATA_DSRATING', 'Создавать Журналы оценок');
+	define('SYS_DATA_ENUM', 'Создавать Перечисления(enum)');
+	
+	define('SYS_OBJECTS_DSHTMLTEXT', 'Создавать объекты HTML текста');
+	define('SYS_OBJECTS_DSPUBLICATION', 'Создавать объекты Публикаций');
+	define('SYS_OBJECTS_DSEVENT', 'Создавать объекты Календаря событий');
+	define('SYS_OBJECTS_DSGALLERY', 'Создавать объекты Фотогалерей');
+	define('SYS_OBJECTS_DSARTICLE', 'Создавать объекты Статей');
+	define('SYS_OBJECTS_DSTEXTPOOL', 'Создавать объекты Пула текстов');
+	define('SYS_OBJECTS_DSGUESTBOOK', 'Создавать объекты Гостевой книги');
+	define('SYS_OBJECTS_DSPHPSOURCE', 'Создавать объекты PHP кода');
+	define('SYS_OBJECTS_DSFILE', 'Создавать объекты Файлов');
+	define('SYS_OBJECTS_DSHYBRID', 'Создавать объекты Гибридных данных');
+	define('SYS_OBJECTS_DSMISCELLANY', 'Создавать объекты в разделе "Разное"');
+	define('SYS_OBJECTS_DSUSERS', 'Создавать объекты модуля безопастности');
+	define('SYS_OBJECTS_DSSEARCH', 'Создавать объекты поиска');
+	define('SYS_OBJECTS_DSRATING', 'Создавать объекты Журналов оценок');
+	
+	define('SYS_TPLS_DSHTMLTEXT', 'Создавать шаблоны HTML текста');
+	define('SYS_TPLS_DSPUBLICATION', 'Создавать шаблоны Публикаций');
+	define('SYS_TPLS_DSEVENT', 'Создавать шаблоны Календаря событий');
+	define('SYS_TPLS_DSGALLERY', 'Создавать шаблоны Фото галерей');
+	define('SYS_TPLS_DSARTICLE', 'Создавать шаблоны Статей');
+	define('SYS_TPLS_DSTEXTPOOL', 'Создавать шаблоны Пула текстов');
+	define('SYS_TPLS_DSGUESTBOOK', 'Создавать шаблоны Гостевой книги');
+	define('SYS_TPLS_DSPHPSOURCE', 'Создавать шаблоны PHP кода');
+	define('SYS_TPLS_DSFILE', 'Создавать шаблоны Файлов');
+	define('SYS_TPLS_DSHYBRID', 'Создавать шаблоны Гибридных данных');
+	define('SYS_TPLS_DSMISCELLANY', 'Создавать шаблоны для объектов "Разное"');
+	define('SYS_TPLS_DSSEARCH', 'Создавать шаблоны для объектов поиска');
+	define('SYS_TPLS_DSSITE', 'Создавать шаблоны страниц');
+	define('SYS_TPLS_DSRATING', 'Создавать шаблоны Журналов оценок');
+	
+	define('SYS_CATALOG_TREE', 'Создавать деревья');
+	define('SYS_CATALOG_FILTER', 'Создавать фильтры');
+	
+	define('SYS_USERS_MANAGE', 'Создавать группы пользователей');
+	
+	// Раздел данных
+	define('DS_CREATEDOC', 'Создавать документ в разделе');
+	define('DS_EDITDOC', 'Редактировать документы раздела');
+	define('DS_EDITDS', 'Редактировать свойства раздела');
+	define('DS_EDITDS_CHMOD', 'Настраивать безопастность раздела');
+	define('DS_PUBLISHDOC', 'Опуликовывать документы раздела');
+	define('DS_REMOVEDOC', 'Удалять документы раздела');
+	define('DS_REMOVEDS', 'Удалить раздел');
+
+	// Документ
+	define('DOC_EDITDOC', 'Редактировать документ');
+	define('DOC_PUBLISHDOC', 'Опубликовывать документ');
+	define('DOC_REMOVEDOC', 'Удалить документ');
+
+	// Перечисление
+	define('ENUM_ADDVALUE', 'Создавать значение');
+	define('ENUM_EDITENUM', 'Редактировать перечисление');
+	define('ENUM_EDITENUM_CHMOD', 'Настраивать безопастность перечисления');
+	define('ENUM_EDITVALUE', 'Редактировать значения');
+	define('ENUM_REMOVEENUM', 'Удалить перечисление');
+	define('ENUM_REMOVEVALUE', 'Удалять значения');
+
+	// Группа
+	define('GROUP_ADDMEMBER', 'Добавлять пользователей(давать членство)');
+	define('GROUP_CREATEUSER', 'Создавать пользователей в группе');
+	define('GROUP_EDITGROUP', 'Редактировать свойства группы');
+	define('GROUP_EDITGROUP_CHMOD', 'Настраивать безопастность группы');
+	define('GROUP_EDITGROUP_UMASK', 'Задавать права создаваемых пользователей');
+	define('GROUP_EDITUSER', 'Редактировать пользователей группы');
+	define('GROUP_REMOVEGROUP', 'Удалить группу');
+	define('GROUP_REMOVEMEMBER', 'Искючать пользователей из группы');
+	define('GROUP_REMOVEUSER', 'Удалять пользователей в группе');
+
+	// Объект
+	define('OBJ_EDITOBJ', 'Редактировать свойсва объекта');
+	define('OBJ_EDITOBJ_CHMOD', 'Настраивать безопастность объекта');
+	define('OBJ_EDITOBJ_DS', 'Связывать объект с данными');
+	define('OBJ_EDITOBJ_TPL', 'Задавать шаблон объекта');
+	define('OBJ_REMOVEOBJ', 'Удалить объект');
+
+	// Страница
+	define('PAGE_EDITPAGE', 'Редактировать свойсва страницы');
+	define('PAGE_EDITPAGE_CACHING', 'Настраивать кеширование страницы');
+	define('PAGE_EDITPAGE_CHMOD', 'Настраивать безопастность страницы');
+	define('PAGE_EDITPAGE_PUBLISH', 'Опубликовывать страницу');
+	define('PAGE_EDITPAGE_URI', 'Изменять URI');
+	define('PAGE_EDITPAGE_SECURITY', 'Давать доступ пользователям на страницу сайта');
+	define('PAGE_MANAGESUB', 'Полностью управлять подстраницами');
+	define('PAGE_PAGEBLOCK', 'Менять расположение объектов');
+	define('PAGE_PAGEBLOCK_MANAGE', 'Добавлять/Удалять объекты');
+	define('PAGE_REMOVEPAGE', 'Удалить страницу');
+
+	// Шаблон
+	define('TPL_EDITTPL', 'Редактировать шаблон');
+	define('TPL_EDITTPL_CHMOD', 'Настраивать безопастность шаблона');
+	define('TPL_REMOVETPL', 'Удалить шаблон');
+
+	// Дерево
+	define('TREE_EDITTREE', 'Редактировать узлы дерева');
+	define('TREE_EDITTREE_CHMOD', 'Настраивать безопастность дерева');
+	define('TREE_MANAGETREE', 'Создавать/Удалять узлы дерева');
+	define('TREE_REMOVETREE', 'Удалить дерево');
+
+	// Пользователь
+	define('USER_EDIT', 'Редактировать свойсва пользователя');
+	define('USER_EDIT_CHMOD', 'Настраивать безопастность пользователя');
+	define('USER_EDIT_EMAIL', 'Менять email');
+	define('USER_EDIT_EXPIRY', 'Менять срок действия');
+	define('USER_EDIT_GROUP', 'Менять основную группу');
+	define('USER_EDIT_PWD', 'Менять пароль');
+	define('USER_EDIT_STATUS', 'Менять статус');
+	define('USER_REMOVE', 'Удалить пользователя');
+	
+	error_reporting($_oldLevel);
+?>

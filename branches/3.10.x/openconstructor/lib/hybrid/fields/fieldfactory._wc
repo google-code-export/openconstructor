@@ -1,0 +1,237 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: fieldfactory._wc,v 1.7 2007/05/15 23:05:20 sanjar Exp $
+ */
+require_once('hybridfield._wc');
+
+class FieldFactory {
+	function FieldFactory() {}
+	
+	function createField(&$record, &$field) {
+		assert($record->ds_id > 0 && $field->id == null && $field->getMysqlType() != null && trim($field->header) != '');
+		WCS::assert($record->ds, 'editds');
+		$field->key = FieldFactory::getFullKey($field->key);
+		$field->setDS($record->ds_id);
+		if(FieldFactory::fieldExists($field->key, $record->ds_id) || !FieldFactory::alterTableAddField($field))
+			return false;
+		if($field->create()) {
+			$record->fields[$field->key] = $field;
+			return $field->id;
+		}
+		FieldFactory::alterTableDropField($field);
+		return false;
+	}
+	
+	function updateField(&$old, &$new) {
+		require_once(LIBDIR.'/dsmanager._wc');
+		$dsm = new DSManager();
+		$ds = &$dsm->load($old->ds_id);
+		WCS::assert($ds, 'editds');
+		switch ($old->family) {
+			case 'primitive':
+				if($old->length != $new->length)
+					FieldFactory::alterTableUpdateField($new);
+			break;
+			case 'tree':
+				if($old->isArray)
+					$new->isArray = true;
+			case 'enum':
+				if($old->isArray != $new->isArray)
+					FieldFactory::alterTableUpdateField($new);
+			break;
+		}
+		$new->update();
+	}
+	
+	function removeFields(&$record, $keys) {
+		foreach($keys as $key)
+			if(isset($record->fields[$key]) && $record->fields[$key]->ds_id == $record->ds_id && WCS::decide($record->ds, 'editds')) {
+				$record->fields[$key]->remove();
+				FieldFactory::alterTableDropField($record->fields[$key]);
+				unset($record->fields[$key]);
+			}
+	}
+	
+	function &getField($id) {
+		assert(intval($id) > 0);
+		$result = FieldFactory::getFields($j = array($id));
+		if(!sizeof($result))
+			$result[0] = null;
+		return $result[0];
+	}
+	
+	function &getRelatedFields($dsId) {
+		settype($dsId, 'int');
+		assert($dsId > 0);
+		$result = array();
+		$db = &WCDB::bo();
+		$res = $db->query('
+			SELECT dsf.* 
+			FROM hybriddatasources dsh0, hybriddatasources dsh, dshfields dsf
+			WHERE dsh0.ds_id = '.$dsId.' AND (FIND_IN_SET(dsh.ds_id, dsh0.path) > 0 OR INSTR(dsh.ds_key, CONCAT(dsh0.ds_key, ".")) = 1)
+				AND dsh.ds_id = dsf.ds_id
+			ORDER BY dsh.ds_key, dsf.family, dsf.name 
+		');
+		if(mysql_num_rows($res) > 0)
+			while($r = mysql_fetch_assoc($res))
+				$result[] = FieldFactory::getFieldFromArray($r); 
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &getFields(&$ids) {
+		assert(sizeof($ids) > 0);
+		$result = array();
+		$db = &WCDB::bo();
+		$res = $db->query(
+			"SELECT dshfields.* FROM dshfields, hybriddatasources".
+			" WHERE id IN (".implode(',',$ids).") AND dshfields.ds_id = hybriddatasources.ds_id".
+			" ORDER BY hybriddatasources.ds_key, dshfields.family DESC, dshfields.type, dshfields.header"
+		);
+		if(mysql_num_rows($res) > 0)
+			while($r = mysql_fetch_assoc($res))
+				$result[] = FieldFactory::getFieldFromArray($r);
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function enumUpdated(&$enum) {
+		assert($enum != null);
+		$db = &WCDB::bo();
+		$res = $db->query("SELECT dshfields.* FROM dshfields, hybriddatasources WHERE enum_id = {$enum->id}");
+		if(mysql_num_rows($res) > 0)
+			while($r = mysql_fetch_assoc($res)) {
+				$f = FieldFactory::getFieldFromArray($r);
+				FieldFactory::alterTableUpdateField($f);
+			}
+		mysql_free_result($res);
+	}
+	
+	function treeRemoved($treeId) {
+		assert($treeId > 0);
+		$db = &WCDB::bo();
+		$res = $db->query("SELECT dshfields.* FROM dshfields, hybriddatasources WHERE tree = $treeId");
+		if(mysql_num_rows($res) > 0)
+			while($r = mysql_fetch_assoc($res)) {
+				$f = FieldFactory::getFieldFromArray($r);
+				$f->remove();
+				FieldFactory::alterTableDropField($f);
+			}
+		mysql_free_result($res);
+	}
+	
+	function &getFieldFromArray(&$r) {
+		$result = null;
+		if(!sizeof($r))
+			return $result;
+		$class = $r['family'].'field';
+		loadClass($class, '/hybrid/fields/'.$class.'._wc');
+		switch($r['family']){
+			case 'primitive':
+				$result = new PrimitiveField($r['name'], $r['header'], $r['type'], $r['isreq']);
+				$result->length = (int) $r['length'];
+				$result->default = $r['default_val'];
+				$result->min = $r['min'];
+				$result->max = $r['max'];
+				$result->regexp = $r['regex'];
+				$result->allowedTags = $r['allowedtags'];
+			break;
+			case 'datasource':
+				$result = & new DatasourceField($r['name'], $r['header'], $r['type'], $r['fromds']);
+				$result->isRequired = $r['isreq'];
+			break;
+			case 'document':
+				$result = & new DocumentField($r['name'], $r['header'], $r['type'], $r['isreq'], $r['isown'], $r['fromds']);
+			break;
+			case 'array':
+				$result = & new ArrayField($r['name'], $r['header'], $r['type'], $r['isreq'], $r['isown'], $r['fromds']);
+			break;
+			case 'tree':
+				$result = & new TreeField($r['name'], $r['header'], $r['tree'], $r['isreq'], $r['isarray']);
+			break;
+			case 'enum':
+				$result = & new EnumField($r['name'], $r['header'], $r['enum_id'], $r['isreq'], $r['isarray']);
+			break;
+			case 'file':
+				$result = & new FileField($r['name'], $r['header'], $r['types'], $r['isreq']);
+				$result->maxSize = $r['max'];
+				$result->setImgBounds($r['img_bounds']);
+			break;
+			case 'rating':
+				$result = & new RatingField($r['name'], $r['header'], $r['fromds']);
+			break;
+			
+			default:
+				return $result;
+		}
+		$result->id = intval($r['id']);
+		$result->setDS($r['ds_id']);
+		return $result;
+	}
+	
+	function getFullKey($key){
+		$key = preg_replace('/[^A-Za-z0-9_]+/u', '', $key);
+		$key = strtolower($key);
+		$key = preg_replace('/^_+/', '', $key);
+		if(strlen($key) > 16)
+			$key = substr($key, 0, 16);
+		return 'f_'.$key;
+	}
+	
+	function fieldExists($key, $ds_id) {
+		$db = &WCDB::bo();
+		$res = $db->query(
+			"SELECT id FROM dshfields, hybriddatasources t1, hybriddatasources t2".
+			" WHERE t1.ds_id=$ds_id AND INSTR(t2.ds_key, t1.ds_key) = 1 AND dshfields.ds_id = t2.ds_id AND dshfields.name = '$key'".
+			" LIMIT 1"
+		);
+		$exists = mysql_num_rows($res) > 0;
+		mysql_free_result($res);
+		return $exists;
+	}
+	
+	function alterTableAddField(&$field) {
+		$db = &WCDB::bo();
+		$db->query(
+			"ALTER TABLE `$field->ds_table`".
+			" ADD `$field->key` " . $field->getMysqlType()
+		);
+		return $db->errorCode() == 0;
+	}
+	
+	function alterTableDropField(&$field) {
+		$db = &WCDB::bo();
+		$db->query(
+			"ALTER TABLE `$field->ds_table` DROP `$field->key`"
+		);
+	}
+	
+	function alterTableUpdateField(&$field) {
+		$db = &WCDB::bo();
+		$db->query(
+			"ALTER TABLE `$field->ds_table` CHANGE `$field->key`".
+			" `$field->key` ".$field->getMysqlType()
+		);
+	}
+}
+?>

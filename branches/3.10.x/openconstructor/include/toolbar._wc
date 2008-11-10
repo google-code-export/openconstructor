@@ -1,0 +1,109 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: toolbar._wc,v 1.7 2007/02/27 11:23:26 sanjar Exp $
+ */
+	function toolbar($toolbar)
+	{
+		global $_wchome;
+		foreach($toolbar as $act=>$v){
+			if($v=='br'){
+				echo '<wbr>';
+				continue;
+			}
+			if($act == BTN_SAVE && $v['action'])
+				echo "<script>(new Image).src='$_wchome/i/default/e/{$v['pic']}_.gif';</script>";
+			if($v=='separator'){
+				echo '<wbr><IMG SRC="'.WCHOME.'/i/default/e/separator.gif" align="top">';
+				continue;
+			}
+			if($v=='separator_'){
+				echo '<IMG SRC="'.WCHOME.'/i/default/e/separator.gif" align="top">';
+				continue;
+			}
+			if(empty($v['action']))
+				echo "<IMG SRC='$_wchome/i/default/e/{$v['pic']}_.gif' ALT='$act' name='btn_{$v['pic']}' align='top'>";
+			else
+				echo "<A class='tool1' href='javascript:$act' onclick='{$v['action']};return false'><IMG SRC='$_wchome/i/default/e/{$v['pic']}.gif' ALT='$act' name='btn_{$v['pic']}' align='top'></a>";
+		}
+	}
+	function wysiwygtoolbar($control, $add = array())
+	{
+		global $_wchome;
+		$cmd = array(
+			BTN_CUT=>array('pic'=>'cut','action'=>'cut()'),
+			BTN_COPY=>array('pic'=>'copy','action'=>'copy()'),
+			BTN_PASTE=>array('pic'=>'paste','action'=>'paste()'),
+			BTN_REMOVE_FORMAT=>array('pic'=>'unformat','action'=>'removeFormat()'),
+			BTN_REMOVE_STYLES=>array('pic'=>'removecss','action'=>'removeCSS()'),
+			'separator_',
+			BTN_INSERT_IMAGE=>array('pic'=>'image','action'=>'insertImage()'),
+			BTN_INSERT_LINK=>array('pic'=>'link','action'=>'createLink()'),
+			'separator_',
+			BTN_BOLD=>array('pic'=>'bold','action'=>'bold()'),
+			BTN_ITALIC=>array('pic'=>'italic','action'=>'italic()'),
+			'separator_',
+			BTN_ALIGN_LEFT=>array('pic'=>'left','action'=>'justifyLeft()'),
+			BTN_ALIGN_CENTER=>array('pic'=>'center','action'=>'justifyCenter()'),
+			BTN_ALIGN_RIGHT=>array('pic'=>'right','action'=>'justifyRight()'),
+			'separator_',
+			BTN_INDENT=>array('pic'=>'indent','action'=>'indent()'),
+			BTN_OUTDENT=>array('pic'=>'outdent','action'=>'outdent()'),
+			'br',
+			'separator_',
+			BTN_INSERT_UL=>array('pic'=>'ulist','action'=>'unorderedList()'),
+			BTN_INSERT_OL=>array('pic'=>'olist','action'=>'orderedList()'),
+			'separator_',
+			'<select align="middle" onmouseenter=\''.$control.'.prepareStyles(this)\' onchange=\''.$control.'.selectStyle(this)\'><option value="">'.BTN_EDIT_STYLE_CLASS.'</option><option value=""></option></select>',
+			'separator_',
+			BTN_EDIT_STYLE=>array('pic'=>'style','action'=>'editStyle(this)'),
+//			BTN_EDIT_TAG_PROPS=>array('pic'=>'attribute','action'=>'editTag()'),
+			BTN_IMPORT_TABLE=>array('pic'=>'importtbl','action'=>'editTable()'),
+			'separator_',
+			BTN_EDIT_SOURCE=>array('pic'=>'editsrc','action'=>'editSource()'),
+		);
+		if(sizeof($add)) {
+			$add[] = 'separator';
+			$cmd = array_merge($add, $cmd);
+		}
+		foreach($cmd as $act=>$v){
+			if($v=='br'){
+				echo '<wbr>';
+				continue;
+			}
+			if($v=='separator'){
+				echo '<wbr><IMG SRC="'.WCHOME.'/i/default/e/separator.gif" align="top">';
+				continue;
+			}
+			if($v=='separator_'){
+				echo '<IMG SRC="'.WCHOME.'/i/default/e/separator.gif" align="top">';
+				continue;
+			}
+			if(!is_array($v))
+				echo $v;
+			elseif(empty($v['action']))
+				echo "<IMG SRC='$_wchome/i/default/e/{$v['pic']}_.gif' ALT='$act' align='top'>";
+			elseif(!isset($add[$act]))
+				echo "<A href='javascript:$act' onclick='$control.{$v['action']};return false'><IMG SRC='$_wchome/i/default/e/{$v['pic']}.gif' ALT='$act' align='top'></a>";
+			else
+				echo "<A href='javascript:$act' onclick='{$v['action']};return false'><IMG SRC='$_wchome/i/default/e/{$v['pic']}.gif' ALT='$act' align='top'></a>";
+		}
+	}
+?>

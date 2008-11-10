@@ -1,0 +1,50 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: headline._wc,v 1.5 2007/02/27 11:23:19 sanjar Exp $
+ */
+	require_once('../include/headlines._wc');
+	$pageSize=30;
+	if(intval(@$_COOKIE['pagesize'])>0)
+		$pageSize=$_COOKIE['pagesize'];
+	$searchclause=get_clause(@$_GET['search'],'t.name,t.tpl');
+	$hl=$tpls->get_headline($curnode, $pageSize, @$_GET['page'],$searchclause);
+	$icon='tpl';
+	$w=760;
+	$editor='edit'.($curnode=='page'?'page':'').'.php?dstype='.$nodetype;
+	$fields=array(
+		'name'=>HL_NAME,
+		'tpl'=>HL_TPL,
+		'date'=>HL_DATE
+	);
+	$fieldnames=array(
+		'tpl'=>RP_SHOW_TPL,
+		'date'=>RP_SHOW_DATE
+	);
+	if(is_array(@$_COOKIE['vf']))
+		foreach($_COOKIE['vf'] as $f=>$st)
+			if($st=='disabled') unset($fields[$f]);
+	echo '<documents server="'.WCHOME.'/templates/i_templates.php?dstype='.$nodetype.'" type="'.$icon.'" defaultaction="delete_tpl" size="'.(intval(@$_COOKIE['pagesize'])>0?$_COOKIE['pagesize']:$pageSize).'">';
+	echo '<editor href="'.$editor.'" width="'.$w.'" height="null"/>';
+	print_headline($hl);
+	require_once(LIBDIR.'/pager._wc');
+	pager('page','wctemplates t','id','WHERE t.type="'.$curnode.'"',$pageSize,10,$searchclause);
+	echo '</documents>';
+?>

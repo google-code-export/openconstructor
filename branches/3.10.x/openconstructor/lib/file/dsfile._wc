@@ -1,0 +1,416 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: dsfile._wc,v 1.18 2007/02/27 11:23:25 sanjar Exp $
+ */
+require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/data._wc');
+require_once(LIBDIR.'/wcftp._wc');
+	
+class DSFile extends WCDataSource {
+	
+	var $filePath;
+	var $filetypes;
+	var $autoName;
+	var $groups;
+	
+	function DSFile($folder = false)
+	{
+		$this->ds_type='file';
+		$this->DSTable='dsfile';
+		$this->size=0;
+		$this->filePath=false;
+		$this->ftp=NULL;
+		$this->setTypes(array());
+		$this->autoName = false;
+		$this->filePath = $folder;
+		$this->groups = array(WCS_EVERYONE_ID);
+		umask(0);
+	}
+	
+	function create($name, $description, $internal = 0) {
+		$result = null;
+		System::assert('data.dsfile');
+		if($this->filePath != false && substr((string) $this->filePath, 0, 1) != '/') {
+			if($this->filePath === true) {
+			do {
+					$this->filePath = 'auto/'.sprintf('%x', crc32(microtime()));
+				} while(file_exists(ROOT.FILES.'/'.$this->filePath));
+				$result = $this->createFolder($this->filePath, false);
+		} else
+				$result = $this->createFolder($this->filePath);
+				
+			if($result === true){
+				$this->filePath = '/'.$this->filePath.'/';
+				return WCDataSource::create($name, $description, $internal);
+		}
+		}
+		return $result;
+	}
+	
+	function add($name, $description, $fname, $type, $file) {
+		WCS::assert($this, 'createdoc');
+		if(!$this->filePath || $this->isFull())
+			return;
+		if(empty($name) || empty($file) || !file_exists($file))
+			return FILE_HAVE_NOT_BEEN_UPLOADED_W;
+		if(($p = utf8_strrpos((string) $fname, '.')) !== false)
+			$type = (string) @utf8_substr($fname, $p + 1);
+		$type=strtolower($type);
+		if(!$this->isValidFileType($type))
+			return DISALLOWED_FILETYPE_W;
+		if(!$fname)
+			$fname = $this->generateFileName($name, $type);
+		$result=array();
+		if(preg_match('/[^a-z0-9_\\-\\.]+/us',$fname)){
+			$fname=preg_replace('/[^a-z0-9_\\-\\.]/us','_',$fname);
+			$result[]=INCORRECT_FILENAME_I.' ['.FILE_WAS_RENAMED_TO_I.' "'.$fname.'"]';
+		}
+		
+		if(file_exists($_SERVER['DOCUMENT_ROOT'].FILES.$this->filePath.$fname)) {
+			$fname = $this->addPrefixTo($fname);
+			$result[]=FILE_EXISTS_I.' ['.FILE_WAS_RENAMED_TO_I.' "'.$fname.'"]';
+		}
+		$filename=FILES.$this->filePath.$fname;
+		
+		$size = (int) filesize($file);
+		
+		$r=$this->createFile($file,$fname,$type);
+		if($r === true){
+			$time = time();
+			$db = &WCDB::bo();
+			$db->query(
+				'INSERT INTO '.$this->DSTable.
+					' (ds_id, name, description, basename, filename, type, size, created, date, wcsowner)'.
+				'VALUES'.
+					' ('.$this->ds_id.', "'.addslashes($name).'", "'.addslashes($description).'", "'.basename($filename).'","'.$filename.'", "'.addslashes($type).'", '.$size.', '.$time.', '.$time.', '.Authentication::getOriginalUserId().')'
+			);
+			$id = (int) $db->lastInsertId();
+			if(!$id){
+				$result[]='Cannot insert to DB, deleting file...';
+				@unlink($_SERVER['DOCUMENT_ROOT'].$filename);
+			} else {
+				$this->addToIndex($id, $name, &$description, $description);
+				$this->updateSize();
+				$this->evictDocCache();
+			}
+		} else
+			$result[]=$r;
+		return sizeof($result)==0?array($id):array(@$id?$id:'new','<ul><li>'.implode('<li>',$result).'</ul>');
+	}
+		
+	function setTypes($types) {
+		$this->filetypes = array();
+		$disallowed = explode(',', CONF_DSFILE_DISALLOW_TYPES);
+		$length = sizeof($disallowed);
+		foreach($types as $type) {
+			$type = trim($type);
+			if(!$type || !preg_match('~^[A-Za-z0-9_\\-]+$~', $type)) continue;
+			$this->filetypes[sizeof($this->filetypes)] = $type;
+			for($i=0; $i<$length; $i++)
+				if((($disallowed[$i]{0} == '/') && preg_match($disallowed[$i], $type)) || $disallowed[$i] == $type) {
+					unset($this->filetypes[sizeof($this->filetypes) - 1]);
+					break;
+				}
+		}
+	}
+		
+	function setGroups($groups) {
+		WCS::assert($this, 'editds');
+		$this->groups = array_values(&$groups);
+		if(array_search(WCS_EVERYONE_ID, &$this->groups) !== false)
+			$this->groups[] = WCS_EVERYONE_ID;
+		$this->updateHtAccess();
+	}
+	
+	function delete($ids, $sure = false) {
+		if(!$this->filePath)
+			return;
+		WCS::assertValue(WCS::decide($this, 'removedoc') || WCS::ownerAllowed($this->getSDoc(), 'removedoc'), $this, 'removedoc');
+		$this->filterDocs($ids);
+		if(!sizeof($ids))
+			return;
+		
+		$ids = implode(',', $ids);
+		$db = &WCDB::bo();
+		$res = $db->query(
+			'SELECT id, filename'.
+			' FROM '.$this->DSTable.
+			' WHERE id IN('.$ids.')'
+		);
+		if(mysql_num_rows($res)>0) {
+			$ids=array();
+			while($r=mysql_fetch_assoc($res)){
+				@unlink($_SERVER['DOCUMENT_ROOT'].$r['filename']);
+				if($sure||!@file_exists($_SERVER['DOCUMENT_ROOT'].$r['filename']))
+					$ids[]=$r['id'];
+			}
+			if(sizeof($ids)>0)
+				$db->query(
+					'DELETE FROM '.$this->DSTable.
+					' WHERE id IN('.implode(',',$ids).') AND ds_id='.$this->ds_id
+				);
+			$_ids = implode(',', $ids);
+			$this->removeFromIndex(&$_ids);
+			$this->updateSize();
+			$this->evictDocCache(&$ids);
+		}
+		mysql_free_result($res);
+	}
+	
+	function update($id,$name, $description,$fname,$type,$file) {
+		if(!$this->filePath)
+			return;
+		assert(trim($name) != '');
+		$doc = &$this->getDocument($id);
+		assert($doc->id > 0);
+		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
+		
+		$db = &WCDB::bo();
+		$res = $db->query(
+			'SELECT filename'.
+			' FROM '.$this->DSTable.
+			' WHERE id='.$id.' AND type="'.strtolower($type).'"'
+		);
+		if(mysql_num_rows($res)>0)
+			list($filename)=mysql_fetch_row($res);
+		else {
+			mysql_free_result($res);
+			return false;
+		}
+		mysql_free_result($res);
+		
+		$result=array();
+		
+		$newfilename=FILES.$this->filePath.$fname;
+		if(preg_match('/[^a-z0-9_\\-\\.]+/us',$fname)){
+			$result[]=INCORRECT_FILENAME_I;
+			$newfilename=$filename;
+		}
+		
+		if($filename!=$newfilename)
+			if(file_exists($_SERVER['DOCUMENT_ROOT'].$newfilename)){
+				$result[]=FILE_EXISTS_I;
+				$newfilename=$filename;
+			}
+		
+		if($filename!=$newfilename)
+			rename($_SERVER['DOCUMENT_ROOT'].$filename,$_SERVER['DOCUMENT_ROOT'].$newfilename);
+		
+		$db->query(
+			'UPDATE '.$this->DSTable.
+			' SET name="'.addslashes($name).'", description = "'.addslashes($description).'", basename="'.basename($newfilename).'", filename="'.$newfilename.'"'.
+			' WHERE id='.$id
+		);
+		
+		if($file && @file_exists($file) && !empty($type))
+		{
+			@unlink($_SERVER['DOCUEMENT_ROOT'].$newfilename);
+			$size = (int) filesize($file);
+			$r=$this->createFile($file,basename($newfilename),$type);
+			if($r!==true)
+				$result[]=$r;
+			$db->query(
+				'UPDATE '.$this->DSTable.
+				' SET size='.$size.', date='.time().
+				' WHERE id='.$id
+			);
+		}
+		$this->updateIndex($id, $name, &$description, $description);
+		$this->evictDocCache($id);
+		return sizeof($result) == 0 ? true : '<ul><li>'.implode('<li>', $result).'</ul>';
+	}
+	
+	function &get_record($id) {
+		$db = &WCDB::bo();
+		$res = $db->query(
+			'SELECT *'.
+			' FROM '.$this->DSTable.
+			' WHERE ds_id='.$this->ds_id.' AND id='.$id
+		);
+		$result = mysql_fetch_assoc($res);
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &getIndexableDocs($id = null) {
+		$result = array();
+		$cond = ($id != null ? "id IN ($id) AND " : '')."ds_id = {$this->ds_id}";
+		$db = &WCDB::bo();
+		$res = $db->query("SELECT id, name as header, description as content, description as intro FROM {$this->DSTable} WHERE $cond");
+		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++)
+			$result[$i] = mysql_fetch_assoc($res);
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function remove() {
+		WCDataSource::remove();
+		$this->init_ftp();
+		$this->ftp->open();
+		$this->ftp->rdEntire(substr(FILES.$this->filePath, 0, -1));
+		$this->ftp->close();
+		if(!$this->ftp->success())
+			echo $this->ftp->get_message(true);
+	}
+
+	function moveFiles($from, $ids) {
+		assert($this->ds_id != $from->ds_id);
+		$this->init_ftp();
+		$this->ftp->open();
+		foreach($ids as $k=>$id) {
+			$doc=$from->get_record($id);
+			if(!$this->addlocal($doc['name'], $doc['description'], $doc['basename'],$doc['type'],$doc['filename']))
+				unset($ids[$k]);
+		}
+		$this->ftp->close();
+		if(sizeof($ids))
+			$from->delete(implode(',',$ids),true);
+		if(!$this->ftp->success())
+			echo $this->ftp->get_message(true);
+	}
+	
+	function addlocal($name, $description, $fname,$type,$file) {
+		WCS::assert($this, 'createdoc');
+		if(!$this->filePath)
+			return false;
+		if(empty($name)||empty($type)||!@file_exists(ROOT.$file))
+			return false;
+		$type=strtolower($type);
+		if(!$this->isValidFileType($type))
+			return false;
+		
+		if(preg_match('/[^a-z0-9_\\-\\.]+/us',$fname)){
+			$fname=preg_replace('/[^a-z0-9_\\-\\.]/us','_',$fname);
+		}
+		
+		if(file_exists($_SERVER['DOCUMENT_ROOT'].FILES.$this->filePath.$fname))
+			$fname = $this->addPrefixTo($fname);
+		$filename=FILES.$this->filePath.$fname;
+		
+		$size = (int) filesize(ROOT.$file);
+		
+		if($this->ftp->move($file,FILES.$this->filePath.$fname)){
+			$time = time();
+			$db = &WCDB::bo();
+			$db->query(
+				'INSERT INTO '.$this->DSTable.
+					' (ds_id, name, description, basename, filename, type, size, created, date, wcsowner)'.
+				'VALUES'.
+					' ('.$this->ds_id.', "'.addslashes($name).'", "'.addslashes($description).'", "'.basename($filename).'","'.$filename.'", "'.addslashes($type).'", '.$size.', '.$time.', '.$time.', '.Authentication::getUserId().')'
+			);
+			$id=intval(mysql_insert_id());
+			if(!$id){
+				@unlink($_SERVER['DOCUMENT_ROOT'].$filename);
+				return false;
+			}
+			$this->updateSize();
+			$this->evictDocCache($id);
+		} else
+			return false;
+		return true;
+	}
+		
+	function createFolder($folder, $checkName = true)
+	{
+		if($checkName && !preg_match('/^[a-z0-9][a-z0-9_\-\.]*$/us', $folder))
+			return INCORRECT_FOLDERNAME_I;
+		if(file_exists(ROOT.FILES.'/'.$folder)||strlen($folder)<1)
+			return FOLDER_EXISTS_I;
+		$this->init_ftp();
+		$this->ftp->open();
+		$this->ftp->md(FILES.'/'.$folder);
+		$this->ftp->close();
+		if($this->ftp->success())
+			return true;
+		echo $this->ftp->get_message(true);
+		return false;
+	}
+
+	function createFile($from,$to){
+		$this->init_ftp();
+		$this->ftp->open();
+		$this->ftp->copy_local_file($from,FILES.$this->filePath.$to);
+		$this->ftp->close();
+		if($this->ftp->success())
+			return true;
+		echo $this->ftp->get_message(true);
+		return false;
+	}
+
+	function isValidFileType($type) {
+		for($i = 0, $length = sizeof($this->filetypes); $i < $length; $i++)
+			if($type == $this->filetypes[$i])
+				return true;
+		return $length > 0 ? false : $type == '';
+	}
+	
+	function addPrefixTo($filename) {
+		$pattern = 'tmp%03d-';
+		list($i, $purename) = sscanf($filename, $pattern.'%s');
+		$i = (int) $i;
+		$purename = @$purename ? $purename : $filename;
+		do
+			$prefix = sprintf($pattern, $i++);
+		while(file_exists($_SERVER['DOCUMENT_ROOT'].FILES.$this->filePath.$prefix.$purename));
+		return $prefix.$purename;
+	}
+	
+	function updateHtAccess() {
+		$this->init_ftp();
+		$this->ftp->open();
+		$htaccess = FILES.$this->filePath.'.htaccess';
+		if(array_search(WCS_EVERYONE_ID, &$this->groups) !== false) {
+			if(@file_exists($_SERVER['DOCUMENT_ROOT'].$htaccess))
+				$this->ftp->unlink($htaccess);
+		} else {
+			$groups = implode(',', $this->groups);
+			$content = 
+				"ErrorDocument 403 {$GLOBALS['_wchome']}/lib/security/secureaccess.php?require=$groups\n".
+				"\n<Files ~ \".*\">\n".
+				"  Order allow,deny\n".
+				"  Deny from all\n".
+				"</Files>\n"
+			;		
+			$this->ftp->write_file($htaccess, $content);
+		}
+		$this->ftp->close();
+		if($this->ftp->success())
+			return true;
+		echo $this->ftp->get_message(true);
+		return false;
+	}
+	
+	function generateFileName($name, $type) {
+		do {
+			$result = sprintf('%x', crc32(microtime())).($type ? '.'.$type : '');
+		} while(file_exists($_SERVER['DOCUMENT_ROOT'].FILES.$this->filePath.$result));
+		return $result;
+	}
+	
+	function &getCopiableProps() {
+		static $result;
+		if(!is_array($result))
+			$result = array('filetypes', 'autoName');
+		return $result;
+	}
+}
+?>

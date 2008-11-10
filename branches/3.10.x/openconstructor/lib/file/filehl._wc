@@ -1,0 +1,144 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Список файлов.
+ * 
+ * Объект вывода.
+ * 
+ * @author Rustam Akhmedov
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: filehl._wc,v 1.14 2007/02/27 11:23:25 sanjar Exp $
+ */
+
+define('FHL_SORT_NONE', 0);
+define('FHL_SORT_NAME', 1);
+define('FHL_SORT_BASENAME', 2);
+define('FHL_SORT_EXT', 3);
+define('FHL_SORT_SIZE', 4);
+define('FHL_SORT_CREATED', 5);
+define('FHL_SORT_UPDATED', 6);
+
+class FileHL extends WCObject {
+	var $header;
+	var $dateFormat;
+	var $keywordKey;
+	var $ids;
+	var $listOffset, $listSize;
+	var $order;
+	var $no404;
+	
+	function FileHL() {
+		$this->DSTable = 'dsfile';
+		$this->ds_type = 'file';
+		$this->obj_type = 'filehl';
+		$this->dateFormat = '[j.m.Y]';
+		$this->listOffset=0;
+		$this->listSize=10;
+		$this->order = 0;
+		$this->no404 = false;
+		$this->caching = 2;
+		$this->cached_by_WC = true;
+	}
+	
+	function getCacheId() {
+		$cacheId = null;
+		if(!$this->ids)
+			$cacheId = $this->obj_id.'|o'.$this->listOffset.'-'.$this->listSize;
+		return $cacheId;
+	}
+	
+	function fetchData(&$smarty) {
+		$result = false;
+		$docs = &$this->getDocuments();
+		if(is_array($docs)) {
+			if(sizeof($docs)) {
+				$smarty->register_object('obj', $this, array('availableDocsCount'));
+				$smarty->assign('header', $this->header);
+				$smarty->assign_by_ref('files', $docs);
+				$result = array('header','files');
+			}
+		} elseif(!$this->no404)
+			$this->ctx->throw404();
+		return $result;
+	}
+
+	function &getDocuments() {
+		$ctx = &Context::getInstance();
+		$cacheId = $this->getCacheId();
+		if(is_array($this->documents[$cacheId])) return $this->documents[$cacheId];
+		$result = null;
+		$searchQuery = &WCObject::getSearchQuery($this->keywordKey, 'd');
+		$query = &$this->_getQuery($searchQuery);
+		$db = &$this->ctx->_getDB();
+		$res = $db->query($query);
+		$this->countAvailableDocs();
+		if(mysql_num_rows($res) > 0) {
+			$result = array();
+			while($row=mysql_fetch_assoc($res)) {
+				$result[$row['id']]['header'] = escapeTags($row['name']);
+				$result[$row['id']]['annotation'] = escapeTags($row['description']);
+				$result[$row['id']]['href'] = $row['filename'];
+				$result[$row['id']]['type'] = $row['type'];
+				$result[$row['id']]['size'] = $row['size'];
+				$result[$row['id']]['created'] = $row['created'];
+				$result[$row['id']]['updated'] = $row['date'];
+			}
+		} elseif($searchQuery['where'] && $this->availableDocsCount <= @$this->originalOffset)
+			$result = array();
+		elseif($this->availableDocsCount > (int) @$this->originalOffset)
+			$result = null;
+		mysql_free_result($res);
+		$this->documents[$cacheId] = &$result;
+		return $this->documents[$cacheId];
+	}
+	
+	function &_getQuery(&$searchQuery) {
+		$result = null;
+		$where = $this->ids ? 'd.id IN ('.$this->ids.')' : 'd.ds_id IN ('.$this->ds_id.')';
+		$order = '';
+		if($searchQuery['order'])
+			$order = " ORDER BY {$searchQuery['order']} DESC";
+		elseif($this->order != 0 && is_numeric($this->order)) {
+			$orderFields = array('d.name', 'd.basename', 'd.type', 'd.size', 'd.created', 'd.date');
+			$abs = abs($this->order) - 1;
+			if(isset($orderFields[$abs]))
+				$order = ' ORDER BY '.$orderFields[$abs].($this->order > 0 ? ' ASC' : ' DESC');
+		}
+		$result =
+			'SELECT SQL_CALC_FOUND_ROWS d.id, d.name, d.description, d.filename, d.type, d.size, d.created, d.date'.
+			' FROM '.$this->DSTable.' d'.$searchQuery['from'].
+			' WHERE '.$where.$searchQuery['where'].
+			$order.
+			' LIMIT '.$this->listOffset.','.$this->listSize;
+		
+		return $result;
+	}
+	
+	function countAvailableDocs() {
+		if(!isset($this->availableDocsCount)) {
+			$db = &$this->ctx->_getDB();
+			$res = $db->query('SELECT FOUND_ROWS()');
+			list($this->availableDocsCount) = mysql_fetch_row($res);
+			mysql_free_result($res);
+		}
+	}
+}
+?>

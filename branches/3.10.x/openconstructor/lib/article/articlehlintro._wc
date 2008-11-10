@@ -1,0 +1,120 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Список событий с интро.
+ * 
+ * Объект вывода.
+ * 
+ * @author Rustam Akhmedov
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: articlehlintro._wc,v 1.13 2007/02/27 11:23:21 sanjar Exp $
+ */
+
+class ArticleHLIntro extends WCObject {
+	var $header;
+	var $srvuri, $articleid, $pid;
+	var $offset, $pageSize, $ids;
+	var $more, $cutIntro, $dateFormat;
+	var $no404;
+	var $keywordKey;
+	
+	function ArticleHLIntro() {
+		$this->DSTable='dsarticle';
+		$this->ds_type='article';
+		$this->obj_type='articlehlintro';
+		$this->offset=0;
+		$this->pageSize=10;
+		$this->pid='page';
+		$this->srvuri='article/';
+		$this->articleid='article_id';
+		$this->more='...';
+		$this->cutIntro=NULL;
+		$this->dateFormat='[j.m.Y]';
+		$this->no404 = false;
+		$this->caching=2;
+		$this->cached_by_WC=true;
+	}
+	
+	function getCacheId() {
+		$cacheId = null;
+		if(!$this->ids) {
+			$page = (int) @$_GET[$this->pid];
+			$displayed = &$this->getDisplayedDocs();
+			if(--$page < 0) $page = 0;
+			$cacheId = $this->obj_id.'|p'.$page.'-c'.implode(',', array_keys($displayed));
+		}
+		return $cacheId;
+	}
+	
+	function fetchData(&$smarty) {
+		$result = false;
+		$page = (int) @$_GET[$this->pid]; settype($this->cutIntro, 'int');
+		if(--$page < 0) $page = 0;
+		
+		$where = $this->ids ? 'd.id IN ('.$this->ids.')' : 'd.ds_id IN ('.$this->ds_id.')';
+		$search = &WCObject::getSearchQuery($this->keywordKey, 'd');
+		$db = &$this->ctx->_getDB();
+		$res = $db->query(
+			'SELECT d.id, d.real_id as rid, d.header, d.intro, d.date, d.img_main as image'.
+			' FROM '.$this->DSTable.' d'.$search['from'].
+			' WHERE '.$where.' AND d.published!=0 '.$search['where'].
+			' ORDER BY '.($search['order'] ? $search['order'] : 'd.date' ).' DESC'.
+			' LIMIT '.($this->offset + $page*$this->pageSize).', '.$this->pageSize
+		);
+		if(mysql_num_rows($res) > 0) {
+			$fet = array();
+			$displayed = &$this->getDisplayedDocs();
+			$ctx = &Context::getInstance();
+			$href = $ctx->getPatternFor($this->srvuri, $this->articleid);
+			while($row=mysql_fetch_assoc($res)) {
+				if(isset($fet[$row['rid']])) continue;
+				$fet[$row['rid']] = true;
+				$article[$row['id']]['header']=escapeTags($row['header']);
+				$article[$row['id']]['href'] = isset($displayed[$row['id']]) ? '' : sprintf(&$href, $row['id']);
+				$article[$row['id']]['image']=$row['image'];
+				$article[$row['id']]['date']=wcfFormatTime($this->dateFormat, $row['date']);
+				$article[$row['id']]['intro'] = $this->cutIntro > 0
+					? $this->create_intro($row['intro'], $this->cutIntro)
+					: $row['intro'];
+			}
+			$smarty->assign('header',$this->header);
+			$smarty->assign_by_ref('more',$this->more);
+			$smarty->assign_by_ref('articles',$article);
+			$result = array('header', 'more', 'articles');
+		} elseif($page > 1 && !$this->no404)
+			$this->ctx->throw404();
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &create_intro(&$txt, $size) {
+		$txt = strip_tags($txt);
+		preg_match('/^.{'.($size-1).'}[^\s\.,:]*/ums', $txt, $intro);
+		return @$intro[0] ? $intro[0] : $txt;
+	}
+	
+	function &getDisplayedDocs() {
+		if(!isset($this->_dispalyedDocs))
+			$this->_displayedDocs = class_exists('articlebody') ? ArticleBody::getDisplayedDocs() : array();
+		return $this->_displayedDocs;
+	}
+}
+?>

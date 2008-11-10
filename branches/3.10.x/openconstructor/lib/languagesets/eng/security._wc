@@ -1,0 +1,159 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id$
+ */
+	error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
+	
+	define('BTN_SAVE_CHANGES','Save');
+	@define('BTN_CANCEL','Cancel');
+	define('H_RES_OWNERS','Owners');
+	define('PR_RES_OWNER','Owner');
+	define('PR_RES_GROUP','Group');
+	define('H_AUTHS','Authorities');
+	define('H_DOC_AUTHS','Authorities (section documents)');
+	define('H_ACTION','&nbsp;');
+	define('H_OWNER_AUTHS','Owner');
+	define('H_GROUP_AUTHS','Group');
+	define('H_ALLOW','Allow');
+	define('H_DENY','Deny');
+	define('EDIT_DOC_AUTHS','Security setup');
+	define('EDIT_DOCS_AUTHS','Documents security setup');
+	define('EDIT_DS_AUTHS','Security setup');
+	define('EDIT_ENUM_AUTHS','Security setup');
+	define('EDIT_GROUP_AUTHS','Security setup');
+	define('EDIT_OBJECT_AUTHS','Security setup');
+	define('EDIT_OBJECTS_AUTHS','Objects security setup');
+	define('EDIT_PAGE_AUTHS','Security setup');
+	define('EDIT_TPL_AUTHS','Security setup');
+	define('EDIT_TPLS_AUTHS','templates security setup');
+	define('EDIT_TREE_AUTHS','Security setup');
+	define('EDIT_USER_AUTHS','Security setup');
+	define('EDIT_USERS_AUTHS','Users security setup');
+	define('SYS_SITEMAP','View "Sitemap" tab');
+	define('SYS_DATA','View "Data" tab');
+	define('SYS_OBJECTS','View "Objects" tab');
+	define('SYS_TPLS','View "Templates" tab');
+	define('SYS_CATALOG','View "Catalogue" tab');
+	define('SYS_USERS','View "Users" tab');
+	define('SYS_DATA_DSHTMLTEXT','Create HTML text sections');
+	define('SYS_DATA_DSPUBLICATION','Create Publications');
+	define('SYS_DATA_DSEVENT','Create Events');
+	define('SYS_DATA_DSGALLERY','Create photo galleries');
+	define('SYS_DATA_DSARTICLE','Create articles sections');
+	define('SYS_DATA_DSTEXTPOOL','Create Text pools');
+	define('SYS_DATA_DSGUESTBOOK','create Guest Books');
+	define('SYS_DATA_DSPHPSOURCE','Create PHP code sections');
+	define('SYS_DATA_DSFILE','Create Files sections');
+	define('SYS_DATA_DSHYBRID','Create Hybrid sections');
+	define('SYS_DATA_ENUM','Create Enumerations (enum)');
+	define('SYS_OBJECTS_DSHTMLTEXT','Create HTML text objects');
+	define('SYS_OBJECTS_DSPUBLICATION','Create Publications objects');
+	define('SYS_OBJECTS_DSEVENT','Create Events objects');
+	define('SYS_OBJECTS_DSGALLERY','Create Photo Galleries objects');
+	define('SYS_OBJECTS_DSARTICLE','Create Articles objects');
+	define('SYS_OBJECTS_DSTEXTPOOL','Create Text Pools ojects');
+	define('SYS_OBJECTS_DSGUESTBOOK','Create Guest Book objects');
+	define('SYS_OBJECTS_DSPHPSOURCE','Create PHP code objects');
+	define('SYS_OBJECTS_DSFILE','Create Files objects');
+	define('SYS_OBJECTS_DSHYBRID','Create Hybrid data objects');
+	define('SYS_OBJECTS_DSMISCELLANY','Create objects in "Other" section');
+	define('SYS_OBJECTS_DSUSERS','Create objects of Security module');
+	define('SYS_OBJECTS_DSSEARCH','Create search objects');
+	define('SYS_TPLS_DSHTMLTEXT','Create HTML text templates');
+	define('SYS_TPLS_DSPUBLICATION','Create Publications templates');
+	define('SYS_TPLS_DSEVENT','Create Events templates');
+	define('SYS_TPLS_DSGALLERY','Create Photo Gallery templates');
+	define('SYS_TPLS_DSARTICLE','Create Articles templates');
+	define('SYS_TPLS_DSTEXTPOOL','Create text Pools templates');
+	define('SYS_TPLS_DSGUESTBOOK','Create Guest Books templates');
+	define('SYS_TPLS_DSPHPSOURCE','Create PHP code templates');
+	define('SYS_TPLS_DSFILE','Create files templates');
+	define('SYS_TPLS_DSHYBRID','Create Hybrid data templates');
+	define('SYS_TPLS_DSMISCELLANY','Create templates for "Other" section');
+	define('SYS_TPLS_DSSEARCH','Create templates for search objects');
+	define('SYS_TPLS_DSSITE','Create page templates');
+	define('SYS_CATALOG_TREE','Create trees');
+	define('SYS_CATALOG_FILTER','Create filters');
+	define('SYS_USERS_MANAGE','Create user groups');
+	define('DS_CREATEDOC','Create document in a section');
+	define('DS_EDITDOC','Edit document of a section');
+	define('DS_EDITDS','Edit section properties');
+	define('DS_EDITDS_CHMOD','Setup section security');
+	define('DS_PUBLISHDOC','Publish section documents');
+	define('DS_REMOVEDOC','Remove section documents');
+	define('DS_REMOVEDS','Remove section');
+	define('DOC_EDITDOC','Edit document');
+	define('DOC_PUBLISHDOC','Publish document');
+	define('DOC_REMOVEDOC','Remove document');
+	define('ENUM_ADDVALUE','Create value');
+	define('ENUM_EDITENUM','Edit ennumeration');
+	define('ENUM_EDITENUM_CHMOD','Edit Ennumeration security');
+	define('ENUM_EDITVALUE','Edit values');
+	define('ENUM_REMOVEENUM','Remove Ennumeration');
+	define('ENUM_REMOVEVALUE','Remove values');
+	define('GROUP_ADDMEMBER','Add users (set membership)');
+	define('GROUP_CREATEUSER','Create users in a group');
+	define('GROUP_EDITGROUP','Edit group settings');
+	define('GROUP_EDITGROUP_CHMOD','Setup group security');
+	define('GROUP_EDITGROUP_UMASK','Set created users rights');
+	define('GROUP_EDITUSER','Edit group users');
+	define('GROUP_REMOVEGROUP','Remove group');
+	define('GROUP_REMOVEMEMBER','Remove group members');
+	define('GROUP_REMOVEUSER','Remove group users');
+	define('OBJ_EDITOBJ','Edit object properties');
+	define('OBJ_EDITOBJ_CHMOD','Setup object security');
+	define('OBJ_EDITOBJ_DS','Connect object with data');
+	define('OBJ_EDITOBJ_TPL','Set document template');
+	define('OBJ_REMOVEOBJ','Remove object');
+	define('PAGE_EDITPAGE','Edit page properties');
+	define('PAGE_EDITPAGE_CHMOD','Setup page security');
+	define('PAGE_EDITPAGE_PUBLISH','Publish page');
+	define('PAGE_EDITPAGE_SECURITY','Give users access to a website page');
+	define('PAGE_MANAGESUB','Fully manage sub-pages');
+	define('PAGE_PAGEBLOCK','Change objects order');
+	define('PAGE_PAGEBLOCK_MANAGE','Add/Remove objects');
+	define('PAGE_REMOVEPAGE','Delete page');
+	define('TPL_EDITTPL','Edit template');
+	define('TPL_EDITTPL_CHMOD','Setup template security');
+	define('TPL_REMOVETPL','Delete template');
+	define('TREE_EDITTREE','Edit tree nodes');
+	define('TREE_EDITTREE_CHMOD','Setup tree security');
+	define('TREE_MANAGETREE','Create/Remove tree nodes');
+	define('TREE_REMOVETREE','Delete tree');
+	define('USER_EDIT','Edit user properties');
+	define('USER_EDIT_CHMOD','Setup user security');
+	define('USER_EDIT_EMAIL','Change E-mail');
+	define('USER_EDIT_EXPIRY','Change expiration period');
+	define('USER_EDIT_GROUP','Change main group');
+	define('USER_EDIT_PWD','change password');
+	define('USER_EDIT_STATUS','Change status');
+	define('USER_REMOVE','Remove user');
+	
+	define('SYS_INLINEEDIT','Browse site in inline editing mode');
+	define('PAGE_EDITPAGE_CACHING','Tune page caching');
+	define('PAGE_EDITPAGE_URI','Change URI');
+	
+	define('SYS_DATA_DSRATING','Create Rating logs');
+	define('SYS_OBJECTS_DSRATING','Create Rating log objects');
+	define('SYS_TPLS_DSRATING','Create Rating log templates');
+	
+	error_reporting($_oldLevel);
+?>

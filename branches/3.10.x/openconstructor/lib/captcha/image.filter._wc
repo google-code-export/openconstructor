@@ -1,0 +1,83 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Bakhtiyor Khodjayev
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: image.filter._wc,v 1.3 2007/02/27 11:23:20 sanjar Exp $
+ */
+
+class ImageFilter {
+	var $image;
+	var $filtered;
+	var $width;
+	var $height;
+	var $captcha;
+	
+	function ImageFilter(&$captcha) {
+		$this->captcha = &$captcha;
+		$this->image = $captcha->image;
+		$this->width = $captcha->width;
+		$this->height = $captcha->height;
+	}
+	
+	function getImage() {
+		return $this->filtered;
+	}
+}
+
+class WavyImageFilter extends ImageFilter {
+	var $filtered;
+	function run() {
+		$maxExtra = abs(min($this->height - $this->captcha->textHeight, $this->captcha->textHeight) * 0.9);
+		$extra	= max(rand($maxExtra * 0.75, $maxExtra), 1);
+		$canvas = @imagecreatetruecolor($this->width, $this->height);
+		/* waving */
+		$h = rand(90, 100) / $this->captcha->textHeight + rand(1, 3) + intval($this->captcha->textHeight / 40);
+		$off = rand(0, 4) * 45;
+		for($i = 0; $i < $this->width; $i++) {
+			imagecopyresized($canvas, $this->image,
+				$i, 0,
+				$i, 0,
+				$extra + $i, $this->width + $extra * (sin(deg2rad($off + 2 * $i * $h)) + sin(deg2rad($off + $i * $h))),
+				$extra + $i, $this->width - $maxExtra);
+		}
+		$this->filtered = $canvas;
+	}
+}
+
+class LinesImageFilter extends ImageFilter {
+	var $filtered;
+	
+	function run() {
+		$color = imagecolorallocate($this->image, rand(64, 128), rand(64, 128), rand(64, 128));
+		$count = max(($this->height - $this->captcha->textHeight) / 10, 1);
+		$chX = $this->width / $count;
+		$chY = $this->height / $count;
+		$dX = $this->width / 4;
+		$dY = $this->height / 3;
+		for($i = 0; $i < $count; $i++) {
+			imagesetthickness($this->image, 1);
+			imageline($this->image, rand(0, $dX), $i * $chY + rand(0, $dY), $this->width - rand(0, $dX), $i * $chY + rand(0, $dY), $color);
+		}
+		$this->filtered = $this->image;
+	}
+}
+?>
