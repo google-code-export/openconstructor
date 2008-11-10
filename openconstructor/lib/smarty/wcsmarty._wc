@@ -22,7 +22,7 @@
  *
  * $Id: wcsmarty._wc,v 1.7 2007/04/24 21:49:07 sanjar Exp $
  */
-require(SMARTY_DIR.'Smarty.class.php');
+require_once(SMARTY_DIR.'Smarty.class.php');
 
 class WCSmarty extends Smarty {
 	var $_object_stack = array();
@@ -51,7 +51,7 @@ class WCSmarty extends Smarty {
 			'IF_FUNCS' => array('count', 'isset', 'sizeof', 'is_array'),
 			'INCLUDE_ANY' => false,
 			'PHP_TAGS' => false,
-			'MODIFIER_FUNCS' => array('sprintf', 'count', 'sizeof', 'join', 'explode', 'substr'),
+			'MODIFIER_FUNCS' => array('sprintf', 'count', 'sizeof', 'join', 'explode', 'substr', 'array_keys'),
 			'ALLOW_CONSTANTS' => false
 		);
 		$this->trusted_dir = array(ROOT.FILES.'/php');
