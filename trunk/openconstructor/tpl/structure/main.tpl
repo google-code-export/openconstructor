@@ -12,7 +12,7 @@
 		<link rel="icon" type="image/gif" href="{$img}/favicon.gif" />
 		<base href="http://{$smarty.server.SERVER_NAME}{$ocm_home}/{$cur_section}/" />
 		<script type="text/javascript" src="{$skinhome}/js/jquery-1.2.6.js"></script>
-		<script type="text/javascript" src="{$skinhome}/js/local.js"></script>
+		<script type="text/javascript" src="{$skinhome}/js/{$cur_section}.js"></script>
 		<script type="text/javascript" src="{$skinhome}/js/common.js"></script>
 	</head>
 	<body>
@@ -197,7 +197,7 @@
 													<td>
 														<img src="{$img}/f/{$icon.$id}.gif" class="name-icon" />
 														<a href="{$editor}&id={$id}" onclick="wxyopen(this.href,{$editor_width},{$editor_height});return false;" {if !$val.published}class="dis"{/if}>{$val.$key|escape}</a>
-														{if $val.description && $fields.description} $val.description {/if}
+														{if $val.description && $fields.description}{$val.description}{/if}
 													</td>
 												{else}
 													<td {if $key eq 'class'}class="type-sitemap"{elseif $key eq 'crumbs'}class="crumbs"{else}class="block-sitemap"{/if}>{$val.$key}</td>

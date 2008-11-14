@@ -83,17 +83,4 @@
 			'action' => 'remove()'
 		)
 	);
-/*	$toolbar=array(
-		SAVE=>array('pic'=>'save','action'=> $super || WCS::decide($page, 'pageblock') ?'if(document.all("f_doc")) f_doc.submit()':''),
-		CREATE_PAGE=>array('pic'=>'newpage','action'=> $super || WCS::decide($page, 'managesub') ? 'wxyopen(wchome+"/structure/create_page.php?node="+curnode,700,370)' : ''),
-		INCLUDE_OBJECT=>array('pic'=>'addobject','action'=> 'wxyopen(wchome+"/structure/add_object.php?node="+curnode,600,450)'),
-		'separator',
-		EDIT_PAGE=>array('pic'=>'editpage','action'=>'wxyopen(wchome+"/structure/edit_page.php?node="+curnode,650)'),
-		EDIT_SECURITY=>array('pic'=>'editsec','action'=> 'edit_security()'),
-		MOVE_PAGE=>array('pic'=>'movepage','action'=>!isset($versions[$_site->id_hash[$curnode]])?'wxyopen(wchome+"/structure/move_page.php?node="+curnode,700,250)':''),
-		'separator',
-		REFRESH=>array('pic'=>'reload','action'=>'window.location.href += ""'),
-		'separator',
-		REMOVE=>array('pic'=>'remove','action'=>'remove()')
-	);
-*/?>
+?>
