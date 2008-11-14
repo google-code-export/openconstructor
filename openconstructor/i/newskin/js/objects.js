@@ -1,13 +1,12 @@
 // Objects
-function chk(obj)
-{
+function chk(obj){
 	chk_(obj);
 	if(ch_doc < 1) {
-		disableButton(btn_remove,imghome+'/tool/remove_.gif');
-		disableButton(btn_editsec,imghome+'/tool/editsec_.gif');
+		disableButton("btn_remove",imghome+'/tbar/remove_.gif');
+		disableButton("btn_editsec",imghome+'/tbar/editsec_.gif');
 	} else {
-		disableButton(btn_remove,false);
-		disableButton(btn_editsec,false);
+		disableButton("btn_remove",false);
+		disableButton("btn_editsec",false);
 	}
 }
 function remove()

@@ -32,15 +32,14 @@
 
 	$siteroot='objRoot';
 	$curnode=@$_GET['node']?$_GET['node']:(@$_COOKIE['curnode']?$_COOKIE['curnode']:'htmltextbody');
+
 	setcookie('curnode',$curnode,0,WCHOME.'/objects/');
 	$objm=new ObjManager();
 	foreach($objm->map as $k=>$v)
 		foreach($v as $v1)
 			if(@$v1[$curnode]) $nodetype=$k;
 	$map[$siteroot][OBJECTS]=&$objm->map;
-//	foreach($map[$siteroot][OBJECTS] as $k=>$v)
-//		if(!$__ur->can('objects.ds'.$k.'.view'))
-//			unset($map[$siteroot][OBJECTS][$k]);
+
 	$opened[$nodetype]=true;
 	$opened[$siteroot]=true;
 
@@ -53,6 +52,35 @@
 
 	include('toolbar._wc');
 	$smartybackend->assign_by_ref("toolbar", $toolbar);
+
+	$smartybackend->assign("map", print_tree($map));
+
+	include('headline._wc');
+	$smartybackend->assign("fields", $fields);
+	$smartybackend->assign("objs", $hl);
+
+    $smartybackend->assign("editor_width", 660);
+	$smartybackend->assign("editor_height", 'null');
+	$smartybackend->assign("editor", $nodetype . '/' . $curnode . '.php?j=1');
+	$smartybackend->assign("icon", 'object');
+
+	$smartybackend->assign("search_text", htmlspecialchars(@$_GET['search'], ENT_COMPAT, 'UTF-8'));
+    $smartybackend->assign("fieldnames", $fieldnames);
+    $smartybackend->assign("pagesize", $pagesize);
+
+    /*$fields1=$fields;
+	foreach((array) $fieldnames as $k=>$v)
+		if(!@$fields1[$k]||@$fields1[$k]===true)
+			$fields1[$k]=$v;
+		foreach($fields1 as $k=>$v)
+			if($v!==true)
+				echo 'name=' . $v . ', id=' . $k . ', title=' . @$fieldnames[$k] . ', enabled=' . (isset($fields[$k])?'yes':'no') . ', visible=' . (isset($fields[$k])&&@$fields[$k]!==true?'yes':'no');
+                */
+
+
+    /*echo "<pre>";
+    print_r($hl);
+    echo "</pre>";*/
 
 	$smartybackend->display('objects/main.tpl');
 	die();

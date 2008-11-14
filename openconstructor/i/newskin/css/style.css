@@ -107,7 +107,7 @@ div.header {
 			}
 
 		.header span.website a:hover {
-			color:#009;
+			color:#f60;
 			}
 
 /* ---------------------------------------------------------------- */
@@ -372,6 +372,7 @@ ul#tree {
 	margin-left:-16px;
 	float:left;
 	cursor:pointer;
+	cursor:hand;
 	}
 /* fix for IE6 */
 * html .hitarea {
@@ -410,6 +411,9 @@ ul#tree {
 	.treeview li.lastExpandable {		background-position:-32px -67px;
 		}
 
+strong.notbold {	font-weight:normal;
+	}
+
 .treeview div.lastCollapsable-hitarea, .treeview div.lastExpandable-hitarea { background-position: 0; }
 
 .filetree li {	padding:3px 0 2px 16px;
@@ -439,6 +443,10 @@ ul#tree {
 
 .structure{
 	background:url(../images/tree/homepage.gif) center left no-repeat;
+	}
+
+.objects{
+	background:url(../images/tree/homeobj.gif) center left no-repeat;
 	}
 
 /* ---------------------------------------------------------------- */
@@ -475,7 +483,7 @@ td.middle {
 			vertical-align:middle;
 			}
 
-	td.crumbs {
+	td.crumbs{
 		text-align:center;
 		white-space:nowrap;
 		}
@@ -521,7 +529,8 @@ td.middle {
 		}*/
 
 	.middle thead td.date, .middle thead td.file {
-		width:120px;
+		width:100px;
+		white-space:nowrap;
 		background:#eee url(../images/f/border.gif) center left no-repeat;
 		padding-left:12px;
 		vertical-align:middle;
@@ -589,6 +598,7 @@ td.middle {
 
 	.middle td p.des {
 		font-size:11px;
+		margin-left:23px;
 		}
 
 	.middle tr.odd {
@@ -668,7 +678,7 @@ td.ushko {
 	margin:0;
 	}
 
-	a.ushko {
+	p.ushko {
 		position:relative;
 		left:-20px;
 		width:20px;
@@ -677,15 +687,15 @@ td.ushko {
 		display:block;
 		}
 
-		a.ushko img {
+		p.ushko img {
 			border:none;
 			background-color:#000;
 			margin:20px 0 0 6px;
 			}
 
-		a.ushko:hover img {
+		/*a.ushko:hover img {
 			background-color:#0066CC;
-			}
+			}*/
 
 /* ---------------------------------------------------------------- */
 /*							Right Column							*/
@@ -698,10 +708,10 @@ td.right {
 	padding:10px;
 	}
 
-	td.right a:link, td.right a:visited, td.right a:hover {
+	td.right img.close {
 		float:right;
-		text-decoration:none;
-		color:#000;
+		cursor:pointer;
+		cursor:hand;
 		}
 
 	td.right div {
