@@ -1,0 +1,175 @@
+DIV.select {
+	border:solid 1px #ccc;
+	padding:3px;
+	background:#ddd;
+}
+DIV.select IFRAME {
+	border:none;
+}
+DIV.select INPUT {
+	display:block;
+}
+BODY.iframe {
+	padding:0px;
+	margin:0px;
+	width:100%;
+	border:none;
+	font-family:tahoma, verdana, arial;
+	font-size:13px;
+}
+BODY.iframe UL.select {
+	padding:0px;
+	margin:1px 0px;
+	list-style-type:none;
+	width:100%;
+	height:100%;
+}
+BODY.iframe UL.select LI {
+	display:block;
+	padding:5px 0px;
+	background:#fff;
+	border:solid 1px #fff;
+	cursor:default;
+}
+BODY.iframe UL.select LI#hover {
+	border:solid 1px #39c;
+	border-width:1px;
+}
+BODY.iframe UL.select LI.checked {
+	background:#eee;
+}
+BODY.iframe UL.select LI INPUT {
+}
+/*
+	CalendarWidget's style definitions
+*/
+DIV.calendar {
+	border: solid 1px #999;
+}
+DIV.calendar TABLE {
+	width: 214px;
+	cursor:default;
+	background:#e2e2e2;
+	border: solid 1px #e2e2e2;
+	font-size:13px;
+	font-family:verdana;
+}
+DIV.calendar TABLE A {
+	color:blue;
+	text-decoration:none;
+}
+DIV.calendar TABLE TD {
+	text-align:center;
+	vertical-align:center;
+	border:solid 1px #e2e2e2;
+	width:28px;
+	height:26px;
+}
+DIV.calendar TABLE TBODY TD.hover {
+	cursor:hand;
+	border:solid 1px #ccc;
+}
+DIV.calendar TABLE THEAD TD {
+	padding:10px 0;
+}
+DIV.calendar TABLE THEAD DIV {
+	float:left;
+	text-align:center;
+}
+DIV.calendar TABLE THEAD DIV.previous, DIV.calendar TABLE THEAD DIV.next {
+	width:14%;
+	padding:3px 0px;
+}
+DIV.calendar TABLE THEAD DIV.month {
+	width:70%;
+}
+DIV.calendar TABLE THEAD TR.week TD {
+	padding:0;
+	background:#ccc;
+}
+DIV.calendar TABLE THEAD TR.week TD.end {
+}
+DIV.calendar TABLE TBODY TD.end {
+}
+DIV.calendar TABLE TD.today {
+	background:#f2f2f2;
+}
+DIV.calendar TABLE TD#selected {
+	background:#ccc;
+	border:solid 1px #000;
+}
+DIV.calendar TABLE TFOOT TD {
+	padding:2px;
+	text-align:right;
+}
+/*
+	NodeSelectWidget
+*/
+DIV.ctl {
+	border: solid 1px #0d467b;
+	background-color: #ccc;
+	padding: 5px;
+}
+DIV.ctl A IMG {
+	border: none;
+}
+DIV.ctl INPUT.close {
+	margin: 0;
+	margin-top: 5px;
+}
+DIV.ns {
+	border: solid 1px #0d467b;
+	background: #fff;
+	height: 350px;
+	overflow: scroll;
+}
+DIV.ns DIV.load {
+	font-family: verdana, sans-serif;
+	background: #036;
+	color: #fff;
+	padding: 5px;
+	font-size: 12px;
+}
+DIV.ns TABLE.tree {
+	font-family: Verdana, sans-serif;
+	font-size: 11px;
+}
+DIV.ns TABLE.tree TR.selected TD {
+	background: #ece9d8;
+}
+DIV.ns TABLE.tree TD.head {
+	padding: 0;
+	background: #0d467b;
+	color: #fff;
+	font-weight: bold;
+	padding: 5px 10px;
+	font-size: 120%;
+}
+DIV.ns TABLE.tree TD {
+	padding: 0;
+	border-bottom: solid 1px #eee;
+	height: 25px;
+	vertical-align: middle;
+	text-align: left;
+}
+DIV.ns TABLE.tree TD.ch, DIV.ns TABLE.tree TR.selected TD.ch {
+	background: #eee;
+}
+DIV.ns TABLE.tree TD.ch input {
+	margin: 3px;	
+}
+DIV.ns TABLE.tree TD.n {
+	width: 100%;
+	padding-left: 3px;
+}
+DIV.ns TABLE.tree A {
+	color: #000;
+	text-decoration: none;
+}
+DIV.ns TABLE.tree A:hover {
+	color: #36c;
+	text-decoration: underline;
+}
+DIV.ns TABLE.treee A IMG {
+	border: none;
+}
