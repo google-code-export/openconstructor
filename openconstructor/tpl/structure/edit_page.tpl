@@ -9,7 +9,7 @@
 		<link href="{$skinhome}/css/style.css" rel="stylesheet" type="text/css" />
 		<title>{$smarty.const.WC} | {$smarty.const.H_EDIT_PAGE} {$page->uri}</title>
 		<script type="text/javascript" src="{$skinhome}/js/jquery-1.2.6.js"></script>
-		<script language="Javascript" src="{$ocm_home}/lib/js/base.js"></script>
+		<script language="Javascript" src="{$skinhome}/js/js/base.js"></script>
 	</head>
 	<body style="border-style:groove;padding:0 20 20">
 		<script language="JavaScript" type="text/JavaScript">
