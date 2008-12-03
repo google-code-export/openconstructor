@@ -73,6 +73,7 @@
 	define('PR_PAGE_URI','Страница');
 	define('PR_PAGE_CHILDREN','Выводить список подразделов');
 	define('PR_PAGE_FETCH_LEVEL','Глубина списка');
+	define('PR_PAGE_FETCH_ALL_PATHS','Выводить все подразделы в пределах заданной глубины');
 	define('H_EXCLUDE_PAGES','Исключить страницы');
 	define('BTN_SELECT', 'Выбрать');
 	define('H_NOT_SELECTED', 'Не выбрано');

@@ -123,6 +123,13 @@ function markLi(value) {
 			<td nowrap><?=PR_PAGE_FETCH_LEVEL?>:</td>
 			<td><input type="text" name="level" value="<?=$obj->level?>"></td>
 		</tr>
+		<tr>
+			<td>&nbsp;</td>
+			<td>
+				<input type="checkbox" name="match_all_paths" id="ch.match_all_paths" value="true"<?=$obj->matchAllPaths ? ' checked' : ''?>>
+				<label for="ch.match_all_paths"><?=PR_PAGE_FETCH_ALL_PATHS?></label>
+			</td>
+		</tr>
 	</table>
 	<fieldset style="padding:10" id="sitemap"><legend><?=H_EXCLUDE_PAGES?></legend>
 	<div style="padding: 10px;">

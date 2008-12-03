@@ -61,6 +61,7 @@
 				$obj->header=@$_POST['header'];
 				$obj->pageId = @$_POST['page_id'];
 				$obj->level = (int) @$_POST['level'];
+				$obj->matchAllPaths = @$_POST['match_all_paths'] == 'true';
 				$obj->exclude = (array) @$_POST['exclude'];
 				include('../apply_tpl._wc');
 				ObjManager::save($obj);

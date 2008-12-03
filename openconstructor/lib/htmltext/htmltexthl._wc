@@ -29,7 +29,9 @@
  */
 
 class HTMLTextHL extends WCObject {
-	var $pageId, $level, $exclude;
+	var $pageId;
+	var $level, $matchAllPaths;
+	var $exclude;
 	
 	function HTMLTextHL() {
 		$this->DSTable = 'dshtmltext';
@@ -81,7 +83,7 @@ class HTMLTextHL extends WCObject {
 			);
 			if($p['router'] == $id)
 				$pages[$id]['href'] .= 'index.php/';
-			if($pages[$id]['at'] > 0 && $level > 0 && $map->hasChildren($p['uri']))
+			if(($pages[$id]['at'] > 0 || $this->matchAllPaths) && $level > 0 && $map->hasChildren($p['uri']))
 				$this->_fetchChildren($p, $pages[$id]['children'], $map, $pages[$id]['href'], $level - 1);
 		}
 	}

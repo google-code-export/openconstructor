@@ -373,6 +373,7 @@
 	define('BTN_NEW_TEMPLATE','New Template');
 	define('PR_TEMPLATE_ARGS','Template Params');
 	define('PR_PAGE_FETCH_LEVEL','List Deepness');
+	define('PR_PAGE_FETCH_ALL_PATHS','Match All Pages within Given Deepness');
 	define('PR_AUTOLOGIN_TIMEOUT','Autologin Timeout');
 
 	error_reporting($_oldLevel);
