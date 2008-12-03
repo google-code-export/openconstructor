@@ -83,9 +83,12 @@
 			keys.addShortcut("ctrl+s", f.save.click);
 			keys.addShortcut("ctrl+l", window.goToLineDialog);
 			var srcTpl = getSrcEdit(), srcMockup = document.getElementById("src.mockup");
-			srcMockup.setSource(f.mockup.value);
-			srcTpl.setSource(f.html.value);
-			srcTpl.setCaretPosition(<?=intval(@$_GET['caret'])?>);
+			if(f.mockup.value.length > 0)
+				srcMockup.setSource(f.mockup.value);
+			if(f.html.value.length > 0) {
+				srcTpl.setSource(f.html.value);
+				srcTpl.setCaretPosition(<?=intval(@$_GET['caret'])?>);
+			}
 			<?php if($_GET['id'] != 'new' && !$save): ?>
 				disableEditors();
 			<?php endif; ?>

@@ -92,13 +92,16 @@
 			keys.addShortcut("ctrl+s", f.save.click);
 			keys.addShortcut("ctrl+l", window.goToLineDialog);
 			var src = getSrcEdit();
-			src.setSource(f.html.value);
+			if(f.html.value.length > 0) {
+				src.setSource(f.html.value);
+				window.setTimeout(function() {
+					src.setCaretPosition(<?=intval(@$_GET['caret'])?>);
+				}, 50);
+			}
 			//src.setCaretPosition(<?=intval(@$_GET['caret'])?>);
 			<?php if($_GET['id'] != 'new' && !$save): ?>
 			src.setEditable(false);
 			<?php endif; ?>
-			window.setTimeout(function() {src.setCaretPosition(<?=intval(@$_GET['caret'])?>);}, 50);
-				
 		}
 		
 		function getSrcEdit() {
