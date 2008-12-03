@@ -37,7 +37,7 @@
 <link href="../<?=SKIN?>.css" type=text/css rel=stylesheet>
 <script language="JavaScript" type="text/JavaScript">
 var re=new RegExp('[^\\s]','gi');
-var folder = /^[a-z0-9][a-z0-9\-_]{0,31}$/i;
+var folder = /^[a-z0-9][a-z0-9\-_]{0,127}$/i;
 function dsb(){
 	if(!f.page_name.value.match(folder)||!f.header.value.match(re)||<?=$super || WCS::decide($in, 'managesub') ?'false':'true'?>)
 		f.create.disabled=true; else f.create.disabled=false;
@@ -54,11 +54,11 @@ function dsb(){
 	<table style="margin:5 0" cellspacing="3">
 		<tr>
 			<td><?=PAGE_FOLDER?>:</td>
-			<td><input type="text" name="page_name" size="32" maxlength="32" onpropertychange="dsb();un.innerText='<?=$in->uri?>'+this.value+'/'"></td>
+			<td><input type="text" name="page_name" size="64" maxlength="128" onpropertychange="dsb();un.innerText='<?=$in->uri?>'+this.value+'/'"></td>
 		</tr>
 		<tr>
 			<td><?=PAGE_NAME?>:</td>
-			<td><input type="text" name="header" size="32" maxlength="64" onpropertychange="dsb()"></td>
+			<td><input type="text" name="header" size="64" maxlength="128" onpropertychange="dsb()"></td>
 		</tr>
 		<tr>
 			<td colspan="2"><?=PAGE_URI?>: <span id="un"><?=$in->uri?>/</span></td>

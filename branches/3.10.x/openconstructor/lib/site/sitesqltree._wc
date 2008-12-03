@@ -258,7 +258,7 @@ class SiteSqlTree {
 	}
 	
 	function validateKey($key) {
-		return preg_match('/^[a-z0-9][a-z0-9\\-_]{0,31}$/', $key) ? $key : null;
+		return preg_match('/^[a-z0-9][a-z0-9\\-_]{0,127}$/', $key) ? $key : null;
 	}
 	
 	function exists($parentId, $key) {
