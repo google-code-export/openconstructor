@@ -78,7 +78,7 @@ function suggestCacheVary() {
 <?php if($page->uri != '/') { ?>
 		<tr>
 			<td><?=PAGE_FOLDER?>:</td>
-			<td><input type="text" name="uri_name" value="<?=$page->name?>" size="32" maxlength="32" onpropertychange="dsb()"></td>
+			<td><input type="text" name="uri_name" value="<?=$page->name?>" size="64" maxlength="128" onpropertychange="dsb()"></td>
 		</tr>
 <?php } else
 	echo '<tr><td colspan=2><input type="hidden" name="uri_name" value="'.$page->name.'"></td></tr>';
@@ -96,7 +96,7 @@ function suggestCacheVary() {
 	<table style="margin:5 0" cellspacing="3">
 		<tr>
 			<td><?=PAGE_NAME?>:</td>
-			<td><input type="text" name="header" value="<?=htmlspecialchars($page->header, ENT_COMPAT, 'UTF-8')?>" size="40" maxlength="64" onpropertychange="dsb()"></td>
+			<td><input type="text" name="header" value="<?=htmlspecialchars($page->header, ENT_COMPAT, 'UTF-8')?>" size="64" maxlength="128" onpropertychange="dsb()"></td>
 		</tr>
 		<tr>
 			<td><?=PAGE_STATUS?>:</td>
@@ -131,7 +131,7 @@ function suggestCacheVary() {
 	<table style="margin:5 0" cellspacing="3" width="100%">
 		<tr>
 			<td><?=PAGE_TITLE?>:</td>
-			<td><input type="text" name="title" value="<?=htmlspecialchars($page->title, ENT_COMPAT, 'UTF-8')?>" maxlength="128" style="width: 100%;font-family: monospace; font-size: 100%;"></td>
+			<td><input type="text" name="title" value="<?=htmlspecialchars($page->title, ENT_COMPAT, 'UTF-8')?>" maxlength="255" style="width: 100%;font-family: monospace; font-size: 100%;"></td>
 		</tr>
 		<tr>
 			<td>&nbsp;</td>
