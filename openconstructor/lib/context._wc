@@ -236,8 +236,10 @@ class Context {
 	}
 	
 	function newCaptchaId() {
+		static $cnt = 0;
+		$cnt++;
 		$result = null;
-		while((WC_MAX_IDLE_CAPTCHA > 0) && (WC_MAX_IDLE_CAPTCHA <= sizeof((array) @$_SESSION['_cid']))) {
+		while((WC_MAX_IDLE_CAPTCHA > 0) && (WC_MAX_IDLE_CAPTCHA < (sizeof((array) @$_SESSION['_cid']) + $cnt))) {
 			$cid = key($_SESSION['_cid']);
 			unset($_SESSION['_cid'][$cid]);
 		}
