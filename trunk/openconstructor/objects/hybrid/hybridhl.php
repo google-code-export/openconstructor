@@ -27,14 +27,97 @@
 	require_once(LIBDIR.'/hybrid/fields/fieldfactory._wc');
 	require_once(LIBDIR.'/dsmanager._wc');
 
+	require_once(LIBDIR.'/smarty/ocmsmartybackend._wc');
+	$smartybackend = & new OcmSmartyBackend();
+	$smartybackend->caching = false;
+
 	$obj = &ObjManager::load(@$_GET['id']);
 	assert($obj != null);
 	$_dsm=new DSManager();
 	$ds = $_dsm->getAll($obj->ds_type);
+
+	$smartybackend->assign_by_ref("obj", $obj);
+	$WCS = new WCS();
+	$smartybackend->assign_by_ref("WCS", $WCS);
+	include('../select_tpl._wc');
+	$smartybackend->assign("ds", $ds);
+	$tmp = $tpls->get_all_tpls('searchdss');
+	$smartybackend->assign("tmp", $tmp);
+
 	$fields = $obj->ds_id ? FieldFactory::getRelatedFields($obj->ds_id) : array();
 	$fieldsById = array();
 	for($i = 0, $l = sizeof($fields); $i < $l; $i++)
 		$fieldsById[$fields[$i]->id] = &$fields[$i];
+
+	$treefields = array();
+	$docFields = array_flip(array_map(create_function('&$v', 'return $v[\'id\'];'), $obj->docFields));
+	for($i = 0, $l = sizeof($fields); $i < $l; $i++) {
+		$f = &$fields[$i];
+		if($f->family == 'tree' && $f->isArray) continue;
+		if($f->ds_id != @$lastDs)
+			$ds_name = $ds[$f->ds_id]['name'];
+		if($f->family == 'rating')
+			$rating = htmlspecialchars(@$obj->docFields[$docFields[$f->id]]['range']);
+		elseif(($f->family == 'array' || $f->family == 'document') && $f->type == 'hybrid')
+			if(!isset($hlid)) {
+				$objm = new ObjManager();
+				$objm->pageSize = 50;
+				$hlid = $objm->get_objects('hybrid', 'hybridbar', 1, '', -1);
+				$hlid_sel = @$obj->docFields[$docFields[$f->id]]['fetcher'];
+			}
+		$treefields[] = array(
+							'id' => $f->id,
+							'key' => substr($f->key, 2),
+							'header' => $f->header,
+							'family' => $f->family,
+							'ds_name' => @$ds_name,
+							'checked' => isset($docFields[$f->id]) ? true : false,
+							'rating' => @$rating,
+							'fetchers' => @$hlid,
+							'fetcher_id' => @$hlid_sel
+						);
+
+		$lastDs = $f->ds_id;
+	}
+    $smartybackend->assign("treefields", $treefields);
+
+	$order = array();
+	$ord = array();
+	$sysf = array(
+		//'id' => 'ID',
+		'header' => 'Header'
+	);
+	$docOrder = array_flip(array_map(create_function('&$v', 'return $v[\'id\'];'), $obj->docOrder));
+	$fs = array();
+	for($i = 0, $l = sizeof($fields); $i < $l; $i++)
+		if(isset($docOrder[$fields[$i]->id]) || isset($docOrder['-'.$fields[$i]->id]))
+			$fs[$fields[$i]->id] = &$fields[$i];
+	foreach($docOrder as $id => $j){
+		if(is_numeric($id)) {
+			$f = &$fs[abs($id)];
+			if(!$f)continue;
+			$ord['pref'] = $id > 0 ? 1 : 0;
+			$ord['id'] = $f->id;
+			$ord['header'] = $f->header;
+		} elseif(isset($sysf[$id]) || isset($sysf[substr($id, 1)])) {
+			$desc = substr($id, 0, 1) == '-';
+			$ord['pref'] = $desc ? 0 : 1;
+			$ord['id'] = $desc ? substr($id, 1) : $id;
+			$ord['header'] = $sysf[$ord['id']];
+		}
+		$order[] = $ord;
+	}
+
+	echo "<pre>";
+    print_r($obj->docOrder);
+    echo "</pre><br>order<br>";
+	echo "<pre>";
+    print_r($order);
+    echo "</pre>";
+    die();
+
+	$smartybackend->display('objects/hybrid/hybridhl.tpl');
+	die();
 ?>
 <html>
 <head>

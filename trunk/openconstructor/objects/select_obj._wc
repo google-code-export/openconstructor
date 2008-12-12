@@ -1,45 +1,35 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: select_obj._wc,v 1.5 2007/02/27 11:23:24 sanjar Exp $
  */
 	require_once(LIBDIR.'/objmanager._wc');
 	$objm=new ObjManager();
 	$objm->pageSize=250;
-	$tmp=array(0=>array('name'=>'-'));
+	$tmp_obj=array(0=>array('name'=>'-'));
 	foreach($types as $type){
 		foreach($objm->get_objects($obj->ds_type, $type, 1, '', -1) as $k=>$v)
-			$tmp[$k]=$v;
+			$tmp_obj[$k]=$v;
 	}
-?>
-<fieldset style="padding:10" <?=WCS::decide($obj, 'editobj.ds') ? '' : 'disabled'?>><legend><?=OBJ_DEPENDENCIES?></legend>
-<table style="margin:5 0" cellspacing="3" width="100%">
-	<tr>
-		<td nowrap><?=PR_MASTER_OBJ?>:</td>
-		<td width="100%"><select size="1" name="master_obj">
-<?php
 	$master = isset($obj->master) ? $obj->master : @$obj->slave;
-	foreach($tmp as $obj_id=>$v)
-		echo '<OPTION VALUE="'.$obj_id.'"'.($obj_id==$master?' SELECTED':'').'>'.$v['name'];
-?>	
-		</select></td>
-	</tr>
-</table>
-</fieldset><br>
+
+	$smartybackend->assign("master", $master);
+	$smartybackend->assign("tmp_obj", $tmp_obj);
+?>

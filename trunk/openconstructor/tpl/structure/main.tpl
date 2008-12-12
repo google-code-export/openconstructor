@@ -1,7 +1,5 @@
 {*$tree|@debug_print_var*}
-{assign var="ocm_home" value="/openconstructor"}
-{assign var="skinhome" value="$ocm_home/i/newskin"}
-{assign var="img" value="$skinhome/images"}
+{set true = "true"|bool}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
@@ -179,7 +177,7 @@
 											<input type="checkbox" onclick="doall()" title="{$smarty.const.SELECT_ALL}" id="checkall" name="checkall" />
 										</td>
 										{foreach name=header from=$fields key=key item=title}
-											{if !($title === (1 == 1))}
+											{if !($title === $true)}
 												<td {if $key eq 'crumbs'}width="9%"{/if}>{if !$smarty.foreach.header.last}<p class="divider"></p>{/if}{$title}</td>
 											{/if}
 										{/foreach}
@@ -189,7 +187,7 @@
 									<tr id="r_{$id}" class="{cycle values="odd,even"}">
 										{assign var="b" value=""}
 										{foreach from=$fields key=key item=title}
-											{if !($title === (1 == 1))}
+											{if !($title === $true)}
 												{if !$b}
 													<td class="checkbox">
 														<input type="checkbox" name="ids[]" value="{$id}" id="ch_{$id}" onclick="chk(this)" />

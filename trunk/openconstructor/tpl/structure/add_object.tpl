@@ -1,7 +1,3 @@
-{*$objs|@debug_print_var*}
-{assign var="ocm_home" value="/openconstructor"}
-{assign var="skinhome" value="$ocm_home/i/newskin"}
-{assign var="img" value="$skinhome/images"}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
