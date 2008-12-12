@@ -51,7 +51,7 @@ class WCSmarty extends Smarty {
 			'IF_FUNCS' => array('count', 'isset', 'sizeof', 'is_array'),
 			'INCLUDE_ANY' => false,
 			'PHP_TAGS' => false,
-			'MODIFIER_FUNCS' => array('sprintf', 'count', 'sizeof', 'join', 'explode', 'substr', 'array_keys'),
+			'MODIFIER_FUNCS' => array('sprintf', 'count', 'sizeof', 'join', 'explode', 'substr', 'array_keys', 'array_search'),
 			'ALLOW_CONSTANTS' => false
 		);
 		$this->trusted_dir = array(ROOT.FILES.'/php');
@@ -60,6 +60,7 @@ class WCSmarty extends Smarty {
 		$this->register_modifier('implode', 'smarty_mod_implode', true);
 		$this->register_modifier('ftime', 'smarty_mod_ftime', true);
 		$this->register_modifier('fdate', 'smarty_mod_fdate', true);
+		$this->register_modifier('bool', 'smarty_mod_bool', true);
 		$this->debugging = false;
 		$this->_dir_perms = 0777;
 		$this->_file_perms = 0777;
@@ -146,5 +147,9 @@ function smarty_outputfilter_gzip($output, &$smarty) {
 			$ctx->page->_cacheGz = true;
 	}
 	return $result;
+}
+
+function smarty_mod_bool($text) {
+	return $text == 'true' || $text == 'yes' || $text == 'on' || $text == 1 || $text === true;
 }
 ?>

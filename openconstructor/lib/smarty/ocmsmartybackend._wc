@@ -40,6 +40,11 @@ class OcmSmartyBackend extends WCSmarty {
 
 		$this->secure_dir[] = WCHOME.'/tpl';
 		$this->security_settings['ALLOW_CONSTANTS'] = true;
+
+		/* GLOBAL VARIABLES */
+		$this->assign("ocm_home", WCHOME);
+		$this->assign("skinhome", WCHOME . '/i/newskin');
+		$this->assign("img", WCHOME . '/i/newskin/images');
 	}
 }
 ?>
