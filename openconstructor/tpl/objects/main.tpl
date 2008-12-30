@@ -143,17 +143,17 @@
 								{if $node.level eq 1}
 									<li>
 										<span class="folder">
-											<a id="{$node.id}" name="{$node.title|escape}" title="{$node.uri}"><strong class="notbold">{$node.title|escape}</strong></a>
+											<span class="fldname"><a id="{$node.id}" name="{$node.title|escape}" title="{$node.uri}"><strong class="notbold">{$node.title|escape}</strong></a></span>
 										</span>
 								{else}
 									<li>
-										<span class="file">
+										<span class="file"><span class="fldname">
 											{if $node.at eq 2}
 												<a href="?node={$node.id}"><strong>{$node.title|escape}</strong></a>
 											{else}
 												<a id="{$node.id}" name="{$node.title|escape}" href="?node={$node.id}" title="{$node.uri}">{$node.title|escape}</a>
 											{/if}
-										</span
+										</span></span>
 									</li>
 								{/if}
 							{/if}

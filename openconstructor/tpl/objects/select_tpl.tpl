@@ -16,7 +16,10 @@
 				$("#fCaching *").attr('disabled',!$(this).attr('checked'));
 				if($("#f_byWC").attr('checked'))
 					$("#cacheLifetime").attr('disabled',$("#f_byWC").attr('checked'));
+				if(searchdss)
+					$("#f_byWC").attr('disabled',true);
 			});
+			$("#fCaching *").attr('disabled',!$("#enableCaching").attr('checked'))
 
 			$("#f_byWC").click(function(){				$("#cacheLifetime").attr('disabled',$(this).attr('checked'));
 			});

@@ -380,6 +380,9 @@ ul#tree {
 	float:none;
 	}
 
+span.fldname {	cursor:pointer;
+	}
+
 .treeview li {
 	margin:0;
 	line-height:15px;
@@ -690,7 +693,7 @@ td.ushko {
 		p.ushko img {
 			border:none;
 			background-color:#000;
-			margin:20px 0 0 6px;
+			margin:45px 0 0 6px;
 			}
 
 		/*a.ushko:hover img {
