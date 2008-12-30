@@ -48,17 +48,15 @@
 	for($i = 0, $l = sizeof($fields); $i < $l; $i++) {
 		$f = &$fields[$i];
 		if($f->family != 'tree') continue;
-		if($f->ds_id != @$lastDs)
-			$ds_name = $ds[$f->ds_id]['name'];
+
 		$treefields[] = array(
 							'id' => $f->id,
 							'key' => substr($f->key, 2),
 							'header' => $f->header,
 							'family' => $f->family,
-							'ds_name' => @$ds_name,
+							'ds_name' => $f->ds_id,
 							'checked' => isset($docFields[$f->id]) ? true : false
 						);
-		$lastDs = $f->ds_id;
 	}
 	$smartybackend->assign("treefields", $treefields);
 

@@ -142,22 +142,22 @@
 									{/if}
 									{if $node.children|@count gt 0}
 										<li class="{if $node.obj->isLastChild()}last{/if}">
-											<span class="folder{$unpub}">
+											<span class="folder{$unpub}"><span class="fldname">
 												{if $node.at eq 1}
 													<a href="?node={$node.id}"><strong>{$node.title|escape}</strong></a>
 												{else}
 													<a id="{$node.id}" name="{$node.title|escape}" href="?node={$node.id}" title="{$node.uri}">{$node.title|escape}</a>
 												{/if}
-											</span>
+											</span></span>
 									{else}
 										<li class="{if $node.obj->isLastChild()}last{/if}">
-											<span class="file{$unpub}">
+											<span class="file{$unpub}"><span class="fldname">
 												{if $node.at eq 1}
 													<a href="?node={$node.id}"><strong>{$node.title|escape}</strong></a>
 												{else}
 													<a id="{$node.id}" name="{$node.title|escape}" href="?node={$node.id}" title="{$node.uri}">{$node.title|escape}</a>
 												{/if}
-											</span
+											</span></span>
 										</li>
 									{/if}
 								{/if}

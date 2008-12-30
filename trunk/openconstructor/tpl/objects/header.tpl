@@ -10,7 +10,7 @@
 	<body style="border-style:groove;padding:0 20 20">
 		<br />
 		<h3>{$smarty.const.EDIT_OBJECT}</h3>
-		<form name="f" method="POST" action="i_{$obj->ds_type}.php">
+		<form name="f" id="f" method="POST" action="i_{$obj->ds_type}.php">
 			<input type="hidden" name="action" value="edit_{$obj->obj_type}" />
 			<input type="hidden" name="obj_id" value="{$obj->obj_id}" />
 			<fieldset style="padding:10"><legend>{$smarty.const.OBJECT}</legend>

@@ -64,8 +64,8 @@
 		},
 		applyClasses: function(settings, toggler) {
 			if (settings.link_unfold_onclick) {
-				this.filter(":has(>ul):not(:has(>a))").find(">span").click(function(event) {
-					toggler.apply($(this).next());
+				this.filter(":has(>ul):not(:has(>a))").find(">span span.fldname").click(function(event) {
+					toggler.apply($(this).parent().next());
 				}).add( $("a", this) ).hoverClass();
 			}
 
@@ -204,7 +204,7 @@
 			case "location":
 				var current = this.find("a").filter(function() { return this.href.toLowerCase() == location.href.toLowerCase(); });
 				if ( current.length ) {
-					current.addClass("selected").parents("ul, li").add( current.parent().next() ).show();
+					current.addClass("selected").parents("ul, li").add( current.parent().parent().next() ).show();
 				}
 				break;
 			}
