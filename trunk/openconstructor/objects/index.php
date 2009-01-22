@@ -64,23 +64,11 @@
 	$smartybackend->assign("editor", $nodetype . '/' . $curnode . '.php?j=1');
 	$smartybackend->assign("icon", 'object');
 
+	$smartybackend->assign("pager", $pager);
+
 	$smartybackend->assign("search_text", htmlspecialchars(@$_GET['search'], ENT_COMPAT, 'UTF-8'));
     $smartybackend->assign("fieldnames", $fieldnames);
     $smartybackend->assign("pagesize", $pagesize);
 
-    /*$fields1=$fields;
-	foreach((array) $fieldnames as $k=>$v)
-		if(!@$fields1[$k]||@$fields1[$k]===true)
-			$fields1[$k]=$v;
-		foreach($fields1 as $k=>$v)
-			if($v!==true)
-				echo 'name=' . $v . ', id=' . $k . ', title=' . @$fieldnames[$k] . ', enabled=' . (isset($fields[$k])?'yes':'no') . ', visible=' . (isset($fields[$k])&&@$fields[$k]!==true?'yes':'no');
-                */
-
-
-    /*echo "<pre>";
-    print_r($hl);
-    echo "</pre>";*/
-
-	$smartybackend->display('objects/main.tpl');
+    $smartybackend->display('objects/main.tpl');
 ?>

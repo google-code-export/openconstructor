@@ -162,42 +162,89 @@
 						</ul>
 					</td>
 					<td class="middle">
-						<table>
-							<thead>
-								<tr>
-									<td class="checkbox">
-										<input type="checkbox" onclick="doall()" title="{$smarty.const.SELECT_ALL}" id="checkall" name="checkall" />
-									</td>
-									{foreach name=header from=$fields key=key item=title}
-										{if !($title === $true)}
-											<td class="{if $key eq 'date'}date{else}name-object{/if}">{$title}</td>
-										{/if}
-									{/foreach}
-								</tr>
-							</thead>
-							{foreach from=$objs key=id item=val}
-								<tr id="r_{$id}" class="{cycle values="odd,even"}">
-									{assign var="b" value=""}
-									{foreach from=$fields key=key item=title}
-										{if !($title === $true)}
-											{if !$b}
-												<td class="checkbox">
-													<input type="checkbox" name="ids[]" value="{$id}" id="ch_{$id}" onclick="chk(this)" />
-												</td>
-												<td>
-													<img src="{$img}/f/{$icon}.gif" class="name-icon" />
-													<a href="{$editor}&id={$id}" onclick="wxyopen(this.href,{$editor_width},{$editor_height});return false;" {if !$val.published}class="dis"{/if}>{$val.$key|escape}</a>
-													<p class="des">{if $val.description && $fields.description}{$val.description}{/if}</p>
-												</td>
-											{else}
-												<td {if $key eq 'date'}class="date"{/if}>{$val.$key}</td>
+						<form name="f_doc" action="{$ocm_home}/objects/i_objects.php" method="POST">
+							<input type="hidden" name="action" value="delete_obj" />
+							<table>
+								<thead>
+									<tr>
+										<td class="checkbox">
+											<input type="checkbox" onclick="doall()" title="{$smarty.const.SELECT_ALL}" id="checkall" name="checkall" />
+										</td>
+										{foreach name=header from=$fields key=key item=title}
+											{if !($title === $true)}
+												<td class="{if $key eq 'date'}date{else}name-object{/if}">{$title}</td>
 											{/if}
-											{assign var="b" value=true}
+										{/foreach}
+									</tr>
+								</thead>
+								{foreach from=$objs key=id item=val}
+									<tr id="r_{$id}" class="{cycle values="odd,even"}">
+										{assign var="b" value=""}
+										{foreach from=$fields key=key item=title}
+											{if !($title === $true)}
+												{if !$b}
+													<td class="checkbox">
+														<input type="checkbox" name="ids[]" value="{$id}" id="ch_{$id}" onclick="chk(this)" />
+													</td>
+													<td>
+														<img src="{$img}/f/{$icon}.gif" class="name-icon" />
+														<a href="{$editor}&id={$id}" onclick="wxyopen(this.href,{$editor_width},{$editor_height});return false;" {if !$val.published}class="dis"{/if}>{$val.$key|escape}</a>
+														<p class="des">{if $val.description && $fields.description}{$val.description}{/if}</p>
+													</td>
+												{else}
+													<td {if $key eq 'date'}class="date"{/if}>{$val.$key}</td>
+												{/if}
+												{assign var="b" value=true}
+											{/if}
+										{/foreach}
+									</tr>
+								{/foreach}
+								<tr class="itogo">
+									<td colspan="5">
+										{if $pager.pages|@sizeof gt 1}
+											<ul>
+												<li>
+													{if $pager.first}
+														<a href="{$pager.first}"><img src="{$img}/p/first.gif" alt="{$smarty.const.GOTO_FIRST_PAGE}" title="{$smarty.const.GOTO_FIRST_PAGE}"/></a>
+													{else}
+														<img src="{$img}/p/first.gif" alt="{$smarty.const.GOTO_FIRST_PAGE}" title="{$smarty.const.GOTO_FIRST_PAGE}"/>
+													{/if}
+												</li>
+												<li>
+													{if $pager.prev}
+														<a href="{$pager.prev}"><img src="{$img}/p/prev.gif" alt="{$smarty.const.GOTO_PREVIOUS_PAGE}" title="{$smarty.const.GOTO_PREVIOUS_PAGE}"/></a>
+													{else}
+														<img src="{$img}/p/prev.gif" alt="{$smarty.const.GOTO_PREVIOUS_PAGE}" title="{$smarty.const.GOTO_PREVIOUS_PAGE}"/>
+													{/if}
+												</li>
+												{foreach from=$pager.pages key=p item=href}
+													{if $href}
+														<li class="pages"><a href="{$href}" title="{$p}">{$p}</a>
+													{else}
+														<li class="page-cur">{$p}</li>
+													{/if}
+												{/foreach}
+												<li>
+													{if $pager.next}
+														<a href="{$pager.next}"><img src="{$img}/p/next.gif" alt="{$smarty.const.GOTO_NEXT_PAGE}" title="{$smarty.const.GOTO_NEXT_PAGE}"/></a>
+													{else}
+														<img src="{$img}/p/next.gif" alt="{$smarty.const.GOTO_NEXT_PAGE}" title="{$smarty.const.GOTO_NEXT_PAGE}"/>
+													{/if}
+												</li>
+												<li>
+													{if $pager.last}
+														<a href="{$pager.last}"><img src="{$img}/p/last.gif" alt="{$smarty.const.GOTO_LAST_PAGE}" title="{$smarty.const.GOTO_LAST_PAGE}"/></a>
+													{else}
+														<img src="{$img}/p/last.gif" alt="{$smarty.const.GOTO_LAST_PAGE}" title="{$smarty.const.GOTO_LAST_PAGE}"/>
+													{/if}
+												</li>
+											</ul>
 										{/if}
-									{/foreach}
+										<p>{$smarty.const.TOTAL} {$pager.items}</p>
+									</td>
 								</tr>
-							{/foreach}
-						</table>
+							</table>
+						</form>
 					</td>
 					<td class="ushko">
 						<p class="ushko"><img alt="" src="{$img}/vbkmrk_state_inline.gif" /></p>
@@ -214,12 +261,13 @@
 								</div>
 							</form>
 						</fieldset>
-						<form method="post" action="" name="frm_v">
+						<form method="post" action="{$ocm_home}/objects/i_objects.php" name="frm_v">
+							<input type="hidden" name="action" value="view_detail" />
 							<fieldset>
 								<legend>{$smarty.const.VIEW}</legend>
 								{foreach from=$fieldnames item=val}
 									<div>
-										<input name="{$val.name}" id="{$val.name}" type="checkbox" value="yes" {if $val.st eq ''}checked{/if} />
+										<input name="vdetail[{$val.name}]" id="{$val.name}" type="checkbox" value="true" {if $val.st}checked{/if} />
 										<label for="{$val.name}">{$val.title}</label>
 									</div>
 								{/foreach}
@@ -227,9 +275,8 @@
 							<fieldset>
 								<legend>{$smarty.const.INFO}</legend>
 								<input type="text" name="pagesize" id="pagesize" value="{$pagesize}" size="2" maxlength="3" />
-								<!-- <xsl:value-of select="$msg[@id='DOCUMENTS_PER_PAGE']"/> -->
 							</fieldset>
-							<input type="submit" class="refresh" value="{$smarty.const.REFRESH}" /><!--onclick="rf_view()"-->
+							<input type="submit" class="refresh" value="{$smarty.const.REFRESH}" />
 						</form>
 					</td>
 				</tr>
