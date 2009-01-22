@@ -13,7 +13,7 @@ function remove()
 {
 	if(ch_doc<1) return;
 	if(mopen(wchome + "/confirm.php?q=" + encodeURIComponent(REMOVE_SELECTED_OBJECTS_Q) + "&skin=" + skin, 350, 170))
-		f_doc.submit();
+		$("form[name='f_doc']").submit();
 }
 function createobject()
 {

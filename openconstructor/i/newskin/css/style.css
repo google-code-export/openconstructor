@@ -452,6 +452,10 @@ strong.notbold {	font-weight:normal;
 	background:url(../images/tree/homeobj.gif) center left no-repeat;
 	}
 
+.templates{
+	background:url(../images/tree/hometpl.gif) center left no-repeat;
+	}
+
 /* ---------------------------------------------------------------- */
 /*						Middle Column								*/
 /* ---------------------------------------------------------------- */
@@ -537,6 +541,10 @@ td.middle {
 		background:#eee url(../images/f/border.gif) center left no-repeat;
 		padding-left:12px;
 		vertical-align:middle;
+		}
+
+	.middle thead td.file {
+		width:55px;
 		}
 
 	/*.middle thead td.block-sitemap {
@@ -656,6 +664,10 @@ td.middle {
 			vertical-align:text-bottom;
 			}
 
+		.middle tr.itogo li a img {
+			border:0;
+			}
+
 	.middle tr.itogo p {
 		text-align:center;
 		padding:10px 0 30px;
@@ -706,7 +718,8 @@ td.ushko {
 
 td.right {
 	vertical-align:top;
-	width:250px;
+	/*width:250px;*/
+	width:235px;
 	background-color:#ebebeb;
 	padding:10px;
 	}
@@ -729,7 +742,6 @@ td.right {
 
 	td.right legend {
 		padding:0 2px;
-		color:#0066CC;
 		}
 
 	td.right input {
