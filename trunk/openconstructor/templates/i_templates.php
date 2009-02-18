@@ -1,23 +1,23 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: i_templates.php,v 1.11 2007/03/02 10:06:41 sanjar Exp $
  */
 	require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
@@ -27,7 +27,7 @@
 		$dstype = @$_GET['dstype'];
 	require_once(LIBDIR.'/dsmanager._wc');
 	$dsm = new DSManager();
-	
+
 switch(@$_POST['action'])
 {
 	case 'create_tpl':
@@ -51,7 +51,7 @@ switch(@$_POST['action'])
 			echo '</script>';
 		}
 	break;
-	
+
 	case 'edit_tpl':
 		require_once(LIBDIR.'/templates/wctemplate._wc');
 		require_once(LIBDIR.'/templates/wctemplates._wc');
@@ -74,7 +74,7 @@ switch(@$_POST['action'])
 			header('Location: '.$ref);
 		}
 	break;
-	
+
 	case 'delete_tpl':
 		require_once(LIBDIR.'/templates/wctemplates._wc');
 		$tpls=new WCTemplates();
@@ -82,7 +82,7 @@ switch(@$_POST['action'])
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
 		die('<meta http-equiv="Refresh" content="0; URL='.$_SERVER['HTTP_REFERER'].'">');
 	break;
-	
+
 	case 'copy_tpl':
 		die();
 		if(isset($_POST['ds_id']))
@@ -93,7 +93,19 @@ switch(@$_POST['action'])
 //		header('Location: http://'.$_host.WCHOME.'/data/');
 		die('<meta http-equiv="Refresh" content="0; URL=http://'.$_host.WCHOME.'/data/">');
 	break;
-	
+
+	case 'view_detail':
+		foreach((array) @$_COOKIE['vd'] as $key => $val){
+			if(!array_key_exists($key, (array) @$_POST['vdetail']))
+				setcookie('vd['.$key.']', '', time() - 3600, WCHOME.'/templates/');
+		}
+		foreach($_POST['vdetail'] as $key => $val)
+			setcookie('vd['.$key.']', $key, 0, WCHOME.'/templates/');
+		setcookie('pagesize', $_POST['pagesize'], 0, WCHOME.'/templates/');
+		setcookie('vd[_touched]', '_touched', 0, WCHOME.'/templates/');
+		header('Location: '.$_SERVER['HTTP_REFERER']);
+	break;
+
 	default:
 	break;
 }

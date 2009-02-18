@@ -456,6 +456,10 @@ strong.notbold {	font-weight:normal;
 	background:url(../images/tree/hometpl.gif) center left no-repeat;
 	}
 
+.users{
+	background:url(../images/tree/homeusr.gif) center left no-repeat;
+	}
+
 /* ---------------------------------------------------------------- */
 /*						Middle Column								*/
 /* ---------------------------------------------------------------- */
@@ -573,6 +577,11 @@ td.middle {
 
 	.middle td.date, .middle td.file {
 		padding-left:12px;
+		vertical-align:middle;
+		}
+
+	.middle td.user_email {
+		padding-right:15px;
 		vertical-align:middle;
 		}
 

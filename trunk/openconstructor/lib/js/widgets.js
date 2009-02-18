@@ -3,9 +3,7 @@
  *	@since 20.10.2004
  */
 
-
 var widgetUtils = new WidgetUtils();
-
 
 /**	Creates calendar style date chooser
  *
@@ -822,15 +820,12 @@ ArrayWidget.prototype.refresh = function() {
 
 function WidgetUtils() {}
 
-WidgetUtils.prototype.createTableFromSelect = function(select, header) {
-	var table = document.createElement("TABLE");
+WidgetUtils.prototype.createTableFromSelect = function(select, header) {	var table = document.createElement("TABLE");
 	var tbody = document.createElement("TBODY");
 	var tr = document.createElement("TR");
 	var td = document.createElement("TD");
-
-	tr.appendChild(td.cloneNode());
-	tr.appendChild(td.cloneNode());
-
+    tr.appendChild(td.cloneNode(true));
+	tr.appendChild(td.cloneNode(true));
 	for(var i = 0, r = null; i < select.options.length; i++){
 		r = tr.cloneNode(true);
 		r.firstChild.innerHTML = "<INPUT type='" + (select.multiple ? "checkbox" : "radio") + "' name='i'>";

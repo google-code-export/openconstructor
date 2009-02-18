@@ -211,7 +211,7 @@ class WCTemplates {
 		if($type == 'importtables') {
 			$queryf = 'SELECT t.id, t.name, t.date, 1 as published, has_error FROM wctemplates t WHERE t.type="%s" %s ORDER BY t.name LIMIT %d,%d';
 		} else {
-			$queryf = 'SELECT t.id, t.name, t.date, j.id as published, has_error FROM wctemplates t LEFT JOIN '.($type == 'page' ? 'sitepages' : 'objects').' j ON (t.id = j.tpl) WHERE t.type="%s" %s ORDER BY t.name LIMIT %d,%d';
+			$queryf = 'SELECT t.id, t.name, t.date, j.id as published, has_error FROM wctemplates t LEFT JOIN '.($type == 'page' ? 'sitepages' : 'objects').' j ON (t.id = j.tpl) WHERE t.type="%s" %s GROUP BY t.id ORDER BY t.name LIMIT %d,%d';
 		}
 		$query = sprintf($queryf, $type, $searchclause, $page * $pagesize, $pagesize);
 		$db = &WCDB::bo();
@@ -225,6 +225,7 @@ class WCTemplates {
 					'tpl' => $row['id'].'.tpl',
 					'date' => date('j M Y', strtotime($row['date']))
 				);
+
 		return $result;
 	}
 
