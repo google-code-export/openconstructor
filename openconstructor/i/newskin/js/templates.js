@@ -1,20 +1,19 @@
 // Templates
-function chk(obj)
-{
+function chk(obj){
 	chk_(obj);
 	if(ch_doc < 1) {
-		disableButton(btn_remove,imghome+'/tool/remove_.gif');
-		disableButton(btn_editsec,imghome+'/tool/editsec_.gif');
+		disableButton("btn_remove",imghome+'/tbar/remove_.gif');
+		disableButton("btn_editsec",imghome+'/tbar/editsec_.gif');
 	} else {
-		disableButton(btn_remove,false);
-		disableButton(btn_editsec,false);
+		disableButton("btn_remove",false);
+		disableButton("btn_editsec",false);
 	}
 }
 function remove()
 {
 	if(ch_doc<1) return;
 	if(mopen(wchome + "/confirm.php?q=" + encodeURIComponent(REMOVE_SELECTED_TEMPLATES_Q) + "&skin=" + skin, 350, 170))
-		f_doc.submit();
+		$("form[name='f_doc']").submit();
 }
 function createtpl()
 {
