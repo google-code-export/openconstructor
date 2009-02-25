@@ -33,7 +33,7 @@
 		if($v['main']) $hl[$id]['header']='<b>'.$hl[$id]['header'].'</b>';
 	}
 	$icon='pub';
-	$w=788;$h=520;
+	$eWidth=788;$eHeight=520;
 	$editor='publication/edit.php?ds_id='.$curnode;
 	$fields=array(
 		'header'=>HL_HEADER,
@@ -41,9 +41,18 @@
 		'date'=>HL_DATE
 	);
 	$fieldnames=array(
-		'description'=>RP_SHOW_INTRO,
-		'date'=>RP_SHOW_DATE
+		'description'=>array('name' => 'description', 'title' => RP_SHOW_INTRO, 'st' => true),
+		'date'=>array('name' => 'date', 'title' => RP_SHOW_DATE, 'st' => true)
 	);
+	if(sizeof(@$_COOKIE['vd']))
+		foreach($fieldnames as $key => $value){
+			if(!isset($_COOKIE['vd'][$key]))
+				$fieldnames[$key]['st'] = false;
+	        if (!$fieldnames[$key]['st']) unset($fields[$key]);
+		}
+	require_once(LIBDIR.'/pager._wc');
+	$pager = noSqlPager($items, 'page', $pagesize, 10);
+/*
 	if(is_array(@$_COOKIE['vf']))
 		foreach($_COOKIE['vf'] as $f=>$st)
 			if($st=='disabled') unset($fields[$f]);
@@ -60,4 +69,5 @@
 //	pager('page','dspublication','id','WHERE ds_id='.$curnode,$pagesize,10,$searchclause);
 	noSqlPager($items, 'page', $pagesize, 10);
 	echo '</documents>';
+*/
 ?>

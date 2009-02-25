@@ -44,7 +44,7 @@ $toolbar=array(
 		'action'=> array_search($nodetype, array('phpsource', 'file', 'rating')) === false ? 'publish_docs(false)' : ''
 	),
 	'separator',
-	'{0' => @$_COOKIE['def_bs0'] ? $_COOKIE['def_bs0'] : 'html',
+	'ddopen' => @$_COOKIE['def_bs'] ? $_COOKIE['def_bs'] : 'html',
 	CREATE_DS_HTMLTEXT => array(
 		'pic'=>'html',
 		'action'=>System::decide('data.dshtmltext') ? 'wxyopen(wchome+"/data/create_htmltext.php",550,500)' : ''
@@ -89,7 +89,7 @@ $toolbar=array(
 		'pic'=>'rating',
 		'action'=>System::decide('data.dsrating') ? 'wxyopen(wchome + "/data/create_rating.php", 550, 350)' :''
 	),
-	'}',
+	'ddclose',
 	'separator',
 	EDIT_CURRENT_DS => array(
 		'pic'=>'editpage',
@@ -110,6 +110,7 @@ $toolbar=array(
 		'action'=>WCS::decide($ds, 'removeds') || WCS::decide($ds, 'removedoc') || WCS::ownerAllowed($ds, 'removedoc') ? 'remove()' : ''
 	),
 );
+
 $in=false;
 foreach($toolbar as $k=>$v)
 	if(substr($k,0,1)=='{'){
