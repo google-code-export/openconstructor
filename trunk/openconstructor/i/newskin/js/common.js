@@ -12,7 +12,7 @@ try {
 		pri[6] = new Image; pri[6].src = imghome + '/vbkmrk.gif';
 		pri[7] = new Image; pri[7].src = imghome + '/vbkmrk_.gif';
 	}
-	pri[8] = new Image; pri[8].src = imghome + '/tool/border_.gif';
+	pri[8] = new Image; pri[8].src = imghome + '/tbar/border_.gif';
 } catch(RuntimeException) {
 }
 var ch_doc=0;
@@ -90,7 +90,8 @@ function wxyopen(uri,x,y)
 {
 	window.open(uri,'',"resizable=yes, scrollbars=yes, status=yes" + (y > 0 ? ", height=" + y : "") + (x > 0 ? ", width=" + x : ""));
 }
-function disableButton(elm, img) {	var b = document.getElementById(elm);
+function disableButton(elm, img) {
+	var b = document.getElementById(elm);
 	if(!b.parentNode.href) return false;
 	if(img && !b.dbtn) {
 		b.dbtn = true;
@@ -171,10 +172,10 @@ function doall(){	var elm = $("input#checkall");
 }
 
 function getSelectedDocs() {
-	var result = new Array(), docs = f_doc.all('ids[]'), l = 0;
+	var result = new Array(), docs = $("form[name='f_doc'] input[name='ids[]']"), l = 0;
 	if(!docs) return;
-	if(docs.length>0) {
-		for(i=0; i < docs.length; i++)
+	if(docs.length>0)
+		for(i=0; i < docs.length; i++){
 			if(docs[i].checked)
 				result[l++] = docs[i].value;
 	} else if(docs.checked)

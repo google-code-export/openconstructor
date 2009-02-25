@@ -26,7 +26,7 @@
 		$pagesize=$_COOKIE['pagesize'];
 	$searchclause = $ds->isIndexable && !isset($_GET['noindex']) ? get_index_clause(@$_GET['search']) : get_clause(@$_GET['search'],'name,basename');
 	list($items, $hl) = get_headline('ds'.$nodetype,$curnode,'name,basename,size',$pagesize,@$_GET['page'],$searchclause);
-	$w=550;$h=500;
+	$eWidth=550;$eHeight=500;
 	$icon='file';
 	$editor='file/edit.php?ds_id='.$curnode;
 	$fields=array(
@@ -36,10 +36,19 @@
 		'date'=>HL_DATE
 	);
 	$fieldnames=array(
-		'basename'=>RP_SHOW_FILENAME,
-		'size'=>RP_SHOW_FILESIZE,
-		'date'=>RP_SHOW_DATE
+		'basename'=>array('name' => 'basename', 'title' => RP_SHOW_FILENAME, 'st' => true),
+		'size'=>array('name' => 'size', 'title' => RP_SHOW_FILESIZE, 'st' => true),
+		'date'=>array('name' => 'date', 'title' => RP_SHOW_DATE, 'st' => true)
 	);
+	if(sizeof(@$_COOKIE['vd']))
+		foreach($fieldnames as $key => $value){
+			if(!isset($_COOKIE['vd'][$key]))
+				$fieldnames[$key]['st'] = false;
+	        if (!$fieldnames[$key]['st']) unset($fields[$key]);
+		}
+	require_once(LIBDIR.'/pager._wc');
+	$pager = noSqlPager($items, 'page', $pagesize, 10);
+/*
 	if(is_array(@$_COOKIE['vf']))
 		foreach($_COOKIE['vf'] as $f=>$st)
 			if($st=='disabled') unset($fields[$f]);
@@ -56,4 +65,5 @@
 //	pager('page','dsfile','id','WHERE ds_id='.$curnode,$pagesize,10,$searchclause);
 	noSqlPager($items, 'page', $pagesize, 10);
 	echo '</documents>';
+*/
 ?>

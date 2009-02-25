@@ -21,12 +21,12 @@
  * $Id: headline._wc,v 1.5 2007/02/27 11:23:19 sanjar Exp $
  */
 	require_once('../include/headlines._wc');
-	$alldoc = @$_COOKIE['vf']['alldoc'] != 'disabled';
+	$alldoc = isset($_COOKIE['vd']['alldoc']);
 	if($alldoc) {
 //		require_once(LIBDIR.'/hybrid/dshybridfactory._wc');
 //		$dsf = new DSHybridFactory();
 //		$ids = implode(',', $tmp = $dsf->getChildren($curnode));
-		$autocast = @$_COOKIE['vf']['cast'] != 'disabled';
+		$autocast = isset($_COOKIE['vd']['cast']);
 	} else {
 		$ids = $curnode;
 		$autocast = false;
@@ -37,7 +37,7 @@
 	$searchclause = $ds->isIndexable && !isset($_GET['noindex']) ? get_index_clause(@$_GET['search']) : get_clause(@$_GET['search'], 'header');
 	list($items, $hl) = get_hybrid_headline($ds->ds_id, $alldoc, $autocast, $pagesize, @$_GET['page'], $searchclause);
 	$icon='hyb';
-	$w=788;$h=520;
+	$eWidth=788;$eHeight=520;
 	$editor='hybrid/edit.php?'.($autocast ? 1 : 'ds_id='.$curnode);
 	$fields=array(
 		'header'=>HL_HEADER,
@@ -47,13 +47,23 @@
 		'date'=>HL_DATE
 	);
 	$fieldnames=array(
-		'type'=>RP_SHOW_HYBRIDTYPE,
-		'alldoc'=>RP_INCLUDE_SUBDOCUMENTS,
-		'cast'=>RP_AUTOCAST_ON_EDIT,
-		'date'=>RP_SHOW_DATE
+		'type'=>array('name' => 'type', 'title' => RP_SHOW_HYBRIDTYPE, 'st' => true),
+		'alldoc'=>array('name' => 'alldoc', 'title' => RP_INCLUDE_SUBDOCUMENTS, 'st' => true),
+		'cast'=>array('name' => 'cast', 'title' => RP_AUTOCAST_ON_EDIT, 'st' => true),
+		'date'=>array('name' => 'date', 'title' => RP_SHOW_DATE, 'st' => true)
 	);
 	if(!$alldoc)
 		unset($fieldnames['type'],$fieldnames['cast'],$fields['type']);
+	
+	if(sizeof(@$_COOKIE['vd']))
+		foreach($fieldnames as $key => $value){
+			if(!isset($_COOKIE['vd'][$key]))
+				$fieldnames[$key]['st'] = false;
+	        if (!$fieldnames[$key]['st']) unset($fields[$key]);
+		}
+	require_once(LIBDIR.'/pager._wc');
+	$pager = noSqlPager($items, 'page', $pagesize, 10);
+/*
 	if(is_array(@$_COOKIE['vf']))
 		foreach($_COOKIE['vf'] as $f=>$st)
 			if($st=='disabled') unset($fields[$f]);
@@ -70,4 +80,5 @@
 //	pager('page','dshybrid','id','WHERE ds_id IN ('.$ids.')',$pagesize,10,$searchclause);
 	noSqlPager($items, 'page', $pagesize, 10);
 	echo '</documents>';
+*/
 ?>

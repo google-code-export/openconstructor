@@ -25,6 +25,7 @@ function WYSIWYGWidget(textcontrol, frame, wysiwygcontroller, style, srcEditor)
 	style = style ? style : '';
 	
 	this.iframe = frame;
+	
 	this.bindedDocument = frame.contentWindow.document;
 	this.bindedText = this.bindedDocument.bindedText = textcontrol;
 	this.bindedText.bindedDocument = this.bindedDocument;

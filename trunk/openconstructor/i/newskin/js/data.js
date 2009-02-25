@@ -1,7 +1,10 @@
-tmpimg=new Image;tmpimg.src=imghome+'/tool/moveobject.gif';
-tmpimg1=new Image;tmpimg1.src=imghome+'/tool/publish.gif';
-tmpimg2=new Image;tmpimg2.src=imghome+'/tool/unpublish.gif';
-tmpimg3=new Image;tmpimg3.src=imghome+'/tool/remove.gif';
+try {
+	tmpimg=new Image;tmpimg.src=imghome+'/tbar/moveobject.gif';
+	tmpimg1=new Image;tmpimg1.src=imghome+'/tbar/publish.gif';
+	tmpimg2=new Image;tmpimg2.src=imghome+'/tbar/unpublish.gif';
+	tmpimg3=new Image;tmpimg3.src=imghome+'/tbar/remove.gif';
+} catch(RuntimeException) {
+}
 function remove()
 {
 	if(ch_doc==0)
@@ -12,11 +15,11 @@ function remove()
 			if(mopen(wchome + "/confirm.php?q=" + encodeURIComponent("<span style='color:red'><b>" + SURE_REMOVE_DS_Q + "</b></span>") + "&skin=" + skin, 350, 170)){
 				if(isLocked && !(isLocked && mopen(wchome + "/confirm.php?q=" + encodeURIComponent("<span style='color:red'><b>" + SURE_REMOVE_LOCKED_DS_Q + "</b></span>") + "&skin=" + skin, 190)))
 					return;
-				f_remove.submit();
+				$("form[name='f_remove']").submit();;
 			}
 	}else{
 		if(mopen(wchome+"/confirm.php?q=" + encodeURIComponent(REMOVE_SELECTED_DOCUMENTS_Q) + "&skin=" + skin,350,170))
-			f_doc.submit();
+			$("form[name='f_doc']").submit();
 	}
 }
 function move_docs()
@@ -25,38 +28,38 @@ function move_docs()
 	var d=new Date();
 	result=mopen(wchome+'/data/move_doc.php?ds_type='+nodetype+'&ds_id='+curnode+"&j="+Math.ceil(d.getTime()/1000),450,270);
 	if(!result) return;
-	f_doc.all('action').value='move_documents';
-	f_doc.dest_ds_id.value=result;
-	f_doc.submit();
+	$("form[name='f_doc'] input[name='action']").attr('value', 'move_documents');
+	$("form[name='f_doc'] input[name='dest_ds_id']").attr('value', result);
+	$("form[name='f_doc']").submit();
 }
 function publish_docs(status)
 {
 	if(!(ch_doc>0)) return;
 	if(status){
 		if(mopen(wchome + "/confirm.php?q=" + encodeURIComponent(PUBLISH_SELECTED_DOCUMENTS_Q) + "&skin=" + skin, 350, 170))
-			f_doc.all('action').value='publish_documents';
+			$("form[name='f_doc'] input[name='action']").attr('value', 'publish_documents');
 		else return;
 	}else{
 		if(mopen(wchome + "/confirm.php?q=" + encodeURIComponent(UNPUBLISH_SELECTED_DOCUMENTS_Q) + "&skin=" + skin, 350, 170))
-			f_doc.all('action').value='unpublish_documents';
+			$("form[name='f_doc'] input[name='action']").attr('value', 'unpublish_documents');
 		else return;
 	}
-	f_doc.submit();
+	$("form[name='f_doc']").submit();
 }
 function chk(obj){
 	chk_(obj)
 	if(ch_doc<1){
-		disableButton(btn_moverecord,imghome+'/tool/moverecord_.gif');
-		disableButton(btn_publish,imghome+'/tool/publish_.gif');
-		disableButton(btn_unpublish,imghome+'/tool/unpublish_.gif');
+		disableButton("btn_moverecord",imghome+'/tbar/moverecord_.gif');
+		disableButton("btn_publish",imghome+'/tbar/publish_.gif');
+		disableButton("btn_unpublish",imghome+'/tbar/unpublish_.gif');
 		if(isInternal)
-			disableButton(btn_remove,imghome+'/tool/remove_.gif');
+			disableButton("btn_remove",imghome+'/tbar/remove_.gif');
 	} else {
-		disableButton(btn_moverecord,false);
-		disableButton(btn_publish,false);
-		disableButton(btn_unpublish,false);
+		disableButton("btn_moverecord",false);
+		disableButton("btn_publish",false);
+		disableButton("btn_unpublish",false);
 		if(isInternal)
-			disableButton(btn_remove,false);
+			disableButton("btn_remove",false);
 	}
 }
 function reply(id){
@@ -106,5 +109,22 @@ function edit_security() {
 		wxyopen(wchome+'/security/editds.php?id=' + curnode, 500, 520);
 	} else {
 		wxyopen(wchome+'/security/editdoc.php?ds_id=' + curnode + '&id=' + getSelectedDocs(), 500, 200);
+	}
+}
+function ddChoose(id){
+	if($('a.drop').attr('id') != id){
+		def = $('a.drop');
+		cur = $('a#'+id);
+		def.attr({
+			href: cur.attr('href'),
+			id: cur.attr('id')
+		});
+		def.find('img:first').attr({
+			src: cur.find('img').attr('src'),
+			title: cur.find('img').attr('title'),
+			alt: cur.find('img').attr('alt'),
+			id: cur.find('img').attr('id')
+		});
+		$.cookie('def_bs', id);
 	}
 }
