@@ -810,7 +810,7 @@ td.right {
 	}
 
 	h3.head_title {
-		font-size:21px;
+		font-size:18px;
 		font-weight:bold;
 		color:#999999;
 		margin:0 0 20px 20px;
@@ -873,3 +873,37 @@ td.right {
 		.right_btns {
 			text-align:right;
 			}
+
+/* ---------------------------------------------------------------- */
+/*							Styles for templates					*/
+/* ---------------------------------------------------------------- */
+
+#inner_page {	background-color:#F2F2F2;
+	padding:20px 20px 0 20px;
+	}
+
+	h3.hTitle {
+		font-size:18px;
+		font-weight:bold;
+		color:#999999;
+		}
+
+	fieldset {
+		margin:10px 0 0 0;
+		padding:0 10px 10px 10px;
+		border:1px groove #75736E;
+		}
+
+		fieldset table {
+			margin:10px 0 0 0;
+			}
+
+		legend {
+			padding:0 3px;
+			}
+
+	.ffm {		font-family:monospace;		}
+
+	.fsb {
+		font-size:15px;
+		}

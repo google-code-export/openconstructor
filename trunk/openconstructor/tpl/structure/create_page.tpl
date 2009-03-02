@@ -6,7 +6,7 @@
 		<title>{$smarty.const.WC} | {$smarty.const.H_CREATE_PAGE}</title>
 		<script type="text/javascript" src="{$skinhome}/js/jquery-1.2.6.js"></script>
 	</head>
-	<body style="border-style:groove;padding:0 20 20">
+	<body id="inner_page">
 		<script>
 			var	uri = '{$in->uri}', dis = {$disabled};
 			{literal}
@@ -30,13 +30,12 @@
 				});
 			{/literal}
 		</script>
-		<br />
-		<h3>{$smarty.const.H_CREATE_PAGE}</h3>
+		<h3 class="hTitle">{$smarty.const.H_CREATE_PAGE}</h3>
 		<form name="f" method="POST" action="i_structure.php">
 			<input type="hidden" name="action" value="create_page" />
 			<input type="hidden" name="parent_id" value="{$in->id}" />
-			<fieldset style="padding:10"><legend>{$smarty.const.NEW_PAGE}</legend>
-				<table style="margin:5 0" cellspacing="3">
+			<fieldset><legend>{$smarty.const.NEW_PAGE}</legend>
+				<table cellspacing="3">
 					<tr>
 						<td>{$smarty.const.PAGE_FOLDER}:</td>
 						<td><input type="text" id="page_name" name="page_name" size="32" maxlength="32" class="dsb" /></td>
@@ -51,8 +50,8 @@
 				</table>
 			</fieldset>
 			<br />
-			<fieldset style="padding:10"><legend>{$smarty.const.PARENT_PAGE}</legend>
-				<table style="margin:5 0" cellspacing="3">
+			<fieldset><legend>{$smarty.const.PARENT_PAGE}</legend>
+				<table cellspacing="3">
 					<tr>
 						<td>{$smarty.const.CREATE_PAGE_IN}:</td>
 						<td><b>{$in->uri}</b></td>

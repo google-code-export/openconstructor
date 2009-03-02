@@ -7,7 +7,7 @@
 		<title>{$smarty.const.WC} | {$smarty.const.H_CACHE_VARY_SUGGEST}</title>
 		<script type="text/javascript" src="{$skinhome}/js/jquery-1.2.6.js"></script>
 	</head>
-	<body style="border-style:groove; border-width: 2px;padding:0 20 20">
+	<body id="inner_page">
 		<script>
 			{literal}
 				var a = [], j = 0;
@@ -26,11 +26,10 @@
 				});
 			{/literal}
 		</script>
-		<br />
-		<h3>{$smarty.const.H_CACHE_VARY_SUGGEST}</h3>
-		<div style="font-size: 90%;">{$smarty.const.SUGGESTTIONS_MAY_BE_INVALID}</div>
+		<h3 class="hTitle">{$smarty.const.H_CACHE_VARY_SUGGEST}</h3>
+		<div style="margin-top:15px;font-size: 90%;">{$smarty.const.SUGGESTTIONS_MAY_BE_INVALID}</div>
 		<form name="f">
-			<fieldset style="padding:10"><legend>{$smarty.const.H_SUGGESTIONS}</legend>
+			<fieldset><legend>{$smarty.const.H_SUGGESTIONS}</legend>
 				<div style="padding: 10px; font-size: 110%;" id="div_ch">
 				{if $vary|@sizeof}
 					<div style="font-family: monospace;">

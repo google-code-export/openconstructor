@@ -1,23 +1,23 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: login.php,v 1.13 2007/03/24 20:14:45 sanjar Exp $
  */
 require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
@@ -35,7 +35,7 @@ $auth = &Authentication::getInstance();
 	<link rel="icon" type="image/gif" href="<?=WCHOME?>/i/<?=SKIN?>/favicon.gif">
 	<script type="text/javascript">
 		var agent = navigator.userAgent.toLowerCase();
-		var isIE = (agent.indexOf("msie") != -1) && !(agent.indexOf("opera") != -1) && !(agent.indexOf("mac") != -1);
+		var browser = ((agent.indexOf("msie") != -1) || (agent.indexOf("gecko") != -1));
 	</script>
 	<style>
 		DIV.top {background:transparent url(i/metallic/about_top.gif) top left repeat-x;font-size:8px;padding:0;height:10px;}
@@ -99,7 +99,7 @@ $auth = &Authentication::getInstance();
 				</div>
 				<?php include(LIBDIR.'/languagesets/'.LANGUAGE.'/login_info.html');?>
 				<script type="text/javascript">
-					if(!isIE)
+					if(!browser)
 						document.getElementById("browser_req").style.color = "#cb3435";
 				</script>
 			</div>
