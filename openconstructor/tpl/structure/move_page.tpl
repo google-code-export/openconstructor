@@ -6,7 +6,7 @@
 		<title>{$smarty.const.WC} | {$smarty.const.H_MOVE_PAGE}</title>
 		<script type="text/javascript" src="{$skinhome}/js/jquery-1.2.6.js"></script>
 	</head>
-	<body style="border-style:groove;padding:0 20 20">
+	<body id="inner_page">
 		<script>
 			{literal}
 				$(document).ready(function(){
@@ -25,26 +25,25 @@
 				});
 			{/literal}
 		</script>
-		<br />
-		<h3>{$smarty.const.H_MOVE_PAGE}</h3>
+		<h3 class="hTitle">{$smarty.const.H_MOVE_PAGE}</h3>
 		<form name="f" method="POST" action="i_structure.php">
 			<input type="hidden" name="action" value="move_page">
 			<input type="hidden" name="uri_id" value="{$page->id}">
-			<fieldset style="padding:10"><legend>{$smarty.const.PAGE_WEB}</legend>
-				<table style="margin:5 0" cellspacing="3">
+			<fieldset><legend>{$smarty.const.PAGE_WEB}</legend>
+				<table cellspacing="3">
 					<tr>
 						<td>{$smarty.const.PAGE_NAME}:</td>
-						<td><span style="font-size: 120%;">{$page->header}</span></td>
+						<td><span class="fsb">{$page->header}</span></td>
 					</tr>
 					<tr>
 						<td>{$smarty.const.PAGE_URI_CURRENT}:</td>
-						<td><span style="font-family: monospace; font-size: 120%;">{$page->uri}</span></td>
+						<td><span class="ffm fsb">{$page->uri}</span></td>
 					</tr>
 				</table>
 			</fieldset>
 			<br />
-			<fieldset style="padding:10"><legend>{$smarty.const.MOVE_TO}</legend>
-				<table style="margin:5 0" cellspacing="3">
+			<fieldset><legend>{$smarty.const.MOVE_TO}</legend>
+				<table cellspacing="3">
 					<tr>
 						<td>{$smarty.const.MOVE_TO}:</td>
 						<td>
@@ -58,13 +57,13 @@
 					</tr>
 					<tr>
 						<td>{$smarty.const.PAGE_URI_NEW}:</td>
-						<td style="font-family:monospace"><span id="uri"></span><b>{$page->name}</b>/</td>
+						<td class="ffm"><span id="uri"></span><b>{$page->name}</b>/</td>
 					</tr>
 				</table>
 			</fieldset>
 			<br />
 			<div class="right_btns">
-				<input type="submit" value="{$smarty.const.BTN_MOVE}" id="create" name="create" {if $disabled}disabled{/if} />
+				<input type="submit" value="{$smarty.const.BTN_MOVE}" id="create" name="create" {if !$disabled}disabled{/if} />
 				<input type="button" value="{$smarty.const.BTN_CANCEL}" id="close" />
 			</div>
 		</form>

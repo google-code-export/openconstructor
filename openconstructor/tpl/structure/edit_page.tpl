@@ -7,7 +7,7 @@
 		<script type="text/javascript" src="{$skinhome}/js/jquery-1.2.6.js"></script>
 		<script language="Javascript" src="{$ocm_home}/lib/js/base.js"></script>
 	</head>
-	<body style="border-style:groove;padding:0 20 20">
+	<body id="inner_page">
 		<script language="JavaScript" type="text/JavaScript">
 			var page_id = {$page->id}, dis = {if $super or $WCS->decide($page, 'managesub')}false{else}true{/if};
 			{literal}
@@ -74,13 +74,12 @@
 				}
 			{/literal}
 		</script>
-		<br />
-		<h3>{$smarty.const.H_EDIT_PAGE} {$page->uri}</h3>
+		<h3 class="hTitle">{$smarty.const.H_EDIT_PAGE} {$page->uri}</h3>
 		<form name="f" method="POST" action="i_structure.php">
 			<input type="hidden" name="uri_id" value="{$page->id}" />
 			<input type="hidden" name="action" value="edit_page" />
-			<fieldset style="padding:10" {if !($super or $WCS->decide($page, 'editpage.uri'))}disabled{/if}><legend>URI</legend>
-				<table style="margin:5 0" cellspacing="3">
+			<fieldset {if !($super or $WCS->decide($page, 'editpage.uri'))}disabled{/if}><legend>URI</legend>
+				<table cellspacing="3">
 					<tr>
 						<td>URI:</td>
 						<td><b>{$page->uri}</b></td>
@@ -113,8 +112,8 @@
 				</table>
 			</fieldset>
 			<br />
-			<fieldset style="padding:10"><legend>{$smarty.const.PAGE_GENERAL}</legend>
-				<table style="margin:5 0" cellspacing="3">
+			<fieldset><legend>{$smarty.const.PAGE_GENERAL}</legend>
+				<table cellspacing="3">
 					<tr>
 						<td>{$smarty.const.PAGE_NAME}:</td>
 						<td><input type="text" name="header" id="header" value="{$page->header|escape}" size="40" maxlength="64" class="dsb" /></td>
@@ -151,8 +150,8 @@
 				</table>
 			</fieldset>
 			<br />
-			<fieldset style="padding:10"><legend>{$smarty.const.PAGE_WEB}</legend>
-				<table style="margin:5 0" cellspacing="3" width="100%">
+			<fieldset><legend>{$smarty.const.PAGE_WEB}</legend>
+				<table cellspacing="3" width="100%">
 					<tr>
 						<td>{$smarty.const.PAGE_TITLE}:</td>
 						<td><input type="text" name="title" value="{$page->title|escape}" maxlength="128" style="width: 100%;font-family: monospace; font-size: 100%;"></td>
@@ -175,46 +174,46 @@
 				</table>
 			</fieldset>
 			<br />
-			<fieldset style="padding:10"><legend>{$smarty.const.PAGE_META_INFO}</legend>
-			<table style="margin:5 0" cellspacing="3">
-				<tr>
-					<td>{$smarty.const.PAGE_CONTENT_TYPE}:</td>
-					<td><select size="1" name="contentType" style="font-family: monospace;">
-							{if $page->uri neq '/'}
-								<option value="" style="background:#eee;color:#888;">{$smarty.const.PAGE_INHERIT_CONTENT_TYPE}</option>
-							{/if}
-							{foreach from=$types item=type}
-								<option value="{$type}" {if $type eq $page->contentType}selected{/if}>{$type}</option>
-							{/foreach}
-						</select>
-					</td>
-				</tr>
-				<tr>
-					<td valign="top">{$smarty.const.PAGE_META_KEYWORDS}:</td>
-					<td><textarea cols="51" rows="5" name="m_keywords">{$page->meta.keywords|escape}</textarea></td>
-				</tr>
-				<tr>
-					<td valign="top">{$smarty.const.PAGE_META_DESCRIPTION}:</td>
-					<td><textarea cols="51" rows="5" name="m_description">{$page->meta.description|escape}</textarea></td>
-				</tr>
-				<tr>
-					<td>{$smarty.const.PAGE_ROBOTS}:</td>
-					<td><select size="1" name="robots">
-						<option value="{$smarty.const.ROBOTS_I_F}" {if $page->robots eq $smarty.const.ROBOTS_I_F}selected{/if}>INDEX, FOLLOW</option>
-						<option value="{$smarty.const.ROBOTS_I_NOF}" {if $page->robots eq $smarty.const.ROBOTS_I_NOF}selected{/if}>INDEX, NOFOLLOW</option>
-						<option value="{$smarty.const.ROBOTS_NOI_F}" {if $page->robots eq $smarty.const.ROBOTS_NOI_F}selected{/if}>NOINDEX, FOLLOW</option>
-						<option value="{$smarty.const.ROBOTS_NOI_NOF}" {if $page->robots eq $smarty.const.ROBOTS_NOI_NOF}selected{/if}>NOINDEX, NOFOLLOW</option>
-					</selects>
-					</td>
-				</tr>
-			</table>
+			<fieldset><legend>{$smarty.const.PAGE_META_INFO}</legend>
+				<table cellspacing="3">
+					<tr>
+						<td>{$smarty.const.PAGE_CONTENT_TYPE}:</td>
+						<td><select size="1" name="contentType" style="font-family: monospace;">
+								{if $page->uri neq '/'}
+									<option value="" style="background:#eee;color:#888;">{$smarty.const.PAGE_INHERIT_CONTENT_TYPE}</option>
+								{/if}
+								{foreach from=$types item=type}
+									<option value="{$type}" {if $type eq $page->contentType}selected{/if}>{$type}</option>
+								{/foreach}
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td valign="top">{$smarty.const.PAGE_META_KEYWORDS}:</td>
+						<td><textarea cols="51" rows="5" name="m_keywords">{$page->meta.keywords|escape}</textarea></td>
+					</tr>
+					<tr>
+						<td valign="top">{$smarty.const.PAGE_META_DESCRIPTION}:</td>
+						<td><textarea cols="51" rows="5" name="m_description">{$page->meta.description|escape}</textarea></td>
+					</tr>
+					<tr>
+						<td>{$smarty.const.PAGE_ROBOTS}:</td>
+						<td><select size="1" name="robots">
+							<option value="{$smarty.const.ROBOTS_I_F}" {if $page->robots eq $smarty.const.ROBOTS_I_F}selected{/if}>INDEX, FOLLOW</option>
+							<option value="{$smarty.const.ROBOTS_I_NOF}" {if $page->robots eq $smarty.const.ROBOTS_I_NOF}selected{/if}>INDEX, NOFOLLOW</option>
+							<option value="{$smarty.const.ROBOTS_NOI_F}" {if $page->robots eq $smarty.const.ROBOTS_NOI_F}selected{/if}>NOINDEX, FOLLOW</option>
+							<option value="{$smarty.const.ROBOTS_NOI_NOF}" {if $page->robots eq $smarty.const.ROBOTS_NOI_NOF}selected{/if}>NOINDEX, NOFOLLOW</option>
+						</selects>
+						</td>
+					</tr>
+				</table>
 			</fieldset>
 			<br />
-			<fieldset style="padding:10" {if !($super or $WCS->decide($page, 'editpage.security'))}disabled{/if}><legend>{$smarty.const.PAGE_CACHING}</legend>
+			<fieldset {if !($super or $WCS->decide($page, 'editpage.security'))}disabled{/if}><legend>{$smarty.const.PAGE_CACHING}</legend>
 				<input type="checkbox" id="ch_caching" name="caching" value="true" style="margin-top: 10px;" {if $page->caching}checked="checked"{/if} />
 					<label for="ch_caching">{$smarty.const.PAGE_ENABLE_CACHING}</label>
-				<fieldset id="fs_caching" style="padding:10" {if !($super or $WCS->decide($page, 'editpage.security'))}disabled{/if}><legend>{$smarty.const.PAGE_CACHE_PROPS}</legend>
-					<table style="margin:5 0" cellspacing="3">
+				<fieldset id="fs_caching" {if !($super or $WCS->decide($page, 'editpage.security'))}disabled{/if}><legend>{$smarty.const.PAGE_CACHE_PROPS}</legend>
+					<table cellspacing="3">
 						<tr>
 							<td>{$smarty.const.PAGE_CACHE_LIFETIME}:</td>
 							<td><input type="text" name="cacheLife" value="{$page->cacheLife|string_format:'%d'}"></td>
@@ -240,8 +239,8 @@
 				</fieldset>
 			</fieldset>
 			<br />
-			<fieldset style="padding:10" {if !($super or $WCS->decide($page, 'editpage.security'))}disabled{/if}><legend>{$smarty.const.PAGE_USERS}</legend>
-				<table style="margin:5 0" cellspacing="3">
+			<fieldset {if !($super or $WCS->decide($page, 'editpage.security'))}disabled{/if}><legend>{$smarty.const.PAGE_USERS}</legend>
+				<table cellspacing="3">
 					<tr>
 						<td>
 							<select size="10" id="users" name="users[]" multiple>
@@ -255,14 +254,14 @@
 						</td>
 					</tr>
 				</table>
-				<fieldset style="padding:10"><legend>{$smarty.const.H_PAGE_USER_PROFILES}</legend>
+				<fieldset><legend>{$smarty.const.H_PAGE_USER_PROFILES}</legend>
 					{if $page->uri neq '/'}
 						<div style="padding: 5px;">
 							<input type="checkbox" name="profiles_inherit" id="profiles_inherit" value="true" {if $page->profilesInherit}checked{/if} /> <label for="profiles_inherit">{$smarty.const.PAGE_PROFILES_INHERIT}</label>
 						</div>
 					{/if}
 					<fieldset id="fs_profiles" style="border: none;">
-						<table style="margin:5 0" cellspacing="3">
+						<table cellspacing="3">
 							<tr>
 								<td nowrap>{$smarty.const.PAGE_PROFILES_LOADER}:</td>
 								<td style="width: 100%;">
