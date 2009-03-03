@@ -878,8 +878,11 @@ td.right {
 /*							Styles for templates					*/
 /* ---------------------------------------------------------------- */
 
-#inner_page {	background-color:#F2F2F2;
-	padding:20px 20px 0 20px;
+#tpl_page, #inner_page {
+	background-color:#F2F2F2;
+	}
+
+#inner_page {	padding:20px 20px 0 20px;
 	}
 
 	h3.hTitle {

@@ -6,7 +6,7 @@
 		<title>{$smarty.const.WC} | {$smarty.const.EDIT_USER_SECRETS} | {$user->login}</title>
 		<script type="text/javascript" src="{$skinhome}/js/jquery-1.2.6.js"></script>
 	</head>
-	<body style="border-style:groove;padding:0 20 20">
+	<body id="inner_page">
 		<script language="JavaScript" type="text/JavaScript">
 			var	dis = {if $user->id eq $Authentication->getOriginalUserId()}false{else}true{/if};
 			{literal}
@@ -26,13 +26,12 @@
 				});
 			{/literal}
 		</script>
-		<br />
-		<h3>{$smarty.const.EDIT_USER_SECRETS}</h3>
+		<h3 class="hTitle">{$smarty.const.EDIT_USER_SECRETS}</h3>
 		<form name="f" method="POST" action="i_users.php">
 			<input type="hidden" name="id" value="{$user->id}">
 			<input type="hidden" name="action" value="edit_secrets">
-			<fieldset style="padding:10"><legend>{$smarty.const.USER}</legend>
-				<table style="margin:5 0" cellspacing="3">
+			<fieldset><legend>{$smarty.const.USER}</legend>
+				<table cellspacing="3">
 					<tr>
 						<td>{$smarty.const.USR_LOGIN}:</td>
 						<td><b>{$user->login}</b></td>
@@ -44,8 +43,8 @@
 				</table>
 			</fieldset>
 			<br />
-			<fieldset style="padding:10"><legend>{$smarty.const.USR_SECRETS}</legend>
-				<table style="margin:5 0" cellspacing="3">
+			<fieldset><legend>{$smarty.const.USR_SECRETS}</legend>
+				<table cellspacing="3">
 					<tr>
 						<td valign="top" nowrap>{$smarty.const.USR_SECRET_QUESTION}:</td>
 						{if $secretQ}

@@ -7,7 +7,7 @@
 		<script type="text/javascript" src="{$skinhome}/js/jquery-1.2.6.js"></script>
 		<script language="Javascript" src="{$ocm_home}/lib/js/base.js"></script>
 	</head>
-	<body style="border:groove;border-width:2;margin:0;">
+	<body id="tpl_page">
 		<script language="JavaScript" type="text/JavaScript">
 			var	tpl_type = '{$tpl->type}', tpl_id = '{$tpl->id}',
 				save = {$save}, var_id = '{$tplVars.id}', var_caret = '{$tplVars.caret}',
@@ -149,7 +149,7 @@
 				</tr>
 				<tr>
 					<td height="70%" style="padding:0 10px;">
-						<div style=" border-width:2px; border-style: groove; height: 200px;;">
+						<div style=" border-width:2px; border-style: groove; height: 200px;">
 							{$SyntaxHighlighter->getHtmlEditor('mockup', 'style="width:100%; height:100%;"')}
 						</div>
 					</td>

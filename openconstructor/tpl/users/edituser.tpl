@@ -7,7 +7,7 @@
 		<script type="text/javascript" src="{$skinhome}/js/jquery-1.2.6.js"></script>
 		<script type="text/javascript" src="{$ocm_home}/lib/js/base.js"></script>
 	</head>
-	<body style="border-style:groove;padding:0 20 20">
+	<body id="inner_page">
 		<script language="JavaScript" type="text/JavaScript">
 			var	dis = {if $WCS->decide($group, 'edituser') or $WCS->decide($user, 'edit')}false{else}true{/if};
 			var disableGroups = {if $WCS->decide($group, 'edit.group')}true{else}false{/if};
@@ -53,13 +53,12 @@
 				});
 			{/literal}
 		</script>
-		<br />
-		<h3>{$smarty.const.EDIT_USER}</h3>
+		<h3 class="hTitle">{$smarty.const.EDIT_USER}</h3>
 		<form name="f" method="POST" action="i_users.php" id="f_form">
 			<input type="hidden" name="login" value="{$user->login}">
 			<input type="hidden" name="action" value="edit_user">
-			<fieldset style="padding:10"><legend>{$smarty.const.USER}</legend>
-				<table style="margin:5 0" cellspacing="3">
+			<fieldset><legend>{$smarty.const.USER}</legend>
+				<table cellspacing="3">
 					<tr>
 						<td>{$smarty.const.USR_LOGIN}:</td>
 						<td><b>{$user->login}</b></td>
@@ -74,8 +73,8 @@
 				</table>
 			</fieldset>
 			<br />
-			<fieldset style="padding:10"><legend>{$smarty.const.USR_ADDITIONAL_INFO}</legend>
-				<table style="margin:5 0" cellspacing="3">
+			<fieldset><legend>{$smarty.const.USR_ADDITIONAL_INFO}</legend>
+				<table cellspacing="3">
 					<tr>
 						<td>{$smarty.const.USR_EMAIL}:</td>
 						<td><input type="text" name="email" value="{$user->email}" size="40" maxlength="255"></td>
@@ -83,8 +82,8 @@
 				</table>
 			</fieldset>
 			<br />
-			<fieldset style="padding:10"><legend>{$smarty.const.USR_PROPS}</legend>
-				<table style="margin:5 0" cellspacing="3">
+			<fieldset><legend>{$smarty.const.USR_PROPS}</legend>
+				<table cellspacing="3">
 					<tr>
 						<td>{$smarty.const.USR_EXPIRES}:</td>
 						<td><input type="text" name="expiry" value="{if $user->expiry}{$user->expiry|date_format:'%e %B %Y'}{/if}" size="40" maxlength="255" {if !$WCS->decide($user, 'edit.expiry')}disabled{/if}></td>
@@ -93,8 +92,8 @@
 			</fieldset>
 			<br />
 			{if $WCS->decide($group, 'edituser') or $WCS->decide($user, 'edit.pwd')}
-				<fieldset style="padding:10"><legend>{$smarty.const.USR_SET_NEW_PASSWORD}</legend>
-					<table style="margin:5 0" cellspacing="3">
+				<fieldset><legend>{$smarty.const.USR_SET_NEW_PASSWORD}</legend>
+					<table cellspacing="3">
 						<tr>
 							<td colspan="2"><input type="checkbox" name="newpassword" id="f_newpwd">{$smarty.const.USR_CHANGE_PASSWORD}</td>
 						</tr>
@@ -111,8 +110,8 @@
 				<br />
 			{/if}
 			{if $secret}
-				<fieldset style="padding:10"><legend>{$smarty.const.USR_SECRETS}</legend>
-					<table style="margin:5 0" cellspacing="3">
+				<fieldset><legend>{$smarty.const.USR_SECRETS}</legend>
+					<table cellspacing="3">
 						<tr>
 							{if $secretQ}
 								<td valign="top" nowrap>{$smarty.const.USR_SECRET_QUESTION}:</td>
@@ -128,8 +127,8 @@
 				</fieldset>
 				<br />
 			{/if}
-			<fieldset style="padding:10" id=fMembership><legend>{$smarty.const.USR_MEMBERSHIP}</legend>
-				<table style="margin:5 0" cellspacing="3">
+			<fieldset id=fMembership><legend>{$smarty.const.USR_MEMBERSHIP}</legend>
+				<table cellspacing="3">
 					<tr>
 						<td valign="top">{$smarty.const.USR_MEMBERSHIP}:</td>
 						<td>

@@ -6,7 +6,7 @@
 		<title>{$smarty.const.WC} | {$smarty.const.CREATE_USERGROUP}</title>
 		<script type="text/javascript" src="{$skinhome}/js/jquery-1.2.6.js"></script>
 	</head>
-	<body style="border-style:groove;padding:0 20 20">
+	<body id="inner_page">
 		<script language="JavaScript" type="text/JavaScript">
 			var	dis = {$dis};
 			{literal}
@@ -26,12 +26,11 @@
 				});
 			{/literal}
 		</script>
-		<br />
-		<h3>{$smarty.const.CREATE_USERGROUP}</h3>
+		<h3 class="hTitle">{$smarty.const.CREATE_USERGROUP}</h3>
 		<form name="f" method="POST" action="i_users.php">
 			<input type="hidden" name="action" value="add_group">
-			<fieldset style="padding:10"><legend>{$smarty.const.USR_NEW_USERGROUP}</legend>
-				<table style="margin:10 0">
+			<fieldset><legend>{$smarty.const.USR_NEW_USERGROUP}</legend>
+				<table>
 					<tr>
 						<td>{$smarty.const.USR_USERGROUP_KEY}:</td>
 						<td><input type="text" name="key" id="f_key" size="32" maxlength="32" class="dsb"></td>
@@ -48,7 +47,6 @@
 				<input type="button" value="{$smarty.const.BTN_CANCEL}" id="close" />
 			</div>
 		</form>
-		<br /><br />
 	</body>
 </html>
 <html>

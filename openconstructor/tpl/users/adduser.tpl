@@ -6,7 +6,7 @@
 		<title>{$smarty.const.WC} | {$smarty.const.CREATE_USER}</title>
 		<script type="text/javascript" src="{$skinhome}/js/jquery-1.2.6.js"></script>
 	</head>
-	<body style="border-style:groove;padding:0 20 20">
+	<body id="inner_page">
 		<script language="JavaScript" type="text/JavaScript">
 			var	dis = {if $WCS->decide($group, 'createuser')}false{else}true{/if};
 			var	alert_txt = "{$smarty.const.H_PASSWORDS_DOESNT_MATCH}";
@@ -32,13 +32,12 @@
 				});
 			{/literal}
 		</script>
-		<br />
-		<h3>{$smarty.const.CREATE_USER}</h3>
+		<h3 class="hTitle">{$smarty.const.CREATE_USER}</h3>
 		<form name="f" method="POST" action="i_users.php" id="f_form">
 			<input type="hidden" name="group_id" value="{$group->id}">
 			<input type="hidden" name="action" value="add_user">
-			<fieldset style="padding:10"><legend>{$smarty.const.USER}</legend>
-				<table style="margin:5 0" cellspacing="3">
+			<fieldset><legend>{$smarty.const.USER}</legend>
+				<table cellspacing="3">
 					<tr>
 						<td>{$smarty.const.USR_LOGIN}:</td>
 						<td><input type="text" name="login" id="f_login" size="32" maxlength="32" class="dsb"></td>
@@ -50,8 +49,8 @@
 				</table>
 			</fieldset>
 			<br />
-			<fieldset style="padding:10"><legend>{$smarty.const.USR_ADDITIONAL_INFO}</legend>
-				<table style="margin:5 0" cellspacing="3">
+			<fieldset><legend>{$smarty.const.USR_ADDITIONAL_INFO}</legend>
+				<table cellspacing="3">
 					<tr>
 						<td>{$smarty.const.USR_EMAIL}:</td>
 						<td><input type="text" name="email" size="40" maxlength="255"></td>
@@ -59,8 +58,8 @@
 				</table>
 			</fieldset>
 			<br />
-			<fieldset style="padding:10"><legend>{$smarty.const.USR_SET_PASSWORD}</legend>
-				<table style="margin:5 0" cellspacing="3">
+			<fieldset><legend>{$smarty.const.USR_SET_PASSWORD}</legend>
+				<table cellspacing="3">
 					<tr>
 						<td>{$smarty.const.USR_PASSWORD}:</td>
 						<td><input type="password" name="password1" id="f_pswd1" size="32" maxlength="32"></td>
@@ -77,6 +76,5 @@
 				<input type="button" value="{$smarty.const.BTN_CANCEL}" id="close" />
 			</div>
 		</form>
-		<br /><br />
 	</body>
 </html>

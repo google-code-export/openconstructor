@@ -7,7 +7,7 @@
 		<script type="text/javascript" src="{$skinhome}/js/jquery-1.2.6.js"></script>
 		<script language="Javascript" src="{$ocm_home}/lib/js/base.js"></script>
 	</head>
-	<body  style="border:groove;border-width:2;margin:0;">
+	<body id="tpl_page">
 		<script language="JavaScript" type="text/JavaScript">
 			{literal}
 				$(document).ready(function(){
@@ -16,8 +16,8 @@
 					src.setEditable(false);
 				});
 				function getSrcEdit() {
-					if (document.all) return document.getElementById("srcIE.tpl");
-					else return document.getElementById("src.tpl");
+					if (document.all) return document.getElementById("htmlObject");
+					else return document.getElementById("htmlEmbed");
 				}
 			{/literal}
 		</script>
@@ -28,16 +28,8 @@
 			</tr>
 			<tr height="100%">
 				<td style="padding:0 10px 10px;" valign="top">
-					<div style=" border-width:2px; border-style: groove; height: 100%;">
-						<object classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" id="srcIE.tpl" style="width: 100%; height: 100%;">
-							{$SyntaxHighlighter->getHtmlEditor('IE')}
-							<comment>
-								<embed
-									{$SyntaxHighlighter->getHtmlEditor()}
-									id="src.tpl" style="width: 100%; height: 100%;">
-								</embed>
-							</comment>
-						</object>
+					<div style=" border-width:2px; border-style: groove;  height: 200px;">
+						{$SyntaxHighlighter->getHtmlEditor('html', 'style="width:100%; height:100%;"')}
 					</div>
 				</td>
 			</tr>
