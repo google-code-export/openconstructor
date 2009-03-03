@@ -7,7 +7,7 @@
 		<script type="text/javascript" src="{$skinhome}/js/jquery-1.2.6.js"></script>
 		<script language="Javascript" src="{$ocm_home}/lib/js/base.js"></script>
 	</head>
-	<body  style="border:groove;border-width:2;margin:0;" ondrag="return false;">
+	<body id="tpl_page" ondrag="return false;">
 		<script language="JavaScript" type="text/JavaScript">
 			var	tpl_type = '{$tpl->type}', tpl_id = '{$tpl->id}',
 				save = {$save}, var_id = '{$tplVars.id}', var_caret = '{$tplVars.caret}',

@@ -6,7 +6,7 @@
 		<title>{$smarty.const.WC} | {$smarty.const.EDIT_USERGROUP} | {$group->title|escape}</title>
 		<script type="text/javascript" src="{$skinhome}/js/jquery-1.2.6.js"></script>
 	</head>
-	<body style="border-style:groove;padding:0 20 20">
+	<body id="inner_page">
 		<script language="JavaScript" type="text/JavaScript">
 			var	dis = {if $WCS->decide($group, 'editgroup')}false{else}true{/if};
 			{literal}
@@ -43,13 +43,12 @@
 				}
 			</style>
 		{/literal}
-		<br />
-		<h3>{$smarty.const.EDIT_USERGROUP}</h3>
+		<h3 class="hTitle">{$smarty.const.EDIT_USERGROUP}</h3>
 		<form name="f" method="POST" action="i_users.php">
 			<input type="hidden" name="group_id" value="{$group->id}">
 			<input type="hidden" name="action" value="edit_group">
-			<fieldset style="padding:10"><legend>{$smarty.const.USR_USERGROUP}</legend>
-				<table style="margin:10 0">
+			<fieldset><legend>{$smarty.const.USR_USERGROUP}</legend>
+				<table>
 					<tr>
 						<td>{$smarty.const.USR_USERGROUP_KEY}:</td>
 						<td><input type="text" name="key" value="{$group->name}" disabled size="32" maxlength="32"></td>
@@ -61,8 +60,8 @@
 				</table>
 			</fieldset>
 			<br />
-			<fieldset style="padding:10" {$dis}><legend>{$smarty.const.USR_PROFILES}</legend>
-				<table style="margin:10 0">
+			<fieldset {$dis}><legend>{$smarty.const.USR_PROFILES}</legend>
+				<table>
 					<tr>
 						<td>{$smarty.const.USR_PROFILES_DS}:</td>
 						<td>
@@ -77,16 +76,16 @@
 				</table>
 			</fieldset>
 			<br />
-			<fieldset style="padding:10" {if !$WCS->decide($group, 'editgroup.umask')}disabled{/if}><legend>{$smarty.const.USR_MASK}</legend>
-				<table style="margin:10 0">
+			<fieldset {if !$WCS->decide($group, 'editgroup.umask')}disabled{/if}><legend>{$smarty.const.USR_MASK}</legend>
+				<table>
 					<tr>
 						<td valign="top">{$smarty.const.USR_MASK_PATTERN}:</td>
 						<td><textarea name="umask" cols="40" rows="3">{$group->umask|escape}</textarea>
 				</table>
 			</fieldset>
 			<br />
-			<fieldset style="padding:10" {$dis}><legend>{$smarty.const.USR_AUTHS}</legend>
-				<table style="margin:10 0">
+			<fieldset {$dis}><legend>{$smarty.const.USR_AUTHS}</legend>
+				<table>
 					{foreach from=$powers name=power item=val}
 						<tr class="l{$val.level}">
 							<td class="c"><input type="checkbox" id="ch{$smarty.foreach.power.iteration}" name="act[{$val.name}]" {if $val.state}checked{/if}></td>
