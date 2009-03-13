@@ -43,20 +43,20 @@
 		}
 	{/literal}
 </script>
-<fieldset style="padding:10"><legend>{$smarty.const.OBJ_INJECTIONS}</legend>
+<fieldset><legend>{$smarty.const.OBJ_INJECTIONS}</legend>
 	<div>
-		<fieldset id="sample" style="margin:20px 0 30px;display:none;">
-			<legend style="font-weight:bold;"></legend>
-			<table style="margin:5 0" cellspacing="3" width="100%">
-				<tr style="font-size:9px;color:#888;">
+		<fieldset id="sample" class="fldsFilters">
+			<legend class="fwd"></legend>
+			<table cellspacing="3" width="100%">
+				<tr class="trInjections">
 					<td>&nbsp;</td>
 					<td>{$smarty.const.H_INJECT_SRC}</td>
 					<td>{$smarty.const.H_INJECT_SRC_PARAM}</td>
 					<td>&nbsp;</td>
-					<td rowspan="4" valign="top"><img src="{$img}/h/remove.gif" style="cursor:pointer;margin-right:10px;" onclick="removeInjection(this)" alt="{$smarty.const.BTN_REMOVE_INJECTION}"></td>
+					<td rowspan="4" valign="top"><img src="{$img}/h/remove.gif" class="rmCond" onclick="removeInjection(this)" alt="{$smarty.const.BTN_REMOVE_INJECTION}"></td>
 				</tr>
 				<tr>
-					<td style="padding-left:5px; padding-right:10px; font-size:115%;">{$smarty.const.H_INJECT}</td>
+					<td class="tdCond">{$smarty.const.H_INJECT}</td>
 					<td>
 						<select size="1" name="type[]">
 							<option value="{$smarty.const.INJ_CTX}">Context</option>
@@ -70,14 +70,14 @@
 					<td colspan="2" width="100%"><input type="text" name="param[]" size="35" onchange="$(this).parents('fieldset:first').children('legend:first').html($(this).val());"></td>
 				</tr>
 				<tr><td colspan="4" style="font-size:2px;">&nbsp;</td></tr>
-				<tr style="font-size:9px;color:#888;">
+				<tr class="trInjections">
 					<td>&nbsp;</td>
 					<td nowrap>{$smarty.const.H_INJECT_DEST_TYPE}</td>
 					<td nowrap>{$smarty.const.H_INJECT_DEST_ID}</td>
 					<td>{$smarty.const.H_INJECT_DEST_FIELD}</td>
 				</tr>
 				<tr>
-					<td style="padding-left:5px; padding-right:10px; font-size:115%;">{$smarty.const.H_INJECT_TO}</td>
+					<td class="tdCond">{$smarty.const.H_INJECT_TO}</td>
 					<td>
 						<select size="1" name="src[]">
 							<option value="{$smarty.const.INJ_BY_ID}">{$smarty.const.H_INJECT_DEST_OBJECT}</option>

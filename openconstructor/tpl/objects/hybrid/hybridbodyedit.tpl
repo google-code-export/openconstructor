@@ -27,8 +27,8 @@
 	{/literal}
 </script>
 {include file="objects/select_tpl.tpl"}
-<fieldset style="padding:10" {if !$WCS->decide($obj, 'editobj.ds')}disabled{/if}><legend>{$smarty.const.OBJ_DATA}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset {if !$WCS->decide($obj, 'editobj.ds')}disabled{/if}><legend>{$smarty.const.OBJ_DATA}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap><a href="{$ocm_home}/data/?node={$obj->ds_id}" target="_blank" title="{$smarty.const.H_OPEN_DATASOURCE}">{$smarty.const.PR_DATASOURCE}</a>:</td>
 			<td>
@@ -42,8 +42,8 @@
 	</table>
 </fieldset>
 <br />
-<fieldset style="padding:10"><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap>{$smarty.const.PR_HEADER}:</td>
 			<td><input type="text" name="header" value="{$obj->header|escape}"></td>
@@ -62,7 +62,7 @@
 	</table>
 </fieldset>
 <br />
-<fieldset id="objFields" style="padding:10"><legend>{$smarty.const.PR_FETCH_FIELDS}</legend>
+<fieldset id="objFields"><legend>{$smarty.const.PR_FETCH_FIELDS}</legend>
 	<table class="fieldlist" cellspacing="0">
 		<tr>
 			<td class="f"><input type="checkbox" name="field[]" value="id" disabled checked/></td>
@@ -75,7 +75,7 @@
 		{foreach name=fields from=$objfields item=val}
 			{if $val.ds_name neq $dsid}
 				{set dsid = $val.ds_name}
-				<tr><td colspan="3" style="padding-top:10px">{$ds.$dsid.name} :</td></tr>
+				<tr><td colspan="3" class="tdDS">{$ds.$dsid.name} :</td></tr>
 			{/if}
 			<tr>
 				<td class="f"><input type="checkbox" name="field[][id]" value="{$val.id}" {if $val.checked}checked{/if}></td>

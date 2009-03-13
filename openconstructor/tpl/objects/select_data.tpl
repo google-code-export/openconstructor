@@ -1,5 +1,5 @@
-<fieldset style="padding:10" {if !$WCS->decide($obj, 'editobj.ds')}disabled{/if}><legend>{$smarty.const.OBJ_DATA}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset {if !$WCS->decide($obj, 'editobj.ds')}disabled{/if}><legend>{$smarty.const.OBJ_DATA}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap valign="top">{$smarty.const.PR_DATASOURCE}:</td>
 			<td>

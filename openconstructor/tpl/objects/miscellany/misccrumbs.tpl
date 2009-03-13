@@ -37,14 +37,14 @@
 	{/literal}
 </script>
 {include file="objects/select_tpl.tpl"}
-<fieldset style="padding:10"><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap>{$smarty.const.PR_HEADER}:</td>
 			<td><input type="text" name="header" value="{$obj->header|escape}"></td>
 		</tr>
 	</table>
-	<fieldset style="padding:10" id="ex-pages"><legend>{$smarty.const.H_EXCLUDE_PAGES}</legend>
+	<fieldset id="ex-pages"><legend>{$smarty.const.H_EXCLUDE_PAGES}</legend>
 		<div style="padding: 10px;">
 			{foreach from=$map key=id item=node}
 			{math assign="next" equation="n + 1" n=$id}

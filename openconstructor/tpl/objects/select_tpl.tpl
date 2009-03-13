@@ -55,9 +55,9 @@
 	{/literal}
 </script>
 
-<fieldset style="padding:10" {if !$WCS->decide($obj, 'editobj.tpl')}disabled{/if}>
+<fieldset {if !$WCS->decide($obj, 'editobj.tpl')}disabled{/if}>
 	<legend>{$smarty.const.OBJ_TEMPLATE}</legend>
-	<table style="margin:5 0" cellspacing="3" width="100%">
+	<table cellspacing="3" width="100%">
 		<tr>
 			<td nowrap>
 				{if $obj->tpl}
@@ -81,7 +81,7 @@
 		<tr>
 			<td colspan="2">
 				<input type="checkbox" name="enableCaching" id="enableCaching" value="true" {if $obj->caching gt 0}checked{/if} /> {$smarty.const.PR_ENABLE_CACHING}
-				<fieldset style="margin-top:5px" id="fCaching">
+				<fieldset id="fCaching">
 					<legend>{$smarty.const.OBJ_CACHE_OPTIONS}</legend>
 					<div style="padding:10px;">
 						{if $cid_tpl eq 1}

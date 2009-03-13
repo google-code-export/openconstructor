@@ -24,8 +24,8 @@
 </script>
 {include file="objects/select_tpl.tpl"}
 {include file="objects/select_data.tpl"}
-<fieldset style="padding:10"><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap>{$smarty.const.PR_HEADER}:</td>
 			<td><input type="text" name="header" value="{$obj->header|escape}" /></td>

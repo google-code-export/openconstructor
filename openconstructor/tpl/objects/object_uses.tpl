@@ -7,7 +7,7 @@
 		<script type="text/javascript" src="{$skinhome}/js/jquery-1.2.6.js"></script>
 		<script type="text/javascript" src="{$skinhome}/js/object_uses.js"></script>
 	</head>
-	<body style="border-style:groove;padding:0 20 20">
+	<body id="inner_page">
 		{literal}
 			<style>
 				#sitemap {
@@ -41,17 +41,16 @@
 		{/literal}
 		<script language="JavaScript" type="text/JavaScript">
 			{literal}
-				window.onload = function(){					setTimeout(initUses, 100);					//setTimeout(initUsesNew, 100);
+				window.onload = function(){					setTimeout(initUses, 100);
 				}
 			{/literal}
 		</script>
-		<br />
-		<h3>{$smarty.const.H_OBJECT_USES}</h3>
+		<h3 class="hTitle">{$smarty.const.H_OBJECT_USES}</h3>
 		<form name="f" method="POST" action="i_objects.php">
 			<input type="hidden" name="action" value="edit_uses">
 			<input type="hidden" name="obj_id" value="{$obj->obj_id}">
-			<fieldset style="padding:10"><legend>{$smarty.const.OBJECT}</legend>
-				<table style="margin:5 0" cellspacing="5">
+			<fieldset><legend>{$smarty.const.OBJECT}</legend>
+				<table cellspacing="5">
 					<tr>
 						<td nowrap>{$smarty.const.PR_OBJ_NAME}:</td>
 						<td><b>{$obj->name|escape}</b></td>
@@ -63,7 +62,7 @@
 				</table>
 			</fieldset>
 			<br />
-			<fieldset style="padding:10"><legend>{$smarty.const.H_OBJECT_USES}</legend>
+			<fieldset><legend>{$smarty.const.H_OBJECT_USES}</legend>
 				<script language="JavaScript" type="text/JavaScript">
 					{literal}
 						var map = {
@@ -116,5 +115,6 @@
 				<input type="button" value="{$smarty.const.BTN_CANCEL}" id="close" />
 			</div>
 		</form>
+		<br />
 	</body>
 </html>

@@ -55,8 +55,8 @@
 		}
 	{/literal}
 </script>
-<fieldset style="padding:10" {if !$WCS->decide($obj, 'editobj.ds')}disabled{/if}><legend>{$smarty.const.OBJ_DATA}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset {if !$WCS->decide($obj, 'editobj.ds')}disabled{/if}><legend>{$smarty.const.OBJ_DATA}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap><a href="{$ocm_home}/data/?node={$obj->ds_id}" target="_blank" title="{$smarty.const.H_OPEN_DATASOURCE}">{$smarty.const.PR_DATASOURCE}</a>:</td>
 			<td>
@@ -70,8 +70,8 @@
 	</table>
 </fieldset>
 {include file="objects/select_tpl.tpl"}
-<fieldset style="padding:10"><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap>{$smarty.const.PR_HEADER}:</td>
 			<td><input type="text" name="header" value="{$obj->header|escape}"></td>
@@ -101,13 +101,13 @@
 			</td>
 		</tr>
 	</table>
-	<fieldset style="padding:10" id="ex-pages"><legend>{$smarty.const.H_EXCLUDE_PAGES}</legend>
-		<div style="padding: 10px;">
+	<fieldset id="ex-pages"><legend>{$smarty.const.H_EXCLUDE_PAGES}</legend>
+		<div class="htmltxt">
 			{foreach from=$map key=id item=node}
 			{math assign="next" equation="n + 1" n=$id}
 			{assign var="nextLev" value=$map.$next.level}
 				{if $node.level eq 1}
-					<div style="padding: 5px 0"><b>{$node.name}</b></div>
+					<div><b>{$node.name}</b></div>
 					<ul>
 				{else}
 					{if $node.level gt $prevLev && $prevLev neq 1}

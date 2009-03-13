@@ -28,8 +28,8 @@
 	{/literal}
 </script>
 {include file="objects/select_tpl.tpl" disableCaching = true}
-<fieldset style="padding:10" {if !$WCS->decide($obj, 'editobj.ds')}disabled{/if}><legend>{$smarty.const.OBJ_DATA}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset {if !$WCS->decide($obj, 'editobj.ds')}disabled{/if}><legend>{$smarty.const.OBJ_DATA}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap>
 				{if $obj->ds_id > 0}
@@ -49,8 +49,8 @@
 	</table>
 </fieldset>
 <br />
-<fieldset style="padding:10"><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap>{$smarty.const.PR_RATED_DOC_KEY}:</td>
 			<td><input type="text" name="idKey" value="{$obj->idKey}"></td>
@@ -69,8 +69,8 @@
 	</table>
 </fieldset>
 <br />
-<fieldset style="padding:10"><legend>{$smarty.const.OBJ_CAPTCHA_PROPS}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset><legend>{$smarty.const.OBJ_CAPTCHA_PROPS}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap>{$smarty.const.PR_CAPTCHA_ID}:</td>
 			<td><input type="text" name="cId" id="f_cId" value="{$obj->cId}"></td>
@@ -85,8 +85,8 @@
 	</table>
 </fieldset>
 <br />
-<fieldset style="padding:10"><legend>{$smarty.const.PR_NOTIFICATION}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset><legend>{$smarty.const.PR_NOTIFICATION}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td colspan="2"><input id="ch.notifyEmail" type="checkbox" onclick="$('#f_notifyEmail').attr('disabled', !$(this).attr('checked'));$('#f_mailSubject').attr('disabled', !$(this).attr('checked'));" {if $obj->notifyEmail}checked{/if}> <label for="ch.notifyEmail">{$smarty.const.PR_NOTIFY_ON_NEW_MESSAGE}</label></td>
 		</tr>

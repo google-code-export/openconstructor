@@ -28,8 +28,8 @@
 	{/literal}
 </script>
 {include file="objects/select_tpl.tpl"}
-<fieldset style="padding:10" {if !$WCS->decide($obj, 'editobj.ds')}disabled{/if}><legend>{$smarty.const.OBJ_DATA}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset {if !$WCS->decide($obj, 'editobj.ds')}disabled{/if}><legend>{$smarty.const.OBJ_DATA}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap>{$smarty.const.PR_DATASOURCE}:</td>
 			<td>
@@ -46,8 +46,8 @@
 	</table>
 </fieldset>
 <br />
-<fieldset style="padding:10"><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap>{$smarty.const.PR_HEADER}:</td>
 			<td><input type="text" name="header" value="{$obj->header|escape}"></td>
@@ -77,7 +77,7 @@
 	</table>
 </fieldset>
 <br />
-<fieldset id="objFields" style="padding:10"><legend>{$smarty.const.PR_TREE_FIELDS}</legend>
+<fieldset id="objFields"><legend>{$smarty.const.PR_TREE_FIELDS}</legend>
 	<table class="fieldlist" cellspacing="0">
 		{foreach from=$treefields item=val}
 			{if $val.ds_name neq $dsid}
