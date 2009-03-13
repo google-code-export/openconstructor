@@ -146,8 +146,8 @@
 	{/literal}
 </script>
 {include file="objects/select_tpl.tpl"}
-<fieldset style="padding:10" {if !$WCS->decide($obj, 'editobj.ds')}disabled{/if}><legend>{$smarty.const.OBJ_DATA}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset {if !$WCS->decide($obj, 'editobj.ds')}disabled{/if}><legend>{$smarty.const.OBJ_DATA}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap>{$smarty.const.PR_DATASOURCE}:</td>
 			<td>
@@ -164,8 +164,8 @@
 	</table>
 </fieldset>
 <br />
-<fieldset style="padding:10"><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap>{$smarty.const.PR_HEADER}:</td>
 			<td><input type="text" name="header" value="{$obj->header|escape}"></td>
@@ -215,8 +215,8 @@
 		</tr>
 		<tr>
 			<td colspan="2" width="100%">
-				<fieldset style="padding:10"><legend>{$smarty.const.OBJ_SEARCH_PROPS}</legend>
-					<table style="margin:5 0" cellspacing="3">
+				<fieldset><legend>{$smarty.const.OBJ_SEARCH_PROPS}</legend>
+					<table cellspacing="3">
 						<tr>
 							<td nowrap>{$smarty.const.PR_KEYWORD_KEY}:</td>
 							<td><input type="text" name="keywordKey" value="{$obj->keywordKey}"></td>
@@ -243,7 +243,7 @@
 	</table>
 </fieldset>
 <br />
-<fieldset id="objFields" style="padding:10"><legend>{$smarty.const.PR_FETCH_FIELDS}</legend>
+<fieldset id="objFields"><legend>{$smarty.const.PR_FETCH_FIELDS}</legend>
 	<table class="fieldlist" cellspacing="0">
 		<tr>
 			<td class="f"><input type="checkbox" name="field[]" value="id" disabled checked/></td>
@@ -256,7 +256,7 @@
 		{foreach name=fields from=$objfields item=val}
 			{if $val.ds_name neq $dsid}
 				{set dsid = $val.ds_name}
-				<tr {if !$smarty.foreach.fields.first} class="f"{/if}><td colspan="4" style="padding-top:10px">{$ds.$dsid.name} :</td></tr>
+				<tr {if !$smarty.foreach.fields.first} class="f"{/if}><td colspan="4" class="tdDS">{$ds.$dsid.name} :</td></tr>
 			{/if}
 			<tr {if !$smarty.foreach.fields.first} class="f"{/if}>
 				<td class="f"><input type="checkbox" name="field[{$val.id}][id]" value="{$val.id}" onclick="fieldClicked({$val.id})" id="ch.f{$val.id}" {if $val.checked}checked{/if}></td>
@@ -288,25 +288,25 @@
 	</table>
 </fieldset>
 <br />
-<fieldset style="padding:10" id="objDocOrder"><legend>{$smarty.const.OBJ_DOC_ORDER}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset id="objDocOrder"><legend>{$smarty.const.OBJ_DOC_ORDER}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td width="50%">{$smarty.const.H_ORDER_LIST_BY}:<br>
-				<select size="10" id="ord.set" style="margin-top:5px;" onclick="orderFieldClicked()">
+				<select size="10" id="ord.set" sclass="selOrder" onclick="orderFieldClicked()">
 					{foreach from=$order item=val}
 						<option value="{if $val.pref eq 0}-{/if}{$val.id}" {if $val.sysf} style="background: #eee;"{/if}>{if $val.pref eq 0}-{else}+{/if} {$val.header}</option>
 					{/foreach}
 				</select>
 			</td>
 			<td>
-				<input type="button" value="{$smarty.const.BTN_ADD_FIELD}" onclick="addField();" style="width:85px;margin:2px 0px;">
-				<input type="button" value="{$smarty.const.BTN_REMOVE_FIELD}" onclick="removeField();" style="width:85px;margin:2px 0px;">
-				<input type="button" value="{$smarty.const.BTN_MOVEUP_FIELD}" onclick="moveField(-1);" style="width:85px;margin:2px 0px;">
-				<input type="button" value="{$smarty.const.BTN_MOVEDOWN_FIELD}" onclick="moveField(1);" style="width:85px;margin:2px 0px;">
-				<input type="button" value="{$smarty.const.BTN_SWITCH_ORDERING}" onclick="swapFieldDir();" style="width:85px;margin:2px 0px;">
+				<input type="button" value="{$smarty.const.BTN_ADD_FIELD}" onclick="addField();" class="inpOrder">
+				<input type="button" value="{$smarty.const.BTN_REMOVE_FIELD}" onclick="removeField();" class="inpOrder">
+				<input type="button" value="{$smarty.const.BTN_MOVEUP_FIELD}" onclick="moveField(-1);" class="inpOrder">
+				<input type="button" value="{$smarty.const.BTN_MOVEDOWN_FIELD}" onclick="moveField(1);" class="inpOrder">
+				<input type="button" value="{$smarty.const.BTN_SWITCH_ORDERING}" onclick="swapFieldDir();" class="inpOrder">
 			</td>
 			<td width="50%">{$smarty.const.H_AVAILABLE_DSH_FIELDS}:<br>
-				<select size="10" id="ord.available" style="margin-top:5px;">
+				<select size="10" id="ord.available" class="selOrder">
 					{foreach from=$availablefilds item=val}
 						<option value="{$val.id}" {if $val.sysf} style="background: #eee;"{/if}>{$val.header}</option>
 					{/foreach}
@@ -323,19 +323,19 @@
 	</table>
 </fieldset>
 <br />
-<fieldset style="padding:10" id="objFilters"><legend>{$smarty.const.OBJ_FILTERS}</legend>
+<fieldset id="objFilters"><legend>{$smarty.const.OBJ_FILTERS}</legend>
 	<div>
-		<fieldset id="sample" style="margin:20px 0 30px;display:none;"><legend class="test" style="font-weight:bold;"></legend>
-			<table style="margin:5 0" cellspacing="3" width="100%">
+		<fieldset id="sample" class="fldsFilters"><legend class="test fwb"></legend>
+			<table cellspacing="3" width="100%">
 				<tr>
-					<td style="padding-left:5px; padding-right:10px; font-size:115%;">{$smarty.const.H_COND_WHERE}</td>
+					<td class="tdCond">{$smarty.const.H_COND_WHERE}</td>
 					<td colspan="2" width="100%">
-						<input name="filter[]" type="text" style="margin-top:5px;" onchange="$(this).parents('fieldset:first').children('legend:first').html($(this).val());">
+						<input name="filter[]" type="text" class="selOrder" onchange="$(this).parents('fieldset:first').children('legend:first').html($(this).val());">
 					</td>
-					<td rowspan="3" valign="top"><img src="{$img}/h/remove.gif" style="cursor:pointer;margin-right:10px;" onclick="removeCondition(this)" alt="{$smarty.const.BTN_REMOVE_CONDITION}"></td>
+					<td rowspan="3" valign="top"><img src="{$img}/h/remove.gif" class="rmCond" onclick="removeCondition(this)" alt="{$smarty.const.BTN_REMOVE_CONDITION}"></td>
 				</tr>
 				<tr>
-					<td style="padding-left:5px; padding-right:10px; font-size:115%;">{$smarty.const.H_COND}</td>
+					<td class="tdCond">{$smarty.const.H_COND}</td>
 					<td>
 						<select size="1" name="type[]">
 							<option value="{$smarty.const.COND_EQ}">Equal</option>
@@ -352,7 +352,7 @@
 				</tr>
 				<tr><td colspan="2" style="font-size:2px;">&nbsp;</td></tr>
 				<tr>
-					<td style="padding-left:5px; padding-right:10px; font-size:115%;">{$smarty.const.H_COND_VALUE}</td>
+					<td class="tdCond">{$smarty.const.H_COND_VALUE}</td>
 					<td>
 						<select size="1" name="src[]">
 							<option value="{$smarty.const.VALUE_CTX}">Context</option>

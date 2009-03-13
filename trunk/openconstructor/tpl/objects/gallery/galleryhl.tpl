@@ -26,8 +26,8 @@
 	{/literal}
 </script>
 {include file="objects/select_tpl.tpl"}
-<fieldset style="padding:10"><legend>{$smarty.const.PR_DATASOURCES}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset><legend>{$smarty.const.PR_DATASOURCES}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap valign="top"><input type=radio checked name=dynamic_ds value="false" onclick="setdynamic(!this.checked)"> {$smarty.const.PR_STATIC_GALLERIES}:</td>
 			<td>
@@ -48,8 +48,8 @@
 	</table>
 </fieldset>
 <br />
-<fieldset style="padding:10"><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap>{$smarty.const.PR_HEADER}:</td>
 			<td><input type="text" name="header" value="{$obj->header|escape}" /></td>

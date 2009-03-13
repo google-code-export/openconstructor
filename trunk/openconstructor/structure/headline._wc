@@ -57,7 +57,7 @@
 			}
 		foreach($blocks as $v)
 			$t .= sprintf("<option value='$v'%s%s>$v</option>", isset($stubs[$v]) ? ' class="stub"' : '', $b == $v ? ' selected' : '');
-		$t .= "</select><img src='".WCHOME.'/i/'.SKIN."/b/stop.gif' id='img$id' />";
+		$t .= "</select><img src='".WCHOME.'/i/'.SKIN."/images/b/stop.gif' id='img$id' />";
 		$obj[$id]['class'] = @$o_t[$obj[$id]['type']];
 	}
 

@@ -29,8 +29,8 @@
 		}
 	{/literal}
 </script>
-<fieldset style="padding:10"><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap>{$smarty.const.PR_LOGIN_ID}:</td>
 			<td><input type="text" name="loginid" value="{$obj->loginID}"></td>
@@ -55,8 +55,8 @@
 			<td colspan="2">
 				<input type="checkbox" id="ch.autologin" onclick="onRememberMe(this);" {if $obj->allowAutoLogin}checked{/if}>
 				<label for="ch.autologin">{$smarty.const.PR_ALLOW_AUTOLOGIN}</label>
-				<fieldset id="fs_autologin" style="border: none; padding-left: 20px;">
-					<table style="margin:5 0" cellspacing="3">
+				<fieldset id="fs_autologin">
+					<table cellspacing="3">
 						<tr>
 							<td nowrap>{$smarty.const.PR_AUTOLOGIN_ID}:</td>
 							<td><input type="text" name="autoLoginID" value="{$obj->autoLoginID}" {if !$obj->allowAutoLogin}disabled{/if}></td>
@@ -72,16 +72,16 @@
 	</table>
 </fieldset>
 <br />
-<fieldset style="padding:10"><legend>{$smarty.const.PR_DEFAULT_NEXT_PAGES}</legend>
-	<table style="margin:5 0" cellspacing="3">
-		<tr style="font-size: 115%;">
+<fieldset><legend>{$smarty.const.PR_DEFAULT_NEXT_PAGES}</legend>
+	<table cellspacing="3">
+		<tr class="fsb">
 			<td>{$smarty.const.H_GROUP}</td>
 			<td>{$smarty.const.H_NEXTPAGE_URI}</td>
 		</tr>
 		{foreach from=$groups key=id item=title}
 			<tr>
 				<td nowrap>{$title}:</td>
-				<td><input type="text" name="homes[{$id}]" value="{$obj->homes.$id}" size="40" style="font-family: monospace"></td>
+				<td><input type="text" name="homes[{$id}]" value="{$obj->homes.$id}" size="40" class="ffm"></td>
 			</tr>
 		{/foreach}
 	</table>

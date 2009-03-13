@@ -56,8 +56,8 @@
 	{/literal}
 </script>
 {include file="objects/select_tpl.tpl"}
-<fieldset style="padding:10" {if !$WCS->decide($obj, 'editobj.ds')}disabled{/if}><legend>{$smarty.const.OBJ_DATA}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset {if !$WCS->decide($obj, 'editobj.ds')}disabled{/if}><legend>{$smarty.const.OBJ_DATA}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap>{$smarty.const.PR_DATASOURCE}:</td>
 			<td>
@@ -74,8 +74,8 @@
 	</table>
 </fieldset>
 <br />
-<fieldset style="padding:10"><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap>{$smarty.const.PR_HEADER}:</td>
 			<td><input type="text" name="header" value="{$obj->header|escape}"></td>
@@ -116,7 +116,7 @@
 	</table>
 </fieldset>
 <br />
-<fieldset id="objFields" style="padding:10"><legend>{$smarty.const.PR_FETCH_FIELDS}</legend>
+<fieldset id="objFields"><legend>{$smarty.const.PR_FETCH_FIELDS}</legend>
 	<table class="fieldlist" cellspacing="0">
 		<tr>
 			<td class="f"><input type="checkbox" name="field[]" value="id" disabled checked/></td>
@@ -129,7 +129,7 @@
 		{foreach name=fields from=$objfields item=val}
 			{if $val.ds_name neq $dsid}
 				{set dsid = $val.ds_name}
-				<tr {if !$smarty.foreach.fields.first} class="f"{/if}><td colspan="4" style="padding-top:10px">{$ds.$dsid.name} :</td></tr>
+				<tr {if !$smarty.foreach.fields.first} class="f"{/if}><td colspan="4" class="tdDS">{$ds.$dsid.name} :</td></tr>
 			{/if}
 			<tr {if !$smarty.foreach.fields.first} class="f"{/if}>
 				<td class="f"><input type="checkbox" name="field[{$val.id}][id]" value="{$val.id}" onclick="fieldClicked({$val.id})" id="ch.f{$val.id}" {if $val.checked}checked{/if}></td>
@@ -148,19 +148,19 @@
 	</table>
 </fieldset>
 <br />
-<fieldset style="padding:10" id="objFilters"><legend>{$smarty.const.OBJ_FILTERS}</legend>
+<fieldset id="objFilters"><legend>{$smarty.const.OBJ_FILTERS}</legend>
 	<div>
-		<fieldset id="sample" style="margin:20px 0 30px;display:none;"><legend class="test" style="font-weight:bold;"></legend>
-			<table style="margin:5 0" cellspacing="3" width="100%">
+		<fieldset id="sample" class="fldsFilters"><legend class="test fwb"></legend>
+			<table cellspacing="3" width="100%">
 				<tr>
-					<td style="padding-left:5px; padding-right:10px; font-size:115%;">{$smarty.const.H_COND_WHERE}</td>
+					<td class="tdCond">{$smarty.const.H_COND_WHERE}</td>
 					<td colspan="2" width="100%">
-						<input name="filter[]" type="text" style="margin-top:5px;" onchange="$(this).parents('fieldset:first').children('legend:first').html($(this).val());">
+						<input name="filter[]" type="text" class="selOrder" onchange="$(this).parents('fieldset:first').children('legend:first').html($(this).val());">
 					</td>
-					<td rowspan="3" valign="top"><img src="{$img}/h/remove.gif" style="cursor:pointer;margin-right:10px;" onclick="removeCondition(this)" alt="{$smarty.const.BTN_REMOVE_CONDITION}"></td>
+					<td rowspan="3" valign="top"><img src="{$img}/h/remove.gif" class="rmCond" onclick="removeCondition(this)" alt="{$smarty.const.BTN_REMOVE_CONDITION}"></td>
 				</tr>
 				<tr>
-					<td style="padding-left:5px; padding-right:10px; font-size:115%;">{$smarty.const.H_COND}</td>
+					<td class="tdCond">{$smarty.const.H_COND}</td>
 					<td>
 						<select size="1" name="type[]">
 							<option value="{$smarty.const.COND_EQ}">Equal</option>
@@ -177,7 +177,7 @@
 				</tr>
 				<tr><td colspan="2" style="font-size:2px;">&nbsp;</td></tr>
 				<tr>
-					<td style="padding-left:5px; padding-right:10px; font-size:115%;">{$smarty.const.H_COND_VALUE}</td>
+					<td class="tdCond">{$smarty.const.H_COND_VALUE}</td>
 					<td>
 						<select size="1" name="src[]">
 							<option value="{$smarty.const.VALUE_CTX}">Context</option>

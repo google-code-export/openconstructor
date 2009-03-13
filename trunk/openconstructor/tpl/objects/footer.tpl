@@ -5,5 +5,6 @@
 				<input type="button" value="{$smarty.const.BTN_CANCEL}" id="close" />
 			</div>
 		</form>
+		<br />
 	</body>
 </html>

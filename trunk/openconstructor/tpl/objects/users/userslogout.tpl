@@ -22,8 +22,8 @@
 		}
 	{/literal}
 </script>
-<fieldset style="padding:10"><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td colspan="2"><input type=checkbox name="killSession" {if $obj->killSession}checked{/if}> {$smarty.const.PR_KILL_SESSION}</td>
 		</tr>

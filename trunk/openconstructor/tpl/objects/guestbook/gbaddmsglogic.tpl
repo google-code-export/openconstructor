@@ -30,8 +30,8 @@
 	{/literal}
 </script>
 {include file="objects/select_tpl.tpl" disableCaching = true}
-<fieldset style="padding:10" {if !$WCS->decide($obj, 'editobj.ds')}disabled{/if}><legend>{$smarty.const.OBJ_DATA}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset {if !$WCS->decide($obj, 'editobj.ds')}disabled{/if}><legend>{$smarty.const.OBJ_DATA}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap valign="top">{$smarty.const.PR_DATASOURCE}:</td>
 			<td>
@@ -62,8 +62,8 @@
 	</table>
 </fieldset>
 <br />
-<fieldset style="padding:10"><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap>{$smarty.const.PR_GB_SUBJECT_ID}:</td>
 			<td nowrap><input type="checkbox" name="r_subject" value="true" {if $obj->fields.subject.required}checked{/if}> <input type="text" name="subjectid" value="{$obj->fields.subject.id}"></td>
@@ -83,8 +83,8 @@
 	</table>
 </fieldset>
 <br />
-<fieldset style="padding:10"><legend>{$smarty.const.OBJ_CAPTCHA_PROPS}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset><legend>{$smarty.const.OBJ_CAPTCHA_PROPS}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap>{$smarty.const.PR_CAPTCHA_ID}:</td>
 			<td><input type="text" name="cId" id="f_cId" value="{$obj->cId}"></td>
@@ -101,8 +101,8 @@
 	</table>
 </fieldset>
 <br />
-<fieldset style="padding:10"><legend>{$smarty.const.PR_ADDMSG_POLICY}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset><legend>{$smarty.const.PR_ADDMSG_POLICY}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td colspan="2"><input name="policy" type="radio" {if $obj->policy eq $smarty.const.GBAML_ADD_AS_FROMAUTH}checked{/if} value="{$smarty.const.GBAML_ADD_AS_FROMAUTH}"> {$smarty.const.H_GBAML_ADD_AS_FROMAUTH}</td>
 		</tr>
@@ -118,8 +118,8 @@
 	</table>
 </fieldset>
 <br />
-<fieldset style="padding:10"><legend>{$smarty.const.PR_NOTIFICATION}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset><legend>{$smarty.const.PR_NOTIFICATION}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td colspan="2"><input id="ch.notifyEmail" type="checkbox"{if $obj->notifyEmail}checked{/if} onclick='$("#f_notifyEmail").attr("disabled", !this.checked);$("#f_mailSubject").attr("disabled", !this.checked);'> <label for="ch.notifyEmail">{$smarty.const.PR_NOTIFY_ON_NEW_MESSAGE}</label></td>
 		</tr>

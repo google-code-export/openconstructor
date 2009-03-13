@@ -8,7 +8,7 @@
 		<link rel="icon" type="image/gif" href="{$img}/favicon.gif" />
 		<script type="text/javascript" src="{$skinhome}/js/jquery-1.2.6.js"></script>
 	</head>
-	<body>
+	<body id="inner_page">
 		<script language="JavaScript" type="text/JavaScript">
 			var	dis = {$dis};
 			{literal}
@@ -27,14 +27,12 @@
 				});
 			{/literal}
 		</script>
-		<body style="border-style:groove;padding:0 20 20">
-		<br />
-		<h3>{$smarty.const.EDIT_OBJECT}</h3>
+		<h3 class="hTitle">{$smarty.const.EDIT_OBJECT}</h3>
 		<form name="f" method="POST" action="createobject.php">
 			<input type="hidden" name="ds_type" value="{$smarty.get.ds_type}" />
 			<input type="hidden" name="obj_type" value="{$smarty.get.obj_type}" />
-			<fieldset style="padding:10"><legend>{$smarty.const.OBJECT}</legend>
-				<table style="margin:5 0" cellspacing="3">
+			<fieldset><legend>{$smarty.const.OBJECT}</legend>
+				<table cellspacing="3">
 					<tr>
 						<td>{$smarty.const.PR_OBJ_NAME}:</td>
 						<td><input type="text" id="f_name" name="name" size="64" maxlength="64" class="dsb" /></td>
@@ -49,8 +47,8 @@
 			{if $smarty.get.ds_type eq 'miscellany' or $smarty.get.obj_type eq 'htmltexthl'}
 				{set noDs="true"|bool}
 			{/if}
-			<fieldset style="padding:10" {if $noDs}disabled{/if}><legend>{$smarty.const.OBJ_DATA}</legend>
-				<table style="margin:5 0" cellspacing="3">
+			<fieldset {if $noDs}disabled{/if}><legend>{$smarty.const.OBJ_DATA}</legend>
+				<table cellspacing="3">
 					<tr>
 						<td nowrap>{$smarty.const.PR_DATASOURCE}:</td>
 						<td>
@@ -69,5 +67,6 @@
 				<input type="button" value="{$smarty.const.BTN_CANCEL}" id="close" />
 			</div>
 		</form>
+		<br />
 	</body>
 </html>

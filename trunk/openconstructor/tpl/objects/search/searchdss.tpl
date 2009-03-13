@@ -32,8 +32,8 @@
 	{/literal}
 </script>
 {include file="objects/select_tpl.tpl"}
-<fieldset style="padding:10" {if !$WCS->decide($obj, 'editobj.ds')}disabled{/if}><legend>{$smarty.const.OBJ_DATA}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset {if !$WCS->decide($obj, 'editobj.ds')}disabled{/if}><legend>{$smarty.const.OBJ_DATA}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap valign="top">{$smarty.const.PR_DATASOURCE}:</td>
 			<td>
@@ -50,8 +50,8 @@
 	</table>
 </fieldset>
 <br />
-<fieldset style="padding:10"><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap>{$smarty.const.PR_HEADER}:</td>
 			<td><input type="text" name="header" value="{$obj->header|escape}"></td>
@@ -68,7 +68,7 @@
 			<td nowrap colspan=2><input type=checkbox name="no404" value="true" {if $obj->no404}checked{/if}> {$smarty.const.PR_NO_404}</td>
 		</tr>
 	</table>
-	<fieldset style="padding:10" id="fHrefs"><legend>{$smarty.const.PR_DS_HREFS}</legend>
+	<fieldset id="fHrefs"><legend>{$smarty.const.PR_DS_HREFS}</legend>
 		{foreach from=$ds item=val}
 			{set valid = $val.id}
 			{set sel = $val.id|array_search:$ds_id}

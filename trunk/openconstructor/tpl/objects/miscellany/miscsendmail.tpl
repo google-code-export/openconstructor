@@ -98,8 +98,8 @@
 	{/literal}
 </script>
 {include file="objects/select_tpl.tpl" disableCaching="true"}
-<fieldset style="padding:10"><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset><legend>{$smarty.const.OBJ_PROPERTIES}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap>{$smarty.const.PR_MAIL_SUBJECT}:</td>
 			<td><input type="text" name="subject" value="{$obj->subject|escape}" size="40"></td>
@@ -122,8 +122,8 @@
 		</tr>
 		<tr>
 			<td colspan=2>
-				<fieldset style="padding:10"><legend>{$smarty.const.PR_MAIL_CONTENT_TYPE}</legend>
-					<table style="margin:5 0" cellspacing="3">
+				<fieldset><legend>{$smarty.const.PR_MAIL_CONTENT_TYPE}</legend>
+					<table cellspacing="3">
 						<tr>
 							<td colspan="2"><input type=checkbox name="isHtml" value="true" onclick="$('#allowedTags').attr('disabled', !$(this).attr('checked'));" {if $obj->isHtml}checked{/if}> {$smarty.const.PR_MSG_IS_HTML}</td>
 						</tr>
@@ -141,8 +141,8 @@
 	</table>
 </fieldset>
 <br>
-<fieldset style="padding:10"><legend>{$smarty.const.OBJ_CAPTCHA_PROPS}</legend>
-	<table style="margin:5 0" cellspacing="3">
+<fieldset><legend>{$smarty.const.OBJ_CAPTCHA_PROPS}</legend>
+	<table cellspacing="3">
 		<tr>
 			<td nowrap>{$smarty.const.PR_CAPTCHA_ID}:</td>
 			<td><input type="text" name="cId" id="f_cId" value="{$obj->cId}"></td>
@@ -164,11 +164,11 @@
 	</table>
 </fieldset>
 <br>
-<fieldset style="padding:10"><legend>{$smarty.const.OBJ_MSG_ATTACHMENTS}</legend>
+<fieldset><legend>{$smarty.const.OBJ_MSG_ATTACHMENTS}</legend>
 	<div>
 		<fieldset id="sampleAttach" style="margin:20px 0 30px;display:none;">
 			<legend style="font-weight:bold;"></legend>
-			<table style="margin:5 0" cellspacing="3" width="100%">
+			<table cellspacing="3" width="100%">
 				<tr style="font-size:9px;color:#888;">
 					<td>&nbsp;</td>
 					<td>{$smarty.const.H_MSG_FIELD_SRC}</td>
@@ -237,20 +237,20 @@
 	</script>
 </fieldset>
 <br>
-<fieldset style="padding:10"><legend>{$smarty.const.OBJ_MSG_FIELDS}</legend>
+<fieldset><legend>{$smarty.const.OBJ_MSG_FIELDS}</legend>
 	<div>
-		<fieldset id="sample" style="margin:20px 0 30px;display:none;">
-			<legend style="font-weight:bold;"></legend>
-			<table style="margin:5 0" cellspacing="3" width="100%">
-				<tr style="font-size:9px;color:#888;">
+		<fieldset id="sample" class="fldsFilters">
+			<legend class="fwd"></legend>
+			<table cellspacing="3" width="100%">
+				<tr class="trInjections">
 					<td>&nbsp;</td>
 					<td>{$smarty.const.H_MSG_FIELD_SRC}</td>
 					<td>{$smarty.const.H_MSG_FIELD_SRC_PARAM}</td>
 					<td nowrap>{$smarty.const.H_MSG_FIELD_TYPE}</td>
-					<td rowspan="7" valign="top"><img src="{$img}/h/remove.gif" style="cursor:pointer;margin-right:10px;" onclick="removeField(this)" alt="{$smarty.const.BTN_REMOVE_MSG_FIELD}"></td>
+					<td rowspan="7" valign="top"><img src="{$img}/h/remove.gif" class="rmCond" onclick="removeField(this)" alt="{$smarty.const.BTN_REMOVE_MSG_FIELD}"></td>
 				</tr>
 				<tr>
-					<td style="padding-left:5px; padding-right:10px; font-size:115%;">{$smarty.const.H_MSG_FIELD}</td>
+					<td class="tdCond">{$smarty.const.H_MSG_FIELD}</td>
 					<td>
 						<select size="1" name="src[]">
 							<option value="{$smarty.const.FSRC_CTX}">Context</option>
@@ -269,23 +269,23 @@
 					</td>
 				</tr>
 				<tr><td colspan="4" style="font-size:2px;">&nbsp;</td></tr>
-				<tr style="font-size:9px;color:#888;">
+				<tr class="trInjections">
 					<td>&nbsp;</td>
 					<td nowrap>{$smarty.const.H_MSG_FIELD_VALIDATOR}</td>
 					<td colspan="2">&nbsp;</td>
 				</tr>
 				<tr>
-					<td style="padding-left:5px; padding-right:10px; font-size:115%;">{$smarty.const.H_MSG_FIELD_VALIDATION}</td>
+					<td class="tdCond">{$smarty.const.H_MSG_FIELD_VALIDATION}</td>
 					<td colspan="3"><input type="text" size="60" name="validator[]"></td>
 				</tr>
 				<tr><td colspan="4" style="font-size:2px;">&nbsp;</td></tr>
-				<tr style="font-size:9px;color:#888;">
+				<tr class="trInjections">
 					<td>&nbsp;</td>
 					<td nowrap>{$smarty.const.H_MSG_FIELD_ERROR_TEXT}</td>
 					<td colspan="2">&nbsp;</td>
 				</tr>
 				<tr>
-					<td style="padding-left:5px; padding-right:10px; font-size:115%;">{$smarty.const.H_MSG_FIELD_ERROR}</td>
+					<td class="tdCond">{$smarty.const.H_MSG_FIELD_ERROR}</td>
 					<td colspan="3"><input type="text" size="60" name="error[]"></td>
 				</tr>
 			</table>
