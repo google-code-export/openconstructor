@@ -57,7 +57,14 @@
 			keys.addShortcut("ctrl+s", f.save.click);
 			keys.addShortcut("ctrl+l", window.goToLineDialog);
 			var editApplet = getSrcEdit();
-			editApplet.setSource(f.html.value);
+			if (f.html.value.length > 0) {
+				editApplet.setSource(f.html.value);
+				window.setTimeout(function() {
+					var c = <?=intval(@$_GET['caret'])?>;
+					for (var s = 20, i = c % s; i <= c; i += s)
+						editApplet.setCaretPosition(i);
+				}, 50);
+			}
 			<?php if($_GET['id'] != 'new' && !(WCS::decide($_ds, 'editdoc') || WCS::decide($sDoc, 'editdoc'))): ?>
 				editApplet.setEditable(false);
 			<?php endif; ?>
@@ -65,7 +72,6 @@
 			f.header.onpropertychange = function() {
 				f.save.disabled = !(<?=$save ? 'true' : 'false' ?> && this.value.match(rexpHeader));
 			}
-			window.setTimeout(function() {editApplet.setCaretPosition(<?=intval(@$_GET['caret'])?>);}, 50);
 		}
 		
 		function goToLineDialog() {
