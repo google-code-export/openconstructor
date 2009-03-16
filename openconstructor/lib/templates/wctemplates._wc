@@ -253,7 +253,7 @@ class WCTemplates {
 			$tpl = &WCTemplates::load((int) $ids);
 			assert($tpl != null);
 			$tpl->id = 0;
-			$result = array($tpl, $tpl);
+			$result = array(wcfClone($tpl), wcfClone($tpl));
 //			unset($result[1]->sRes);
 			$result[1]->sRes = $result[0]->sRes->copy();
 			$r = mysql_fetch_row($res);

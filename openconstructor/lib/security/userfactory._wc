@@ -310,7 +310,7 @@ class UserFactory {
 		if(mysql_num_rows($res) == 1) {
 			$user = &User::load(WCS_ROOT_ID);
 			$user->id = $user->groupId = 0;
-			$result = array($user, $user);
+			$result = array(wcfClone($user), wcfClone($user));
 //			unset($result[1]->sRes);
 			$result[1]->sRes = &$result[0]->sRes->copy();
 			$r = mysql_fetch_row($res);

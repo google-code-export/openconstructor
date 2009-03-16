@@ -291,7 +291,7 @@ class ObjManager {
 			$obj = &ObjManager::load((int) $ids);
 			assert($obj != null);
 			$obj->obj_id = 0;
-			$result = array($obj, $obj);
+			$result = array(wcfClone($obj), wcfClone($obj));
 //			unset($result[1]->sRes);
 			$result[1]->sRes = &$result[0]->sRes->copy();
 			$r = mysql_fetch_row($res);
