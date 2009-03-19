@@ -37,9 +37,11 @@
 					keys.addShortcut("ctrl+alt+l", window.goToLineDialog);
 
 					var srcTpl = getSrcEdit(), srcMockup = getSrcMockupEdit();
-					srcMockup.setSource($("#f_mockup").val());
-					srcTpl.setSource($("#f_html").val());
-					srcTpl.setCaretPosition(var_caret);
+					if($("#f_mockup").val().length > 0)
+						srcMockup.setSource($("#f_mockup").val());
+					if($("#f_html").val().length > 0) {						srcTpl.setSource($("#f_html").val());
+						srcTpl.setCaretPosition(var_caret);
+					}
 					if(var_id != 'new' && !save)
 						disableEditors();
 					if(tpl_id){

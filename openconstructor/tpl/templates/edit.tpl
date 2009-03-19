@@ -35,10 +35,11 @@
 					keys.addShortcut("ctrl+alt+l", window.goToLineDialog);
 
 					var src = getSrcEdit();
-					src.setSource($("#f_html").val());
+					if($("#f_html").val().length > 0){						src.setSource($("#f_html").val());
+						window.setTimeout(function() {src.setCaretPosition(var_caret);}, 50);
+					}
 					if(var_id != 'new' && !save)
 						src.setEditable(false);
-					window.setTimeout(function() {src.setCaretPosition(var_caret);}, 50);
 				});
 
 				function clearCache() {
