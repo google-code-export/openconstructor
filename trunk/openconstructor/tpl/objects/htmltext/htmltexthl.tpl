@@ -71,6 +71,13 @@
 			<td nowrap>{$smarty.const.PR_PAGE_FETCH_LEVEL}:</td>
 			<td><input type="text" name="level" value="{$obj->level}"></td>
 		</tr>
+		<tr>
+			<td>&nbsp;</td>
+			<td>
+				<input type="checkbox" name="match_all_paths" id="ch.match_all_paths" value="true" {if $obj->matchAllPaths}checked{/if}>
+				<label for="ch.match_all_paths">{$smarty.const.PR_PAGE_FETCH_ALL_PATHS}</label>
+			</td>
+		</tr>
 	</table>
 	<fieldset id="ex-pages"><legend>{$smarty.const.H_EXCLUDE_PAGES}</legend>
 		<div class="htmltxt">
