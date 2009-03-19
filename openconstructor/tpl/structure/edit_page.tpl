@@ -87,7 +87,7 @@
 					{if $page->uri neq '/'}
 						<tr>
 							<td>{$smarty.const.PAGE_FOLDER}:</td>
-							<td><input type="text" name="uri_name" id="uri_name" value="{$page->name}" size="32" maxlength="32" class="dsb" /></td>
+							<td><input type="text" name="uri_name" id="uri_name" value="{$page->name}" size="64" maxlength="128" class="dsb" /></td>
 						</tr>
 					{else}
 						<tr><td colspan="2"><input type="hidden" name="uri_name" value="{$page->name}" /></td></tr>
@@ -116,7 +116,7 @@
 				<table cellspacing="3">
 					<tr>
 						<td>{$smarty.const.PAGE_NAME}:</td>
-						<td><input type="text" name="header" id="header" value="{$page->header|escape}" size="40" maxlength="64" class="dsb" /></td>
+						<td><input type="text" name="header" id="header" value="{$page->header|escape}" size="64" maxlength="128" class="dsb" /></td>
 					</tr>
 					<tr>
 						<td>{$smarty.const.PAGE_STATUS}:</td>
@@ -154,7 +154,7 @@
 				<table cellspacing="3" width="100%">
 					<tr>
 						<td>{$smarty.const.PAGE_TITLE}:</td>
-						<td><input type="text" name="title" value="{$page->title|escape}" maxlength="128" style="width: 100%;font-family: monospace; font-size: 100%;"></td>
+						<td><input type="text" name="title" value="{$page->title|escape}" maxlength="255" style="width: 100%;font-family: monospace; font-size: 100%;"></td>
 					</tr>
 					<tr>
 						<td>&nbsp;</td>
