@@ -108,7 +108,7 @@ class DSPHPSource extends WCDataSource {
 		$this->ftp->open();
 		$incfile=FILES.$this->sourcePath.$id.'._wc';
 		$func = '_wcf_phpsource_'.$id;
-		$content = "<?php if(!function_exists('{$func}')) { function {$func}(&\$args){ \$ctx = &Context::getInstance();?>$source<?php } } if(isset(\$this) && get_class(\$this) == 'wcsmarty') {\$__j = array(); {$func}(\$__j);}?>";
+		$content = "<?php if(!function_exists('{$func}')) { function {$func}(&\$args){ \$ctx = &Context::getInstance();?>$source<?php } } if(isset(\$this) && strtolower(get_class(\$this)) == 'wcsmarty') {\$__j = array(); {$func}(\$__j);}?>";
 		$this->ftp->write_file($incfile,$content);
 		$this->ftp->close();
 		if($this->ftp->success())
