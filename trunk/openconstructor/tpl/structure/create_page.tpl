@@ -11,7 +11,7 @@
 			var	uri = '{$in->uri}', dis = {$disabled};
 			{literal}
 				var re=new RegExp('[^\\s]','gi');
-				var folder = /^[a-z0-9][a-z0-9\-_]{0,31}$/i;
+				var folder = /^[a-z0-9][a-z0-9\-_]{0,127}$/i;
 
 				$(document).ready(function(){
 					$("#close").click(function(){
@@ -38,11 +38,11 @@
 				<table cellspacing="3">
 					<tr>
 						<td>{$smarty.const.PAGE_FOLDER}:</td>
-						<td><input type="text" id="page_name" name="page_name" size="32" maxlength="32" class="dsb" /></td>
+						<td><input type="text" id="page_name" name="page_name" size="64" maxlength="128" class="dsb" /></td>
 					</tr>
 					<tr>
 						<td>{$smarty.const.PAGE_NAME}:</td>
-						<td><input type="text" id="header" name="header" size="32" maxlength="64" class="dsb" /></td>
+						<td><input type="text" id="header" name="header" size="64" maxlength="128" class="dsb" /></td>
 					</tr>
 					<tr>
 						<td colspan="2">{$smarty.const.PAGE_URI}: <span id="url">{$in->uri}/</span></td>
