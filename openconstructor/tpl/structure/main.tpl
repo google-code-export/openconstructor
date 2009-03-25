@@ -112,7 +112,7 @@
 						<script type="text/javascript">
 							$(document).ready(function(){
 								$("#tree").treeview({
-									persist: "location"
+									persist: "curnode"
 								});
 								$("a.selected").click(function(){
 									return false;
@@ -144,7 +144,7 @@
 										<li class="{if $node.obj->isLastChild()}last{/if}">
 											<span class="folder{$unpub}"><span class="fldname">
 												{if $node.at eq 1}
-													<a href="?node={$node.id}"><strong>{$node.title|escape}</strong></a>
+													<a href="?node={$node.id}" id="{$node.id}"><strong>{$node.title|escape}</strong></a>
 												{else}
 													<a id="{$node.id}" name="{$node.title|escape}" href="?node={$node.id}" title="{$node.uri}">{$node.title|escape}</a>
 												{/if}
@@ -153,7 +153,7 @@
 										<li class="{if $node.obj->isLastChild()}last{/if}">
 											<span class="file{$unpub}"><span class="fldname">
 												{if $node.at eq 1}
-													<a href="?node={$node.id}"><strong>{$node.title|escape}</strong></a>
+													<a href="?node={$node.id}" id="{$node.id}"><strong>{$node.title|escape}</strong></a>
 												{else}
 													<a id="{$node.id}" name="{$node.title|escape}" href="?node={$node.id}" title="{$node.uri}">{$node.title|escape}</a>
 												{/if}

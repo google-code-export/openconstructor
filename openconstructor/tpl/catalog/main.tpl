@@ -4,7 +4,7 @@
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 		<link href="{$skinhome}/css/style.css" rel="stylesheet" type="text/css" />
-		<title>{$smarty.const.WC} | {$smarty.const.DATA}</title>
+		<title>{$smarty.const.WC} | {$smarty.const.CATALOG}{$ds_name}</title>
 		<link rel="shortcut icon" type="image/x-icon" href="{$img}/favicon.ico" />
 		<link rel="icon" type="image/gif" href="{$img}/favicon.gif" />
 		<base href="http://{$smarty.server.SERVER_NAME}{$ocm_home}/{$cur_section}/" />
@@ -13,26 +13,27 @@
 				wchome = "{$ocm_home}",
 				skin = "{$smarty.const.SKIN}",
 				imghome = wchome+'/i/'+skin+'/images',
+				curTab = "{$curtab}",
+				curDS = "{$currentDs}",
 				curnode = "{$curnode}",
-				nodetype = "{$nodetype}",
-				isInternal = {if $isInternal}true{else}false{/if},
-				isLocked = "{if $isLocked}true{else}false{/if}",
-				REMOVE_DS_Q = "{$smarty.const.REMOVE_DS_Q}",
-				SURE_REMOVE_DS_Q = "{$smarty.const.SURE_REMOVE_DS_Q}",
-				SURE_REMOVE_LOCKED_DS_Q = "{$smarty.const.SURE_REMOVE_LOCKED_DS_Q}",
+				preset = "{$presetValue}",
+				rootNode = {if $curnode > 1 && $curnode == $rootNode->id}{$curnode}{else}0{/if},
+				REMOVE_NODE_Q = "{$smarty.const.REMOVE_NODE_Q}",
+				SURE_REMOVE_NODE_Q = "{$smarty.const.SURE_REMOVE_NODE_Q}",
 				REMOVE_SELECTED_DOCUMENTS_Q = "{$smarty.const.REMOVE_SELECTED_DOCUMENTS_Q}",
 				PUBLISH_SELECTED_DOCUMENTS_Q = "{$smarty.const.PUBLISH_SELECTED_DOCUMENTS_Q}",
 				UNPUBLISH_SELECTED_DOCUMENTS_Q = "{$smarty.const.UNPUBLISH_SELECTED_DOCUMENTS_Q}"
 				;
 		</script>
 		<script type="text/javascript" src="{$skinhome}/js/jquery-1.2.6.js"></script>
+		<script type="text/javascript" src="{$ocm_home}/lib/js/base.js"></script>
 		<script type="text/javascript" src="{$skinhome}/js/common.js"></script>
 		<script type="text/javascript" src="{$skinhome}/js/{$cur_section}.js"></script>
 	</head>
 	<body>
-		<form name="f_remove" method="POST" action="{$ocm_home}/data/{$nodetype}/i_{$nodetype}.php" style="margin:0">
-			<input type="hidden" name="action" value="remove_ds"/>
-			<input type="hidden" name="ds_id" value="{$curnode}"/>
+		<form name="f_remove" method="POST" action="{$ocm_home}/catalog//i_catalog.php" style="margin:0">
+			<input type="hidden" name="action" value="remove_node"/>
+			<input type="hidden" name="node_id" value="{$curnode}"/>
 		</form>
 		<div class="wrapper">
 			<div class="top">
@@ -64,40 +65,27 @@
 				<div class="tabs-bg"></div>
 				<div class="toolbar">
 					<img class="first" src="{$img}/tbar/beginner.gif" alt="" />
+					<select size="1" onchange="setCookie('dsh', this.options[this.selectedIndex].value, wchome + '/'); location.href = location.href;" style="margin-right:10px;">
+					{foreach from=$dsh item=v}
+						<option value="{$v.id}"{if $v.id == $currentDs} selected{/if}>{$v.pathView}{$v.name}</option>
+					{/foreach}
+					</select>
 						<ul>
 							{foreach from=$toolbar key=key item=val}
-								{if $val=="separator"}
+								{if $val == "separator"}
 									</ul><img src="{$img}/tbar/separator.gif" alt="|" /><ul>
-								{elseif $key=="ddopen"}
-									<li>
-										{assign var="def" value=$val}
-										<ul class="drop">
-								{elseif $val=="ddclose"}
-										</ul>
-										{assign var="act" value="javascript:`$def.action`"}
-										<a href='{$act}' id={$def.pic} class="drop"><img src="{$img}/tbar/{$def.pic}.gif" title="{$defDesc}" alt="{$defDesc}" id="btn_{$def.pic}" /><img src="{$img}/tbar/drop.gif" class="dropBtn" /></a>
-									</li>
-									{assign var="def" value=""}
 								{else}
 									{assign var="act" value=""}
+									{if $val.action neq ""}
+										{assign var="act" value="javascript:`$val.action`"}
+									{/if}
 									<li>
-										{if $val.action neq ""}
-											{assign var="act" value="javascript:`$val.action`"}
-											{if $val.pic eq $def}
-												{assign var="def" value=$val}
-												{assign var="defDesc" value=$key}
-											{/if}
-											<a href='{$act}' id={$val.pic}{if $def neq ""} onclick="ddChoose('{$val.pic}')"{/if}>
-												<img src="{$img}/tbar/{$val.pic}.gif" title="{$key}" alt="{$key}" align="absmiddle" id="btn_{$val.pic}" />
-												{if $def neq ""}
-													{$key}
-												{/if}
+										{if $act neq ""}
+											<a href='{$act}' id={$val.pic}>
+												<img src="{$img}/tbar/{$val.pic}.gif" alt="{$key}" id="btn_{$val.pic}" />
 											</a>
 										{else}
-											<img src="{$img}/tbar/{$val.pic}_.gif" title="{$key}" alt="{$key}" id="btn_{$val.pic}" />
-											{if $def neq ""}
-												{$key}
-											{/if}
+											<img src="{$img}/tbar/{$val.pic}_.gif" alt="{$key}" name="btn_{$val.pic}" />
 										{/if}
 									</li>
 								{/if}
@@ -106,44 +94,85 @@
 					<br class="clear" />
 				</div>
 			</div>
-			<script>
-			{literal}
-				$('.dropBtn').click(function(){
-					$('ul.drop').toggle('fast');
-					return false;
-				});
-				$('html').click(function(){
-					if(!$('ul.drop').is(':hidden')){
-						$('ul.drop').hide('fast');
-					}
-				});
-			{/literal}
-			</script>
 			<table class="center">
 				<tr>
 					<td class="left">
+						<ul class="cat-tabs">
+							{if $curtab eq "browse"}
+							<li class="cur">{$smarty.const.H_BROWSE_TAB}</li>
+							<li><a href="{$ocm_home}/catalog/index.php/trees/">{$smarty.const.H_TREES_TAB}</a></li>
+							{/if}
+							{if $curtab eq "trees"}
+							<li><a href="{$ocm_home}/catalog/index.php/browse/">{$smarty.const.H_BROWSE_TAB}</a></li>
+							<li class="cur">{$smarty.const.H_TREES_TAB}</li>
+							{/if}
+						</ul>
 						<script src="{$skinhome}/js/jquery.treeview.js" type="text/javascript"></script>
 						<script src="{$skinhome}/js/jquery.cookie.js" type="text/javascript"></script>
+						{if $curtab == 'browse'}
+							{literal}
+							<script type="text/javascript">
+								$(document).ready(function(){
+									/* For tree */
+							{/literal}
+									{foreach from=$tree item=node}
+										{foreach from=$node item=n}
+											{if $n->parent->id == 1}
+												$("#tree-{$n->key}").treeview(
+												{literal}
+												{
+													persist: "multiple"
+												}
+												{/literal}
+												);
+												$("a.{$n->key}").toggle(function()
+													{literal}
+													{
+													{/literal}
+														$("#tree-{$n->key}").hide();
+														return false;
+													{literal}
+													},
+													function(){
+													{/literal}
+														$("#tree-{$n->key}").show();
+														return false;
+													{literal}
+													}
+													{/literal}
+												);
+											{/if}
+										{/foreach}
+									{/foreach}
+						{else}
+							{literal}
+							<script type="text/javascript">
+								$(document).ready(function(){
+									/* For tree */
+									$("#tree").treeview({
+										persist: "curnode"
+									});
+									$("a.tree-name").toggle(function(){
+											$("#tree").hide();
+											return false;
+										},
+										function(){
+											$("#tree").show();
+											return false;
+										}
+									);
+									$("a.selected").click(function(){
+										return false;
+									});
+							{/literal}
+						{/if}
 						{literal}
-						<script type="text/javascript">
-							$(document).ready(function(){
-								/* For tree */
-								$("#tree").treeview({
-									persist: "curnode"
+								$(".folder img").click(function(){
+									nodeChecked($(this));
 								});
-								$("a.selected").click(function(){
-									return false;
+								$(".file img").click(function(){
+									nodeChecked($(this));
 								});
-								$("a.tree-name").toggle(function(){
-										$("#tree").hide();
-										return false;
-									},
-									function(){
-										$("#tree").show();
-										return false;
-									}
-								);
-
 								/* For right panel */
 
 								$("p.ushko").click(function(){
@@ -168,47 +197,35 @@
 							});
 						</script>
 						{/literal}
-						{foreach from=$map key=i item=node}
-							{if $node.level eq 0}
-								<a id="{$node.id}" name="{$node.title|escape}" href="" title="{$node.uri}" class="tree-name {$cur_section}">{$node.title|escape}</a>
-								<ul id="tree" class="filetree">
-							{else}
-								{if $node.level gt $prevLev && $prevLev neq 0}
-									<ul style="display: none;">
-								{elseif $node.level lt $prevLev && $prevLev neq 0}
-									{math assign="i" equation="pl - nl" nl=$node.level pl=$prevLev}
-									{section name=cycle loop=$i}
-											</ul>
-										</li>
-									{/section}
+						{if $curtab == 'browse'}
+							{foreach from=$treeFields item=nodeId key=fieldName}
+								{if $tree->exists($nodeId)}
+								{set sub = $tree->getSubTree($nodeId)}
+								{$sub->export($view)}
 								{/if}
-								{if $node.level eq 1}
-									<li>
-										<span class="folder">
-											<span class="fldname"><a id="{$node.id}" name="{$node.title|escape}" title="{$node.uri}"><strong class="notbold">{$node.title|escape}</strong></a></span>
-										</span>
-								{else}
-									<li>
-										<span class="file"><span class="fldname">
-											{if $node.at eq 2}
-												<a href="?node={$node.id}" id="{$node.id}"><strong>{$node.title|escape}</strong></a>
-											{else}
-												<a id="{$node.id}" name="{$node.title|escape}" href="?node={$node.id}" title="{$node.uri}">{$node.title|escape}</a>
-											{/if}
-										</span></span>
-									</li>
+							{/foreach}
+							<div class="hr">
+								<div>
+									<input type="button" value="Apply" onclick="applyNodeFilter()" />
+								</div>
+							</div>
+							<script type="text/javascript">
+							{foreach from=$selected item=id}
+								{if $tree->node.$id}
+									setNodeState({$id},1);
 								{/if}
-							{/if}
-							{assign var="prevLev" value=$node.level}
-						{/foreach}
-						</ul>
+							{/foreach}
+							</script>
+						{else}
+							{$tree->export($view)}
+						{/if}
 					</td>
 					<td class="middle">
-						{if $nodetype}
-						<form name="f_doc" action="{$ocm_home}/data/{$nodetype}/i_{$nodetype}.php" method="POST">
-							<input type="hidden" name="action" value="delete_{if $nodetype eq 'gallery'}image{elseif $nodetype eq 'guestbook'}message{elseif $nodetype eq 'phpsource'}source{elseif $nodetype eq 'textpool'}text{else}{$nodetype}{/if}" />
-							<input type="hidden" name="ds_id" value="{$curnode}" />
-							<input type="hidden" name="dest_ds_id" value="{$curnode}" />
+						{if $curnode}
+						<form name="f_doc" action="{$ocm_home}/data/hybrid/i_hybrid.php" method="POST">
+							<input type="hidden" name="action" value="delete_hybrid" />
+							<input type="hidden" name="ds_id" value="{$currentDs}" />
+							<input type="hidden" name="dest_ds_id" value="{$currentDs}" />
 							<table>
 								<thead>
 									<tr>
@@ -307,8 +324,7 @@
 								</div>
 							</form>
 						</fieldset>
-						{if $nodetype}
-						<form method="post" name="frm_v" action="{$ocm_home}/data/{$nodetype}/i_{$nodetype}.php">
+						<form method="post" name="frm_v" action="{$ocm_home}/catalog/i_catalog.php">
 							<input type="hidden" name="action" value="view_detail" />
 							<fieldset>
 								<legend>{$smarty.const.VIEW}</legend>
@@ -325,7 +341,6 @@
 							</fieldset>
 							<input type="submit" class="refresh" value="{$smarty.const.REFRESH}" />
 						</form>
-						{/if}
 					</td>
 				</tr>
 			</table>
@@ -333,9 +348,13 @@
 				<p>{$smarty.const.WC_COPYRIGHTS}</p>
 			</div>
 			<script type="text/javascript">
-				disableButton("btn_moverecord",imghome+'/tbar/moverecord_.gif');
+//				disableButton("btn_addrecord",imghome+'/tbar/addrecord_.gif');
 				disableButton("btn_publish",imghome+'/tbar/publish_.gif');
 				disableButton("btn_unpublish",imghome+'/tbar/unpublish_.gif');
+				if(!rootNode)
+					disableButton("btn_editsec",imghome+'/tbar/editsec_.gif');
+				if({if $curtab == 'browse'}1{else}0{/if})
+					disableButton("btn_remove",imghome+'/tbar/remove_.gif');
 			</script>
 		</div>
 	</body>

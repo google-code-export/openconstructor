@@ -207,6 +207,21 @@
 					current.addClass("selected").parents("ul, li").add( current.parent().parent().next() ).show();
 				}
 				break;
+			case "curnode":
+				var current = this.find("a").filter(function() { return this.id == $.cookie('curnode'); });
+				if ( current.length ) {
+					current.addClass("selected").parents("ul, li").add( current.parent().parent().next() ).show();
+				}
+				break;
+			case "multiple":
+				var current = this.find("img").filter(function() {
+					ids = $.cookie('curnode').split(',');
+					return ids.find($(this).attr('index'));
+				});
+				if ( current.length ) {
+					current.addClass("selected").parents("ul, li").add( current.parent().next() ).show();
+				}
+				break;
 			}
 
 
