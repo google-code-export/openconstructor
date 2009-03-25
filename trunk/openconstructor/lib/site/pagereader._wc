@@ -98,7 +98,7 @@ class PageReader {
 		$tree = null;
 		$db = &WCDB::bo();
 		$res = $db->query(
-			"SELECT t2.id, t2.num, t2.parent, t2.level t2.next, t2.name, t2.header, p.published, p.linkto, p.router, p.users".
+			"SELECT t2.id, t2.num, t2.parent, t2.level, t2.next, t2.name, t2.header, p.published, p.linkto, p.router, p.users".
 			" FROM $this->treeTable t1, $this->treeTable t2, $this->pagesTable p".
 			" WHERE ".($nodeId == null ? 't1.num = 0' : 't1.id = '.intval($nodeId))." AND t2.num >= t1.num AND ( t1.next = 0 OR t2.num < t1.next)".($depth ? " AND t2.level <= t1.level + $depth":'').
 			"  AND t2.id = p.id".
