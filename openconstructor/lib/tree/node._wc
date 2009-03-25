@@ -24,18 +24,17 @@
  */
 class Node {
 	var $id, $key;
-	var $index, $next, $level;
+	var $index, $next;
 	var $parent, $node;
 	var $header;
 	var $sRes;
 
-	function Node($id, $index, $parent, $next, $key, $header, $level) {
+	function Node($id, $index, $parent, $next, $key, $header) {
 		$this->id = $id;
 		$this->index = $index;
 		$this->parent = &$parent;
 		$this->next = $next;
 		$this->key = $key;
-		$this->level = $level;
 		$this->header = $header;
 		$this->node = array();
 		$this->sRes = null;
