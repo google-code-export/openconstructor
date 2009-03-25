@@ -35,14 +35,14 @@ class SqlTreeReader {
 		$result = array();
 		$db = &WCDB::bo();
 		$res = $db->query(
-			"SELECT t2.id AS id, t2.num AS num, t2.parent AS parent, t2.next AS next, t2.name AS name, t2.header AS header".
+			"SELECT t2.id AS id, t2.num AS num, t2.parent AS parent, t2.next AS next, t2.level as level, t2.name AS name, t2.header AS header".
 			" FROM $this->table t1, $this->table t2".
 			" WHERE t1.id = $nodeId AND t2.num > t1.num AND ( t1.next = 0 OR t2.num < t1.next ) AND t2.level = t1.level + 1".
 			" ORDER BY t2.num"
 		);
 		if(mysql_num_rows($res) > 0)
 			while($r = mysql_fetch_assoc($res))
-				$result[] = new Node((int) $r['id'],(int) $r['num'],(int) $r['parent'],(int) $r['next'], $r['name'], $r['header']);
+				$result[] = new Node((int) $r['id'],(int) $r['num'],(int) $r['level'],(int) $r['parent'],(int) $r['next'], $r['name'], $r['header']);
 		mysql_free_result($res);
 		return $result;
 	}
@@ -51,7 +51,7 @@ class SqlTreeReader {
 		$tree = null;
 		$db = &WCDB::bo();
 		$res = $db->query(
-			"SELECT t2.id AS id, t2.num AS num, t2.parent AS parent, t2.next AS next, t2.name AS name, t2.header AS header".
+			"SELECT t2.id AS id, t2.num AS num, t2.parent AS parent, t2.next AS next, t2.level as level, t2.name AS name, t2.header AS header".
 			" FROM $this->table t1, $this->table t2".
 			" WHERE t1.id = $nodeId AND t2.num >= t1.num AND ( t1.next = 0 OR t2.num < t1.next)".($depth ? " AND t2.level <= t1.level + $depth":'').
 			" ORDER BY t2.level, t2.num"
@@ -59,7 +59,7 @@ class SqlTreeReader {
 		if(mysql_num_rows($res) > 0) {
 			$i = 0;
 			while($r = mysql_fetch_assoc($res)) {
-				$node[$i] = new Node((int) $r['id'],(int) $r['num'],(int) $r['parent'],(int) $r['next'], $r['name'], $r['header']);
+				$node[$i] = new Node((int) $r['id'],(int) $r['num'],(int) $r['level'],(int) $r['parent'],(int) $r['next'], $r['name'], $r['header']);
 				if($tree === null)
 					$tree = new Tree($node[$i]);
 				else
