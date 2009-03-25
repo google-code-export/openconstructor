@@ -4,7 +4,7 @@ try {
 	pri[2] = new Image; pri[2].src = imghome + '/t/f_.gif';
 	pri[3] = new Image; pri[3].src = imghome + '/t/minus.gif';
 	pri[4] = new Image; pri[4].src = imghome + '/t/plus.gif';
-	pri[5] = new Image; pri[5].src = imghome + '/tool/border.gif';
+	pri[5] = new Image; pri[5].src = imghome + '/tbar/border.gif';
 	if(imghome.indexOf('/metallic/') != -1) {
 		pri[6] = new Image; pri[6].src = imghome + '/vbkmrk_state_none.gif';;
 		pri[7] = new Image; pri[7].src = imghome + '/vbkmrk_state_inline.gif';
@@ -153,7 +153,8 @@ function chk_(obj){
 		$("#r_"+obj.value).removeClass("brown");
 	}
 }
-function doall(){	var elm = $("input#checkall");
+function doall(){
+	var elm = $("input#checkall");
 	var all_elm = $("input[name='ids[]']");
 	if(!all_elm) return;
 	all_elm.each(function(){

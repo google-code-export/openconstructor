@@ -99,7 +99,7 @@
 							$(document).ready(function(){								/* For tree */
 
 								$("#tree").treeview({
-									persist: "location",
+									persist: "curnode",
 									link_unfold_onclick: true
 								});
 								$("a.selected").click(function(){
@@ -145,7 +145,7 @@
 								<li>
 									<span class="file"><span class="fldname">
 										{if $node.at eq 2}
-											<a href="?node={$node.id}"><strong>{$node.title|escape}</strong></a>
+											<a href="?node={$node.id}" id="{$node.id}"><strong>{$node.title|escape}</strong></a>
 										{else}
 											<a id="{$node.id}" name="{$node.title|escape}" href="?node={$node.id}" title="{$node.uri}">{$node.title|escape}</a>
 										{/if}
