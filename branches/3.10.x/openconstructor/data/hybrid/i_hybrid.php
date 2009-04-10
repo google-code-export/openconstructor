@@ -77,7 +77,7 @@ switch(@$_POST['action'])
 	case 'edit_field':
 		require_once(LIBDIR.'/hybrid/fields/fieldfactory._wc');
 		$f = FieldFactory::getField(@$_POST['id']);
-		$old = $f;
+		$old = wcfClone($f);
 
 		switch ($f->family) {
 			case 'primitive':
