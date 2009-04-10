@@ -129,7 +129,7 @@ class Context {
 			$result = &$this->router->param[$name];
 		elseif(isset($_GET[$name]))
 			$result = &$_GET[$name];
-		if($index)
+		if($index !== null)
 			$result = &Context::getArrayElement($result, $index);
 		return $result;
 	}
