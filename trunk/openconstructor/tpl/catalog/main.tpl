@@ -81,7 +81,7 @@
 									{/if}
 									<li>
 										{if $act neq ""}
-											<a href='{$act}' id={$val.pic}>
+											<a href='{$act}' id="{$val.pic}"  title="{$key}">
 												<img src="{$img}/tbar/{$val.pic}.gif" alt="{$key}" id="btn_{$val.pic}" />
 											</a>
 										{else}

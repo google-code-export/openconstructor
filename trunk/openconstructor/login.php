@@ -65,7 +65,7 @@ $auth = &Authentication::getInstance();
 				<div style="padding:10px 40px;border-top: solid 1px #fff; border-bottom: solid 1px #666;" id="stop">
 					<div style="width:100%">
 					<table border="0" cellspacing="0" cellpadding="0" style="color:#060; font-size: 110%;" width="100%"><tr>
-						<td><img src="i/<?=SKIN?>/ico/ico-info.gif" alt="Info" width="28" height="28"></td>
+						<td><img src="i/<?=SKIN?>/images/ico/ico-info.gif" alt="Info" width="28" height="28"></td>
 						<td style="padding-left:10px;">
 							<?=INSTALLER_FIRST_LOGON_I?>
 						</td>
