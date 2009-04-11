@@ -1,4 +1,5 @@
 Options -Indexes
+AddDefaultCharset utf-8
 
 <Files ~ "\._wc$"> 
   Order allow,deny 
