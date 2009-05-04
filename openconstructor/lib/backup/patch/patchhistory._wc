@@ -1,0 +1,47 @@
+<?php
+class PatchHistory {
+
+	var $matrix = array();
+	var $lowestVersion = '';
+	
+	function PatchHistory(){
+		$this->_initialize();
+		if (sizeof($this->matrix) > 0) {
+			uksort($this->matrix, 'version_compare');
+			$this->lowestVersion = key($this->matrix);
+		}
+	}
+	
+	function isRestorable($fromVersion, $toVersion) {
+		return version_compare($fromVersion, $this->lowestVersion) >= 0
+				&& version_compare($fromVersion, $toVersion) <= 0;
+	}
+	
+	function getPatches($fromVersion, $toVersion, $excludePatches = array()) {
+		$result = array();
+		foreach ($this->matrix as $version => $ids)
+			if (version_compare($fromVersion, $version) < 0 && version_compare($version, $toVersion) <= 0)
+				$result = array_merge($result, array_values($ids));
+		$result = array_unique(array_values($result));
+		$result = array_diff($result, $excludePatches);
+		return $result;
+	}
+	
+	function getAppliedPatches($uptoVersion) {
+		$base = preg_replace('~^(\d+\.\d+)\..*$~', '\1.0', $uptoVersion); // a.b.c => a.b.0
+		return $this->getPatches($base, $uptoVersion);
+	}
+	
+	function _register($version, $patchId = null) {
+		if (!isset($this->matrix[$version]))
+			$this->matrix[$version] = array();
+		if ($patchId !== null && array_search($patchId, $this->matrix) === false)
+			$this->matrix[$version][] = $patchId;
+	}
+
+	function _initialize() {
+		$this->_register('3.9.0');
+		$this->_register('3.10.0', 'issue_61');
+	}
+}
+?>

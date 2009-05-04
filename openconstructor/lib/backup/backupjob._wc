@@ -25,6 +25,7 @@
 require_once('zipfile._wc');
 require_once(LIBDIR.'/db/dbsetup._wc');
 require_once(LIBDIR.'/db/sqldumper._wc');
+require_once(LIBDIR.'/backup/patch/patchhistory._wc');
 
 class BackupJob {
 	var $_ftp, $_zip, $_zipName;
@@ -139,9 +140,11 @@ class BackupJob {
 
 	function _saveBackupMeta() {
 		$finished = time();
+		$versions = new PatchHistory();
 		$meta = array(
 			'version' => WC_VERSION,
 			'version.full' => WC_VERSION_FULL,
+			'patches' => implode(',', $versions->getAppliedPatches(WC_VERSION)),
 			'time.started' => $this->_startTime,
 			'time.finished' => $finished,
 			'time.executed' => gmdate('H:i:s', $finished - $this->_startTime),

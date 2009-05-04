@@ -1,0 +1,46 @@
+<?php
+require_once('patch._wc');
+
+class Patcher {
+
+	var $_ftp;
+	var $_db;
+	
+	function Patcher(&$ftp, &$db) {
+		$this->_ftp = & $ftp;
+		$this->_db = & $db;
+	}
+
+	/**
+	 * Applies all patches with specified IDs and returns true on success.
+	 *
+	 * @param array $patchIds
+	 * @return boolean
+	 */
+	function applyAll($patchIds) {
+		$patches = array();
+		if (sizeof($patchIds) > 0)
+			printf('<p>Applying %d patches:</p><ol><li>%s</li></ol>', sizeof($patchIds), implode('</li><li>', $patchIds));
+		foreach ($patchIds as $id)
+			$patches[] = Patch::load($id);
+		foreach ($patches as $p) {
+			if (!$this->_apply($p))
+				return false;
+		}
+		return true;
+	}
+	
+	function _apply(&$patch) {
+		$patch->setFtp($this->_ftp);
+		$patch->setDb($this->_db);
+		echo "<p>Applying patch '{$patch->name}'...<p>";
+		if ($patch->apply()) {
+			echo "<p>Done</p>";
+			return true;
+		}
+		echo "<p>Failed</p>";
+		return false;
+	}
+	
+}
+?>
