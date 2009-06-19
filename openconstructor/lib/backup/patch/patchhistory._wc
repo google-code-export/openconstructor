@@ -41,6 +41,7 @@ class PatchHistory {
 
 	function _initialize() {
 		$this->_register('3.9.0');
+		$this->_register('3.10.0', 'issue_51');
 		$this->_register('3.10.0', 'issue_61');
 	}
 }
