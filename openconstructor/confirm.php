@@ -36,7 +36,7 @@
 <body style="padding:10">
 <br>
 <center>
-	<img src="i/<?=SKIN?>/images/ico/ico_q.gif" align="left"><?=@$_GET['q']?>
+	<img src="i/<?=SKIN?>/ico/ico_q.gif" align="left"><?=@$_GET['q']?>
 	<br><br><br>
 	<input type="button" value="<?=BTN_YES?>" onclick="window.returnValue=true;window.close();" style="width:100">&nbsp;&nbsp;
 	<input type="button" value="<?=BTN_CANCEL?>" onclick="window.close();" style="width:100">

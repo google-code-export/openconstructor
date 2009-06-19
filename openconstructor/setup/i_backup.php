@@ -42,13 +42,16 @@ switch($action) {
 			<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 			<link href="setup.css" type="text/css" rel="stylesheet">
 		</head>
-		<body style="border: none;">
+		<body style="border: none; font-family: monospace;">
 			<b><?=sprintf(H_CREATING_BACKUP_ID, $id)?></b>
 			<br><?=CREATING_BACKUP_BG_I?>
+			<?php
+				flush();
+				$bm->create($id);
+			?>
 		</body>
 		</html>
 		<?php
-		$bm->create($id);
 	break;
 	
 	case 'restore_backup':
@@ -62,13 +65,16 @@ switch($action) {
 			<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 			<link href="setup.css" type="text/css" rel="stylesheet">
 		</head>
-		<body style="border: none;">
+		<body style="border: none; font-family: monospace;">
 			<b><?=sprintf(H_RESTORING_BACKUP_ID, $id)?></b>
 			<br><?=RESTORING_BACKUP_BG_I?> 
+			<?php
+				flush();
+				$bm->restore($id);
+			?>
 		</body>
 		</html>
 		<?php
-		$bm->restore($id);
 	break;
 }
 ?>

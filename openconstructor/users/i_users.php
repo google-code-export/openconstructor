@@ -1,28 +1,28 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- *
+ * 
  * All rights reserved.
- *
+ * 
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- *
+ * 
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- *
+ * 
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- *
+ * 
  * $Id: i_users.php,v 1.7 2007/03/02 10:06:41 sanjar Exp $
  */
 	require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
 	WCS::requireAuthentication();
-
+	
 switch(@$_POST['action'])
 {
 	case 'edit_group':
@@ -42,7 +42,7 @@ switch(@$_POST['action'])
 		$gf->updateGroup($group);
 		header('Location: '.$_SERVER['HTTP_REFERER']);
 	break;
-
+	
 	case 'add_group':
 		require_once(LIBDIR.'/security/groupfactory._wc');
 		$gf = &GroupFactory::getInstance();
@@ -51,7 +51,7 @@ switch(@$_POST['action'])
 		if($group->id)
 			echo '<script>try{window.opener.location.href=window.opener.location.href;}catch(RuntimeException){}window.location.href="editgroup.php?group_id='.$group->id.'";</script>Success';
 	break;
-
+	
 	case 'remove_group':
 		require_once(LIBDIR.'/security/groupfactory._wc');
 		$gf = &GroupFactory::getInstance();
@@ -59,26 +59,26 @@ switch(@$_POST['action'])
 //		header('Location: http://'.$_host.WCHOME.'/users/');
 		die('<meta http-equiv="Refresh" content="0; URL=http://'.$_host.WCHOME.'/users/">');
 	break;
-
+	
 	case 'remove_users':
 		require_once(LIBDIR.'/security/userfactory._wc');
 		UserFactory::removeUser(@$_POST['ids']);
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
 		die('<meta http-equiv="Refresh" content="0; URL='.$_SERVER['HTTP_REFERER'].'">');
 	break;
-
+	
 	case 'enable_users':
 		require_once(LIBDIR.'/security/userfactory._wc');
 		UserFactory::setUserState(@$_POST['ids'], 1);
 		die('<meta http-equiv="Refresh" content="0; URL='.$_SERVER['HTTP_REFERER'].'">');
 	break;
-
+	
 	case 'disable_users':
 		require_once(LIBDIR.'/security/userfactory._wc');
 		UserFactory::setUserState(@$_POST['ids'], 0);
 		die('<meta http-equiv="Refresh" content="0; URL='.$_SERVER['HTTP_REFERER'].'">');
 	break;
-
+	
 	case 'edit_user':
 		require_once(LIBDIR.'/security/userfactory._wc');
 		$user = &User::load(@$_POST['login']);
@@ -102,7 +102,7 @@ switch(@$_POST['action'])
 			header('Location: '.$_SERVER['HTTP_REFERER']);
 		}
 	break;
-
+	
 	case 'add_user':
 		require_once(LIBDIR.'/security/userfactory._wc');
 		$user = new User(@$_POST['login'], @$_POST['name']);
@@ -136,19 +136,7 @@ switch(@$_POST['action'])
 		UserFactory::updateSecrets($user->id, @$_POST['pwd'], @$_POST['secretQ'], @$_POST['secretA']);
 		header('Location: '.$_SERVER['HTTP_REFERER']);
 	break;
-
-	case 'view_detail':
-		foreach((array) @$_COOKIE['vd'] as $key => $val){
-			if(!array_key_exists($key, (array) @$_POST['vdetail']))
-				setcookie('vd['.$key.']', '', time() - 3600, WCHOME.'/users/');
-		}
-		foreach($_POST['vdetail'] as $key => $val)
-			setcookie('vd['.$key.']', $key, 0, WCHOME.'/users/');
-		setcookie('pagesize', $_POST['pagesize'], 0, WCHOME.'/users/');
-		setcookie('vd[_touched]', '_touched', 0, WCHOME.'/users/');
-		header('Location: '.$_SERVER['HTTP_REFERER']);
-	break;
-
+	
 	default:
 	break;
 }

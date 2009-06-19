@@ -42,7 +42,7 @@
 	// Inline editing
 	define('WCI_ALLOWED', 1);
 
-	define('DEFAULT_SKIN', 'newskin');
+	define('DEFAULT_SKIN', 'metallic');
 	define('DEFAULT_LANGUAGE', '%default_language%');
 	define('WC_SYNTAX_ENABLE', 0);
 	define('WC_SYNTAX_DEFAULT', 1);

@@ -94,8 +94,8 @@ class ArrayField extends HybridField {
 	
 	function onUpdateDocument(&$old, &$new) {
 		if($this->isOwn) {
-			$o = explode(',', $old->fields[$this->key]);
-			$n = explode(',', $new->fields[$this->key]);
+			$o = empty($old->fields[$this->key]) ? array() : explode(',', $old->fields[$this->key]);
+			$n = empty($new->fields[$this->key]) ? array() : explode(',', $new->fields[$this->key]);
 			$diff = array_diff($o, $n);
 			if(sizeof($diff) > 0){
 				$ds = $this->getDS();

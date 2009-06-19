@@ -230,7 +230,7 @@ class HybridHL extends WCObject {
 				foreach($arrays as $objId => $v) {
 					if(($obj = &$ctx->getObject((int) $objId)) != null) {
 						$obj->ids = implode(',', $v);
-						if(($sub = &$obj->getDocuments(--$recurse)) != null) {
+						if(($sub = &$obj->getDocuments($recurse - 1)) != null) {
 							$ids = array_keys($sub);
 							foreach($v as $fname => $j)
 								foreach($docIds as $id) {

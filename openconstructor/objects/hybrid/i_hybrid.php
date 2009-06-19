@@ -49,7 +49,6 @@
 			break;
 
 			case 'edit_hybridhl':
-			case 'edit_hybridbar':
 				require_once(LIBDIR.'/hybrid/fields/fieldfactory._wc');
 				$obj->header=@$_POST['header'];
 				$obj->ds_id = (int) $_POST['ds_id'];
