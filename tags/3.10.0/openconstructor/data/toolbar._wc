@@ -1,0 +1,129 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: toolbar._wc,v 1.6 2007/02/27 11:23:18 sanjar Exp $
+ */
+$toolbar=array(
+	CREATE_DOCUMENT => array(
+		'pic'=>'addrecord',
+		'action'=>WCS::decide($ds, 'createdoc') && $nodetype != 'rating'? 'create_record()' : ''
+		),
+	CREATE_ALIAS => array(
+		'pic'=>'addalias',
+		'action'=>WCS::decide($ds, 'createdoc') && array_search($nodetype, array('htmltext','phpsource','file','hybrid','rating')) === false ? 'create_alias()' : ''
+	),
+	'separator',
+	MOVE_DOCUMENTS => array(
+		'pic'=>'moverecord',
+		'action'=>WCS::decide($ds, 'removedoc') && ($nodetype == 'hybrid' ? @$_COOKIE['vf']['alldoc'] == 'disabled' : $nodetype != 'phpsource' && $nodetype != 'rating') ? 'move_docs()' : ''
+	),
+	'separator',
+	PUBLISH_DOCUMENTS => array(
+		'pic'=>'publish',
+		'action'=> array_search($nodetype, array('phpsource', 'file', 'rating')) === false ? 'publish_docs(true)' : ''
+	),
+	UNPUBLISH_DOCUMENTS => array(
+		'pic'=>'unpublish',
+		'action'=> array_search($nodetype, array('phpsource', 'file', 'rating')) === false ? 'publish_docs(false)' : ''
+	),
+	'separator',
+	'{0' => @$_COOKIE['def_bs0'] ? $_COOKIE['def_bs0'] : 'html',
+	CREATE_DS_HTMLTEXT => array(
+		'pic'=>'html',
+		'action'=>System::decide('data.dshtmltext') ? 'wxyopen(wchome+"/data/create_htmltext.php",550,500)' : ''
+	),
+	CREATE_DS_PUBLICATION => array(
+		'pic'=>'publication',
+		'action'=>System::decide('data.dspublication') ? 'wxyopen(wchome+"/data/create_publication.php",550)' : ''
+	),
+	CREATE_DS_EVENT => array(
+		'pic'=>'event',
+		'action'=>System::decide('data.dsevent') ? 'wxyopen(wchome+"/data/create_event.php",550)' : ''
+	),
+	CREATE_DS_GALLERY => array(
+		'pic'=>'picture',
+		'action'=>System::decide('data.dsgallery') ? 'wxyopen(wchome+"/data/create_gallery.php",550)' : ''
+	),
+	CREATE_DS_ARTICLE => array(
+		'pic'=>'article',
+		'action'=>System::decide('data.dsarticle') ? 'wxyopen(wchome+"/data/create_article.php",550)' : ''
+	),
+	CREATE_DS_TEXTPOOL => array(
+		'pic'=>'txt',
+		'action'=>System::decide('data.dstextpool') ? 'wxyopen(wchome+"/data/create_textpool.php",550,500)' : ''
+	),
+	CREATE_DS_GUESTBOOK => array(
+		'pic'=>'book',
+		'action'=>System::decide('data.dsguestbook') ? 'wxyopen(wchome+"/data/create_guestbook.php",550,500)' : ''
+	),
+	CREATE_DS_PHPSOURCE => array(
+		'pic'=>'php',
+		'action'=>System::decide('data.dsphpsource') ? 'wxyopen(wchome+"/data/create_phpsource.php",550,500)' : ''
+	),
+	CREATE_DS_FILE => array(
+		'pic'=>'file',
+		'action'=>System::decide('data.dsfile') ? 'wxyopen(wchome+"/data/create_file.php",550,500)' : ''
+	),
+	CREATE_DS_HYBRID => array(
+		'pic'=>'hybrid',
+		'action'=>System::decide('data.dshybrid') ? 'wxyopen(wchome + "/data/create_hybrid.php" + (nodetype == "hybrid" ? "?in=" + curnode : ""), 550)' :''
+	),
+	CREATE_DS_RATING => array(
+		'pic'=>'rating',
+		'action'=>System::decide('data.dsrating') ? 'wxyopen(wchome + "/data/create_rating.php", 550, 350)' :''
+	),
+	'}',
+	'separator',
+	EDIT_CURRENT_DS => array(
+		'pic'=>'editpage',
+		'action'=>WCS::decide($ds, 'editds') ? 'wxyopen(wchome+"/data/edit_'.$nodetype.'.php?ds_id="+curnode,550,500)' : ''
+	),
+	'separator',
+	EDIT_SECURITY => array(
+		'pic'=>'editsec',
+		'action'=>is_object($ds) ? 'edit_security()' : ''),
+	'separator',
+	REFRESH => array(
+		'pic'=>'reload',
+		'action'=>'window.location.href += ""'
+	),
+	'separator',
+	REMOVE => array(
+		'pic'=>'remove',
+		'action'=>WCS::decide($ds, 'removeds') || WCS::decide($ds, 'removedoc') || WCS::ownerAllowed($ds, 'removedoc') ? 'remove()' : ''
+	),
+);
+$in=false;
+foreach($toolbar as $k=>$v)
+	if(substr($k,0,1)=='{'){
+		$in=$k;
+		$def=$v;
+		$autodef=false;
+	} else if($v=='}'){
+		$def=@$faildef&&@$autodef?$autodef:$def;
+		$toolbar[$in]=$def;
+		$in=false;
+	} else if($in&&is_array($v)) {
+		if($v['pic']==$def&&empty($v['action']))
+			$faildef=true;
+		if(!empty($v['action'])&&!$autodef)
+			$autodef=$v['pic'];
+	}
+?>

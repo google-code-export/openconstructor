@@ -1,0 +1,101 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Оценивание документа. Выводит форму с оценами если пользователь еще не оценил документ.
+ * 
+ * Объект вывода.
+ * 
+ * @author Sanjar Akmedov
+ * 
+ * $Id: ratingrate._wc,v 1.7 2007/02/27 11:23:26 sanjar Exp $
+ */
+
+class RatingRate extends WCObject {
+	var $header;
+	var $doc_id, $idKey;
+	var $no404;
+	
+	function RatingRate() {
+		$this->DSTable = 'dsrating';
+		$this->ds_type = 'rating';
+		$this->obj_type = 'ratingrate';
+		$this->header = '';
+		$this->idKey = 'item';
+		$this->no404 = false;
+		$this->caching = 0;
+		$this->cached_by_WC = false;
+	}
+	
+	function getCacheId() {
+		return null;
+	}
+	
+	function fetchData(&$smarty) {
+		$result = false;
+		$doc = &$this->getDocument();
+		if(!sizeof($doc) && $this->ctx->auth->userId > 0) {
+			if(!$this->no404)
+				$this->ctx->throw404();
+		} else {
+			$smarty->assign('header', $this->header);
+			$smarty->assign_by_ref('doc', $doc);
+			$result = array('header', 'doc');
+		}
+		return $result;
+	}
+	
+	function &getDocument() {
+		if(!is_array($this->document)) {
+			$this->document = array();
+			if($this->ctx->auth->userId > 0) {
+				settype($this->ds_id, 'int');
+				$db = &$this->ctx->_getDB();
+				$res = $db->query(
+					'SELECT h.id, h.header, r.id AS rating_id, r.rating, r.raters, r.date, l.user_id, l.rating AS userRating'.
+					" FROM dshybrid h LEFT JOIN dsrating r ON (r.hdoc = h.id AND r.ds_id = {$this->ds_id}) LEFT JOIN dsratinglog l ON (l.id = r.id AND l.user_id = ".intval($this->ctx->auth->userId).")".
+					" WHERE h.id = ".$this->getDocId()." AND h.published"
+				);
+				if(mysql_num_rows($res) == 1) {
+					$r = mysql_fetch_assoc($res);
+					$this->document['id'] = $r['id'];
+					$this->document['header'] = htmlspecialchars($r['header'], ENT_COMPAT, 'UTF-8');
+					$this->document['ratingId'] = (int) $r['rating_id'];
+					$this->document['rating'] = $r['rating'];
+					$this->document['votes'] = $r['raters'];
+					$this->document['date'] = $r['date'];
+					$this->document['rateable'] = !($r['user_id'] > 0);
+					$this->document['userRating'] = $r['user_id'] > 0 ? intval($r['userRating']) : 0;
+				}
+				mysql_free_result($res);
+			}
+		}
+		return $this->document;
+	}
+	
+	function getDocId() {
+		return intval($this->doc_id > 0 ? $this->doc_id : $this->ctx->getParam($this->idKey)); 
+	}
+	
+	function _inlineEditGetDocId() {
+		$doc = &$this->getDocument();
+		return sizeof($doc) ? $doc['ratingId'] : null;
+	}
+}
+?>

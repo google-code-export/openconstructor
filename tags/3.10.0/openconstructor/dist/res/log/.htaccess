@@ -1,0 +1,8 @@
+ErrorDocument 403 /openconstructor/lib/security/secureaccess.php?require=1
+
+Options +Indexes
+
+<Files ~ ".txt">
+  Order allow,deny
+  Deny from all
+</Files>

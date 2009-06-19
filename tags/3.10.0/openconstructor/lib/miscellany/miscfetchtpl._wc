@@ -1,0 +1,80 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ *
+ * All rights reserved.
+ *
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ *
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ *
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @author Sanjar Akhmedov
+ *
+ * $Id: miscfetchtpl._wc,v 1.3 2007/02/27 11:23:20 sanjar Exp $
+ */
+
+class MiscFetchTpl extends WCObject {
+	var $header;
+	var $cidTpl, $_ccid;
+
+	function MiscFetchTpl() {
+		$this->DSTable = null;
+		$this->ds_type = 'miscellany';
+		$this->obj_type = 'miscfetchtpl';
+		$this->header = '';
+		$this->caching = 0;
+		$this->cached_by_WC = true;
+		$this->_setCidTpl('');
+	}
+
+	function getCacheId() {
+		$cacheId = $this->obj_id.$this->_getCacheId();
+		return $cacheId;
+	}
+
+	function fetchData(&$smarty) {
+		$result = false;
+		$smarty->assign('header', $this->header);
+		$smarty->assign('block', $this->block);
+		$result = array('header', 'block');
+		return $result;
+	}
+
+	function _getCacheId() {
+		if(!isset($this->_cid)) {
+			$this->_cid = '';
+			if($this->_ccid) {
+				$x = &$this->ctx; $p = &$x->page; $t = &$this;
+				$this->_cid = eval("return $this->_ccid;");
+				unset($x, $p, $t);
+				if(strlen($this->_cid))
+					$this->_cid = '|'.$this->_cid;
+			}
+		}
+		return $this->_cid;
+	}
+
+	function _encCID($cid) {
+		return sprintf('%x', crc32($cid));
+	}
+
+	function _setCidTpl($tpl) {
+		$this->cidTpl = $tpl;
+		$this->_ccid = null;
+		if($this->cidTpl) {
+			require_once(LIBDIR.'/func/compilecacheid._wc');
+			$this->_ccid = wcfCompileCacheId($this->cidTpl);
+		}
+	}
+}
+?>

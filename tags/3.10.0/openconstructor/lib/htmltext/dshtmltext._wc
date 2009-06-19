@@ -1,0 +1,251 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: dshtmltext._wc,v 1.21 2007/03/05 12:36:17 sanjar Exp $
+ */
+class DSHTMLText extends WCDataSource {
+	var $stripHTML;
+	var $allowedTags;
+	var $introSize;
+	var $autoPublish;
+	
+	function DSHTMLText() {
+		$this->ds_type='htmltext';
+		$this->DSTable='dshtmltext';
+		$this->stripHTML=true;
+		$this->allowedTags='<a href,target><strong><b><em><i><u><p align><br><ul><ol><li><h1><h2><h3><h4><img src,width,height,border,alt><div><span><nobr><** id,name,class,style,title>';
+		$this->size=0;
+		$this->introSize=600;
+		$this->autoPublish=true;
+		$this->isIndexable=false;
+	}
+	
+	function add($id, $html, $noIndex, $intro = null) {
+		WCS::assert($this, 'createdoc');
+		if($this->isFull()) return false;
+		$db = &WCDB::bo();
+		$res = $db->query(
+			"SELECT s.id, d.id FROM sitetree s LEFT JOIN {$this->DSTable} d ON (s.id = d.id AND d.ds_id = {$this->ds_id}) WHERE s.id = $id"
+		);
+		if(mysql_num_rows($res) > 0) {
+			$pageExists = true;
+			list($tmp, $pid) = mysql_fetch_row($res);
+			$docExists = $pid == $id;
+		}
+		mysql_free_result($res);
+		assert($pageExists && !$docExists);
+		$html = &$this->cleanHTML(&$html);
+		if($intro === null) $intro = $this->create_intro(&$html,$this->introSize);
+		$db->query(
+			'INSERT INTO '.$this->DSTable.
+				' (id, ds_id, published, noindex, html, intro, date, wcsowner)'.
+			'VALUES'.
+				' ('.$id.', '.$this->ds_id.', '.intval($this->autoPublish).', '.($noIndex ? 1 : 0).',"'.addslashes($html).'", "'.addslashes($intro).'", "'.time().'", '.Authentication::getUserId().')'
+		);
+		
+		$this->updateSize();
+		if($this->autoPublish) {
+			if(!$noIndex) {
+				$this->addToIndex($id);
+			}
+			$this->evictDocCache();
+		}
+		return true;
+	}
+	
+	function delete($ids) {
+		WCS::assertValue(WCS::decide($this, 'removedoc') || WCS::ownerAllowed($this->getSDoc(), 'removedoc'), $this, 'removedoc');
+		$this->filterDocs($ids);
+		if(!sizeof($ids))
+			return;
+		$ids = implode(',', $ids);
+		$db = &WCDB::bo();
+		$db->query("DELETE FROM {$this->DSTable} WHERE id IN($ids) AND ds_id = {$this->ds_id}");
+		
+		$this->updateSize();
+		
+		$this->removeFromIndex(&$ids);
+		
+		$this->evictDocCache(&$ids);
+	}
+	
+	function update($id, $html, $noIndex, $intro = null) {
+		$doc = &$this->getDocument($id);
+		assert($doc->id > 0);
+		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
+		$noIndex = $noIndex ? 1 : 0;
+		$html = &$this->cleanHTML(&$html);
+		if($intro === null) $intro=$this->create_intro(&$html,$this->introSize);
+		$db = &WCDB::bo();
+		$db->query(
+			'UPDATE '.$this->DSTable.
+			' SET noindex='.$noIndex.',html="'.addslashes($html).'", intro="'.addslashes($intro).'", date="'.time().'"'.
+			' WHERE id='.$id.' AND ds_id='.$this->ds_id
+		);
+		
+		if($noIndex != $doc->fields['noindex']) {
+			if($noIndex)
+				$this->removeFromIndex($id);
+			else
+				$this->addToIndex($id);
+		} elseif(!$noIndex)
+			$this->updateIndex($id);
+		
+		$this->evictDocCache($id);
+		return true;
+	}
+
+	function &get_record($id) {
+		$db = &WCDB::bo();
+		$res = $db->query(
+			'SELECT *'.
+			' FROM '.$this->DSTable.
+			' WHERE ds_id='.$this->ds_id.' AND id='.$id
+		);
+		$result = mysql_fetch_assoc($res);
+		mysql_free_result($res);
+		return $result;
+	}
+
+	function get_headline($page = 1, $pageSize, $searchclause='') {
+		$result = array(0, array());
+		$page=intval($page);
+		if(--$page<0) $page=0;
+		$db = &WCDB::bo();
+		if(is_array($searchclause))
+			$res = $db->query(
+				'SELECT SQL_CALC_FOUND_ROWS d.id, d.published, s.header as name, d.date'.
+				' FROM '.$this->DSTable.' d, sitetree s, '.$searchclause['from'].
+				' WHERE d.ds_id='.$this->ds_id.' AND d.id = s.id AND d.ds_id = i.ds_id AND '.$searchclause['clause'].
+				' ORDER BY '.$searchclause['order'].' DESC'.
+				' LIMIT '.($page * $pageSize).','.$pageSize
+			);
+		else
+			$res = $db->query(
+				'SELECT SQL_CALC_FOUND_ROWS d.id, d.published, s.header as name, d.date, GROUP_CONCAT(s1.name ORDER BY s1.num SEPARATOR "/") as uri'.
+				' FROM '.$this->DSTable.' d, sitetree s, sitetree s1'.
+				' WHERE d.ds_id='.$this->ds_id.' '.$searchclause.' AND d.id = s.id'.
+					' AND s1.num <= s.num AND (s1.next = 0 OR s1.next > s.num OR s1.num = s.num)'.
+				' GROUP BY s.num'.
+				' ORDER BY uri'.
+				' LIMIT '.($page * $pageSize).','.$pageSize
+			);
+		if(mysql_num_rows($res) > 0) {
+			$r = $db->query('SELECT FOUND_ROWS()');
+			list($result[0]) = mysql_fetch_row($r);
+			mysql_free_result($r);
+			
+			while($r = mysql_fetch_assoc($res)) {
+				$hl[$r['id']] = array(
+					'id' => $r['id'],
+					'published' => $r['published'],
+					'name' => $r['name'],
+					'date' => date('j M Y', $r['date'])
+				);
+				if(isset($r['uri']))
+					$hl[$r['id']]['uri'] = '<u>'.substr($r['uri'], 4).'/</u>';
+			}
+			$result[1] = &$hl;
+		}
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &getEmptyDocument() {
+		$result = & new Document();
+		$result->fields = array('noindex' => null, 'html' => null, 'intro' => null, 'date' => null);
+		return $result;
+	}
+	
+	function &getIndexableDocs($id = null) {
+		$result = array();
+		$cond = ($id != null ? "d.id IN ($id) AND " : '')."d.ds_id = {$this->ds_id}";
+		$db = &WCDB::bo();
+		$res = $db->query("SELECT d.id, s.header, d.html as content, d.intro FROM {$this->DSTable} d, sitetree s WHERE $cond AND published AND noindex = 0 AND d.id = s.id");
+		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++)
+			$result[$i] = mysql_fetch_assoc($res);
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &getCopiableProps() {
+		static $result;
+		if(!is_array($result))
+			$result = array('allowedTags', 'introSize', 'stripHTML', 'autoPublish');
+		return $result;
+	}
+	
+	function pageStateChanged($pageId, $newState, $depth = -1) {
+		$newState = $newState ? 1 : 0;
+		settype($depth, 'int');
+		$db = &WCDB::bo();
+		$res = $db->query(
+			"SELECT t2.id".
+			" FROM sitetree t1, sitetree t2, sitepages p".
+			" WHERE t1.id = {$pageId} AND t2.num >= t1.num AND (t1.next = 0 OR t2.num < t1.next)".
+			($depth != -1 ? " AND t2.level <= t1.level + $depth" : '').
+			"  AND t2.id = p.id AND p.published = {$newState}"
+		);
+		$ids = array();
+		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++)
+			list($ids[]) = mysql_fetch_row($res);
+		mysql_free_result($res);
+		if(sizeof($ids) > 0) {
+			$ids = implode(',', $ids);
+			$res = $db->query("SELECT ds_id, GROUP_CONCAT(id SEPARATOR ',') FROM dshtmltext WHERE id IN ($ids) GROUP BY ds_id");
+			if(($l = mysql_num_rows($res)) > 0) {
+				require_once(LIBDIR.'/dsmanager._wc');
+				WCS::runAs(WCS_ROOT_ID);
+				for($i = 0; $i < $l; $i++) {
+					list($ds_id, $ids) = mysql_fetch_row($res);
+					if($ds = &DSManager::load($ds_id)) {
+						if($newState)
+							$ds->publish($ids);
+						else
+							$ds->unpublish($ids);
+					}
+				}
+				WCS::stopRunAs();
+			}
+			mysql_free_result($res);
+		}
+	}
+	
+	function pageRemoved($pageId) {
+		$db = &WCDB::bo();
+		$res = $db->query(
+			"SELECT d.ds_id, GROUP_CONCAT(d.id SEPARATOR ',') FROM dshtmltext d LEFT JOIN sitepages p ON(d.id = p.id) WHERE p.id IS NULL GROUP BY d.ds_id"
+		);
+		if(($l = mysql_num_rows($res)) > 0) {
+			require_once(LIBDIR.'/dsmanager._wc');
+			WCS::runAs(WCS_ROOT_ID);
+			for($i = 0; $i < $l; $i++) {
+				list($ds_id, $ids) = mysql_fetch_row($res);
+				if($ds = &DSManager::load($ds_id))
+					$ds->delete($ids);
+			}
+			WCS::stopRunAs();
+		}
+		mysql_free_result($res);
+	}
+}
+?>

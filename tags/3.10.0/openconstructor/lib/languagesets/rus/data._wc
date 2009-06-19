@@ -1,0 +1,223 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: data._wc,v 1.12 2007/02/27 11:23:19 sanjar Exp $
+ */
+	error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
+	
+	//----------------------------
+	//Диалоговые окна в данных
+	//----------------------------
+	
+	//Создание раздела данных
+	define('DS_GENERAL_PROPS','Общие');
+	define('DS_NAME','Название раздела');
+	define('DS_DESCRIPTION','Описание раздела');
+	define('BTN_CREATE_DS','Создать');
+	define('BTN_SAVE_CHANGES_DS','Сохранить');
+	@define('BTN_CANCEL','Отмена');
+	
+	define('CREATE_DS_FAILED_W','Произошла ошибка. Раздел небыл создан.');
+	define('SAVE_DS_FAILED_W','Произошла ошибка. Раздел небыл сохранен.');
+	define('SAVE_DS_SUCCESS_I','Раздел был сохранен успешно.');
+	
+	define('DS_ENABLE_EMAIL_ENCODING','Кодировать email адреса');
+	
+	//HTML код
+	@define('CREATE_DS_HTMLTEXT','Создание раздела HTML кода');
+	define('EDIT_DS_HTMLTEXT','Редактирование раздела HTML кода');
+	define('DS_PROPS','Свойства');
+	define('DS_INTROSIZE','Размер введения');
+	define('DS_CHARS','символов');
+	define('DS_SIZE','Размер раздела');
+	define('DS_RECORDS','документов');
+	define('DS_ALLOW_AUTOPUBLISHING','Разрешить автопубликацию');
+	define('DS_CLEAN_HTML','Фильтрация');
+	define('DS_ENABLE_CLEAN_HTML','Включить фильтрацию');
+	define('DS_ALLOWED_TAGS','Разрешить только');
+	
+	//Публикации
+	@define('CREATE_DS_PUBLICATION','Создание раздела публикаций');
+	define('EDIT_DS_PUBLICATION','Редактирование раздела публикаций');
+	define('DS_RECORD_INTRO','Интро');
+	define('DS_GRAPH_PROPS','Графика');
+	define('DS_GRAPH_BOUNDS','Ограничения');
+	define('DS_GRAPH_MIN_RECT','Малый прямоугольник');
+	define('DS_GRAPH_WIDTH','Ширина');
+	define('DS_GRAPH_HEIGHT','Высота');
+	define('DS_GRAPH_MAX_RECT','Большой прямоугольник');
+	define('DS_GRAPH_IMAGES','Иллюстрация');
+	define('DS_GRAPH_IMAGEMAIN','Большая картинка');
+	define('DS_GRAPH_IMAGEINTRO','Интро картинка');
+	define('DS_GRAPH_IMAGEINTRO_SIZE','Размер');
+	define('DS_GRAPH_PERCENT_10_100','% от ограничений(10%-100%)');
+	define('DS_ATTACHED_GALLERY','Галерея');
+	define('DS_AUTO_ATTACH_GALLERY','Прикреплять галерею');
+	
+	//Календарь событий
+	@define('CREATE_DS_EVENT','Создание раздела событий');
+	define('EDIT_DS_EVENT','Редактирование раздела событий');
+	define('DS_EVENTS_YEAR','Год');
+	
+	//Фото галерея
+	@define('CREATE_DS_GALLERY','Создание фотогалереи');
+	define('EDIT_DS_GALLERY','Редактирование фотогалереи');
+	
+	//Статьи
+	@define('CREATE_DS_ARTICLE','Создание раздела статей');
+	define('EDIT_DS_ARTICLE','Редактирование раздела статей');
+	
+	//Пул текстов
+	@define('CREATE_DS_TEXTPOOL','Создание пула текстов');
+	define('EDIT_DS_TEXTPOOL','Редактирование пула текстов');
+	
+	//Гостевая книга
+	@define('CREATE_DS_GUESTBOOK','Создание гостевой книги');
+	define('EDIT_DS_GUESTBOOK','Редактирование гостевой книги');
+	
+	//PHP код
+	@define('CREATE_DS_PHPSOURCE','Создание раздела PHP кодов');
+	define('EDIT_DS_PHPSOURCE','Редактирование раздела PHP кодов');
+	
+	//Файлы
+	@define('CREATE_DS_FILE','Создание раздела файлов');
+	define('EDIT_DS_FILE','Редактирование раздела файлов');
+	define('DS_FOLDER_NAME','Название папки');
+	define('DS_TT_FOLDER_NAME','Tooltip');
+	define('DS_ALLOWED_FILETYPES','Разрешенные типы файлов');
+	define('DS_TT_ALLOWED_FILETYPES','Список разрешенных типов файлов разделенных запятыми');
+	define('DS_AUTONAME_FILES','Автоматически давать имена при создании файлов');
+	define('BTN_CORRECT_FOLDER_NAME','Откорректировать');
+	define('DS_TT_CORRECT_FOLDER_NAME','Произвести транслитерацию и убрать неразрешенные символы');
+	define('DS_SECURITY', 'Безопасность');
+	define('DS_ALLOWED_GROUPS', 'Группы имеющие доступ');
+	
+	define('FILE_HAVE_NOT_BEEN_UPLOADED_W','Файл не был закачен');
+	define('DISALLOWED_FILETYPE_W','Неразрешенный тип файла');
+	define('INCORRECT_FILENAME_I','Имя файла содержит недопустимые символы');
+	define('FILE_WAS_RENAMED_TO_I','переименован');
+	define('FILE_EXISTS_I','Файл с указанным именем уже существует');
+	define('INCORRECT_FOLDERNAME_I','Имя папки содержит недопустимые символы');
+	define('FOLDER_EXISTS_I','Папка с указанным именем уже существует');
+	
+	//Гибридные данные
+	@define('CREATE_DS_HYBRID','Создание гибридного раздела данных');
+	define('EDIT_DS_HYBRID','Редактирование гибридного раздела данных');
+	define('DS_KEY','Идентификатор');
+	define('DS_PARENT','Наследовать раздел');
+	define('DS_HYBRID_FIELDS','Поля');
+	define('BTN_ADD_FIELD','Добавить поле');
+	define('BTN_SAVE_FIELD','Сохранить');
+	define('BTN_REMOVE_FIELDS','Удалить поля');
+	define('REMOVE_SELECTED_FIELDS_Q','Удалить выделенные поля?');
+	define('DS_DOC_EDIT_TPL','Шаблон редактора');
+	define('H_ADD_FIELD','Добавление поля');
+	define('H_EDIT_FIELD','Редактирование поля');
+	define('H_DSH_FIELD_KEY','ID поля');
+	define('H_DSH_FIELD_NAME','Имя поля');
+	define('H_DSH_FIELD_TYPE','Тип');
+	define('H_DSH_FIELD_ISREQUIRED','Обязательное поле');
+
+	define('H_DSH_FIELD_DEFAULT','По умолчанию');
+	define('H_DSH_FIELD_BOUNDS','Ограничения');
+	define('H_DSH_FIELD_FROM','От');
+	define('H_DSH_FIELD_TO','До');
+	define('H_DSH_FIELD_LENGTH','Длина');
+	define('H_DSH_FIELD_ALLOWED_TAGS','Резрешить теэги');
+	define('H_DSH_FIELD_VALIDATOR','Валидатор (PCRE)');
+	define('H_DSH_FIELD_FILETYPES','Типы файлов');
+	define('H_DSH_FIELD_MAX_SIZE','Максимальный размер файла');
+	define('H_DSH_FIELD_IMG_BOUNDS','Ограничения графических файлов');
+	
+	define('H_DSH_FIELD_DOCTYPE','Тип документа');
+	define('H_DSH_FIELD_DSTYPE','Тип раздела');
+	define('H_DSH_FIELD_CHOOSEFROM','Выбирать из / Образец');
+	define('H_DSH_FIELD_ONETOONE','Связывать по схеме 1 -> 1');
+	define('H_DSH_FIELD_ONETOMANY','Связывать по схеме 1 -> *');
+	
+	define('H_DSH_FIELD_IS_ARRAY','Может принимать более одного значения');
+	
+	define('H_DSH_PRIMITIVE_FIELD','Примитивный тип');
+	define('H_DSH_FILE_FIELD','Файл');
+	define('H_DSH_DATASOURCE_FIELD','Раздел данных');
+	define('H_DSH_DOCUMENT_FIELD','Документ');
+	define('H_DSH_ARRAY_FIELD','Массив документов');
+	define('H_DSH_WCTREE_FIELD','Дерево');
+	define('H_DSH_WCENUM_FIELD','Перечисление (enum)');
+	define('H_DSH_RATING_FIELD','Рейтинг');
+	define('H_DSH_WCENUM','Перечисление');
+	define('H_DSH_FIELD_PROPS','Свойства типа');
+	
+	define('H_MANAGE_ENUMS', 'Управление перечислениями');
+	define('BTN_CREATE_ENUM', 'Создать перечисление');
+	define('BTN_CREATE_ENUMVALUE', 'Создать значение');
+	define('BTN_EDIT_ENUM', 'Редактировать');
+	define('BTN_REMOVE', 'Удалить');
+	@define('BTN_CREATE', 'Создать');
+	@define('BTN_SAVE', 'Сохранить');
+	
+	define('CREATE_ENUM', 'Создание перечисления');
+	define('CREATE_ENUMVALUE', 'Создание значения');
+	define('EDIT_ENUM', 'Редактирование перечисления');
+	define('H_ENUM_PROPERTIES', 'Свойства');
+	define('ENUM_HEADER', 'Заголовок');
+	define('EDIT_ENUMVALUE', 'Редактирование значения перечисления');
+	define('H_ENUMVALUE_PROPERTIES', 'Свойства');
+	define('ENUMVALUE_HEADER', 'Заголовок');
+	define('ENUMVALUE_KEY', 'Значение');
+	define('REMOVE_ENUM_Q', 'Удалить перечисление?');
+	define('SURE_REMOVE_ENUM_Q', 'Вы действительно хотите удалить перечисление?');
+	define('REMOVE_SELECTED_ENUMVALUES_Q', 'Удалить выделенные значения?');
+	@define('SELECT_ALL', 'Выделить все');
+	
+	//Рейтинг
+	@define('CREATE_DS_RATING','Создание журнала оценок');
+	define('EDIT_DS_RATING','Редактирование журнала оценок');
+	define('DS_MIN_RATING','Минимальный рейтинг');
+	define('DS_MAX_RATING','Максимальный рейтинг');
+	define('DS_FAKE_RATERS_GROUP','Группа накрутчиков');
+	
+	//Создание алиасов
+	define('CREATE_ALIASES','Создание алиасов');
+	@define('SEARCH_FOR_KEYWORD','Введите ключевое слово');
+	@define('FIND_NOW','Найти');
+	define('BTN_CREATE_ALIASES','Создать');
+	@define('H_NO_RESULTS_FOR_KEYWORD','Ничего не найдено по ключевому слову');
+	define('BTN_SELECT_ALL','Выделить все');
+	define('H_HEADER','Заголовок');
+	define('H_DATE','Дата');
+	define('H_DS_NAME','Раздел');
+	
+	//Перемещение документов
+	@define('MOVE_DOCUMENTS','Переместить документы');
+	define('PROPS_DATASOURCES','Разделы');
+	define('CURRENT_DS','Текущий раздел');
+	define('DESTINATION_DS','Целевой раздел');
+	define('BTN_MOVE_DOCUMENTS','Переместить');
+	
+	// Search
+	@define('DS_SEARCH', 'Поиск');
+	define('IS_INDEXABLE','Индексировать?');
+	define('H_INDEX_PROPS', 'Свойства индексирования');
+	define('INDEXED_DOC_PATTERN', 'Шаблон индексируемого документа');
+	define('INDEX_INTRO_FIELD', 'Интро документа');
+	
+	error_reporting($_oldLevel);
+?>

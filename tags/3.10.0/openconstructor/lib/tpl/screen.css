@@ -1,0 +1,433 @@
+/* Use of Class Names
+
+block - Objects main container element, Block Level Element.
+head - Objects header element, Main Header Element.
+blockcont - Main content of the Object, Content of block element.
+pubimg - Intro Image Element of Record, HLIntro Objects.
+mainimg - Main Image Element of Record, MianBody Objects.
+pubname - Header Element of the Record, HL, HLIntro Objects.
+date - Date Element of the Object, Record.
+place - Place Element of The Event Objects
+intro - Intro Element of The Object, Record.
+more - Read More link element.
+pager - Pager Objects.
+searchbar - Block element of the searchbar.
+searchtitle - Header of the result item of the SearchDSS Object.
+searchlink - Link of the result item of the SearchDSS Object.
+searchpager - SearchDSSPager Objects block element.
+pagertab - Pages of the SearchDSSPager Object.
+curtab - Current Page of the SearchDSSPager Object.
+calendar - Event Calendar Objects TABLE element.
+weeks - Event Calendar Objects TR element, list of week names.
+calbreak - Breaker Element of Event Calendar Object.
+calbody - Line Element With Cell Elements of Event Calendar Object.
+today - Highliting current day of the month.
+before - Highliting gone days of the month.
+after - Highliting left days of the month.
+
+*/
+
+
+HTML{height:100%;width:100%;}
+BODY {
+	font-family: Arial, sans-serif;
+	margin:0px;
+	padding:0px;
+	font-size:0.8em;
+	background:#FFF;
+	height:100%;
+}
+A {
+	text-decoration: underline;
+	color: #0066cc;
+}
+A:hover, A:hover.more {
+	text-decoration: none;
+	color: black;
+}
+P {
+	margin:0px;
+	padding:10px 0px;
+}
+H1 {
+	font-size:200%;
+	padding:0px;
+	margin:0px;
+	font-weight:normal;
+}
+H2 {
+	font-size:165%;
+	padding:0px;
+	margin:0px;
+	font-weight:normal;
+}
+H3 {
+	font-size:145%;
+	padding:0px;
+	margin:0px;
+	font-weight:normal;
+}
+H4 {
+	font-size: 125%;
+	font-weight:normal;
+	padding:0px;
+	margin:0px;
+}
+H5 {
+	font-size:100%;
+	font-weight: normal;
+	padding:0px;
+	margin:0px;
+}
+H6 {
+	font-size: 85%;
+	font-weight: normal;
+	padding:0px;
+	margin:0px;
+}
+IMG {
+	padding:0px;
+	margin:0px;
+	border:none;
+}
+SPAN {
+	padding:0px;
+	margin:0px;
+}
+TABLE {
+	font-size:100%;
+	padding:0px;
+	margin:0px;
+}
+FORM {
+	margin: 0px;
+	padding: 0px;
+}
+IMG.pubimg {
+	margin:0px 10px 10px 0px;
+}
+
+IMG.mainimg {
+	margin: 0px 0px 10px 0px;
+}
+
+.error {color: red;}
+.arrow {
+	display: list-item;
+	list-style-type: disc;
+	list-style-position: inside;
+	margin: 0px 0px 10px 0px;
+}
+.text85 {
+	font-size: 85%;
+}
+
+UL LI {
+	padding: 5px 0px 5px 0px;
+	margin: 0px;
+}
+
+/* Templates */
+DIV#main {height: 99%;}
+
+DIV#content {width: 771px;}
+
+DIV#cap {height: 60px;}
+
+#tblmain {width: 771px;}
+
+TABLE#tblbody {width: 771px;}
+
+DIV#main A.curlink {text-decoration: underline;}
+
+/* Templates */
+TD.left, TD.right {
+	padding: 10px 10px 0px 10px;
+	vertical-align: top;
+}
+
+TD.left {width: 200px;}
+
+TD.right {width: 530px;}
+
+TD.td30 {
+	padding: 0px 10px 10px 10px;
+	vertical-align: top;
+	width: 30%;
+}
+TD.td33 {
+	padding: 0px 10px 10px 10px;
+	vertical-align: top;
+	width: 33%;
+}
+TD.td50 {
+	padding: 0px 10px 10px 10px;
+	vertical-align: top;
+	width: 50%;
+}
+TD.td70 {
+	padding: 0px 10px 10px 10px;
+	vertical-align: top;
+	width: 70%;
+}
+
+DIV#footer {
+	border-top: gray 1px solid;
+	margin: 10px 10px 0px 10px;
+	font-family: Arial, sans-serif;
+	font-size: 11px;
+}
+
+TD.main245 {
+	width: 245px;
+	vertical-align: top;
+	padding: 10px;
+}
+
+TD.side220 {
+	width: 220px;
+	vertical-align: top;
+	padding: 10px;
+}
+
+TD.main {
+	vertical-align: top;
+	padding: 10px;
+}
+
+TD.side160 {
+	width: 160px;
+	vertical-align: top;
+	padding: 10px;
+	font-size: 11px;
+}
+
+TD.side130 {
+	width: 130px;
+	vertical-align: top;
+	padding: 10px;
+	font-size: 11px;
+}
+
+TD.side130 A {
+	text-decoration: none;
+	color: black;
+}
+
+TD.side130 .block A {
+	text-decoration: underline;
+	color: #0066cc;
+}
+
+TD.side130 .block A:hover {
+	text-decoration: none;
+	color: black;
+}
+
+/* Content, Objects, Lists, Headlines and etc. */
+H1.head {padding: 0px 0px 15px 0px;}
+
+H2.head {padding: 0px 0px 10px 0px;}
+
+.blockcont H2.head {padding: 0px 0px 10px 0px;}
+
+TD.side220 .blockcont, TD.side160 .blockcont, TD.side130 .blockcont {
+	border: #CCCCCC 1px solid;
+	background: #f2f2f2;
+	padding: 10px 10px 10px 10px;
+	margin: 0px 0px 10px 0px;
+}
+
+DIV.breaker {
+	padding: 0px 0px 20px 0px;
+}
+
+DIV.sidebar {
+	padding: 5px;
+	border: #cccccc 1px solid;
+	background: #f2f2f2;
+	border-top: #f2f2f2;
+}
+
+/* Content of documents */
+.block {
+	padding: 0px;
+	margin: 0px;
+	clear: both;
+}
+
+DIV.block {
+	padding: 0px 0px 10px 0px;
+}
+
+DIV.blockcont {}
+
+DIV.padder {}
+
+/* Headers */
+H3.pubname {
+	display: inline;
+}
+
+H4.pubname {
+	padding: 0px 0px 5px 0px;
+	font-weight: bold;
+}
+
+H5.pubname {
+	font-weight: bold;
+}
+
+B.pubname {}
+
+SPAN.pubname A, SPAN.pubname {}
+
+DIV#main A.blue {
+	text-decoration: underline;
+	color: #0066cc;
+}
+
+DIV#main A:hover .blue {
+	text-decoration: none;
+	color: black;
+}
+
+/* Date */
+NOBR.date {
+	padding: 10px 0px 0px 0px;
+	color: #1177AF;
+	display: block;
+	font-size: 85%;
+}
+/* Place */
+DIV.place {
+	padding: 0px;
+	word-wrap: break-word;
+}
+/* Intro */
+DIV.intro {
+	padding: 0px;
+	word-wrap: break-word;
+}
+/* Breaker Line */
+HR.line {
+	width: 100%;
+	clear: both;
+}
+
+/* Doubling menu Styles Section */
+DIV#dmenu {
+	border-top: gray 1px solid;
+	font-size: 11px;
+	font-family: Arial, sans-serif;
+	margin: 10px 10px 0px 10px;
+	padding: 5px 10px;
+}
+DIV#dmenu A {color: black;}
+.blue004a84 {color: black;}
+/* End Of Doubling Menu Styles Section */
+/* Forms of The Site Styles Section */
+FORM TABLE TD {vertical-align: top;}
+/* Sitemap of The Site Styles Section */
+TABLE.tblmap {width: 100%;}
+
+TABLE.tblmap TD {
+	vertical-align: top;
+	width: 25%;
+	padding: 0px 10px 20px 0px;
+}
+/* End Of Sitemap of The Site Styles Section */
+/* SearchDSS Objects Styles Section */
+DIV.searchbar {
+	padding: 10px 10px 10px 10px;
+	background: #F2F2F2;
+	clear: both;
+}
+.searchlink {padding: 0px 0px 0px 0px;}
+.searchlink A {
+	color: #008000;
+	text-decoration: none;
+}
+H2.searchtitle {
+	font-size: 100%;
+	padding: 15px 0px 5px 0px;
+}
+H2.searchtitle A {font-weight: bold;}
+/* End Of SearchDSS Objects Styles Section */
+/* SearchDSS Pager Objects Styles Section*/
+.searchpager, .boldh2 {
+	font-size: 165%;
+	font-family: Tahoma;
+}
+DIV.pagertab {
+	float: left;
+	padding: 2px 8px;
+	font-size: 85%;
+	margin: 10px 0px 20px 0px;
+}
+DIV.curtab DIV.pagertab {
+	background: #F8C300;
+	padding: 2px 8px;
+}
+/* End Of SearchDSS Pager Objects Styles Section */
+/* Pager Objects Styles Section */
+DIV.pager {text-align: center;}
+DIV.pager SPAN {padding: 5px;}
+DIV.pager SPAN.selected {font-weight: bold;}
+/* End Of Pager Obects Styles Section */
+/* Event Calendar Obects Styles Section */
+TABLE.calendar {
+	width: 100%;
+	border-top: #cecece 1px solid;
+	border-bottom: #cecece 1px solid;
+}
+
+TABLE.calendar TR.weeks {background: #f2f2f2;}
+TABLE.calendar TR.weeks TD {
+	width: 14%;
+	padding: 0px 5px 0px 0px;
+}
+TABLE.calendar TR.calbody TD {
+	vertical-align: top;
+	padding: 0px 5px 0px 0px;
+}
+TABLE.calendar TR.calbody TD H5 {}
+H5.today {font-weight: bold;}
+DIV.after {
+	height: 70px;
+	background: #f2f2f2;
+}
+DIV.before {
+	height: 70px;
+	background: #cecece;
+}
+DIV.today {
+	height: 70px;
+	border: black 1px solid;
+	background: #cecece;
+}
+TR.calbreak TD {
+	background: white;
+	padding: 0px;
+	height: 0px;
+}
+/* End of Event Calendar Objects Styles Section */
+/* Event Calendar Pager, PHP Code Section */
+TABLE.years SPAN {padding: 0px 5px 0px 5px;}
+TABLE.years SPAN.cur {background: #FFCC00;}
+DIV.calpager {
+	float: right;
+	padding: 10px 0px 40px 0px;
+}
+TABLE.years {}
+TABLE.years TD {
+	padding: 0px 0px 0px 10px;
+	vertical-align: top;
+}
+DIV.monthes DIV {
+	padding: 0px 0px 5px 0px;
+	font-size: 11px;
+}
+DIV.monthes SPAN {padding: 0px 5px 0px 5px;}
+DIV.monthes SPAN.cur {background: #ffffff;}
+/* End of Event Calendar Pager Styles Section */

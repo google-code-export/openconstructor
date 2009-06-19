@@ -1,0 +1,94 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: hybridrecord._wc,v 1.7 2007/02/27 11:23:19 sanjar Exp $
+ */
+require_once('fields/fieldfactory._wc');
+
+class HybridRecord {
+	var $ds, $ds_id;
+	var $fields;
+	var $struct;
+	
+	function HybridRecord(&$ds) {
+		$this->ds = &$ds;
+		$this->ds_id = (int) $ds->ds_id;
+		$this->fields = array();
+		$this->load();
+	}
+	
+	function load() {
+		$this->fields = array();
+		$this->struct['primitive'] = $this->struct['document'] = $this->struct['array'] = $this->struct['datasource'] = $this->struct['enum'] = $this->struct['tree'] = $this->struct['file'] = $this->struct['rating'] = array(); 
+		$db = &WCDB::bo();
+		$res = $db->query(
+			"SELECT id".
+			" FROM dshfields, hybriddatasources".
+			" WHERE hybriddatasources.ds_id = $this->ds_id AND FIND_IN_SET(dshfields.ds_id, hybriddatasources.path) > 0"
+		);
+		if(mysql_num_rows($res) > 0) {
+			$ids = array();
+			while($r = mysql_fetch_assoc($res))
+				$ids[] = (int) $r['id'];
+			$fields = &FieldFactory::getFields($ids);
+			for($i = 0; $i < sizeof($fields); $i++) {
+				$this->fields[$fields[$i]->key] = &$fields[$i];
+				$this->struct[$fields[$i]->family][$fields[$i]->type][] = $fields[$i]->key;
+			}
+		}
+		mysql_free_result($res);
+	}
+	
+	function destroy() {
+		FieldFactory::removeFields($this, array_keys($this->fields));
+	}
+	
+	function initializeDocument(&$doc) {
+		foreach($this->fields as $field)
+			$field->onCreateDocument($doc);
+	}
+	
+	function documentChanged(&$old, &$new) {
+		foreach($this->fields as $field)
+			$field->onUpdateDocument($old, $new);
+	}
+	
+	function destroyDocument(&$doc) {
+		if($doc->ds_id != $this->ds_id)
+			return false;
+		foreach($this->fields as $field)
+			$field->onRemoveDocument($doc);
+		return true;
+	}
+	
+	function &getSQL(&$doc) {
+		$queries = array();
+		foreach($this->fields as $field)
+			if($part = $field->getSQL($doc))
+				$queries[$field->ds_table][] = $part;
+		$updates = array(sprintf("UPDATE dshybrid SET published='%d', header='%s', date='%s' WHERE id=$doc->id", $doc->isPublished ? 1 : 0, addslashes($doc->header), time()));
+		foreach($queries as $table=>$update)
+			$updates[] = "UPDATE $table SET ".implode(',',$update)." WHERE id=$doc->id";
+		return $updates;
+	}
+}
+?>

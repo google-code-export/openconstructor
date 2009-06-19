@@ -1,0 +1,98 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: users._wc,v 1.6 2007/02/27 11:23:19 sanjar Exp $
+ */
+	error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
+	
+	//----------------------------
+	//Диалоговые окна создания и редакторования пользователей
+	//----------------------------
+	
+	
+	//Создание пользователя
+	@define('CREATE_USER','Создание нового пользователя');
+	define('USER','Пользователь');
+	@define('USR_LOGIN','Логин');
+	define('USR_NAME','Имя пользователя');
+	define('USR_ADDITIONAL_INFO','Дополнительная информация');
+	define('USR_EMAIL','E-mail');
+	define('USR_SET_PASSWORD','Пароль');
+	@define('USR_PASSWORD','Пароль');
+	define('USR_CONFIRM_PASSWORD','Подтвердите пароль');
+	define('H_PASSWORDS_DOESNT_MATCH','Пароли несовпадают');
+	@define('BTN_CREATE','Создать');
+	@define('BTN_SAVE','Сохранить');
+	@define('BTN_CANCEL','Отмена');
+	
+	//Редакторование пользователя
+	define('EDIT_USER','Редактирование пользователя');
+	define('USR_IS_FREEZED','Пользователь заморожен');
+	define('USR_SET_NEW_PASSWORD','Новый пароль');
+	define('USR_CHANGE_PASSWORD','Изменить пароль');
+	define('USR_NEW_PASSWORD','Новый пароль');
+	define('USR_CONFIRM_NEW_PASSWORD','Подтвердите новый пароль');
+	define('USR_SECRETS','Секретный вопрос');
+	define('USR_SECRET_QUESTION','Ваш вопрос');
+	define('USR_SECRET_Q_NOTSET','Не задан');
+	define('BTN_USR_SET_SECRETS','Задать');
+	define('BTN_USR_CHANGE_SECRETS','Редактировать');
+	define('USR_PROPS','Свойства');
+	define('USR_MEMBERSHIP','Членство');
+	define('USR_MAIN_GROUP','Главная группа');
+	define('USR_EXPIRES','Действителен до');
+	define('USR_PROFILE','Профиль');
+	define('USR_EDIT_PROFILE','Редактировать профиль пользователя');
+	define('USR_WC_LANGUAGE','Язык интерфейса');
+	define('USR_WC_RUSSIAN','Русский');
+	define('USR_WC_ENGLISH','Английский');
+	define('USR_WC_SKIN','Скин интерфейса');
+	define('USR_WC_SKIN_METALLIC','Металлик');
+	define('USR_WC_SKIN_CLASSIC','Классик');
+	
+	//Редакторование секретов пользователя
+	define('EDIT_USER_SECRETS','Редактирование секретного вопроса');
+	define('USR_NEW_SECRET_QUESTION','Новый вопрос');
+	define('USR_SECRET_ANSWER','Ответ');
+	
+	//Создание группы пользователей
+	@define('CREATE_USERGROUP','Создание новой группы пользователей');
+	define('USR_NEW_USERGROUP','Новая группа');
+	define('USR_USERGROUP_KEY','Ключ');
+	define('USR_USERGROUP_NAME','Имя группы');
+	
+	//Редакторование группы пользователей
+	@define('EDIT_USERGROUP','Редактирование группы пользователей');
+	define('USR_USERGROUP','Группа');
+	define('USR_PROFILES', 'Профили пользователей');
+	define('USR_MASK', 'Права пользователей');
+	define('USR_MASK_PATTERN', 'Полномочия создаваемых пользователей');
+	define('USR_PROFILES_DS', 'Раздел профилей');
+	define('USR_AUTHS','Полномочия');
+	
+	// Добавление пользователей в группу
+	define('H_SELECT_USERS', 'Выбор пользователей');
+	define('H_NO_USERS_FOR_KEYWORD', 'Ничего не найдено по ключевому слову');
+	define('H_ENTER_USR_KEYWORD', 'Введите ключевое слово');
+	define('BTN_SEARCH', 'Искать');
+	define('BTN_SELECT', 'Выбрать');
+	
+	error_reporting($_oldLevel);
+?>

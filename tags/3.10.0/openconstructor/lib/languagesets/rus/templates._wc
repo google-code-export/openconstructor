@@ -1,0 +1,59 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: templates._wc,v 1.11 2007/02/27 11:23:19 sanjar Exp $
+ */
+	error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
+	
+	//----------------------------
+	//Шаблоны
+	//----------------------------
+	
+	
+	//Редактор
+	@define('CREATE_TEMPLATE','Создание шаблона');
+	define('EDIT_TEMPLATE','Редактирование шаблона');
+	define('VIEW_TEMPLATE','Просмотр шаблона');
+	
+	//Кнопки
+	define('BTN_NEW_TEMPLATE','Новый шаблон');
+	@define('BTN_SAVE','Сохранить');
+	@define('BTN_CUT','Вырезать');
+	@define('BTN_COPY','Копировать');
+	@define('BTN_PASTE','Вставить');
+	@define('BTN_CLOSE','Закрыть');
+	define('BTN_SHOW_HIDE_PAGES','Показать/скрыть панель');
+	define('BTN_CLEAR_SMARTY_TPL_CACHE','Сбросить кэш');
+	define('BTN_CLEAR_SMARTY_TPL_COMPILED','Перекомпилировать');
+	define('BTN_LOAD_DEFAULT','Шаблон по умолчанию');
+	
+	define('H_TPL_NAME','Название шаблона');
+	define('H_TPL_TYPE','Тип шаблона');
+	define('BTN_SHOW_ERRORS','Показать ошибки');
+	define('BTN_HIDE_ERRORS','Скрыть ошибки');
+	define('H_BLOCKS','Блоки');
+	define('H_MOCK_UP','Макет');
+	define('CACHE_HB_CLEARED_I','Кеш сброшен успешно.');
+	define('TPL_HB_RECOMPILED_I','Шаблон перекомпилирован успешно.');
+	define('H_QUICK_HELP','Быстрая помощь');
+	define('H_SMARTY_VARS','Переменные Smarty');
+	
+	error_reporting($_oldLevel);
+?>

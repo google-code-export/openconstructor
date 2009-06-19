@@ -1,0 +1,547 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ *
+ * All rights reserved.
+ *
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ *
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ *
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * This is base class for datasources. Every ds* class inherits
+ * from  WCDataSource
+ *
+ * @author Sanjar Akhmedov
+ *
+ * Contributer[s]: Anton "simanyay" Kovalyov, Akhmedov Rustam
+ */
+require_once('security/resource._wc');
+require_once('document._wc');
+
+class WCDataSource {
+	var $ds_id;
+	var $ds_type;
+	var $name;
+	var $description;
+	var $DSTable; // Datasource table in the database (e.g. dspublication)
+	var $smartycache;
+	var $ftp;
+	var $encodeemail;
+	var $docs;
+	var $size;
+	var $isIndexable;
+	var $isInternal;
+	var $lock;
+	var $sRes, $docAuths;
+
+	function create($name, $description, $internal=0) {
+		System::assert('data.ds'.$this->ds_type);
+		$this->name = $name;
+		$this->description = $description;
+		$auth = &Authentication::getOriginal();
+		$this->loadAuths($auth->userId, $auth->groupId, constant('WCS_DS_'.strtoupper($this->ds_type).'_MASK'), null);
+		$ownerId = $this->sRes->owner;
+		$groupId = $this->sRes->group;
+		if($internal) {
+			$this->sRes->setOwnerBit('removeds', false);
+			$this->sRes->setGroupBit('removeds', false);
+		}
+		$oAuths = $this->sRes->getOwnerAuths();
+		$gAuths = $this->sRes->getGroupAuths();
+		$doc = &$this->getEmptyDocument();
+		$doc->loadAuths(0, 0);
+		$doc->sRes->setAuthorities(WCS_DOC_MASK);
+		$dAuths = $doc->sRes->getOwnerAuths();
+		$indexed = $this->isIndexable ? 1 : 0;
+		$clone = &wcfClone($this);
+		unset($clone->docs, $clone->sRes, $clone->docAuths, $clone->isIndexable);
+		$db = &WCDB::bo();
+		$db->query(
+			'INSERT INTO datasources '.
+				'(ds_type, indexed, name, description, date, code, internal, wcsowner, wcsgroup, oauths, gauths, docauths) '.
+			'VALUES '.
+				"('$this->ds_type', $indexed, '".addslashes($this->name)."', '".addslashes($description)."', '".time()."','".addslashes(serialize($clone))."', $internal, $ownerId, $groupId, CONV('$oAuths', 2, 10), CONV('$gAuths', 2, 10), CONV('$dAuths', 2, 10))"
+		);
+		$this->ds_id = $db->lastInsertId();
+		return $this->ds_id;
+	}
+
+	function &_load($id) {
+		$result = null;
+		settype($id, 'int');
+		$db = &WCDB::bo();
+		$res = $db->query('SELECT wcsowner, wcsgroup, BIN(ROUND(oauths)) as oauths, BIN(ROUND(gauths)) as gauths, BIN(ROUND(docauths)) as docauths, docs, indexed, locks, code, internal FROM datasources WHERE ds_id='.$id);
+		if(mysql_num_rows($res) > 0) {
+			$r = mysql_fetch_assoc($res);
+			$result = unserialize($r['code']);
+			$result->ds_id = $id;
+			$result->lock = (int) $r['locks'];
+			$result->isInternal = $r['internal'] != 0;
+			$result->isIndexable = $r['indexed'] != 0;
+			$result->docs = (int) $r['docs'];
+			$result->docAuths = $r['docauths'];
+			$result->loadAuths($r['wcsowner'], $r['wcsgroup'], $r['oauths'], $r['gauths']);
+		}
+		mysql_free_result($res);
+		return $result;
+	}
+
+	function save() {
+		if(!@$this->ds_id) return NULL;
+		WCS::assert($this, 'editds');
+		$indexed = $this->isIndexable ? 1 : 0;
+		$ds = &wcfClone($this);
+		unset($ds->docs, $ds->sRes, $ds->docAuths, $ds->isIndexable, $ds->ftp, $ds->smartycache);
+		$db = &WCDB::bo();
+		$db->query(
+			'UPDATE datasources '.
+			"SET indexed = $indexed,name='".addslashes($this->name)."', description='".addslashes($this->description)."', date='".time()."', code='".addslashes(serialize($ds))."' ".
+			'WHERE ds_id='.$this->ds_id
+		);
+		$this->updateSize();
+		unset($ds);
+		return true;
+	}
+
+	function &get_record($id, $alias = false) {
+		$clause = $alias ? '' : ' d.ds_id='.$this->ds_id.' AND ';
+
+		$db = &WCDB::bo();
+		$res = $db->query(
+			'SELECT d.*, d0.ds_id as realDsId '.
+			' FROM '.$this->DSTable.' d, '.$this->DSTable.' d0'.
+			' WHERE '.$clause.' d.id='.$id.' AND d.real_id = d0.id LIMIT 1'
+		);
+		$result = mysql_fetch_assoc($res);
+		mysql_free_result($res);
+		return $result;
+	}
+
+	function &getDocument($docId) {
+		$record = &$this->get_record($docId);
+		$result = &$this->wrapDocument($record);
+		return $result;
+	}
+
+	function &wrapDocument(&$record) {
+		$result = &$this->getEmptyDocument();
+		$result->readValues($record);
+		$result->loadAuths((int) @$record['wcsowner'], $this->docAuths);
+		return $result;
+	}
+
+	function &getEmptyDocument() {
+		$result = & new Document();
+		return $result;
+	}
+
+	function remove() {
+		WCS::assert($this, 'removeds');
+		$db = &WCDB::bo();
+		$res = $db->query(
+			'SELECT id'.
+			' FROM datasources ds, '.$this->DSTable.' d'.
+			' WHERE ds.ds_id IN('.$this->ds_id.') AND ('.WCS::getAuthCheckQuery('removeds', 'ds').')'
+		);
+		if(mysql_num_rows($res)>0) {
+			$ids = '-1';
+			while($r = mysql_fetch_assoc($res))
+				$ids .= ','.$r['id'];
+			WCS::runAs(WCS_ROOT_ID);
+			$this->delete(&$ids);
+			WCS::stopRunAs();
+		}
+		mysql_free_result($res);
+		$db->query(
+			'DELETE FROM datasources WHERE ds_id IN ('.$this->ds_id.')'
+		);
+		$this->postremove();
+		$this->ds_id = null;
+	}
+
+	function setHybridField($doc, $field, $id) {
+		$db = &WCDB::bo();
+		$res = $db->query(
+			"SELECT id, ds_id, name, family, isown".
+			" FROM dshfields".
+			" WHERE id=$field AND dshfields.fromds=$this->ds_id".
+			" LIMIT 1"
+		);
+		if(mysql_num_rows($res) != 1){
+			mysql_free_result($res);
+			return false;
+		}
+		$r = mysql_fetch_assoc($res);
+		mysql_free_result($res);
+		$ds_id = (int) $r['ds_id'];
+		$field_name = $r['name'];
+		$family = $r['family'];
+		$isown = $r['isown'];
+		$res = $db->query(
+			"SELECT $field_name FROM dshybrid_$ds_id WHERE id=$doc LIMIT 1"
+		);
+		if(mysql_num_rows($res) != 1){
+			mysql_free_result($res);
+			return false;
+		}
+		$r = mysql_fetch_assoc($res);
+		mysql_free_result($res);
+		$oldvalue = $r[$field_name];
+		if($family == 'document')
+			$newvalue = $id;
+		else
+			$newvalue = "'". ($oldvalue ? $oldvalue.',' : '') .$id."'";
+		if(utf8_strlen($newvalue) > 255)
+			return false;
+		$db->query(
+			"UPDATE dshybrid_$ds_id SET $field_name=$newvalue WHERE id=$doc LIMIT 1"
+		);
+		if($family == 'document' && $isown && $oldvalue)
+			$this->delete($oldvalue);
+		return true;
+	}
+
+	function &getHybridDoc($docId) {
+		static $ds, $doc;
+		$result = null;
+		settype($docId, 'int');
+		if(isset($doc[$docId]))
+			$result = &$doc[$docId];
+		else {
+			$db = &WCDB::bo();
+			$res = $db->query("SELECT ds_id FROM dshybrid WHERE id = $docId");
+			if(mysql_num_rows($res) == 1) {
+				list($dsId) =  mysql_fetch_row($res);
+				if(!isset($ds[$dsId])) {
+					require_once(LIBDIR.'/dsmanager._wc');
+					$ds[$dsId] = &DSManager::load($dsId);
+					assert($ds[$dsId] != null);
+				}
+				$doc[$docId] = $ds[$dsId]->getDocument($docId);
+				$result = &$doc[$docId];
+			}
+			mysql_free_result($res);
+		}
+		return $result;
+	}
+
+	function increaseLock() {
+		$db = &WCDB::bo();
+		$db->query("UPDATE datasources SET locks=locks+1 WHERE ds_id=$this->ds_id");
+		$this->lock++;
+	}
+
+	function decreaseLock()	{
+		$db = &WCDB::bo();
+		$db->query("UPDATE datasources SET locks=locks-1 WHERE ds_id=$this->ds_id");
+		$this->lock--;
+	}
+
+	function postremove() {}
+
+	function publish($ids) {
+		$this->_publish(&$ids,1);
+	}
+
+	function unpublish($ids) {
+		$this->_publish(&$ids,0);
+	}
+
+	function _publish($ids,$value) {
+		if(!(WCS::decide($this, 'publishdoc') || WCS::ownerAllowed($this->getSDoc(), 'publishdoc')))
+			return;
+		$db = &WCDB::bo();
+		$db->query(
+			'UPDATE '.$this->DSTable.' '.
+			'SET published = '.$value.' '.
+			'WHERE id IN('.$ids.') AND ds_id='.$this->ds_id.(WCS::decide($this, 'publishdoc') ? '' : ' AND '.WCS::getOwnerCheckQuery())
+		);
+
+		if($value)
+			$this->addToIndex(&$ids);
+		else
+			$this->removeFromIndex(&$ids);
+
+		$this->evictDocCache(&$ids);
+	}
+
+	function isFull() {
+		if(!$this->size) return false;
+		return $this->size <= $this->docs;
+	}
+
+	function &cleanHTML($html) {
+		if(@$this->stripHTML) {
+			$result = &wcfStripTags($html, $this->allowedTags);
+			if(@$this->encodeemail)
+				$result = preg_replace_callback('/(mailto:)?([a-zA-Z0-9_\\-\\.]+)@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.)|(([a-zA-Z0-9\\-]+\\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\\]?)/us', create_function('$m', 'return encodestr($m[0]);'), $result);
+		} else
+			$result = &$html;
+		return $result;
+	}
+
+	function create_intro($html, $size) {
+		$txt = strip_tags($html);
+		preg_match('/^.{'.($size-1).'}[^\s\.,:]*/ums', $txt, $intro);
+		return @$intro[0] ? $intro[0] : $txt;
+	}
+
+	function get_real_ids() {
+		$db = &WCDB::bo();
+		$res = $db->query('SELECT real_id FROM '.$this->DSTable.' WHERE ds_id='.$this->ds_id);
+		$result = array();
+		if(mysql_num_rows($res) > 0)
+			while($row = mysql_fetch_assoc($res))
+				$result[] = $row['real_id'];
+
+		return $result;
+	}
+
+	function evictDocCache($ids = array()) {
+		$smc = &WCDataSource::_getSmartyCache();
+		$smc->record_updated($this->ds_type, $this->ds_id, &$ids);
+		if($this->isInternal) {
+			$query = array();
+			$db = &WCDB::bo();
+			$res = $db->query("SELECT ds_id, name FROM dshfields WHERE family='datasource' AND type='$this->ds_type'");
+			while($r = mysql_fetch_row($res))
+				$query[$r[0]][] = "{$r[1]} = {$this->ds_id}";
+			mysql_free_result($res);
+			$id = null;
+			foreach($query as $dsId => $where) {
+				$res = $db->query("SELECT id FROM dshybrid_$dsId WHERE (".implode(') OR (', $where).")");
+				if($r = mysql_fetch_row($res))
+					list($id) = $r;
+				mysql_free_result($res);
+				if($id > 0) {
+					$smc->record_updated('hybrid', $dsId, $id);
+					break;
+				}
+			}
+		}
+	}
+
+	function &_getSmartyCache() {
+		static $smc;
+		if($smc === null) {
+			include_once(LIBDIR.'/smarty/wcsmartycache._wc');
+			$smc = & new WCSmartyCache();
+		}
+		return $smc;
+	}
+
+	function init_ftp() {
+		if(is_object($this->ftp)) return;
+
+		include_once(LIBDIR.'/wcftp._wc');
+		$this->ftp = WCFTP::getNew();
+	}
+
+	function updateSize() {
+		if($this->DSTable) {
+			$db = &WCDB::bo();
+			$db->query("UPDATE datasources SET docs = (SELECT COUNT(*) FROM $this->DSTable WHERE ds_id = $this->ds_id) WHERE ds_id = $this->ds_id");
+		}
+	}
+
+	function copyProps(&$from) {
+		assert($this->ds_type == $from->ds_type);
+		$this->encodeemail = $from->encodeemail;
+		$this->setSize($from->size);
+		$this->setIndexable($from->isIndexable);
+		$props = &$this->getCopiableProps();
+		for($i = 0, $l = sizeof($props); $i < $l; $i++)
+			if($from->ds_type == 'file' && $props[$i] == 'filetypes')
+				$this->setTypes($from->filetypes);
+			else
+				$this->$props[$i] = $from->$props[$i];
+		$this->sRes->setAuthorities($from->sRes->getOwnerAuths(), $from->sRes->getGroupAuths());
+	}
+
+	function setSize($size) {
+		$this->size = $size == 0 || $this->docs <= $size ? $size : $this->size;
+	}
+
+	function setAllowedTags($allowedTags) {
+		if(isset($this->allowedTags) && preg_match('~^[\s\<A-Za-z0-9_\-:,\*\>!]+$~u', $allowedTags))
+			$this->allowedTags = $allowedTags;
+	}
+
+	function setIndexable($newState) {
+		if($this->ds_id)
+			WCS::assert($this, 'editds');
+		else {
+			$this->isIndexable = $newState;
+			return;
+		}
+		if($newState == $this->isIndexable)
+			return;
+
+		if($newState) {
+			$this->isIndexable = $newState;
+			set_time_limit((intval($this->docs) + 1) * 5);
+			$this->addToIndex();
+		} else {
+			$this->removeFromIndex();
+			$this->isIndexable = $newState;
+		}
+	}
+
+	function addToIndex($ids = null, $header = null, $content = null, $intro = null) {
+		if(!$this->isIndexable)
+			return;
+		loadClass('indexer', '/search/indexer._wc');
+		$indexer = &Indexer::getInstance();
+
+		if($ids && $header)
+			$indexer->add($this->ds_id, $this->ds_type, $ids, $header, $content, $intro);
+		else {
+			$docs = &$this->getIndexableDocs($ids);
+			for($i = 0, $l = sizeof($docs); $i < $l; $i++)
+				$indexer->add($this->ds_id, $this->ds_type, $docs[$i]['id'], $docs[$i]['header'], $docs[$i]['content'], $docs[$i]['intro']);
+		}
+	}
+
+	function updateIndex($id, $header = null, $content = null, $intro = null) {
+		if(!$this->isIndexable)
+			return;
+		loadClass('indexer', '/search/indexer._wc');
+		$indexer = &Indexer::getInstance();
+
+		if($this->ds_type != 'article' && !empty($header)) {
+			if($this->ds_type == 'file')
+				$published = true;
+			else {
+				$db = &WCDB::bo();
+				$res = $db->query("SELECT id FROM $this->DSTable WHERE id = $id AND published LIMIT 1");
+				$published = mysql_num_rows($res) == 1;
+				mysql_free_result($res);
+			}
+			if($published)
+				$indexer->update($this->ds_id, $id, $header, false, $content, $intro);
+		}
+		else {
+			$doc = &$this->getIndexableDocs($id);
+			if(sizeof($doc) == 1)
+				$indexer->update($this->ds_id, $doc[0]['id'], $doc[0]['header'], false, $doc[0]['content'], $doc[0]['intro']);
+		}
+	}
+
+	function removeFromIndex($ids = null) {
+		if(!$this->isIndexable)
+			return;
+
+		loadClass('indexer', '/search/indexer._wc');
+		$indexer = &Indexer::getInstance();
+
+		if($ids)
+			$indexer->remove($this->ds_id, &$ids);
+		else
+			$indexer->remove($this->ds_id);
+	}
+
+	function &getIndexableDocs($id = null) {
+		$result = array();
+		$cond = ($id != null ? "id IN ($id) AND " : '')."ds_id = {$this->ds_id}";
+		$db = &WCDB::bo();
+		$res = $db->query("SELECT id, header, content, intro FROM {$this->DSTable} WHERE $cond AND published");
+		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++)
+			$result[$i] = mysql_fetch_assoc($res);
+		mysql_free_result($res);
+		return $result;
+	}
+
+	function filterDocs(&$ids) {
+		$sCheck = WCS::decide($this, 'removedoc') ? '' : 'AND '.WCS::getOwnerCheckQuery();
+		$db = &WCDB::bo();
+		$res = $db->query("SELECT id FROM {$this->DSTable} WHERE id IN($ids) AND ds_id = {$this->ds_id} $sCheck");
+		$ids = array();
+		if(mysql_num_rows($res) > 0)
+			while($r = mysql_fetch_row($res))
+				$ids[] = $r[0];
+		mysql_free_result($res);
+	}
+
+	function getDocOwner($ids) {
+		assert(strspn($ids, ',0123456789') == strlen($ids));
+		$result = null;
+		$table = $this->DSTable ? $this->DSTable : strtolower(get_class($this));
+		$db = &WCDB::bo();
+		$res = $db->query("SELECT wcsowner FROM $table WHERE id IN ($ids) GROUP BY wcsowner");
+		if(mysql_num_rows($res) == 1)
+			list($result) = mysql_fetch_array($res, MYSQL_NUM);
+		mysql_free_result($res);
+		return $result;
+	}
+
+	function updateDocAuths($ids,  $ownerId) {
+		assert(strspn($ids, ',0123456789') == strlen($ids));
+		$userId = Authentication::getUserId();
+		if($userId == WCS_ROOT_ID) {
+			$table = $this->DSTable ? $this->DSTable : strtolower(get_class($this));
+			$db = &WCDB::bo();
+			$db->query("UPDATE $table SET wcsowner = $ownerId WHERE id IN ($ids)");
+		}
+	}
+
+	function updateAuths() {
+		$querySet = '';
+		$userId = Authentication::getUserId();
+		if($this->sRes->owner > 0 && $userId == WCS_ROOT_ID)
+			$querySet .= ", wcsowner = {$this->sRes->owner}";
+		if($this->sRes->group > 0 && $userId == WCS_ROOT_ID)
+			$querySet .= ", wcsgroup = {$this->sRes->group}";
+		$querySet .= sprintf(', oauths = CONV("%s", 2, 10), gauths = CONV("%s", 2, 10), docauths = CONV("%s", 2, 10)', $this->sRes->getOwnerAuths(), $this->sRes->getGroupAuths(), $this->docAuths);
+		if($querySet) {
+			$querySet = substr($querySet, 1);
+			$db = &WCDB::bo();
+			$db->query("UPDATE datasources SET $querySet WHERE ds_id = {$this->ds_id} AND ".WCS::getAuthCheckQuery('editds.chmod'));
+		}
+	}
+
+	function loadAuths($owner, $group, $ownerAuths, $groupAuths) {
+		$this->sRes = new WCSResource($this->name, (int) $owner, (int) $group);
+
+		$this->sRes->addAction('createdoc');
+		$this->sRes->addAction('editdoc');
+		$this->sRes->addAction('editds');
+		$this->sRes->addAction('editds.chmod');
+		$this->sRes->addAction('publishdoc');
+		$this->sRes->addAction('removedoc');
+		$this->sRes->addAction('removeds');
+
+		$this->sRes->setAuthorities($ownerAuths, $groupAuths);
+	}
+
+	function &getSDoc() {
+		$rec = array();
+		return $this->wrapDocument();
+	}
+
+	function &getAliases($id, $includeReal = false) {
+		$result = array();
+		settype($id, 'int');
+		if($id > 0){
+			$db = &WCDB::bo();
+			$res = $db->query(
+				'SELECT id FROM '.$this->DSTable.' WHERE real_id='.$id.($includeReal?'':' AND id!='.$id)
+			);
+			if(mysql_num_rows($res) > 0)
+				while($r = mysql_fetch_assoc($res))
+					$result[] = $r['id'];
+			mysql_free_result($res);
+		}
+		return $result;
+	}
+}
+?>

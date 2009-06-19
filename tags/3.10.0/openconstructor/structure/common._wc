@@ -1,0 +1,62 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: common._wc,v 1.3 2007/02/27 11:23:19 sanjar Exp $
+ */
+function print_sitetree(&$map)
+{
+	global $curnode,$siteroot,$opened,$_site;
+	foreach($map as $id=>$v)
+		if(is_array($v))
+			foreach($v as $desc=>$childmap)
+			{
+				echo '<tree'
+						.' id="'.$id.'"'
+						.($id==$curnode?' current="yes"':'')
+						.(isset($opened[$id])?' opened="yes"':'')
+						.' action="'.(is_int($id)?'?node='.$id:'javascript:node(\''.$id.'\')').'"'
+						.' name="'.htmlspecialchars($desc, ENT_QUOTES, 'UTF-8').'"'
+						.' type="'.($id==$siteroot?'homepage':($_site->uri_hash[$_site->id_hash[$id]]['published']?'f':'fg')).'"'
+						.' default="'.($_site->uri_hash[$_site->id_hash[$id]]['published']?'f':'fg').'"'
+						.' title="'.$_site->id_hash[$id].'"'
+					.'>';
+				print_sitetree($childmap);
+				echo '</tree>';
+			}
+		else
+			echo '<node'
+					.' id="'.$id.'"'
+					.($id==$curnode?' current="yes"':'')
+					.' action="'.(is_int($id)?'?node='.$id:'javascript:node(\''.$id.'\')').'"'
+					.' name="'.htmlspecialchars($v, ENT_QUOTES, 'UTF-8').'"'
+					.' title="'.$_site->id_hash[$id].'"'
+					.($id==$siteroot?' type="homepage"':($_site->uri_hash[$_site->id_hash[$id]]['published']?'':' type="fg"'))
+				.'/>';
+}
+
+function get_path_id($uri)
+{
+	global $_site;
+	if(@$_site->uri_hash[$uri]['parent'])
+		return get_path_id($_site->id_hash[$_site->uri_hash[$uri]['parent']['page_id']]).','.$_site->uri_hash[$uri]['page_id'];
+	else
+		return $_site->uri_hash[$uri]['page_id'];
+}
+?>

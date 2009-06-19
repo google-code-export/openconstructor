@@ -1,0 +1,39 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: internal_toolbar._wc,v 1.2 2007/02/27 11:23:18 sanjar Exp $
+ */
+	$toolbar=array(
+		CREATE_DOCUMENT=>array('pic'=>'addrecord','action'=>WCS::decide($ds, 'createdoc') ? 'create_record()' : ''),
+		CREATE_ALIAS=>array('pic'=>'addalias','action'=>WCS::decide($ds, 'createdoc') && array_search($nodetype,array('htmltext','phpsource','file','hybrid'))===false?'create_alias()':''),
+		'separator',
+		MOVE_DOCUMENTS=>array('pic'=>'moverecord','action'=>WCS::decide($ds, 'removedoc') && $nodetype!='hybrid'?'move_docs()':''),
+		'separator',
+		PUBLISH_DOCUMENTS=>array('pic'=>'publish','action'=>WCS::decide($ds, 'publishdoc') ? 'publish_docs(true)' : ''),
+		UNPUBLISH_DOCUMENTS=>array('pic'=>'unpublish','action'=>WCS::decide($ds, 'publishdoc') ? 'publish_docs(false)' : ''),
+		'separator',
+		EDIT_CURRENT_DS=>array('pic'=>'editpage','action'=>WCS::decide($ds, 'editds') ? 'wxyopen("edit_'.$nodetype.'.php?ds_id="+curnode,670,440)' : ''),
+		EDIT_SECURITY => array('pic'=>'editsec','action'=> 'edit_security()'),
+		'separator',
+		REFRESH=>array('pic'=>'reload','action'=>'window.location.href += ""'),
+		'separator',
+		REMOVE=>array('pic'=>'remove','action'=>WCS::decide($ds, 'removedoc') || WCS::ownerAllowed($ds, 'removedoc') ? 'remove()' : ''),
+	);
+?>

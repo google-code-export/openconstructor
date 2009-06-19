@@ -1,0 +1,449 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ *
+ * All rights reserved.
+ *
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ *
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ *
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @author Sanjar Akhmedov
+ *
+ * $Id: wcftp._wc,v 1.14 2007/05/02 20:31:27 sanjar Exp $
+ */
+require_once(LIBDIR_THIRD.'/phputf8/utf8.php'); // need this for intsaller
+
+class WCFTP {
+	var $host, $port, $user, $password, $siteroot;
+	var $_con, $opened;
+	var $_isHostValid;
+	var $_tmpDir;
+	var $message;
+	var $result;
+
+	function WCFTP($autoconfig = true, $autoopen = false){
+		$this->_con = null;
+		$this->result = true;
+		if($autoconfig)
+			$this->configure(WCFTP_HOST, WCFTP_USER, WCFTP_PWD, WCFTP_SITEROOT, WCFTP_PORT);
+		if($autoopen)
+			$this->open();
+	}
+
+	function configure($host, $user, $password, $siteroot='.', $port=21){
+		$this->host=$host;
+		$this->port = $port ? $port : 21;
+		$this->user=$user;
+		$this->password=$password;
+		$this->siteroot=$siteroot;
+		$this->_con = null;
+		$this->opened = 0;
+		$this->message=array();
+	}
+
+	function open($timeout = null) {
+		if($this->_con == null && $this->opened == 0) {
+			settype($timeout, 'int');
+			if($timeout > 0) {
+				$this->_con = @ftp_connect($this->host, $this->port, $timeout);
+			} else {
+				$this->_con = @ftp_connect($this->host, $this->port);
+			}
+			if(!$this->_con){
+				$this->message[]='Cannot connect to '.$this->host.':'.$this->port;
+				$this->apply_result(false);
+				return false;
+			}
+			$this->opened = 1;
+			if(!@ftp_login($this->_con,$this->user,$this->password)){
+				$this->message[]='Login failed';
+				$this->close();
+				$this->apply_result(false);
+				return false;
+			}
+			if(!@ftp_chdir($this->_con,$this->siteroot)){
+				$this->message[]='Invalid siteroot ['.$this->siteroot.']';
+				$this->close();
+				$this->apply_result(false);
+				return false;
+			}
+			$this->_isHostValid = null;
+		} else
+			$this->opened++;
+		return $this->opened;
+	}
+
+	function close() {
+		if($this->opened > 0) {
+			$this->opened--;
+			if($this->opened == 0)
+				$this->_close();
+		}
+		return $this->opened;
+	}
+
+	function _close() {
+		if($this->_con != null) {
+			@ftp_close($this->_con);
+			$this->_con = null;
+			$this->_isHostValid = null;
+			$this->opened = 0;
+		}
+	}
+
+	function md($dir,$access=NULL,$owner=NULL) {
+		if(!$this->_con){
+			$this->message[]='Offline: Cannot create dir ['.$dir.']';
+			$this->apply_result(false);
+			return false;
+		}
+		$dir=$this->_normalize($dir);
+		if(!@ftp_mkdir($this->_con,$dir)){
+			$this->message[]='Cannot create dir ['.$dir.']';
+			$this->apply_result(false);
+			return false;
+		}
+		if(NULL!=$access)
+			@ftp_site($this->_con,'chmod '.$access.' '.$dir);
+		if(NULL!=$owner)
+			@ftp_site($this->_con,'chown '.$owner.' '.$dir);
+		return true;
+	}
+
+	function rd($dir){
+		if(!$this->_con){
+			$this->message[]='Offline: Cannot remove dir ['.$dir.']';
+			$this->apply_result(false);
+			return false;
+		}
+		$dir=$this->_normalize($dir);
+		if(!@ftp_rmdir($this->_con,$dir)){
+			$this->message[]='Cannot remove dir ['.$dir.']';
+			$this->apply_result(false);
+			return false;
+		}
+		return true;
+	}
+
+	function write_file($file,&$content,$mode='wb'){
+		if(!$this->_con){
+			$this->message[]='Offline: Cannot write to file ['.$file.']';
+			$this->apply_result(false);
+			return false;
+		}
+		$file=$this->_normalize($file);
+		$tmp = WCFTP::_newTmpFilename();
+		$fp = fopen($tmp,$mode);
+		fwrite($fp,$content);
+		fclose($fp);
+		$result=@ftp_put($this->_con,$file,$tmp,FTP_BINARY);
+		@unlink($tmp);
+		if(!$result){
+			$this->message[]='Cannot write to file ['.$file.']';
+			$this->apply_result(false);
+			return false;
+		}
+		return true;
+	}
+
+	function copy_local_file($from,$to,$mode=NULL){
+		if(!$this->_con){
+			$this->message[]='Offline: Cannot copy local file ['.$from.'=>'.$to.']';
+			$this->apply_result(false);
+			return false;
+		}
+		$to=$this->_normalize($to);
+		if(NULL===$mode)
+			$mode=$this->_define_mode($to);
+		if(!@ftp_put($this->_con,$to,$from,$mode)){
+			$this->message[]='Cannot copy local file ['.$from.'=>'.$to.']';
+			$this->apply_result(false);
+			return false;
+		}
+		return true;
+	}
+
+	function move($from,$to){
+		if(!$this->_con){
+			$this->message[]='Offline: Cannot move ['.$from.'=>'.$to.']';
+			$this->apply_result(false);
+			return false;
+		}
+		$from=$this->_normalize($from);
+		$to=$this->_normalize($to);
+		if(!@ftp_rename($this->_con,$from,$to)){
+			$this->message[]='Cannot move ['.$from.'=>'.$to.']';
+			$this->apply_result(false);
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Copy local dir via ftp.
+	 * 
+	 * <code>
+	 * $ftp->copy_local_dir('/doc_root/some/dir', '/dest/'); // creates /dest/dir
+	 * </code>
+	 * 
+	 * @param string $from local dir
+	 * @param string $to remote dest dir
+	 * @return boolean if copy was successfull
+	 */
+	function copy_local_dir($from, $to) {
+		if(!$this->_con){
+			$this->message[] = 'Offline: Cannot copy dir ['.$from.']';
+			$this->apply_result(false);
+			return false;
+		}
+		$to = ($to = $this->_normalize($to)) ? $to : '.';
+		$offset = ($p = strrpos($from, '/')) === false ? 0 : $p + 1;
+		$all = $this->_getAllEntries($from, array('.svn', 'CVS'), true);
+		ksort($all, SORT_STRING);
+		$result = true;
+		foreach($all as $f => $isdir) {
+			$t = $to.'/'.substr($f, $offset);
+			if($isdir) {
+				$r = ftp_mkdir($this->_con, $t);
+			} else {
+				$mode = $this->_define_mode($f);
+				$r = ftp_put($this->_con, $t, $f, $mode);
+			}
+			if(!$r)
+				$this->message[] = "...cannot copy '$f' to '$t'";
+			$result = $result && $r;
+		}
+		$this->apply_result($result);
+		return $result;
+	}
+
+	function rdEntire($dir){
+		if(!$this->_con){
+			$this->message[]='Offline: Cannot remove dir ['.$dir.']';
+			$this->apply_result(false);
+			return false;
+		}
+		$name=$this->_normalize($dir);
+		$all=$this->_getAllEntries($_SERVER['DOCUMENT_ROOT'].'/'.$name);
+		$offset = strlen($_SERVER['DOCUMENT_ROOT']) + 1;
+		krsort($all, SORT_STRING);
+		foreach($all as $f=>$isdir){
+			$f = substr($f, $offset);
+			$r=$isdir?@ftp_rmdir($this->_con,$f):@ftp_delete($this->_con,$f);
+			if(!$r)
+				$this->message[]='...cannot remove '.$f;
+		}
+		if(!@ftp_rmdir($this->_con,$name)){
+			$this->message[]='Cannot remove dir ['.$dir.']';
+			$this->apply_result(false);
+			return false;
+		}
+		return true;
+	}
+
+	function unlink($file){
+		if(!$this->_con){
+			$this->message[]='Offline: Cannot remove file ['.$file.']';
+			$this->apply_result(false);
+			return false;
+		}
+		$name=$this->_normalize($file);
+		if(!@ftp_delete($this->_con,$name)){
+			$this->message[]='Cannot remove file ['.$file.']';
+			$this->apply_result(false);
+			return false;
+		}
+		return true;
+	}
+
+	function chmod($file, $mode){
+		if(!$this->_con) {
+			$this->message[] = 'Offline: Cannot set mode to '.$mode.' ['.$file.']';
+			$this->apply_result(false);
+			return false;
+		}
+		$name = $this->_normalize($file);
+		if(!@ftp_site($this->_con, 'chmod '.$mode.' '.$name)){
+			$this->message[] = 'Cannot set mode to '.$mode.' ['.$file.']';
+			$this->apply_result(false);
+			return false;
+		}
+		return true;
+	}
+
+	function inline($func){
+		if(!$this->_con){
+			$this->message[]='Offline: Cannot execute function ['.$func.']';
+			$this->apply_result(false);
+			return false;
+		}
+		call_user_func($func);
+		return true;
+	}
+
+	function &get_message($html=false){
+		$message=$this->message;
+		$this->message=array();
+		if($html)
+			$message='<ul><li>'.implode('</li><li>',$message).'</li></ul>';
+		return $message;
+	}
+
+	function success($flush=true){
+		$result=$this->result;
+		if($flush)
+			$this->result=true;
+		return $result;
+	}
+
+	function apply_result($result){
+		$this->result=$this->result&&$result;
+	}
+
+	function isOnline() {
+		return $this->_con ? true : false;
+	}
+
+	function suggestSiteroot() {
+		$result = null;
+		if(!$this->_con){
+			$this->message[] = 'Offline: Cannot suggest site root';
+			$this->apply_result(false);
+			return false;
+		}
+		if($this->siteroot != '.') {
+			$this->message[] = 'Cannot suggest site root: site root already set';
+			$this->apply_result(false);
+			return false;
+		}
+		$root = $_SERVER['DOCUMENT_ROOT'].'/';
+		$l = sizeof(explode('/', $root));
+		$wchome = substr(WCHOME, 1);
+		for($i = 0; $i < $l; $i++) {
+			$root = substr($root, strpos($root, '/') + 1);
+			if(@ftp_chdir($this->_con, $root.$wchome)) {
+				ftp_chdir($this->_con, '..');
+				$this->siteroot = $root ? substr($root, 0, -1) : '.';
+				$result = $this->siteroot;
+				break;
+			}
+		}
+		return $result;
+	}
+
+	function setTmpDir($tmpDir) {
+		$this->_tmpDir = $tmpDir;
+	}
+
+	function isHostValid() {
+		if($this->_isHostValid === null && $this->isOnline()) {
+			$suffix = 0;
+			do {
+				$testFile = '/wchosttest_'.md5(rand().microtime().$_SERVER['HTTP_HOST'].$suffix++);
+			} while(@file_exists($_SERVER['DOCUMENT_ROOT'].$testFile));
+			$uid = md5(rand().'/'.microtime().'/'.$_SERVER['HTTP_HOST']);
+			if($this->write_file($testFile, $uid)) {
+				$limit = time() + 2; // timeout
+				do {
+					$auid = @file_get_contents($_SERVER['DOCUMENT_ROOT'].$testFile);
+				} while((time() < $limit) && !$auid);
+				$this->_isHostValid = $uid == $auid;
+				$this->unlink($testFile);
+			} else {
+				$this->message[] = 'Siteroot not writable';
+				$this->apply_result(false);
+				$this->_isHostValid = false;
+			}
+		}
+		return $this->_isHostValid;
+	}
+
+	function &_normalize($name){
+		$new = $name;
+		if(@$name{0} == '/')
+			$new = substr($name, 1);
+		if(@substr($name, -1) == '/')
+			$new = substr($new, 0, -1);
+		return $new;
+	}
+
+	function _define_mode($filename){
+//		return FTP_BINARY;
+		$type = utf8_substr($filename, utf8_strrpos($filename, '.') + 1);
+		$text=array('_wc','tpl','txt','html','css','php','tpl','js','java','cpp','c');
+		if(array_search($type,$text)!==false)
+			return FTP_ASCII;
+		return FTP_BINARY;
+	}
+
+	function &_getAllEntries($dir, $ignore = array(), $includeSelf = false) {
+		$list=array();
+		$d = dir($dir);
+		if($includeSelf)
+			$list[$dir] = true;
+		while(false !== ($entry = $d->read())) {
+			if($entry != '.' && $entry != '..' && (array_search($entry, $ignore) === false)) {
+				$f = $dir.'/'.$entry;
+				$list[$f] = is_dir($f);
+				if($list[$f]) {
+					$sublist = $this->_getAllEntries($f, $ignore);
+					$list = array_merge($list, $sublist);
+				}
+			}
+		}
+		$d->close();
+		return $list;
+	}
+
+	function _newTmpFilename() {
+		return wcfTmpFilename('ocm_ftp_', $this->_tmpDir);
+	}
+
+	function performGC() {
+		$con = null;
+		WCFTP::_gc(false, true, $con);
+	}
+
+	function _addToGC(&$con) {
+		WCFTP::_gc(true, false, $con);
+	}
+
+	function _gc($register, $gc, &$res) {
+		static $con;
+		if($register) {
+			$con[] = &$res;
+		} elseif($gc) {
+			for($i = 0, $l = sizeof($con); $i < $l; $i++)
+				$con[$i]->_close();
+			$con = array();
+		}
+	}
+
+	function &getNew($host = null, $port = 21, $username = null, $pwd = null, $siteroot = '.') {
+		static $regisered;
+		settype($port, 'int');
+		if(!isset($regisered)) {
+			$regisered = true;
+			register_shutdown_function(array('WCFTP', 'performGC'));
+		}
+		if($host) {
+			$result = & new WCFTP(false, false);
+			$result->configure($host, $username, $pwd, $siteroot, $port);
+			WCFTP::_addToGC($result);
+		} else
+			$result = & new WCFTP();
+		return $result;
+	}
+}
+?>
