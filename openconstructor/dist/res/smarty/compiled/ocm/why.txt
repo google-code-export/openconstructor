@@ -1,2 +1,0 @@
-This folder contains Smarty's compiled templates for Openconstructor back office.
-Do not remove this file.

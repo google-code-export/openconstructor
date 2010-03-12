@@ -1,0 +1,43 @@
+<?php
+class Patch_issue_51 extends Patch {
+	
+	function Patch_issue_51() {
+		$this->Patch("Issue 51");
+	}
+
+	function apply() {
+		$this->ftp->open();
+		
+		// move /css if available
+		$css = '/css';
+		if (!@file_exists(ROOT.FILES.$css)) {
+			if (@file_exists(ROOT.$css)) {
+				$this->info(sprintf('Found "%s".', $css));
+				$this->info(sprintf('Copying "%s" to "%s"...', $css, FILES));
+				$this->ftp->copy_local_dir(ROOT.$css, FILES.'/');
+				$this->info(sprintf('"%s" doesn\'t used by the system anymore, use "%s" for css files instead.', $css, FILES.$css));
+			} else {
+				$this->info(sprintf('No "%s" found.', $css));
+				$this->info(sprintf('Creating empty "%s"', FILES.$css));
+				$this->ftp->md(FILES.$css);
+				$this->info(sprintf('Move all your css files to "%s" manually before using the system.', FILES.$css));
+			}
+		} else {
+			$this->info(sprintf('"%s" already exists. See issue details to fix this manually.', FILES.$css));
+		}
+		
+		// create /res/js and /res/img
+		foreach (array('/js', '/img') as $name) {
+			if (!@file_exists(ROOT.FILES.$name)) {
+				$this->info(sprintf('Creating empty "%s"', FILES.$name));
+				$this->ftp->md(FILES.$name);
+			}
+		}
+		
+		$this->ftp->close();
+		
+		return true;
+	}
+
+}
+?>

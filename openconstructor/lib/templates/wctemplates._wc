@@ -225,7 +225,6 @@ class WCTemplates {
 					'tpl' => $row['id'].'.tpl',
 					'date' => date('j M Y', strtotime($row['date']))
 				);
-
 		return $result;
 	}
 

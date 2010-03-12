@@ -3,10 +3,12 @@
  *	@since 20.10.2004
  */
 
+
 var widgetUtils = new WidgetUtils();
 
+
 /**	Creates calendar style date chooser
- *
+ *	
  *	@param Element	input		<input type="text"/> which helds date value
  *	@param Element	button		element which activates calendar, usually <input type="button"/>
  *	@param Integer	from		starting year for calendar
@@ -61,7 +63,7 @@ CalendarWidget.prototype.setDate = function() {
 			break;
 		}
 	}
-
+	
 	this.year = this.year < this.from ? this.from : this.year;
 	this.year = this.year > this.to ? this.to : this.year;
 	if(!isNaN(parseInt(new Number(month)))){
@@ -76,7 +78,7 @@ CalendarWidget.prototype.setDate = function() {
 				break;
 			}
 	}
-
+		
 	var length = new Date(this.year,this.month,40);
 	length = 40 - length.getDate();
 	this.day = this.day >0 && this.day<=length ? this.day : this.today.getDate();
@@ -106,7 +108,7 @@ CalendarWidget.prototype.createTable = function(className) {
 	for(var i=0;i<7;i++)
 		thead.lastChild.appendChild(td.cloneNode(true));
 	thead.lastChild.lastChild.className = "end";
-
+	
 	for(i=0;i<6;i++){
 		tbody.appendChild(tr.cloneNode(true));
 		for(var j=0, tdb=null;j<7;j++){
@@ -135,11 +137,11 @@ CalendarWidget.prototype.createTable = function(className) {
 		}
 		tbody.lastChild.lastChild.className = "end";
 	}
-
+		
 	table.appendChild(thead);
 	table.appendChild(tbody);
 	table.appendChild(tfoot);
-
+	
 	div.style.position = "absolute";
 	div.style.display = "none";
 	div.appendChild(table);
@@ -157,7 +159,7 @@ CalendarWidget.prototype.setContent = function(language) {
 	var text = this["languagePack"+language.toUpperCase()], self=this;
 	if(!text)
 		text = this.languagePack;
-
+	
 	var mon = document.createElement('SELECT');
 	mon.size=1;
 	mon.onchange = function(){self.setMonth(this.selectedIndex);};
@@ -167,7 +169,7 @@ CalendarWidget.prototype.setContent = function(language) {
 		option.innerHTML = text.month[i];
 		mon.appendChild(option);
 	}
-
+	
 	var year = document.createElement('SELECT');
 	year.size=1;
 	year.onchange = function(){self.setYear(this.options[this.selectedIndex].value);};
@@ -178,7 +180,7 @@ CalendarWidget.prototype.setContent = function(language) {
 		option.value = i;
 		year.appendChild(option);
 	}
-
+	
 	this.table.firstChild.firstChild.firstChild.firstChild.className = "previous";
 	this.table.firstChild.firstChild.firstChild.firstChild.innerHTML = "<a href='javascript:void(0);'>"+text.previous+"</a>";
 	this.table.firstChild.firstChild.firstChild.firstChild.firstChild.onclick = function(){self.setMonth(self.month-1);};
@@ -190,7 +192,7 @@ CalendarWidget.prototype.setContent = function(language) {
 	this.table.firstChild.firstChild.firstChild.childNodes[2].firstChild.onclick = function(){self.setMonth(self.month+1);};
 	this.table.lastChild.firstChild.firstChild.innerHTML = "<INPUT type='button' value='"+text.close+"'/>";
 	this.table.lastChild.firstChild.firstChild.firstChild.onclick = function(){self.hide();};
-
+	
 	for(i=0;i<7;i++)
 		this.table.firstChild.lastChild.childNodes[i].innerHTML = text.week[i];
 	this.text = text;
@@ -675,7 +677,7 @@ DocumentsWidget.prototype.createView = function(where, headers) {
 		td.innerHTML = headers[i];
 		thead.firstChild.appendChild(td);
 	}
-
+	
 	for(i = 0, r = null; i<this.control.names.length; i++) {
 		r = tr.cloneNode(true);
 		r.firstChild.innerHTML = this.control.names[i];
@@ -692,7 +694,7 @@ DocumentsWidget.prototype.createView = function(where, headers) {
 		r.className = 'r' + (i % 2);
 		tbody.appendChild(r);
 	}
-
+	
 	table.cellSpacing = 0;
 	table.appendChild(thead);
 	table.appendChild(tbody);
@@ -730,22 +732,22 @@ ArrayWidget.prototype.createView = function(where, headers) {
 	var div = document.createElement("DIV");
 	var a = document.createElement("A");
 	var self = this;
-
-    div.appendChild(a.cloneNode(true));
+	
+	div.appendChild(a.cloneNode());
 	div.lastChild.innerHTML = "<img src='" + wchome +"/i/default/e/h/new.gif' width='24' height='24'>";
 	div.lastChild.href = div.lastChild.title = headers[0];
 	div.lastChild.onclick = function() {self.control.createAndAdd();return false;}
-
-	div.appendChild(a.cloneNode(true));
+	
+	div.appendChild(a.cloneNode());
 	div.lastChild.innerHTML = "<img src='" + wchome +"/i/default/e/h/add.gif' width='24' height='24'>";
 	div.lastChild.href = div.lastChild.title = headers[1];
 	div.lastChild.onclick = function() {self.control.add();return false;}
-
-	div.appendChild(a.cloneNode(true));
+	
+	div.appendChild(a.cloneNode());
 	div.lastChild.innerHTML = "<img src='" + wchome +"/i/default/e/h/remove.gif' width='24' height='24'>";
 	div.lastChild.href = div.lastChild.title = headers[2];
 	div.lastChild.onclick = function() {self.removeSelected();return false;}
-
+	
 	table.cellPadding = 0;
 	table.cellSpacing = 0;
 	table.appendChild(tbody);
@@ -768,18 +770,18 @@ ArrayWidget.prototype.addDocument = function(index) {
 	var td = document.createElement("TD");
 	var self = this;
 	tr.appendChild(td);
-	tr.appendChild(td.cloneNode(true));
+	tr.appendChild(td.cloneNode());
 	tr.className = "r" + (index % 2);
-
+	
 	td.className = "input";
 	td.innerHTML = "<input type='checkbox' name='ch." + this.control.select.id + "'>";
 	td.firstChild.onclick = function() { self.selected += this.checked ? 1 : -1; self.refreshToolbar();}
-
+	
 	td = tr.lastChild;
 	td.className = "header";
 	td.innerHTML = "<a href='" + this.getDocumentURI(index) + "'>" + this.control.select.options[index].innerHTML + "</a>";
 	td.firstChild.onclick = function() {openWindow(this.href, 800, 500); return false;}
-
+	
 	this.docs.appendChild(tr);
 	this.refresh();
 }
@@ -820,12 +822,15 @@ ArrayWidget.prototype.refresh = function() {
 
 function WidgetUtils() {}
 
-WidgetUtils.prototype.createTableFromSelect = function(select, header) {	var table = document.createElement("TABLE");
+WidgetUtils.prototype.createTableFromSelect = function(select, header) {
+	var table = document.createElement("TABLE");
 	var tbody = document.createElement("TBODY");
 	var tr = document.createElement("TR");
 	var td = document.createElement("TD");
-    tr.appendChild(td.cloneNode(true));
-	tr.appendChild(td.cloneNode(true));
+
+	tr.appendChild(td.cloneNode());
+	tr.appendChild(td.cloneNode());
+	
 	for(var i = 0, r = null; i < select.options.length; i++){
 		r = tr.cloneNode(true);
 		r.firstChild.innerHTML = "<INPUT type='" + (select.multiple ? "checkbox" : "radio") + "' name='i'>";
@@ -838,8 +843,8 @@ WidgetUtils.prototype.createTableFromSelect = function(select, header) {	var ta
 		r.className = 'r' + (i % 2);
 		tbody.appendChild(r);
 	}
-
+	
 	table.appendChild(tbody);
-
+	
 	return table;
 }

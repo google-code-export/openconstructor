@@ -21,8 +21,8 @@
  * $Id: headline._wc,v 1.5 2007/02/27 11:23:25 sanjar Exp $
  */
 	require_once('../include/headlines._wc');
-	$alldoc = isset($_COOKIE['vd']['alldoc']);
-	if(isset($_COOKIE['vd']['description']))
+	$alldoc = @$_COOKIE['vf']['alldoc'] != 'disabled';
+	if(@$_COOKIE['vf']['description'] != 'disabled')
 		$t = &$tree;
 	else
 		$t = null;
@@ -30,7 +30,7 @@
 		require_once(LIBDIR.'/hybrid/dshybridfactory._wc');
 		$dsf = new DSHybridFactory();
 		$ids = implode(',', $tmp = $dsf->getChildren($currentDs));
-		$autocast = isset($_COOKIE['vd']['cast']);
+		$autocast = @$_COOKIE['vf']['cast'] != 'disabled';
 	} else {
 		$ids = $currentDs;
 		$autocast = false;
@@ -45,7 +45,7 @@
 		list($items, $hl) = array(0, array());
 	}
 	$icon='hyb';
-	$eWidth=788;$eHeight=520;
+	$w=788;$h=520;
 	$editor = WCHOME.'/data/hybrid/edit.php?'.($autocast ? '1' : 'ds_id='.$currentDs);
 	$fields=array(
 		'header'=>HL_HEADER,
@@ -56,25 +56,16 @@
 		'date'=>HL_DATE
 	);
 	$fieldnames=array(
-		'type'=>array('name' => 'type', 'title' => RP_SHOW_HYBRIDTYPE, 'st' => true),
-		'description'=>array('name' => 'description', 'title' => RP_SHOW_NODES, 'st' => true),
-		'alldoc'=>array('name' => 'alldoc', 'title' => RP_INCLUDE_SUBDOCUMENTS, 'st' => true),
-		'cast'=>array('name' => 'cast', 'title' => RP_AUTOCAST_ON_EDIT, 'st' => true),
-		'date'=>array('name' => 'date', 'title' => RP_SHOW_DATE, 'st' => true)
+		'type'=>RP_SHOW_HYBRIDTYPE,
+		'description'=>RP_SHOW_NODES,
+		'alldoc'=>RP_INCLUDE_SUBDOCUMENTS,
+		'cast'=>RP_AUTOCAST_ON_EDIT,
+		'date'=>RP_SHOW_DATE
 	);
 	if(!$alldoc)
 		unset($fieldnames['type'],$fieldnames['cast'],$fields['type']);
-	if(sizeof(@$_COOKIE['vd']))
-		foreach($fieldnames as $key => $value){
-			if(!isset($_COOKIE['vd'][$key]))
-				$fieldnames[$key]['st'] = false;
-	        if (!$fieldnames[$key]['st']) unset($fields[$key]);
-		}
-	require_once(LIBDIR.'/pager._wc');
-	$pager = noSqlPager($items, 'page', $pagesize, 10);
-/*	
-	if(is_array(@$_COOKIE['vd']))
-		foreach($_COOKIE['vd'] as $f=>$st)
+	if(is_array(@$_COOKIE['vf']))
+		foreach($_COOKIE['vf'] as $f=>$st)
 			if($st=='disabled') unset($fields[$f]);
 	echo '<documents server="hybrid/i_hybrid.php"'
 			.' type="'.$icon.'"'
@@ -89,5 +80,4 @@
 //	pager('page','dshybrid','id','WHERE ds_id IN ('.$ids.')',$pagesize,10,$searchclause);
 	noSqlPager($items, 'page', $pagesize, 10);
 	echo '</documents>';
-*/
 ?>

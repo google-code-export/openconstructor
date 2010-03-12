@@ -1,39 +1,98 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- *
+ * 
  * All rights reserved.
- *
+ * 
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- *
+ * 
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- *
+ * 
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- *
+ * 
  * $Id: select_tpl._wc,v 1.8 2007/02/27 11:23:24 sanjar Exp $
  */
 	require_once(LIBDIR.'/templates/wctemplates._wc');
 	$tpls=new WCTemplates();
-
+?>
+<script>
+function wxyopen(uri,x,y) {
+	window.open(uri,'',"resizable=yes, scrollbars=yes, status=yes" + (y > 0 ? ", height=" + y : "") + (x > 0 ? ", width=" + x : ""));
+}
+function addAndSelectTpl(id, name) {
+	var s = f.tpl_id;
+	var o = new Option();
+	o.innerHTML = name;
+	o.value = id;
+	s.appendChild(o);
+	o.selected = true;
+}
+</script>
+<fieldset style="padding:10" <?=WCS::decide($obj, 'editobj.tpl') ? '' : 'disabled'?>><legend><?=OBJ_TEMPLATE?></legend>
+<table style="margin:5 0" cellspacing="3" width="100%">
+	<tr>
+		<td nowrap>
+		<?php if($obj->tpl) { ?>
+			<a href="/tpl [id = <?=$obj->tpl?>]" onclick="if(f.tpl_id.options[f.tpl_id.selectedIndex].value > 0) wxyopen('../../templates/edit.php?dstype=<?=$obj->ds_type?>&id=' + f.tpl_id.options[f.tpl_id.selectedIndex].value, 660); return false;"><?=PR_SMARTY_TEMPLATE?></a>
+		<?php } else
+			echo PR_SMARTY_TEMPLATE; 
+		?>:
+		</td>
+		<td width="100%"><select size="1" name="tpl_id">
+<?php
 	$tmp = array(0 => '-');
 	if(!isset($tpl_types))
 		$tpl_types[] = $obj->obj_type;
 	foreach($tpl_types as $tpl_type)
 		foreach($tpls->get_all_tpls($tpl_type) as $k => $v)
 			$tmp[$k] = $v;
-
-	$cid_tpl = 0;
-	if(array_key_exists('cidTpl', get_class_vars($obj->obj_type)))
-		$cid_tpl = 1;
-
-	$smartybackend->assign("tmp", $tmp);
-	$smartybackend->assign("cid_tpl", $cid_tpl);
-?>
+	foreach($tmp as $tpl_id=>$name)
+		echo '<OPTION VALUE="'.$tpl_id.'"'.($tpl_id==$obj->tpl?' SELECTED':'').'>'.$name;
+?>	
+		</select>
+		<input type="button" value="<?=BTN_NEW_TEMPLATE?>" href="../../templates/edit.php?dstype=<?=$obj->ds_type?>&type=<?=$obj->obj_type?>&id=new" onclick="wxyopen(this.href + '&select=1&header=' + encodeURIComponent(f.name.value), 660); return false;">
+		</td>
+	</tr>
+	<tr>
+		<td nowrap><?=PR_TEMPLATE_ARGS?>:</td>
+		<td><input type="text" name="tpl_args" style="width: 100%;" value="<?=$obj->tpl_args?>"></td>
+	</tr>
+	<tr>
+		<td colspan="2">
+		<input type="checkbox" name="enableCaching" value="true" onclick="document.all('fCaching').disabled=!this.checked" <?=$obj->caching>0?' CHECKED':''?>/> <?=PR_ENABLE_CACHING?>
+		<fieldset style="margin-top:5px" id="fCaching">
+			<legend><?=OBJ_CACHE_OPTIONS?></legend>
+			<div style="padding:10px;">
+				<?php if(array_key_exists('cidTpl', get_class_vars($obj->obj_type))):?>
+					<?=PR_CACHE_CUSTOM_PART?>: <input type="text" name="cidTpl" size="40" value="<?=$obj->cidTpl?>">
+					<hr>
+				<?php endif;?>
+				<input type="radio" name="flushCache" value="byWC" CHECKED onclick="f.cacheLifetime.disabled=this.checked"/> <?=PR_WC_CACHE_MANAGEMENT?><br>
+				<input type="radio" name="flushCache" value="time" onclick="f.cacheLifetime.disabled=!this.checked"/> <?=PR_TIME_CACHE_MANAGEMENT?>:
+				<input type="text" name="cacheLifetime" value="<?=$obj->cache_lifetime?>" size="6" maxlength="6" disabled/><br>
+			</div>
+		</fieldset>
+		</td>
+	</tr>
+</table>
+</fieldset><br>
+<script>f.enableCaching.onclick();</script>
+<?php if(!$obj->cached_by_WC) {?>
+<script>
+	f.flushCache.item(1).checked=true;f.cacheLifetime.disabled=false;
+</script>
+<?php }?>
+<?php if($obj->obj_type == 'searchdss') {?>
+<script>
+	f.flushCache[0].disabled = true;
+	f.flushCache[1].checked = true; f.cacheLifetime.disabled=false;
+</script>
+<?php }?>

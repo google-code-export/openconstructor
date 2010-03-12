@@ -86,7 +86,7 @@ class SearchDSs extends WCObject {
 			"SELECT SQL_CALC_FOUND_ROWS i.document_id as id, i.ds_id, i.ds_type as type, i.title, i.annotation, sum($match) as rank, IF(i.ds_type = 'file', f.filename, NULL) as file".
 			' FROM `index` i LEFT JOIN dsfile f ON(i.document_id = f.id AND i.ds_id = f.ds_id)'.
 			" WHERE $match > 0 AND i.ds_id IN ($dsId)".
-			' GROUP BY ds_type, id'.
+			' GROUP BY i.ds_type, i.document_id'.
 			" ORDER BY rank DESC".
 			' LIMIT '.($this->listOffset).', '.$this->listSize
 		);
