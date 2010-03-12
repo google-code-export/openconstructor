@@ -1,0 +1,62 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: templates._wc,v 1.9 2007/03/01 13:25:15 sanjar Exp $
+ */
+	error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
+	
+	//----------------------------
+	//Шаблоны
+	//----------------------------
+	
+	
+	//Редактор
+	@define('CREATE_TEMPLATE','Create a template');
+	define('EDIT_TEMPLATE','Edit template');
+	
+	//Кнопки
+	define('BTN_NEW_TEMPLATE','New template');
+	@define('BTN_SAVE','Save');
+	@define('BTN_CUT','Cut');
+	@define('BTN_COPY','Copy');
+	@define('BTN_PASTE','Paste');
+	define('BTN_SHOW_HIDE_PAGES','Show/Hide panel');
+	define('BTN_CLEAR_SMARTY_TPL_CACHE','Clear template cache');
+	define('BTN_CLEAR_SMARTY_TPL_COMPILED','Recompile template');
+	
+	define('H_MOCK_UP','Mockup');
+	define('CACHE_HB_CLEARED_I','Cache cleared successfully.');
+	define('TPL_HB_RECOMPILED_I','Template recompiled successfully.');
+	define('H_QUICK_HELP','Quick help');
+	define('H_SMARTY_VARS','Smarty variables');
+	
+	@define('BTN_CLOSE','Close');
+	define('H_TPL_NAME','Template name');
+	define('H_BLOCKS','Blocks');
+	
+	define('VIEW_TEMPLATE','View tempate');
+	define('H_TPL_TYPE','Template type');
+	
+	define('BTN_LOAD_DEFAULT','Load Defaults');
+	define('BTN_SHOW_ERRORS','Show Errors');
+	define('BTN_HIDE_ERRORS','Hide Errors');
+	
+	error_reporting($_oldLevel);
+?>

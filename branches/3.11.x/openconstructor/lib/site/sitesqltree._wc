@@ -1,0 +1,282 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: sitesqltree._wc,v 1.4 2007/02/27 11:23:21 sanjar Exp $
+ */
+
+@define('PLACE_NODE_BEFORE', 1);
+@define('PLACE_NODE_AFTER', 2);
+
+class SiteSqlTree {
+	var $table;
+	var $enableLocking;
+	
+	function SiteSqlTree() {
+		$this->table = 'sitetree';
+		$this->enableLocking = true;
+	}
+	
+	function addNode($parentId, $key, $header) {
+		$parent = $this->getNode($parentId);
+		$key = $this->validateKey($key);
+		assert($parent != null && trim($key) != '' && trim($header) != '');
+		if($this->exists($parentId, $key))
+			return false;
+		$prev = $this->getLastChild($parentId);
+		$db = &WCDB::bo();
+		$this->lockTables($db);
+		if($parent['next']) 
+			$num = $parent['next'];
+		elseif(@$prev['num'])
+			$num = $prev['num'] + 1;
+		else
+			$num = $parent['num'] + 1;
+		$this->reserve($num, $parent['level'] + 1);
+		$query = sprintf("INSERT INTO $this->table (num, parent, next, level, name, header) VALUES (%d, %d, %d, %d, '%s', '%s')",
+			$num, $parentId, $parent['next'] > 0 ? $parent['next'] + 1 : 0, $parent['level'] + 1, addslashes($key), addslashes($header)
+		);
+		$db->query($query);
+		$id = $db->lastInsertId();
+		if($parent['next'] == 0 && $prev != null)
+			$db->query("UPDATE $this->table SET next = $num WHERE num > {$parent['num']} AND num < $num AND next = 0");
+		$this->unlockTables($db);
+		return $id;
+	}
+	
+	function removeNode($nodeId) {
+		$node = $this->getNode($nodeId);
+		assert($node != null && $node['num'] > 0);
+		$db = &WCDB::bo();
+		$this->lockTables($db);
+		$db->query("DELETE FROM $this->table WHERE num >= {$node['num']}".($node['next'] > 0 ? " AND num < {$node['next']}" : ''));
+		if($db->errorCode()) {
+			$this->unlockTables($db);
+			return false;
+		}
+		$count = (int) $db->affectedRows();
+		if($node['next'] > 0) {
+			$db->query("UPDATE $this->table SET num = num - $count, next = IF(next>0, next - $count, 0) WHERE num > {$node['num']}");
+			$db->query("UPDATE $this->table SET next = next - $count WHERE num < {$node['num']} AND level < {$node['level']} AND next > {$node['num']}");
+		} else
+			$db->query("UPDATE $this->table SET next = 0 WHERE next = {$node['num']} AND num < {$node['num']} AND level >= {$node['level']}");
+		$this->unlockTables($db);
+		return true;
+	}
+	
+	
+	function updateNode($nodeId, $key, $header) {
+		$key = $this->validateKey($key);
+		assert(trim($key) != '' && trim($header) != '');
+		$db = &WCDB::bo();
+		$db->query(
+			sprintf("UPDATE $this->table SET name='%s', header='%s' WHERE id = $nodeId", $key, addslashes($header))
+		);
+		return $db->errorCode() == 0;
+	}
+	
+	function moveNode($nodeId, $newParentId) {
+		$node = $this->getNode($nodeId);
+		$newParent = $this->getNode($newParentId);
+		assert($nodeId != $newParentId && $newParent != null && $node != null && $node['parent'] != $newParent['id']);
+		if(($newParent['num'] > $node['num'] && ($node['next'] == 0 || $node['next'] > $newParent['num'])) || $this->exists($newParentId, $node['name']))
+			return false;
+		$prev = $this->getLastChild($newParentId);
+		$db = &WCDB::bo();
+		$this->lockTables($db);
+		if($newParent['next']) 
+			$num = $newParent['next'];
+		elseif(@$prev['num'])
+			$num = $prev['num'] + 1;
+		else
+			$num = $newParent['num'] + 1;
+		$res = $db->query(
+			"SELECT COUNT(*) FROM $this->table WHERE num >= {$node['num']}".($node['next'] > 0 ? " AND num < {$node['next']}" : '')
+		);
+		$count = (int) mysql_result($res, 0, 0);
+		$this->reserve($num, $newParent['level'] + 1, $count);
+		$node = $this->getNode($nodeId);
+		$newParent = $this->getNode($newParentId);
+		$diff = $num - $node['num'];
+		$leveldiff = $newParent['level'] - $node['level'] + 1;
+		$db->query(
+			"UPDATE $this->table".
+			" SET num = num + $diff, next = IF(next={$node['next']}, {$newParent['next']}, next + $diff), level = level + $leveldiff".
+			" WHERE num >= {$node['num']}".($node['next'] > 0 ? " AND num < {$node['next']}" : '')
+		);
+		$db->query(
+			"UPDATE $this->table".
+			" SET parent = $newParentId".
+			" WHERE id = $nodeId"
+		);
+		$db->query("UPDATE $this->table SET next = next - $count WHERE num < {$node['num']} AND level < {$node['level']} AND next > {$node['num']}");
+		$db->query("UPDATE $this->table SET num = num - $count, next = IF(next>0, next - $count, 0) WHERE num > {$node['num']}");
+		if($node['next'] == 0)
+			$db->query("UPDATE $this->table SET next = 0 WHERE next = {$node['num']} AND num < {$node['num']} AND level >= {$node['level']}");
+		if($prev != null && $prev['next'] == 0) {
+			$node = $this->getNode($nodeId);
+			$newParent = $this->getNode($newParentId);
+			$db->query("UPDATE $this->table SET next = {$node['num']} WHERE num > {$newParent['num']} AND num < {$node['num']} AND next = 0");
+		}
+		$this->unlockTables($db);
+		return true;
+	}
+	
+	function reserve($placeNum, $level, $size = 1) {
+		$db = &WCDB::bo();
+		$db->query(
+			"UPDATE $this->table SET num = num + $size, next = IF(next>0, next + $size, 0) WHERE num >= $placeNum"
+		);
+		if($level > 1)
+			$db->query(
+				"UPDATE $this->table SET next = next + $size WHERE next >= $placeNum AND num < $placeNum AND level < $level"
+			);
+	}
+	
+	function moveNodeUp($nodeId) {
+		$dest = &$this->getSibling($nodeId, -1);
+		assert($dest != null);
+		$this->placeNodeBefore($nodeId, $dest['id']);
+	}
+	
+	function moveNodeDown($nodeId) {
+		$dest = &$this->getSibling($nodeId, 1);
+		assert($dest != null);
+		$this->placeNodeAfter($nodeId, $dest['id']);
+	}
+	
+	function placeNodeBefore($nodeId, $destId) {
+		$this->placeNode($nodeId, $destId, PLACE_NODE_BEFORE);
+	}
+	
+	function placeNodeAfter($nodeId, $destId) {
+		$this->placeNode($nodeId, $destId, PLACE_NODE_AFTER);
+	}
+	
+	function placeNode($nodeId, $destNodeId, $place) {
+		assert($nodeId != $destNodeId);
+		$node = &$this->getNode($nodeId);
+		$destNode = &$this->getNode($destNodeId);
+		assert($nodeId != $node['parent'] && $node['parent'] == $destNode['parent']);
+		$parent = &$this->getNode($node['parent']);
+		if(($destNode['num'] > $node['num'] && $place == PLACE_NODE_BEFORE) || ($destNode['num'] < $node['num'] && $place == PLACE_NODE_AFTER)) {
+			if($place == PLACE_NODE_AFTER)
+				$destNode = &$this->getNode($destNode['next']);
+			else
+				$destNode = &$this->getSibling($destNode['id'], -1);
+			if($destNode['id'] == $nodeId)
+				return;
+		}
+		$tmp = &$this->getLastChild($nodeId);
+		$treeSize = $tmp ? $tmp['num'] - $node['num'] + 1 : 1;
+		$min = min($node['num'], $destNode['num']);
+		$max = max($node['num'], $destNode['num']);
+		if($max == $destNode['num']) {
+			$tmp = &$this->getLastChild($destNode['id']);
+			$max = $tmp ? $tmp['num'] : $max;
+			unset($tmp);
+		} else
+			$max += $treeSize - 1;
+		$db = &WCDB::bo();
+		$this->lockTables($db);
+		$delta = $treeSize * ($destNode['num'] < $node['num'] ? 1 : -1);
+		$tDelta = $destNode['num'] < $node['num'] ? $destNode['num'] - $node['num'] : $max - $min + 1 - $treeSize;
+		$query =
+			"UPDATE {$this->table} SET ".
+			" next = IF(num >= {$node['num']}".($node['next'] > 0 ? " AND num < {$node['next']}" : '')."
+						, IF(next > 0, next + $tDelta, ".($node['num'] + $tDelta + $treeSize).")
+						, IF(next > 0, next + $delta, ".($node['num'] + $tDelta).")
+					)".
+			" , num = IF(num >= {$node['num']}".($node['next'] > 0 ? " AND num < {$node['next']}" : '').", num + $tDelta, num + $delta)".
+			" WHERE num >= $min AND num <= $max";
+		$db->query($query);
+		if($parent['next'] == 0) {
+			$res = $db->query("SELECT max(num) FROM {$this->table}");
+			list($lastNum) = mysql_fetch_row($res);
+			mysql_free_result($res);
+			$db->query("UPDATE {$this->table} SET next = 0 WHERE next > $lastNum");
+		}
+		$this->unlockTables($db);
+	}
+	
+	function &getSibling($nodeId, $offset) {
+		assert($offset != 0);
+		$db = &WCDB::bo();
+		$res = $db->query(
+			"SELECT t2.* FROM $this->table t1, $this->table t2".
+			' WHERE t1.id = '.$nodeId.' AND t2.num '.($offset > 0 ? '>' : '<').' t1.num AND t2.parent = t1.parent AND t2.level = t1.level'.
+			' ORDER BY num '.($offset > 0 ? 'ASC' : 'DESC').
+			' LIMIT '.intval(abs($offset) - 1).',1'
+		);
+		$node = mysql_num_rows($res) == 1 ? mysql_fetch_assoc($res) : null;
+		mysql_free_result($res);
+		return $node;
+	}
+	
+	function &getLastChild($id) {
+		$db = &WCDB::bo();
+		$res = $db->query(
+			"SELECT t2.* FROM $this->table t1, $this->table t2".
+			' WHERE t1.id = '.$id.' AND t2.num > t1.num AND t2.level > t1.level AND t2.next = t1.next'.
+			' ORDER BY num DESC'.
+			' LIMIT 1'
+		);
+		$node = mysql_num_rows($res) == 1 ? mysql_fetch_assoc($res) : null;
+		mysql_free_result($res);
+		return $node;
+	}
+	
+	function &getNode($id) {
+		$clause = 'id = '.$id;
+		return $this->getNodeByClause($clause);
+	}
+	
+	function &getNodeByClause(&$clause) {
+		$db = &WCDB::bo();
+		$res = $db->query($q = "SELECT * FROM $this->table WHERE $clause LIMIT 1");
+		$node = mysql_num_rows($res) == 1 ? mysql_fetch_assoc($res) : null;
+		mysql_free_result($res);
+		return $node;
+	}
+	
+	function validateKey($key) {
+		return preg_match('/^[a-z0-9][a-z0-9\\-_]{0,127}$/', $key) ? $key : null;
+	}
+	
+	function exists($parentId, $key) {
+		$db = &WCDB::bo();
+		$res = $db->query($q="SELECT id FROM $this->table WHERE name = '$key' AND parent = $parentId");
+		$exists = mysql_num_rows($res) == 1;
+		mysql_free_result($res);
+		return $exists;
+	}
+	
+	function lockTables(&$db) {
+		if($this->enableLocking)
+			$db->query("LOCK TABLES $this->table WRITE");
+	}
+	
+	function unlockTables(&$db) {
+		if($this->enableLocking)
+			$db->query("UNLOCK TABLES");
+	}
+}
+?>

@@ -1,0 +1,58 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: task.backup.create._wc,v 1.2 2007/02/27 11:23:20 sanjar Exp $
+ */
+
+require_once('consoletask._wc');
+
+class ConsoleTask_Backup_Create extends ConsoleTask  {
+	var $max_file_size = null;
+	var $timeout = null;
+	
+	function ConsoleTask_Backup_Create() {
+		$this->ConsoleTask('Create site backup');
+	}
+	
+	function run() {
+		require_once(LIBDIR.'/backup/backupmanager._wc');
+		$bm = new BackupManager();
+		
+		if($this->max_file_size != null)
+			$bm->setMaxFileSize($this->max_file_size);
+		if($this->timeout != null)
+			$bm->setBackupTimeout($this->timeout);
+		
+		$id = $bm->newId();
+		$this->runner->info("Starting backup [ id = $id ]...");
+		$bm->create($id);
+		$this->runner->info("Successfully created site backup");
+	}
+	
+	function getArgNames() {
+		return array(
+			'max-file-size' => '',
+			'timeout' => ''
+		);
+	}
+}
+?>

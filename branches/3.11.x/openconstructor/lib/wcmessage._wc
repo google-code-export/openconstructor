@@ -1,0 +1,224 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: wcmessage._wc,v 1.17 2007/02/27 11:23:18 sanjar Exp $
+ */
+require_once(LIBDIR.'/func/getmimetype._wc');
+require_once(LIBDIR_THIRD.'/phputf8/utils/ascii.php');
+
+class WCMessage {
+	// TODO: автовыбор между quoted-printable и base64 в зависимости от размера (для контента письма и заголовков)
+	var $recipient, $CC, $BCC, $from, $reply_to;
+	var $subject, $content, $attachments, $_encodeContent;
+	var $content_type, $boundary;
+	var $smarty, $tpl;
+
+	function WCMessage($subject = '') {
+		$this->recipient = $this->CC = $this->BCC = array();
+		$this->content_type = 'text/plain';
+		$this->subject = $subject;
+		$this->from = null;
+		$this->reply_to = null;
+		$this->boundary = '=='.strtoupper(md5(microtime()));
+		$this->attachments = array();
+		$this->tpl = null;
+	}
+
+	function send() {
+		$recipients = $this->_encodeAddrHeader(implode(', ', $this->recipient));
+		$subject = $this->_encodeHeader($this->subject);
+		$message = &$this->_getMessage();
+		$headers = $this->_getHeaders();
+		return mail($recipients, $subject, $message, $headers);
+	}
+	
+	function addRecipient($recipient) {
+		$this->recipient[] = $recipient;
+	}
+
+	function addCc($recipient) {
+		$this->CC[] = $recipient;
+	}
+
+	function addBcc($recipient) {
+		$this->BCC[] = $recipient;
+	}
+
+	function setContentType($type) {
+		if($type == 'text/html' || $type = 'text/plain') {
+			$this->content_type = $type;
+		}
+	}
+
+	function setContent($content) {
+		$this->content = $content;
+		$this->_encodeContent = false;
+	}
+
+	function setSubject($subject) {
+		$this->subject = $subject;
+	}
+
+	function setFrom($from) {
+		$this->from = $from;
+	}
+
+	function setReplyTo($reply_to) {
+		$this->reply_to = $reply_to;
+	}
+	
+	function setTemplate($tpl) {
+		$this->tpl = $tpl;
+	}
+
+	function attachFile($filename, $name = null, $type = null, $cid = null) {
+		if($name == null && $cid == null)
+			$name = basename($filename);
+		if($type == null)
+			$type = wcfGetMimeType($name);
+		if(@file_exists($filename) && (trim($name) || trim($cid)) && trim($type))
+			$this->attachments[$filename] = array('name' => $name, 'type' => $type, 'cid' => $cid);
+	}
+	
+	function &_getHeaders() {
+		$result = array();
+		$result[] = 'MIME-Version: 1.0';
+		$result[] = sizeof($this->attachments)
+			? "Content-Type: multipart/mixed; boundary=\"{$this->boundary}\""
+			: "Content-Type: {$this->content_type}; charset=\"utf-8\"";
+		if($this->from)
+			$result[] = 'From: '.$this->_encodeAddrHeader($this->from);
+		if($this->reply_to)
+			$result[] = 'Reply-To: '.$this->_encodeAddrHeader($this->reply_to);
+		if(sizeof($this->CC))
+			$result[] = 'Cc: '.$this->_encodeAddrHeader(implode(', ', $this->CC));
+		if(sizeof($this->BCC))
+			$result[] = 'Bcc: '.$this->_encodeAddrHeader(implode(', ', $this->BCC));
+		if(!sizeof($this->attachments))
+			$result[] = $this->_encodeContent
+				? "Content-Transfer-Encoding: base64"
+				: "Content-Transfer-Encoding: 7bit";
+		$result = implode("\n", $result)."\n";
+		return $result;
+	}
+	
+	function &_getMessage() {
+		$content = $this->_getContent();
+		if(sizeof($this->attachments)) {
+			$ct = "Content-Type: {$this->content_type}; charset=\"utf-8\"\n";
+			$result[] = $this->_encodeContent
+				? $ct."Content-Transfer-Encoding: base64\n\n".chunk_split(base64_encode($content))
+				: $ct."Content-Transfer-Encoding: 7bit\n\n".$content;
+			foreach($this->attachments as $filename => $attachment)
+				$result[] =
+					"Content-Type: {$attachment['type']}".
+					($attachment['name']
+						? "; name=\"{$attachment['name']}\"\n".
+							"Content-Disposition: attachment; filename=\"{$attachment['name']}\"\n"
+						: "\n").
+					($attachment['cid']
+						? "Content-ID: <{$attachment['cid']}>\n"
+						: '').
+					"Content-Transfer-Encoding: base64\n\n".
+					$this->_getFileContents($filename);
+			$result =
+				"--{$this->boundary}\n".
+				implode("\n\n--{$this->boundary}\n", $result).
+				"\n\n--{$this->boundary}--\n";
+		} else
+			$result = $this->_encodeContent ? chunk_split(base64_encode($content)) : $content;
+		return $result;
+	}
+	
+	function _getContent() {
+		if($this->tpl) {
+			$smarty = &$this->_getSmarty();
+			$oldCaching = $smarty->caching;
+			$oldCompilecheck = $smarty->compile_check;
+			$smarty->caching = 0;
+			$smarty->compile_check = strpos($this->tpl, 'file:') === 0 ? true : false;
+			$smarty->assign('charset', 'utf-8');
+			$smarty->assign_by_ref('msg', $this->content);
+			$content = $smarty->fetch($this->tpl);
+			$smarty->clear_assign(array('charset', 'msg'));
+			$smarty->caching = $oldCaching;
+			$smarty->compile_check = $oldCompilecheck;
+		} else
+			$content = is_array($this->content) ? implode("\n", $this->content) : $this->content;
+		$this->_encodeContent = !utf8_is_ascii($content);
+		return $content;
+	}
+
+	function &_getSmarty() {
+		if(is_object($this->smarty))
+			return $this->smarty;
+		$ctx = &Context::getInstance();
+		return $ctx->_smarty;
+	}
+	
+	function &_getFileContents($filename) {
+		$result = null;
+		if(@file_exists($filename)) {
+			$f = fopen($filename, 'rb');
+			$file = fread($f, filesize($filename));
+			fclose($f);
+			$result = chunk_split(base64_encode($file));
+		}
+		return $result;
+	}
+	
+	function _encodeHeader($text) {
+		if(preg_match('~[\000-\010\013\014\016-\037\177-\377]~', $text)) {
+			$encoded = trim(chunk_split(base64_encode($text), 60, "\n"));
+			$text = substr(preg_replace('/^(.*)$/m', " =?UTF-8?B?\\1?=", $encoded), 1);
+		}
+		return $text;
+	}
+	
+	function _encodeAddrHeader($header) {
+		$result = str_replace(array("\r", "\n"), ' ', $header);
+		$m = array();
+		if(preg_match_all('~(?:(?:(.*?) *(<[^>]+@[^>]+>)|([^@]+@[^@]+)) *,? *)~us', $header, $m)) {
+			$result = array();
+			for($i = 0, $l = sizeof($m[0]); $i < $l; $i++)
+				$result[] = $m[3][$i] ? $m[3][$i] : $this->_encodeHeaderPart($m[1][$i]).' '.$m[2][$i];
+			$result = implode(', ', $result);
+		}
+		return $result;
+	}
+	
+	function _encodeHeaderPart($text) {
+		$m = array();
+		if(!preg_match('~[\200-\377]~', $text)) {
+			$result = addcslashes($text, "\0..\37\177\\\"");
+			if(!(($text == $result) && !preg_match('~[^A-Za-z0-9!#$%&\'*+\/=?^_`{|}\~ \-]~u', $text)))
+				$result = "\"$result\"";
+				
+		} elseif(preg_match_all('~[^\040\041\043-\133\135-\176]~', $text, $m)) {
+			$result = trim(chunk_split(base64_encode($text), 60, "\n"));
+			$result = substr(preg_replace('/^(.*)$/m', " =?UTF-8?B?\\1?=", $result), 1);
+		} else
+			return $text;
+		return $result;
+	}
+}
+?>

@@ -1,0 +1,301 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Контекст страницы
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: context._wc,v 1.38 2007/02/27 11:23:18 sanjar Exp $
+ */
+require_once(LIBDIR.'/site/pageevents._wc');
+
+class Context {
+	var $router, $page, $crumbs, $map, $auth;
+	var $param;
+	var $basePath = null;
+	var $objects, $blocks, $objIds;
+	var $injections;
+	var $_smarty, $_events, $_db = null;
+	
+	function Context() {
+		$this->page = null;
+		$this->router = null;
+		$this->auth = null;
+		$this->_events = & new PageEvents();
+	}
+	
+	function getBaseHref() {
+		return 'http://'.$_SERVER['HTTP_HOST'].$this->getBasePath();
+	}
+	
+	function getBasePath() {
+		if(!$this->basePath)
+			$this->basePath = $this->router
+				? $this->router->route('.')
+				: $this->page->uri;
+		return $this->basePath;
+	}
+	
+	function &getPatternFor($uri, $params = array(), $explode = false) {
+		static $router;
+		$pattern = '';
+		if($explode && !is_array($params))
+			$params = explode($explode, $params);
+		if($this->map->exists($uri))
+			$uri = $this->map->getHref($uri);
+		if(($pos = utf8_strpos($uri, '/index.php/')) !== false) {
+			if(substr($uri, 0, 1) == '.')
+				$uri = $this->page->uri.(strlen($uri) > 1 ? utf8_substr($uri, 2) : '');
+			$rUri = utf8_substr($uri, 0, $pos + 1);
+			if(!isset($router[$rUri])) {
+				if($this->router && ($rUri == $this->router->uri)) {
+					$router[$rUri] = &$this->router;
+				} else {
+					require_once(LIBDIR.'/router._wc');
+					$router[$rUri] = & new Router($rUri, $this->map->uri[$rUri]['name'], '/');
+				}
+			}
+			$pattern = $router[$rUri]->route($rUri.utf8_substr($uri, $pos + 10), &$params);
+		} elseif($this->router) {
+			$pattern = $this->router->route(&$uri, &$params);
+			if($pattern === false)
+				$pattern = &$this->getPlainPattern($uri, $params);
+			$pattern = $this->map->relativate($pattern, $this->getBasePath());
+		} else
+			$pattern = &$this->getPlainPattern($uri, $params);
+		return $pattern;
+	}
+	
+	function &getPlainPattern($uri, $params) {
+		$params = (array) $params;
+		if(($pos = utf8_strpos($uri, '#')) !== false) {
+			$anchor = (string) @utf8_substr($uri, $pos + 1);
+			$uri = utf8_substr($uri, 0, $pos);
+		} else
+			$anchor = null;
+		$path = $uri;
+		$get = array();
+		if(($pos = utf8_strpos($uri, '?')) !== false) {
+			$path = utf8_substr($uri, 0, $pos);
+			$query = (string) @utf8_substr($uri, $pos + 1);
+			parse_str($query, $get);
+		} elseif($uri == $this->page->uri)
+				$get = $_GET;
+		for($i = 0, $l = sizeof($params); $i < $l;) {
+			unset($get[$params[$i]]);
+			$get[$params[$i]] = '%'.(++$i).'$s';
+		}
+		$params = array_flip(&$params);
+		foreach($get as $name => $value)
+			if (!is_array($value)) {
+			if($value)
+				$get[$name] = urlencode($name).'='.(isset($params[$name]) ? $value : str_replace('%', '%%', urlencode($value)));
+			else
+				unset($get[$name]);
+			} else {
+				foreach ($value as $k => $v) 
+					if ($v)
+						$get["{$name}[$k]"] = urlencode($name).'['.urlencode($k).']'.'='.(isset($params["{$name}[$k]"]) ? $v : str_replace('%', '%%', urlencode($v)));
+					else
+						unset($get["{$name}[$k]"]);
+				unset($get[$name]);
+			}
+		$result = $path.(sizeof($get) ? '?'.implode('&', &$get) : '').($anchor ? "#$anchor" : '');
+		return $result;
+	}
+	
+	function &getParam($param) {
+		$result = null;
+		@list($name, $index) = explode('/', $param, 2);
+		if(isset($this->param[$name]))
+			$result = &$this->param[$name];
+		elseif(isset($this->router->param[$name]))
+			$result = &$this->router->param[$name];
+		elseif(isset($_GET[$name]))
+			$result = &$_GET[$name];
+		if($index !== null)
+			$result = &Context::getArrayElement($result, $index);
+		return $result;
+	}
+	
+	function setParam($param, $value) {
+		$this->param[$param] = &$value;
+		if(is_array(@$this->injections[$param])) {
+			foreach($this->injections[$param] as $id => $fields)
+				foreach($fields as $field => $paramName)
+					$this->inject($this->objects[$id], $field, $this->getParam($paramName));
+			$this->injections[$param] = null;
+		}
+	}
+	
+	function &getArrayElement(&$array, $index) {
+		$result = &$array;
+		if(is_array($array)) {
+			$p = explode('.', $index);
+			for($i = 0, $l = sizeof($p); $i < $l; $i++)
+				if(isset($result[$p[$i]]))
+					$result = &$result[$p[$i]];
+				else {
+					$result = null;
+					$i = $l;
+				}
+		}
+		return $result;
+	}
+	
+	function &_getDB() {
+		if($this->_db === null) {
+			require_once(LIBDIR.'/db/wcdb._wc');
+			$this->_db = &WCDB::fo();
+		}
+		return $this->_db;
+	}
+	
+	function _setAuthentication(&$auth) {
+		$this->auth = &$auth;
+		if($auth->userId > 0)
+			$this->_events->fireEvent('onLoadAuth');
+		$this->setParam('.userId', (int) $auth->userId);
+		$this->setParam('.groupId', (int) $auth->groupId);
+		$this->setParam('.profileId', (int) $auth->profileId);
+		$this->setParam('.profile', $auth->profile);
+		$this->setParam('.userName', (string) $auth->userName);
+		$this->setParam('.userEmail', (string) $auth->userEmail);
+	}
+	
+	function &getHybridAgent($dsId) {
+		require_once(LIBDIR.'/hybrid/view/hybridagent._wc');
+		$result = &HybridAgent::getInstance($dsId);
+		return $result;
+	}
+	
+	function &getObject($objId) {
+		$result = null;
+		if(isset($this->objects[$objId]))
+			$result = &$this->objects[$objId];
+		return $result;
+	}
+	
+	function &getObjectAt($blockId) {
+		$result = null;
+		if($blockId && isset($this->blocks[$blockId])) {
+			if(sizeof($this->blocks[$blockId]) == 1)
+				$result = &$this->blocks[$blockId][0];
+			else
+				$result = &$this->blocks[$blockId];
+		}
+		return $result;
+	}
+	
+	function _registerObjects(&$objects) {
+		$this->objects = &$objects;
+		$this->_sortObjects();
+		foreach($this->objIds as $id) {
+			$obj = &$this->objects[$id];
+			if($obj->block) {
+				$this->blocks[$obj->block][] = &$obj;
+				$this->_events->attachEventListener('onLoadBlocks', array(&$obj, 'onPageLoad'));
+			}
+		}
+	}
+	
+	function injectParam(&$obj, $field, $paramKey) {
+		@list($name, $index) = explode('/', $paramKey, 2);
+		$value = $this->getParam($paramKey);
+		if($value !== null)
+			$this->inject($obj, $field, $value);
+		else
+			$this->injections[$name][$obj->obj_id][$field] = $paramKey;
+	}
+	
+	function inject(&$obj, $field, $value) {
+		if($obj && $field) {
+			if(method_exists($obj, "set{$field}"))
+				call_user_func(array(&$obj, "set{$field}"), $value);
+			elseif(substr($field, 0, 1) == '_' && method_exists($obj, $m = '_set'.substr($field, 1)))
+				call_user_func(array(&$obj, $m), $value);
+			else
+				$obj->$field = $value;
+		}
+	}
+	
+	function newCaptchaId() {
+		static $cnt = 0;
+		$cnt++;
+		$result = null;
+		while((WC_MAX_IDLE_CAPTCHA > 0) && (WC_MAX_IDLE_CAPTCHA < (sizeof((array) @$_SESSION['_cid']) + $cnt))) {
+			$cid = key($_SESSION['_cid']);
+			unset($_SESSION['_cid'][$cid]);
+		}
+		while(!$result || isset($_SESSION['_cid'][$result]))
+			$result = sprintf('%x', crc32(time() + rand()));
+		return $result;
+	}
+	
+	function throw404() {
+		$this->page->status = 404;
+		$this->smarty->caching = 0;
+	}
+	
+	function &getInstance() {
+		static $instance;
+		if(!isset($instance))
+			$instance = new Context();
+		return $instance;
+	}
+	
+	function _attachEventListener($event, $callback, $priority = PE_PRIORITY_NORMAL) {
+		$this->_events->attachEventListener($event, $callback, $priority);
+	}
+	
+	function _fireEvent($event, $args = array()) {
+		$this->_events->fireEventArgs($event, $args);
+	}
+	
+	function _fireEventArgs($event, &$args) {
+		$this->_events->fireEventArgs($event, $args);
+	}
+	
+	function _buildCrumbs() {
+		foreach($this->objIds as $id)
+			if($this->objects[$id]->crumbs)
+				$this->objects[$id]->changeCrumbs($this->crumbs);
+	}
+	
+	function _sortObjects() {
+		if(is_array($this->objIds))
+			return;
+		$objIds = array_keys(&$this->objects);
+		$objects = array(); $types = array('PRE' => array(), '*hybrid' => array(), '*named' => array(), 'POST' => array());
+		foreach($objIds as $id)
+			if(isset($types[$this->objects[$id]->block]))
+				$types[$this->objects[$id]->block][] = $id;
+			elseif($this->objects[$id]->obj_type == 'hybridbody')
+				$types['*hybrid'][] = $id;
+			else
+				$types['*named'][] = $id;
+		foreach($types as $v)
+			for($i = 0, $l = sizeof($v); $i < $l; $i++)
+				if($v[$i])
+					$objects[$v[$i]] = &$this->objects[$v[$i]];
+		$this->objIds = array_keys(&$objects);
+		$this->objects = &$objects;
+	}
+}
+?>

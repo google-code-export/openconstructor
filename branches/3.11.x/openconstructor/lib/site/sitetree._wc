@@ -1,0 +1,61 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: sitetree._wc,v 1.2 2007/02/27 11:23:21 sanjar Exp $
+ */
+require_once(LIBDIR.'/tree/tree._wc');
+
+class SiteTree extends Tree {
+	var $uri;
+	
+	function SiteTree(&$root) {
+		$this->Tree($root);
+		$this->uri['/'] = $root->id;
+	}
+	
+	function addNode(&$page) {
+		Tree::addNode($page);
+		$uri = $page->parent->getFullKey('/').$page->key.'/';
+		$this->uri[$uri] = $page->id;
+	}
+	
+	function uriExists($uri) {
+		return isset($this->uri[$uri]);
+	}
+	
+	function &getPageByUri($uri) {
+		$result = null;
+		if(isset($this->uri[$uri]))
+			$result = $this->node[$this->uri[$uri]];
+		return $result;
+	}
+	
+	function &getAllSubpages($pageId) {
+		$result = array();
+		$ids = array_keys($this->node);
+		foreach($ids as $id)
+			if($this->contains($pageId, $id))
+				$result[] = $id;
+		return $result;
+	}
+}
+?>

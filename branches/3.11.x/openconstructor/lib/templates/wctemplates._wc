@@ -1,0 +1,336 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ *
+ * All rights reserved.
+ *
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ *
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ *
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @author Sanjar Akhmedov
+ *
+ * $Id: wctemplates._wc,v 1.18 2007/03/24 20:14:34 sanjar Exp $
+ */
+require_once('wctemplate._wc');
+require_once(LIBDIR.'/smarty/wcsmartycache._wc');
+
+class WCTemplates {
+	var $ftp;
+	var $smarty, $smartyc = null;
+	var $smartycache;
+	var $map = null, $objTypes = null;
+
+	function WCTemplates() {
+	}
+
+	function add($dstype, &$template){
+		assert(!$template->id && trim($template->name) && trim($template->type));
+		System::assert('tpls.ds'.$dstype);
+		assert($this->objectSupported($template->type));
+
+		$this->parse($template);
+
+		$auth = &Authentication::getInstance();
+		WCTemplates::loadAuths($template, 0, 0, constant('WCS_WCTPL_MASK'), null);
+		$db = &WCDB::bo();
+		$db->query(sprintf(
+			'INSERT INTO wctemplates (type, wcsowner, wcsgroup, oauths, gauths, name, has_error, tpl, mockup, date)'.
+			" VALUES ('%s', {$auth->userId}, {$auth->groupId}, CONV('%s', 2, 10), CONV('%s', 2, 10), '%s', %d, '%s','%s','%s')"
+			, $template->type, $template->sRes->getOwnerAuths(), $template->sRes->getGroupAuths()
+			, addslashes($template->name), $template->hasError ? 1 : 0, addslashes($template->tpl), addslashes($template->mockup), date('Y-m-d')
+		));
+		$id = $db->lastInsertId();
+		if($id) {
+			$template->id = $id;
+			if(!$template->hasError) {
+				$this->_updateBlocks($id, $old = array(), $template->blocks);
+				$this->save_as_tpl($template);
+			}
+		}
+		return $id > 0;
+	}
+
+	function update(&$template){
+		assert($template->id > 0 && trim($template->name));
+		$old = &$this->load($template->id);
+		WCS::assert($old, 'edittpl');
+
+		$this->parse($template);
+
+		$db = &WCDB::bo();
+		$db->query(sprintf('UPDATE wctemplates SET name="%s", has_error=%d, tpl="%s", mockup="%s", date="%s" WHERE id=%d',
+			addslashes($template->name), $template->hasError ? 1 : 0, addslashes($template->tpl), addslashes($template->mockup), date('Y-m-d'), $template->id
+		));
+
+		if(!$template->hasError) {
+			$this->_updateBlocks($old->id, $old->blocks, $template->blocks);
+			$this->save_as_tpl($template);
+		}
+
+		$smc = &WCSmartyCache::getInstance();
+		if($template->type != 'page')
+			$smc->tpl_updated($template->id);
+		else
+			$smc->pagetpl_updated($template->id);
+		return true;
+	}
+
+	function _updateBlocks($tplId, &$oldBlocks, &$newBlocks) {
+		settype($tplId, 'int');
+		$db = &WCDB::bo();
+		$rm = array_diff(array_keys($oldBlocks), array_keys($newBlocks));
+		if(sizeof($rm))
+			$db->query("DELETE FROM wctemplate_blocks WHERE tpl_id = {$tplId} AND block IN ('".implode("','", $rm)."')");
+		foreach($newBlocks as $id => $v)
+			if(!isset($oldBlocks[$id]))
+				$db->query(sprintf(
+					"INSERT INTO wctemplate_blocks (tpl_id, block, run, pos) VALUES ({$tplId}, '%s', %d, %d)"
+					, addslashes($id), $v['run'] ? 1 : 0, $v['pos']
+				));
+			elseif($oldBlocks[$id]['pos'] != $v['pos'] || $oldBlocks[$id]['run'] != $v['run'])
+				$db->query(sprintf(
+					"UPDATE wctemplate_blocks SET run = %d, pos = %d WHERE tpl_id = {$tplId} AND block = '%s'"
+					, $v['run'] ? 1 : 0, $v['pos'], addslashes($id)
+				));
+	}
+
+	function &load($id){
+		$result = null;
+		settype($id, 'int');
+		$db = &WCDB::bo();
+		$res = $db->query('SELECT type, wcsowner, wcsgroup, BIN(ROUND(oauths)) as oauths, BIN(ROUND(gauths)) as gauths, name, has_error, tpl, mockup, block, run FROM wctemplates LEFT JOIN wctemplate_blocks ON (tpl_id = id) WHERE id='.$id.' ORDER BY pos');
+		if(mysql_num_rows($res) > 0) {
+			$row = mysql_fetch_assoc($res);
+			$result = new WCTemplate($row['type'], $row['name']);
+			$result->hasError = $row['has_error'] > 0;
+			$result->tpl = $row['tpl'];
+			$result->setMockup($row['mockup']);
+			$result->id = $id;
+			WCTemplates::loadAuths($result, $row['wcsowner'], $row['wcsgroup'], $row['oauths'], $row['gauths']);
+			if($row['block']) {
+				$result->addBlock($row['block'], $row['run']);
+				while($row = mysql_fetch_assoc($res))
+					$result->addBlock($row['block'], $row['run']);
+			}
+		}
+		mysql_free_result($res);
+		return $result;
+	}
+
+	function remove($ids){
+		assert(!empty($ids) && strspn($ids, ',0123456789') == strlen($ids));
+		$sCheck = WCS::getAuthCheckQuery('removetpl');
+		$db = &WCDB::bo();
+		if($sCheck != 1) {
+			$res = $db->query('SELECT id FROM wctemplates WHERE id IN('.$ids.') AND '.$sCheck);
+			$ids = array();
+			for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++)
+				list($ids[]) = mysql_fetch_row($res);
+			mysql_free_result($res);
+		} else
+			$ids = explode(',', $ids);
+		if(!sizeof($ids)) return;
+		$this->load_smarty();
+		foreach($ids as $k=>$id){
+			$this->smarty->clear_cache($id.'.tpl');
+			$this->smarty->clear_compiled_tpl($id.'.tpl');
+			$tpl=$this->smarty->template_dir.$id.'.tpl';
+			@unlink($tpl);
+			if(@file_exists($tpl))
+				unset($ids[$k]);
+		}
+		$ids=implode(',',$ids);
+		if(sizeof($ids)) {
+			$db->query('UPDATE sitepages SET tpl = 0 WHERE tpl IN('.$ids.')');
+			$db->query('UPDATE objects SET tpl = 0 WHERE tpl IN('.$ids.')');
+			$db->query('DELETE FROM wctemplates WHERE id IN('.$ids.')');
+			$db->query('DELETE FROM wctemplate_blocks WHERE tpl_id IN('.$ids.')');
+		}
+		$smc = &WCSmartyCache::getInstance();
+		$smc->tpl_updated($ids);
+		$smc->pagetpl_updated($ids);
+	}
+
+	function updateAuths(&$tpl) {
+		assert($tpl->id > 0);
+		$querySet = '';
+		$userId = Authentication::getUserId();
+		if($tpl->sRes->owner > 0 && $userId == WCS_ROOT_ID)
+			$querySet .= ", wcsowner = {$tpl->sRes->owner}";
+		if($tpl->sRes->group > 0 && $userId == WCS_ROOT_ID)
+			$querySet .= ", wcsgroup = {$tpl->sRes->group}";
+		$querySet .= sprintf(', oauths = CONV("%s", 2, 10), gauths = CONV("%s", 2, 10)', $tpl->sRes->getOwnerAuths(), $tpl->sRes->getGroupAuths());
+		if($querySet) {
+			$querySet = substr($querySet, 1);
+			$db = &WCDB::bo();
+			$db->query("UPDATE wctemplates SET $querySet WHERE id = {$tpl->id} AND ".WCS::getAuthCheckQuery('edittpl.chmod'));
+		}
+	}
+
+	function save_as_tpl(&$template){
+		if(!$template->id)
+			return false;
+//			$content = &$template->tpl;
+		// Removing whitespaces between commands
+		$content = preg_replace('/(\}|>)(\\r?\\n[ \\t]*)(\{|<)/ue',"'\\1' != '>' || '\\3' != '<' ? '\\1\\3' : '\\1\\2\\3'",$template->tpl);
+		$this->load_ftp();
+		$this->ftp->open();
+		$this->ftp->write_file(WC_SMARTY_TEMPLATES.'/'.$template->id.'.tpl',$content);
+		$this->ftp->close();
+		if($this->ftp->success())
+			return true;
+		echo $this->ftp->get_message(true);
+		return false;
+	}
+
+	function loadAuths(&$tpl, $owner, $group, $ownerAuths, $groupAuths) {
+		$tpl->sRes = new WCSResource($tpl->name, (int) $owner, (int) $group);
+
+		$tpl->sRes->addAction('edittpl');
+		$tpl->sRes->addAction('edittpl.chmod');
+		$tpl->sRes->addAction('removetpl');
+
+		$tpl->sRes->setAuthorities($ownerAuths, $groupAuths);
+	}
+
+	function get_headline($type, $pagesize = 20, $page = 1, $searchclause = '') {
+		$result = array();
+		$page = intval($page);
+		if(--$page < 0) $page=0;
+		if($type == 'importtables') {
+			$queryf = 'SELECT t.id, t.name, t.date, 1 as published, has_error FROM wctemplates t WHERE t.type="%s" %s ORDER BY t.name LIMIT %d,%d';
+		} else {
+			$queryf = 'SELECT t.id, t.name, t.date, j.id as published, has_error FROM wctemplates t LEFT JOIN '.($type == 'page' ? 'sitepages' : 'objects').' j ON (t.id = j.tpl) WHERE t.type="%s" %s GROUP BY t.id ORDER BY t.name LIMIT %d,%d';
+		}
+		$query = sprintf($queryf, $type, $searchclause, $page * $pagesize, $pagesize);
+		$db = &WCDB::bo();
+		$res = $db->query($query);
+		if(mysql_num_rows($res) > 0)
+			while($row = mysql_fetch_assoc($res))
+				$result[$row['id']] = array(
+					'name' => $row['name'],
+					'published' => $row['published'] > 0,
+//					'invalid' => $row['has_error'] > 0,
+					'tpl' => $row['id'].'.tpl',
+					'date' => date('j M Y', strtotime($row['date']))
+				);
+		return $result;
+	}
+
+	function updateTemplatesAuths(&$ids, &$set, &$unset) {
+		assert(!empty($ids) && strspn($ids, ',0123456789') == strlen($ids));
+		$userId = Authentication::getUserId();
+		$querySet = '';
+		if($set->owner > 0 && $userId == WCS_ROOT_ID)
+			$querySet .= "wcsowner = {$set->owner}, ";
+		if($set->group > 0 && $userId == WCS_ROOT_ID)
+			$querySet .= "wcsgroup = {$set->group}, ";
+		$db = &WCDB::bo();
+		$db->query(
+			sprintf("UPDATE wctemplates SET $querySet oauths = (ROUND(oauths) | CONV('%s', 2, 10)) & CONV('%s', 2, 10), gauths = (ROUND(gauths) | CONV('%s', 2, 10)) & CONV('%s', 2, 10) WHERE id IN ($ids) AND %s"
+				, $set->getOwnerAuths(), $unset->getOwnerAuths(), $set->getGroupAuths(), $unset->getGroupAuths(), WCS::getAuthCheckQuery('edittpl.chmod')
+			)
+		);
+	}
+
+	function &getAggregateTemplate(&$ids) {
+		assert($ids > 0 && strspn($ids, ',0123456789') == strlen($ids));
+		$result = null;
+		$db = &WCDB::bo();
+		$res = $db->query("SELECT BIN(BIT_AND(ROUND(oauths))) as setoauths, BIN(BIT_AND(ROUND(gauths))) as setgauths, BIN(~BIT_AND(~ROUND(oauths))) as unsetoauths, BIN(~BIT_AND(~ROUND(gauths))) as unsetgauths FROM wctemplates WHERE id IN($ids)");
+		if(mysql_num_rows($res) == 1) {
+			$tpl = &WCTemplates::load((int) $ids);
+			assert($tpl != null);
+			$tpl->id = 0;
+			$result = array(wcfClone($tpl), wcfClone($tpl));
+//			unset($result[1]->sRes);
+			$result[1]->sRes = &$result[0]->sRes->copy();
+			$r = mysql_fetch_row($res);
+			$result[0]->sRes->setAuthorities($r[0], $r[1]);
+			$result[1]->sRes->setAuthorities($r[2], $r[3]);
+			mysql_free_result($res);
+			$res = $db->query("SELECT DISTINCT wcsowner FROM wctemplates WHERE id IN ($ids) LIMIT 2");
+			$result[0]->sRes->setOwner((int) mysql_result($res, 0 , 'wcsowner'));
+			$result[1]->sRes->setOwner(mysql_num_rows($res) == 1 ? $result[0]->sRes->owner : -1);
+			mysql_free_result($res);
+			$res = $db->query("SELECT DISTINCT wcsgroup FROM wctemplates WHERE id IN ($ids) LIMIT 2");
+			$result[0]->sRes->setGroup((int) @mysql_result($res, 0 , 'wcsgroup'));
+			$result[1]->sRes->setGroup(mysql_num_rows($res) == 1 ? $result[0]->sRes->group : -1);
+		}
+		mysql_free_result($res);
+		return $result;
+	}
+
+	function parse(&$tpl) {
+		return $tpl->_parse($this->getSmartyCompiler());
+	}
+
+	function &get_all_tpls($type) {
+		$db = &WCDB::bo();
+		$res = $db->query('SELECT id, name FROM wctemplates WHERE type="'.$type.'" ORDER BY name');
+		$result = array();
+		if(mysql_num_rows($res) > 0)
+			while($row = mysql_fetch_assoc($res))
+				$result[$row['id']] = $row['name'];
+		mysql_free_result($res);
+		return $result;
+	}
+
+	function &get_map() {
+		if($this->map)
+			return $this->map;
+		$map = array();
+		require_once('map._wc');
+		$this->map=&$map;
+		return $this->map;
+	}
+
+	function objectSupported($type) {
+		if(!is_array($this->objTypes)) {
+			$map = &$this->get_map();
+			$this->objTypes = array();
+			foreach($map as $dstype => $v)
+				foreach(current($v) as $t => $j)
+					$this->objTypes[$t] = true;
+		}
+		return isset($this->objTypes[$type]);
+	}
+
+	//Lazy init
+	function load_ftp() {
+		if(is_object($this->ftp)) return;
+
+		loadClass('wcftp', '/wcftp._wc');
+		$this->ftp = WCFTP::getNew();
+	}
+
+	function load_smarty() {
+		if(!is_object($this->smarty)) {
+			require_once(LIBDIR.'/smarty/wcsmarty._wc');
+			$this->smarty = new WCSmarty();
+		}
+	}
+
+	function &getSmartyCompiler() {
+		if(!is_object($this->smarty)) {
+			require_once(LIBDIR.'/smarty/wcsmarty._wc');
+			$smarty = new WCSmarty();
+			$smarty->compiler_class = 'WCTSmartyPrecompiler';
+			$smarty->compiler_file = LIBDIR.'/smarty/wctsmartyprecompiler._wc';
+			$this->smartyc = $smarty;
+		}
+		return $this->smartyc;
+	}
+}
+?>

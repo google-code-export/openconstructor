@@ -1,0 +1,2 @@
+This folder contains all files created by DSHybrid & Catalog.
+Do not remove this file.

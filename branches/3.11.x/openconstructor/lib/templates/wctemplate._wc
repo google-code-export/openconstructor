@@ -1,0 +1,85 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: wctemplate._wc,v 1.9 2007/02/27 11:23:19 sanjar Exp $
+ */
+
+class WCTemplate {
+	var $id = null, $type, $name;
+	var $tpl, $mockup = null, $blocks = array(), $hasError = false;
+	var $meta = null, $errors = array();
+	var $sRes;
+	
+	function WCTemplate($type,$name){
+		$this->type = $type;
+		$this->name = $name;
+	}
+	
+	function setMockup($mockup) {
+		if($this->type == 'page')
+			$this->mockup = (string) $mockup;
+	}
+	
+	function addBlock($block, $run) {
+		if($block && (!isset($this->blocks[$block]) || !$this->blocks[$block]['run']))
+			$this->blocks[$block] = array(
+				'id' => $block,
+				'run' => $run > 0,
+				'pos' => sizeof($this->blocks)
+			);
+	}
+	
+	function addError($message, $type) {
+		if($type == E_USER_ERROR)
+			$this->hasError = true;
+		$this->errors[] = array('msg' => preg_replace('~^\s*\[in\s+\d+\s+~', '[', $message), 'type' => $type);
+	}
+	
+	function getBlocks() {
+		return $this->blocks;
+	}
+	
+	function is_equal(&$template, $exact = false){
+		return $this->id == $template->id
+			&& (!$exact || $this->type == $template->type)
+			&& $this->name == $template->name
+			&& $this->tpl == $template->tpl;
+	}
+	
+	function _parse(&$smarty) {
+		require_once(LIBDIR.'/templates/wctparsehelper._wc');
+		$blocks = $this->blocks; $this->blocks = array();
+		$this->errors = array(); $this->hasError = false;
+		$helper = & new WCTParseHelper($this);
+		$smarty->register_compiler_function('run_block', array(&$helper, 'smarty_run_block'));
+		$smarty->register_compiler_function('def_block', array(&$helper, 'smarty_def_block'));
+		$smarty->register_function('@error_handler', array(&$helper, 'smarty_error_handler'));
+		$smarty->_compile_source($this->id, $this->tpl, $compiled = null);
+		$smarty->unregister_compiler_function('run_block');
+		$smarty->unregister_compiler_function('def_block');
+		$smarty->unregister_function('@error_handler');
+		if($this->hasError)
+			$this->blocks = $blocks;
+		return !$this->hasError;
+	}
+}
+?>

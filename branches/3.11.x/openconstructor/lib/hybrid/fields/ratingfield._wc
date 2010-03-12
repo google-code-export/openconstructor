@@ -1,0 +1,135 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: ratingfield._wc,v 1.7 2007/02/27 11:23:19 sanjar Exp $
+ */
+require_once('fieldutils._wc');
+
+class RatingField extends HybridField {
+	var $fromDS, $ds;
+	
+	function RatingField($key, $header, $fromDS) {
+		$this->HybridField($key, $header, 'rating', 'rating', false);
+		$this->fromDS = intval($fromDS);
+		$this->ds = null;
+	}
+	
+	function create() {
+		$ds = &$this->getDS();
+		if($ds->ds_id > 0) {
+			$db = &WCDB::bo();
+			$res = $db->query("SELECT id FROM {$this->table} WHERE fromds={$ds->ds_id} LIMIT 1");
+			$isFree = mysql_num_rows($res) == 0;
+			mysql_free_result($res);
+			if($isFree) {
+				HybridField::create();
+				if($this->id) {
+					$ds->increaseLock();
+					$this->update();
+					return $this->id;
+				}
+			}
+		}
+		return false;
+	}
+	
+	function update() {
+		$db = &WCDB::bo();
+		$db->query(
+			sprintf("UPDATE {$this->table} SET header='%s', isreq=0, fromds=%d WHERE id={$this->id}"
+			, addslashes($this->header), intval($this->fromDS))
+		);
+	}
+	
+	function remove() {
+		$ds = &$this->getDS();
+		$db = &WCDB::bo();
+		$res = $db->query(sprintf("SELECT r.id FROM dsrating r, {$this->ds_table} d WHERE r.ds_id = %d AND r.hdoc = d.id", $this->fromDs));
+		if(mysql_num_rows($res) > 0) {
+			while($r = mysql_fetch_row($res))
+				$doc[] = $r[0];
+			$ids = implode(',', $doc);
+			WCS::runAs(WCS_ROOT_ID);
+			$ds->delete($ids);
+			WCS::stopRunAs();
+		}
+		mysql_free_result($res);
+		$ds->decreaseLock(); 
+		HybridField::remove();
+	}
+	
+	function onCreateDocument(&$doc) {
+		$ds = &$this->getDS();
+		WCS::runAs(WCS_ROOT_ID);
+		$doc->fields[$this->key] = $ds->add($doc->id);
+		WCS::stopRunAs();
+	}
+	
+	function onUpdateDocument(&$old, &$new) {
+		$new->fields[$this->key] = $old->fields[$this->key];
+		if(!$this->isValid($new->fields[$this->key]))
+			$this->onCreateDocument($new);
+	} 
+	
+	function onRemoveDocument(&$doc) {
+		if($doc->fields[$this->key]){
+			$ds = &$this->getDS();
+			WCS::runAs(WCS_ROOT_ID);
+			$ds->delete($doc->fields[$this->key]);
+			WCS::stopRunAs();
+		}
+	}
+	
+	function fetchValue(&$doc) {
+		$result = array('id' => null, 'rating' => null, 'votes' => null);
+		if($rating = FieldUtils::getRatingDetails($this->fromDS, $doc->fields[$this->key]))
+			$result = array(
+				'id' => $doc->fields[$this->key],
+				'rating' => $rating[0],
+				'votes' => $rating[1]
+			);
+		$doc->fields[$this->key] = &$result;
+	}
+	
+	function convertToPlain(&$doc) {
+		$doc->fields[$this->key] = null;
+	}
+	
+	function isValid($value) {
+		return $value > 0;
+	}
+
+	function getMysqlType() {
+		switch($this->type) {
+			case 'rating':
+				return 'INT(11) UNSIGNED';
+		}
+		return null;
+	}
+	
+	function &getDS() {
+		if(!is_object($this->ds))
+			$this->ds = &FieldUtils::loadDS($this->type, $this->fromDS);
+		return $this->ds;
+	}
+}
+?>

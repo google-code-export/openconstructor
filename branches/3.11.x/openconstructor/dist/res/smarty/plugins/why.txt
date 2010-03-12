@@ -1,0 +1,2 @@
+Drop custom Smarty plugins here.
+Do not remove this file.

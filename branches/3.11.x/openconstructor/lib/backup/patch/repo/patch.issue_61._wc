@@ -1,0 +1,27 @@
+<?php
+class Patch_issue_61 extends Patch {
+	
+	function Patch_issue_61() {
+		$this->Patch("Issue 61");
+	}
+
+	function apply() {
+		$sql = array(
+			"ALTER TABLE sitetree
+				CHANGE `name` `name` VARCHAR(128) NOT NULL DEFAULT '',
+				CHANGE `header` `header` VARCHAR(128) NOT NULL DEFAULT ''",
+			"ALTER TABLE sitepages
+				CHANGE `title` `title` VARCHAR(255) NOT NULL DEFAULT ''"
+		);
+		foreach ($sql as $q) {
+			$this->db->query($q);
+			if ($this->db->errorCode() != 0) {
+				$this->error(sprintf('Failed to execute SQL. Error = "%s", Query = "%s"', $this->db->error(), $q));
+				return false;
+			}
+		}
+		return true;
+	}
+
+}
+?>

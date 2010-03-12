@@ -1,0 +1,151 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Картинка фотогалереи.
+ * 
+ * Объект вывода.
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: galleryimage._wc,v 1.17 2007/02/27 11:23:21 sanjar Exp $
+ */
+
+class GalleryImage extends WCObject {
+	var $imageid, $byId;
+	var $ds_id;
+	var $dynamic_ds;
+	var $doc_id;
+	var $no404;
+	var $isPub; // use publication id directly
+	
+	function GalleryImage() {
+		$this->DSTable='dsgallery';
+		$this->ds_type='gallery';
+		$this->obj_type='galleryimage';
+		$this->imageid='image_id';
+		$this->byId = false;
+		$this->dynamic_ds=false;
+		$this->isPub=false;
+		$this->no404=false;
+		$this->caching=2;
+		$this->cached_by_WC=true;
+	}
+	
+	function getCacheId() {
+		$doc = &$this->getDocument();
+		$cacheId = $this->obj_id.'|'.intval(@$doc['image']['id']);
+		return $cacheId;
+	}
+	
+	function fetchData(&$smarty) {
+		$result = false;
+		$doc = &$this->getDocument();
+		if(sizeof($doc['image']) > 0) {
+			$smarty->assign('header', $this->header);
+			$smarty->assign_by_ref('prev', $doc['prev']);
+			$smarty->assign_by_ref('image', $doc['image']);
+			$smarty->assign_by_ref('next', $doc['next']);
+			$result = array('header', 'prev', 'image', 'next');
+		} elseif(!$this->no404)
+			$this->ctx->throw404();
+		return $result;
+	}
+	
+	function changeCrumbs(&$crumbs){
+		$doc = &$this->getDocument();
+		$crumbs->set($this->ctx->page->uri, (string) @$doc['image']['header']);
+	}
+	
+	function &getDocument() {
+		if(!isset($this->doc)) {
+			$this->doc = array('prev' => array(), 'image' => array(), 'next' => array());
+			$offset = intval($this->doc_id ? $this->doc_id : $this->ctx->getParam($this->imageid));
+			if($offset > 0) {
+				$result = array();
+				$query = 'SELECT g.real_id as id, g.header, g.content, g.img_intro, g.img_main as image FROM '.$this->DSTable.' g';
+				if($this->byId) {
+					$l = 2;
+					$query .= 
+						' WHERE g.published!=0 AND g.id = '.$offset;
+				} else {
+					$o = $offset > 1 ? $offset - 2 : $offset - 1;
+					$l = $offset > 1 ? 3 : 2;
+					if ($this->isPub) {
+						$query .= 
+							' INNER JOIN dspublication p ON (g.ds_id=p.gallery)'.	
+							' WHERE g.published!=0 AND p.id IN ('.$this->getDsId().')'.
+							' ORDER BY g.date DESC';
+					} else {
+						$query .= 
+						' WHERE g.published!=0 AND g.ds_id IN ('.$this->getDsId().')'.
+						' ORDER BY g.date DESC';
+					}
+					$query .= " LIMIT $o, $l";
+					$thref = $this->ctx->getPlainPattern($_SERVER['REQUEST_URI'], $this->imageid);
+				}
+				$db = &$this->ctx->_getDB();
+				$res = $db->query($query);
+				if(mysql_num_rows($res) > 0) {
+					while($r = mysql_fetch_assoc($res))
+						$result[] = array(
+							'id' => $r['id'],
+							'header' => escapeTags($r['header']),
+							'content' => $r['content'],
+							'image' => $r['image'],
+							'image_intro' => $r['img_intro']
+						);
+					if($l == 3) {
+						$this->doc['prev'] = $result[0];
+						$this->doc['prev']['href'] = sprintf($thref, $offset - 1);
+					}
+					if(isset($result[$l - 2]))
+						$this->doc['image'] = $result[$l - 2];
+					if(isset($result[$l - 1])) {
+						$this->doc['next'] = $result[$l - 1];
+						$this->doc['next']['href'] = sprintf($thref, $offset + 1);
+					}
+				}
+				mysql_free_result($res);
+			}
+		}
+		return $this->doc;
+	}
+	
+	// ! Этот метод использует класс + GalleryImgPager
+	function getDsId() {
+		if($this->dynamic_ds) {
+		    $dsId = $this->ctx->getParam($this->ds_id);
+	        return strspn($dsId, '0123456789,') == strlen($dsId) ? $dsId : intval($dsId);
+		}
+		return $this->ds_id;
+	}
+	
+	function _inlineEditGetDocId() {
+		$doc = &$this->getDocument();
+		return sizeof($doc['image']) ? $doc['image']['id'] : null;
+	}
+		
+	function &_getDSFields() {
+		static $result;
+		if(!is_array(&$result)) $result = array('ds_id', 'dynamic_ds');
+		return $result;
+	}
+}
+?>

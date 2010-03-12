@@ -1,0 +1,210 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Класс представляющий страницу сайта.
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: page._wc,v 1.19 2007/02/27 11:23:21 sanjar Exp $
+ */
+
+define('ROBOTS_I_F', 0);
+define('ROBOTS_I_NOF', 1);
+define('ROBOTS_NOI_F', 2);
+define('ROBOTS_NOI_NOF', 3);
+
+class Page {
+	var $id, $parent, $index;
+	var $name, $uri, $header;
+	var $linkTo, $published, $locked, $router;
+	var $tpl, $location, $users;
+	var $caching, $cacheLife, $cacheVary, $cacheGz;
+	var $addTitle, $title, $cTitle, $contentType, $css, $meta, $robots;
+	var $profilesLoad, $profilesDynamic, $profilesInherit;
+	var $objects;
+	var $_path;
+	var $sRes;
+	
+	function Page($name, $header) {
+		$this->name = strtolower($name);
+		$this->header = $header;
+		$this->objects = null;
+		$this->css = array();
+		$this->users = array();
+		$this->meta = array();
+	}
+	
+	function setCss($css) {
+		$this->css = empty($css) ? array() : (is_array($css) ? $css : explode(',', $css));
+	}
+	
+	function setUsers($users) {
+		if(empty($users)) {
+			$this->users = array(WCS_EVERYONE_ID);
+		} else {
+			$this->users = is_array($users) ? $users : explode(',', $users);
+			if(array_search(WCS_EVERYONE_ID, $this->users) !== false || !sizeof($this->users))
+				$this->users = array(WCS_EVERYONE_ID);
+		}
+	}
+	
+	function setCacheVary($cacheVary) {
+		$this->cacheVary = '';
+		$params = array();
+		if(preg_match_all('/(\{(ctx|get|route)\.[\-\.a-z0-9_\/]+\})/ui', $cacheVary, $params)) {
+			asort($params[1]); 
+			$this->cacheVary = implode("\n", array_unique($params[1]));
+		}
+	}
+	
+	function &getObjects($reload = false) {
+		assert($this->id > 0);
+		if($reload || $this->objects == null) {
+			$this->objects = array();
+			$db = &WCDB::bo();
+			$res = $db->query("SELECT o.id, o.obj_type as type, o.name, a.block, a.rule, a.observer, a.crumbs FROM siteobjects a, objects o WHERE a.page_id = $this->id AND a.obj_id = o.id ORDER BY a.block, o.name");
+			if(mysql_num_rows($res) > 0) {
+				while($r = mysql_fetch_assoc($res))
+					$this->objects[$r['id']] = array(
+						'type' => $r['type'],
+						'name' => $r['name'],
+						'block' => $r['block'],
+						'rule' => $r['rule'] > 0,
+						'observer' => $r['observer'] > 0,
+						'crumbs' => $r['crumbs'] > 0
+					);
+			}
+			mysql_free_result($res);
+		}
+		return $this->objects;
+	}
+	
+	function setObjectProps($objId, $block, $isObserver = false, $isCrumbs = false) {
+		if(isset($this->objects[$objId])) {
+			$this->objects[$objId]['block'] = (string) $block;
+			$this->objects[$objId]['observer'] = $isObserver ? true : false;
+			$this->objects[$objId]['crumbs'] = $isCrumbs ? true : false;
+		}
+	}
+	
+	function getAllEvents() {
+		static $events;
+		if(!is_array($events))
+			$events = array(
+				'onInitialize',
+				'onLoadSitemap',
+				'onBeforeAuth', 'onLoadAuth', 'onCreateAuth', 'onRestoreAuth', 'onCloseAuth', 'onLoadProfile',
+				'onCreateSmarty',
+				'onDBConnect', 'onLoadObjects', 'onLoadBlocks', 'onSmartyAssign'
+			);
+		return $events;
+	}
+	
+	function isNameValid($name) {
+		return preg_match('~^[A-Za-z0-9][A-Za-z0-9\\-_]{0,127}$~', $name);
+	}
+	
+	function compileTitle() {
+		$fields = array();
+		$result = Page::_escapeSingleQuotes($this->title);
+		$found = preg_match_all(
+			'/(?<!\{)\{('.
+				'((\$|\:)[A-Za-z0-9_\-\.\/]+)'. // {$abc}, {:abc}
+				'|(\-?[0-9]+(\|[^\'\}]*)?)'. // {1}, {-1| &gt; }
+				'|((\*|\.|(\/[A-Za-z0-9\-]+)*\/)(\|[^\'\}]*)?)'. // {/about/}, {/abc/| &gt; }
+			')\}(?!\})/u'
+			, $result, $fields
+		);
+		if($found) {
+			$fields = array_unique($fields[1]);
+			foreach($fields as $i => $f) {
+				$patterns[] = '/(?<!\\{)\\{'.preg_quote($f, '/').'\\}(?!\\})/u';
+				$part = $sep = $param = null;
+				switch($f{0}) {
+					case '$':
+						$param = substr($f, 1);
+					break;
+					case '.':
+						$part = $this->uri;
+						if(($pos = utf8_strpos($f, '|')) !== false)
+							$sep = $pos + 1 < utf8_strlen($f) ? utf8_substr($f, $pos + 1) : '';
+					break;
+					case ':':
+						$part = substr($f, 1);
+					break;
+					case '/':
+					default:
+						$p = explode('|', $f, 2);
+						$part = $p[0];
+						if(sizeof($p) > 1)
+							$sep = $p[1];
+						if($part{0} != '/' && $part != '*')
+							$part = $this->getParentUri(intval($part));
+				}
+				if($param !== null)
+					$reps[] = sprintf('\'.$x->getParam(\'%s\').\'', Page::_escapeSingleQuotes($param));
+				elseif($part == '*')
+					$reps[] = sprintf('\'.$c->getFull(%s).\'', $sep === null ? '' : '\''.Page::_escapeSingleQuotes($sep).'\'');
+				elseif(!$part || ($part{0} == '/' && strpos($this->uri, $part) !== 0))
+					$reps[] = "\{$f}";
+				else
+					$reps[] = sprintf('\'.$c->get(\'%s\'%s).\'', Page::_escapeSingleQuotes($part), $sep === null ? '' : ',\''.Page::_escapeSingleQuotes($sep).'\'');
+			}
+			$result = preg_replace($patterns, $reps, $result);
+		}
+		$this->cTitle = "'$result'";
+	}
+	
+	function getParentUri($level = -1) {
+		$p = &$this->getPath();
+		return $level < 0 ? @$p[sizeof($p) + $level - 1] : @$p[$level];
+	}
+	
+	function &getPath() {
+		if(!isset($this->_path)) {
+			$pos = 0;
+			while(($pos = strpos($this->uri, '/', $pos)) !== false)
+				$this->_path[] = substr($this->uri, 0, ++$pos);
+		}
+		return $this->_path;
+	}
+	
+	function loadAuths($owner, $group, $ownerAuths, $groupAuths) {
+		$this->sRes = & new WCSResource("{$this->header} [uri = {$this->uri}]", (int) $owner, (int) $group);
+		
+		$this->sRes->addAction('editpage');
+		$this->sRes->addAction('editpage.caching');
+		$this->sRes->addAction('editpage.chmod');
+		$this->sRes->addAction('editpage.publish');
+		$this->sRes->addAction('editpage.uri');
+		$this->sRes->addAction('editpage.security');
+		$this->sRes->addAction('managesub');
+		$this->sRes->addAction('pageblock');
+		$this->sRes->addAction('pageblock.manage');
+		$this->sRes->addAction('removepage');
+		
+		$this->sRes->setAuthorities($ownerAuths, $groupAuths);
+	}
+	
+	function _escapeSingleQuotes($str) {
+		return strtr($str, array('\'' => '\\\'', '\\' => '\\\\'));
+	}
+}
+?>
