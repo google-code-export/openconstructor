@@ -26,9 +26,14 @@ require_once(LIBDIR.'/wcdatasource._wc');
 require_once('hybriddocument._wc');
 require_once('hybridrecord._wc');
 
+require_once(LIBDIR.'/phpsource/phpcallback._wc');
+require_once(LIBDIR.'/site/pageevents._wc');
+
 class DSHybrid extends WCDataSource {
 	var $key, $parent, $path;
 	var $record;
+	var $events; // Transient
+	var $listeners;
 	var $readSQL;
 	var $autoPublish;
 	var $indexedDoc, $docIntro, $indexedDocQuery;
@@ -43,11 +48,17 @@ class DSHybrid extends WCDataSource {
 		$this->record = null;
 		$this->readSQL = null;
 		$this->autoPublish = true;
+		$this->events = null;
+		$this->listeners = array(
+						'onDocCreate' => 0,
+						'onDocUpdate' => 0,
+						'onDocDelete' => 0
+					);
 		$this->editTpl = null;
 	}
 
 	function save() {
-		unset($this->record,  $this->readSQL, $this->indexedDocQuery);
+		unset($this->record,  $this->readSQL, $this->indexedDocQuery, $this->events);
 		return WCDataSource::save();
 	}
 
@@ -92,6 +103,13 @@ class DSHybrid extends WCDataSource {
 			$this->updateSize();
 			$this->addToIndex($id);
 			$this->evictDocCache();
+			// Event Handler
+			if ($this->listeners['onDocCreate'] > 0) {
+				$args = array(
+						'docId' => $id
+					);
+				$this->_fireEvent('onDocCreate', $args);
+			}
 		} else {
 			$record->destroyDocument($doc);
 			$this->removeEmptyDocuments(array($doc->id));
@@ -124,6 +142,16 @@ class DSHybrid extends WCDataSource {
 			$this->updateIndex($old->id);
 
 		$this->evictDocCache($doc->id);
+		
+		//Event handler
+		if ($this->listeners['onDocUpdate'] > 0) {
+			$args = array(
+					'docId' => $doc->id,
+					'old' => &$old,
+					'doc' => &$doc
+				);
+			$this->_fireEvent('onDocUpdate', $args);
+		}
 
 		return $result;
 	}
@@ -290,6 +318,24 @@ class DSHybrid extends WCDataSource {
 
 	function &getCopiableProps() {
 		assert(true === false);
+	}
+	
+	function updateDocumentPart($docId, $fieldId, $id) {
+		
+	}
+
+	function _fireEvent($event, &$args) {
+		if ($this->events == null) {
+			$this->events = new PageEvents();
+			if (is_array($this->listeners))
+				foreach ($this->listeners as $name => $id)
+					if ($id > 0)
+						$this->events->attachEventListener($name, PHPCallback::_newCallback($id));
+		
+		}
+		
+		$args['ds'] = &$this;
+		$this->events->fireEventArgs($event, $args);
 	}
 }
 ?>

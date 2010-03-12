@@ -22,6 +22,8 @@
  * 
  * $Id: phpcallback._wc,v 1.3 2007/02/27 11:23:18 sanjar Exp $
  */
+require_once(LIBDIR.'/context._wc'); // Used by included php code
+require_once(LIBDIR.'/wcobject._wc'); // Used by included php code
 
 class PHPCallback extends WCObject {
 	var $sourcePath, $source;

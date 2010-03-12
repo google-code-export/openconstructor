@@ -92,6 +92,12 @@
 	define('PAGE_URI_NEW','Новый URI');
 	define('BTN_MOVE','Переместить');
 
+	//Копировать страницу
+	define('H_COPY_PAGE','Копирование страницы');
+	define('COPY_TO','Копировать в');
+	define('PUBLISH_PAGE_WITH_SUBSECTIONS','Опубликовать включая подразделы');
+	define('BTN_COPY','Копировать');
+
 	// Предположение cache id
 	define('H_CACHE_VARY_SUGGEST', 'Предположение зависимостей кеша');
 	define('SUGGESTTIONS_MAY_BE_INVALID', 'Система может ошибатся при автоматичеком определении идентификатора кеша. Особенно если на странице работает инъекция объектов.');

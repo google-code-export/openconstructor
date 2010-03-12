@@ -1,41 +1,41 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: main._wc,v 1.17 2007/02/27 11:23:19 sanjar Exp $
  */
 	error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
-	
+
 	//Ссылка
 	define('WC_HOMEPAGE_URI', 'http://www.openconstructor.org');
 	//Копирайты
 	define('WC_COPYRIGHTS','&#169; 2003—<script>document.writeln((new Date()).getUTCFullYear());</script> eSector Solutions, LLC.');
 	define('WC_READ_LICENSE_BEFORE_USING','Please read <a href="%s/LICENSE.txt">GNU General Public License</a> before using and/or distributing Open Constructor.');
 	define('WC_READ_LICENSE_AT_GNU','You can also read this license at <a href="http://www.gnu.org/licenses/gpl.html">official site of GNU</a>.');
-	
+
 	//Сессия
 	define('EDITING_SITE','You are Editing');
 	define('CURRENT_USER','Current User');
 	define('ABOUT_WC','About Open Constructor');
 	define('SWITCH_USER','Switch User');
 	define('LOGOUT','Logout');
-	
+
 	//Вкладки
 	define('SITEMAP','Sitemap');
 	define('DATASOURCES','Data');
@@ -43,7 +43,7 @@
 	define('TEMPLATES','Templates');
 	define('USERS','Users');
 	define('HELP','Help');
-	
+
 	//Общие
 	define('REFRESH','Refresh');
 	define('REMOVE','Delete');
@@ -58,7 +58,7 @@
 	define('INFO','Information');
 	define('SHOW_HIDE_PANEL','Show/Hide Panel');
 	define('HIDE_PANEL','Hide Panel');
-	
+
 	//Авторизация
 	define('H_AUTHORIZE','Authorization');
 	@define('USR_LOGIN','Login');
@@ -66,27 +66,27 @@
 	define('BTN_AUTHORIZE','Enter');
 	@define('BTN_CANCEL','Cancel');
 	define('INSTALLER_FIRST_LOGON_I','Open Constructor was successfully installed.<br>Please log in as Administrator using username <b>root</b> and empty password and change administrator’s password');
-	
+
 	//Выход
 	define('H_EXIT','Exit');
-	
+
 	//Карта сайта :: Toolbar
 	define('SAVE','Save');
 	define('INCLUDE_OBJECT','Add Object');
-	
+
 	//Карта сайта :: Headline
 	define('HL_OBJECT_NAME','Object Name');
 	define('HL_TYPE','Type');
 	define('HL_BLOCK','Block');
 	define('HL_OPEN_IN_NEW_WINDOW','Open in a new Window');
 	define('THIS_OBJ_HB_REMOVED_W','This object was removed');
-	
+
 	//Карта сайта :: Сообщения
 	define('REMOVE_PAGE_Q','Remove Page');
 	define('SURE_REMOVE_PAGE_Q','Are you sure you want to delete the Page?');
 	define('EXCLUDE_SELECTED_OBJECTS_Q','Exclude Selected objects?');
 	define('YOU_CANNOT_REMOVE_SITEROOT_W','You CAN NOT delete Root Page!');
-	
+
 	//Данные :: Toolbar
 	define('CREATE_DOCUMENT','New Document');
 	define('CREATE_ALIAS','Create Alias');
@@ -103,7 +103,7 @@
 	define('CREATE_DS_PHPSOURCE','Create HTML Source');
 	define('CREATE_DS_FILE','Create Files Section');
 	define('EDIT_CURRENT_DS','Edit Current Section');
-	
+
 	//Данные :: Headline
 	define('HL_NAME','Name');
 	define('HL_DATE','Date');
@@ -113,7 +113,7 @@
 	define('HL_AUTHOR','Author');
 	define('HL_FILENAME','File');
 	define('HL_SIZE','Size');
-	
+
 	//Данные :: Right Panel
 	define('RP_SEARCH_FOR_DOCUMENTS','Search for Documents');
 	define('RP_SHOW_URI','Show URI');
@@ -125,60 +125,60 @@
 	define('RP_SHOW_FILENAME','Show Filename');
 	define('RP_SHOW_FILESIZE','Show File Size');
 	define('RP_DOCUMENTS_PER_PAGE','Documents per Page');
-	
+
 	//Данные :: Сообщения
 	define('REMOVE_DS_Q','Remove Section?');
 	define('SURE_REMOVE_DS_Q','Are you sure you want to Delete Section?');
 	define('REMOVE_SELECTED_DOCUMENTS_Q','Remove Selected Documents?');
 	define('PUBLISH_SELECTED_DOCUMENTS_Q','Publish Selected Documents?');
 	define('UNPUBLISH_SELECTED_DOCUMENTS_Q','Unpublish Selected Documents?');
-	
+
 	//Объекты :: Toolbar
-	
+
 	//Объекты :: Right Panel
 	define('RP_SEARCH_FOR_OBJECTS','Search for Objects');
 	define('RP_OBJECTS_PER_PAGE','Objects per Page');
-	
+
 	//Объекты :: Сообщения
 	define('REMOVE_SELECTED_OBJECTS_Q','Delete Selected Objects?');
-	
+
 	//Шаблоны :: Toolbar
-	
+
 	//Шаблоны :: Headline
 	define('HL_TPL','File');
-	
+
 	//Шаблоны :: Right Panel
 	define('RP_SEARCH_FOR_TEMPLATES','Search for Templates');
 	define('RP_TEMPLATES_PER_PAGE','Templates per page');
 	define('RP_SHOW_TPL','Show filename');
-	
+
 	//Шаблоны :: Сообщения
 	define('REMOVE_SELECTED_TEMPLATES_Q','Remove selected templates?');
-	
+
 	//Пользователи :: Toolbar
 	define('MOVE_USER','Move user');
 	define('MOVE_USERGROUP','Move Usergroup');
-	
+
 	//Пользователи :: Headline
 	define('HL_EMAIL','E-mail');
 	define('HL_LOGIN','Login');
-	
+
 	//Пользователи :: Right Panel
 	define('RP_SEARCH_FOR_USERS','Search for Users');
 	define('RP_SHOW_EMAIL','Show e-mail');
 	define('RP_SHOW_LOGIN','Show Login');
 	define('RP_USERS_PER_PAGE','Users per Page');
-	
+
 	//Пользователи :: Сообщения
 	define('REMOVE_USERGROUP_Q','Remove Usergroup?');
 	define('SURE_REMOVE_USERGROUP_Q','Are you sure you want to Remove Usergroup?');
 	define('REMOVE_SELECTED_USERS_Q','Remove Selected Users?');
-	
+
 	//About
 	define('BTN_ACKNOWLEDGEMENTS','Acknowledgements');
 	@define('BTN_CLOSE','Close');
 	define('BTN_BACK','Back');
-	
+
 	define('WC_SETUP','Setup');
 	define('CATALOG','Catalogue');
 	define('WCS_LACK_OF_AUTHORITIES_I','You do not have enough rights to access selected resource.<br>Please access as user who has rights.');
@@ -187,6 +187,7 @@
 	@define('CREATE_PAGE','Create new page');
 	@define('EDIT_PAGE','Edit page');
 	@define('MOVE_PAGE','Move page');
+	@define('COPY_PAGE','Copy page');
 	define('TPL_NOT_FOUND_W','Page template has been deleted or saved unproperly');
 	define('EDIT_SECURITY','Edit Security');
 	define('CREATE_DS_HYBRID','Create Hybrid data section');
@@ -234,7 +235,7 @@
 	define('UNPUBLISH_PAGE','Unpublish current page');
 	define('REPUBLISH_SUBTREE','Republish current page and it\'s subsections');
 	define('HL_CRUMBS','Crumbs');
-	@define('VIEW_DEFAULT_TEMPLATE','View the Default template');   
+	@define('VIEW_DEFAULT_TEMPLATE','View the Default template');
 	define('CREATE_TREE','Create new tree');
 	define('REMOVE_SELECTED_MEMBERS_Q','Remove selected users from the group?');
 
@@ -242,8 +243,8 @@
 	define('HL_RATING','Rating');
 	define('HL_RATERS','Votes');
 	define('RP_SHOW_RATING','Show Rating');
-	
+
 	define('USR_REMEMBER_ME','Remember me on this computer');
-	
+
 	error_reporting($_oldLevel);
 ?>

@@ -1,23 +1,23 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * @author Sanjar Akhmedov
  * $Id: user._wc,v 1.4 2007/02/27 11:23:21 sanjar Exp $
  */
@@ -31,7 +31,7 @@ class User {
 	var $email, $ip, $active, $autologinId, $expiry;
 	var $profile, $profileId, $profileType;
 	var $sRes;
-	
+
 	function User($login, $name) {
 		$this->id = 0;
 		$this->groupId = 0;
@@ -40,22 +40,22 @@ class User {
 		$this->membership = array();
 		$this->pwd = null;
 	}
-	
+
 	function isLoginValid($login) {
 		return preg_match('~^[A-Za-z][A-Za-z0-9_]{0,31}$~', $login);
-	} 
-	
+	}
+
 	function &loadByUID($uid) {
 		$clause = 'u.autologin = "'.addslashes($uid).'"';
 		return User::loadByClause($clause);
 	}
-	
+
 	function &load($id, $fromCache = true) {
 		static $cache;
 		$result = null;
 		if(!$fromCache || !isset($cache[$id])) {
 			if(intval($id) > 0 || User::isLoginValid($id)) {
-				$clause = intval($id) > 0 ? 'u.id = '.intval($id) : 'u.login = "'.addslashes(strtolower($id)).'"';	
+				$clause = intval($id) > 0 ? 'u.id = '.intval($id) : 'u.login = "'.addslashes(strtolower($id)).'"';
 				$result = &User::loadByClause($clause);
 				if($result != null) {
 					$cache[$result->id] = &$result;
@@ -66,7 +66,7 @@ class User {
 			$result = &$cache[$id];
 		return $result;
 	}
-	
+
 	function &loadByClause($clause) {
 		$result = null;
 		$db = &WCDB::fo();
@@ -83,7 +83,7 @@ class User {
 		mysql_free_result($res);
 		return $result;
 	}
-	
+
 	function &fromArray(&$user) {
 		$result = & new User($user['login'], $user['name']);
 		$result->id = (int) $user['id'];
@@ -99,7 +99,7 @@ class User {
 		$result->loadAuths($result->id, $result->groupId, $user['oauths'], $user['gauths']);
 		return $result;
 	}
-	
+
 	function getWCSAuthorities($userId) {
 		$auths = '0';
 		if($userId != WCS_ROOT_ID) {
@@ -111,10 +111,10 @@ class User {
 		}
 		return $auths;
 	}
-	
+
 	function loadAuths($owner, $group, $ownerAuths, $groupAuths) {
 		$this->sRes = new WCSResource($this->name."[{$this->login}]",(int) $owner, (int) $group);
-		
+
 		$this->sRes->addAction('edit');
 		$this->sRes->addAction('edit.chmod');
 		$this->sRes->addAction('edit.expiry');
@@ -123,7 +123,7 @@ class User {
 		$this->sRes->addAction('edit.status');
 		$this->sRes->addAction('edit.email');
 		$this->sRes->addAction('remove');
-		
+
 		$this->sRes->setAuthorities($ownerAuths, $groupAuths);
 	}
 }

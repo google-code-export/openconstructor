@@ -1,34 +1,34 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * @author Sanjar Akhmedov
- * 
+ *
  * $Id: userfactory._wc,v 1.12 2007/03/07 09:52:19 sanjar Exp $
  */
 require_once('user._wc');
 
 class UserFactory {
 	function UserFactory() {
-		
+
 	}
-	
+
 	function createUser($groupId, &$user) {
 		assert($groupId > 0 && $user->login && !$user->id && $user->name);
 		loadClass('groupfactory', '/security/groupfactory._wc');
@@ -63,7 +63,7 @@ class UserFactory {
 		}
 		return true;
 	}
-	
+
 	function removeUser($userId) {
 		if(is_array($userId)) {
 			foreach($userId as $id)
@@ -87,7 +87,7 @@ class UserFactory {
 		);
 		$db->query("DELETE FROM wcsusers WHERE id IN ($ids)");
 	}
-	
+
 	function updateUser(&$user) {
 		assert($user->id > 0);
 		$old = &User::load($user->id, false);
@@ -102,12 +102,12 @@ class UserFactory {
 			UserFactory::createUserProfile($old, $group->profileType);
 			$db->query("UPDATE wcsusers SET profile = {$old->profileId} WHERE id = {$old->id}");
 		}
-		
+
 		if($old->pwd !== $user->pwd && ($groupOwners || WCS::decide($old, 'edit.pwd'))) {
 			$querySet .= sprintf(', pwd = "%s"', addslashes(wcs_pwd_hash($user->pwd)));
 			$querySet .= sprintf(', autologin = "%s"', addslashes(UserFactory::getAutologinId($user->login, $user->pwd)));
 		}
-		if($old->expiry != $user->expiry && $user->expiry >= 0 && ($groupOwners || WCS::decide($old, 'edit.expiry'))) 
+		if($old->expiry != $user->expiry && $user->expiry >= 0 && ($groupOwners || WCS::decide($old, 'edit.expiry')))
 			$querySet .= sprintf(', expiry = %d', $user->expiry);
 		if($old->active != $user->active && ($groupOwners || WCS::decide($old, 'edit.status'))) {
 			if($old->profileId > 0)
@@ -129,14 +129,14 @@ class UserFactory {
 				}
 				$querySet .= sprintf(', group_id = %d', $user->groupId);
 			}
-		
+
 		$db->query(sprintf(
 			"UPDATE wcsusers SET name = '%s' $querySet WHERE id = %d"
 			, addslashes($user->name), $user->id
 		));
 		return true;
 	}
-	
+
 	function setUserMembership(&$user, $membership) {
 		$remove = array_diff(&$user->membership, &$membership);
 		$add = array_diff(&$membership, &$user->membership);
@@ -153,7 +153,7 @@ class UserFactory {
 					$group->addMember($user->id);
 			}
 	}
-	
+
 	function setUserState($userId, $state) {
 		$state = $state ? 1 : 0;
 		if(is_array($userId)) {
@@ -175,13 +175,13 @@ class UserFactory {
 		$db->query('UPDATE wcsusers SET active = '.$state.' WHERE id IN ('.$ids.') AND active != '.$state.' AND id != '.Authentication::getOriginalUserId());
 		UserFactory::setProfilesState(UserFactory::getProfileIds($ids), $state);
 	}
-	
+
 	function changePwd($userId, $oldPwd, $newPwd) {
 		return UserFactory::checkUserPwd($userId, $oldPwd)
 			? UserFactory::updatePwd($userId, $newPwd)
 			: false;
 	}
-	
+
 	function checkUserPwd($userId, $pwd) {
 		$db = &WCDB::bo();
 		$res = $db->query(sprintf(
@@ -220,7 +220,7 @@ class UserFactory {
 			));
 		}
 	}
-	
+
 	function getSecretQuestion($userId) {
 		settype($userId, 'int');
 		assert($userId > 0);
@@ -232,7 +232,7 @@ class UserFactory {
 		mysql_free_result($res);
 		return $result;
 	}
-	
+
 	function isSecretAnswerValid($userId, $secretA) {
 		$db = &WCDB::bo();
 		$res = $db->query(sprintf(
@@ -243,7 +243,7 @@ class UserFactory {
 		mysql_free_result($res);
 		return $result;
 	}
-	
+
 	function regenerateUserPwd($userId, $secretA, $pwdLength = 8) {
 		$user = &User::load($userId);
 		assert($user->id > 0);
@@ -257,7 +257,7 @@ class UserFactory {
 		}
 		return $result;
 	}
-	
+
 	function generatePwd($length) {
 		settype($length, 'int');
 		if($length > 32)
@@ -276,7 +276,7 @@ class UserFactory {
 		$result = str_shuffle($result);
 		return $result;
 	}
-	
+
 	function updateAuths(&$user) {
 		assert($user->id > 0);
 		loadClass('groupfactory', '/security/groupfactory._wc');
@@ -291,7 +291,7 @@ class UserFactory {
 			$db->query("UPDATE wcsusers SET $querySet WHERE id = {$user->id} $sCheck");
 		}
 	}
-	
+
 	function updateUsersAuths(&$ids, &$set, &$unset) {
 		assert(!empty($ids) && strspn($ids, ',0123456789') == strlen($ids));
 		$db = &WCDB::bo();
@@ -301,7 +301,7 @@ class UserFactory {
 			)
 		);
 	}
-	
+
 	function &getAggregateUser(&$ids) {
 		assert(strspn($ids, ',0123456789') == strlen($ids));
 		$result = null;
@@ -320,7 +320,7 @@ class UserFactory {
 		mysql_free_result($res);
 		return $result;
 	}
-	
+
 	function createUserProfile(&$user, $type) {
 		assert($user->id > 0 && $type > 0);
 		$user->profileId = 0;
@@ -337,11 +337,11 @@ class UserFactory {
 		}
 		unset($ds, $doc);
 	}
-	
+
 	function removeUserProfiles($ids) {
 		UserFactory::removeProfiles(UserFactory::getProfileIds($ids));
 	}
-	
+
 	function castProfiles($ids, $oldType, $newType) {
 		assert($oldType > 0 && $newType > 0);
 		if(sizeof($ids)) {
@@ -372,7 +372,7 @@ class UserFactory {
 			WCS::stopRunAs();
 		}
 	}
-	
+
 	function &getProfileIds($userIds) {
 		$result = array();
 		if($userIds) {
@@ -385,7 +385,7 @@ class UserFactory {
 		}
 		return $result;
 	}
-	
+
 	function &_getHybridFactory() {
 		static $factory;
 		if(!is_object($factory)) {
@@ -396,11 +396,11 @@ class UserFactory {
 		}
 		return $factory;
 	}
-	
+
 	function isLoginValid($login) {
 		return User::isLoginValid($login);
 	}
-	
+
 	function isLoginAvailable($login) {
 		$db = &WCDB::bo();
 		$res = $db->query(sprintf('SELECT id FROM wcsusers WHERE login = "%s"', addslashes($login)));
@@ -408,7 +408,7 @@ class UserFactory {
 		mysql_free_result($res);
 		return $available;
 	}
-	
+
 	function validateLogin($login) {
 		$login = preg_replace('/[^A-Za-z_0-9]+/u', '', $login);
 		$login = preg_replace('/^[0-9_]+/', '', $login);
@@ -417,12 +417,12 @@ class UserFactory {
 			$login = substr($login, 0, 32);
 		return $login;
 	}
-	
+
 	function getAutologinId($login, $pwd) {
 		$rand = rand();
 		return wcs_pwd_hash("$login\n\n$pwd\n\n$rand");
 	}
-	
+
 	function &getInstance() {
 		static $instance;
 		if(!is_object($instance))
