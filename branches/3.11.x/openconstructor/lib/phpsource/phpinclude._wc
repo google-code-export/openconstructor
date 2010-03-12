@@ -26,6 +26,9 @@
  * 
  * $Id: phpinclude._wc,v 1.9 2007/02/27 11:23:18 sanjar Exp $
  */
+require_once(LIBDIR.'/context._wc'); // Used by included php code
+require_once(LIBDIR.'/wcobject._wc'); // Used by included php code
+
 class PHPInclude extends WCObject {
 	var $once;
 	var $sourcePath, $source;

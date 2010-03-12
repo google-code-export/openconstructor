@@ -72,6 +72,12 @@
 	define('MOVE_TO','Move To');
 	define('BTN_MOVE','Move');
 
+	//Копировать страницу
+	define('COPY_TO','Copy To');
+	define('BTN_COPY','Copy');
+	define('PUBLISH_PAGE_WITH_SUBSECTIONS','Publish with subsections');
+	define('H_COPY_PAGE','Copy page');
+
 	define('H_SELECT_OBJECT_I','Select object');
 	define('BTN_ADD_OBJECT','Add');
 	define('PAGE_ROUTE','Route virtual URIs to sub-sections');

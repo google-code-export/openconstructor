@@ -1,34 +1,34 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: main._wc,v 1.23 2007/02/27 11:23:19 sanjar Exp $
  */
 	error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
-	
+
 	//Ссылка
 	define('WC_HOMEPAGE_URI', 'http://www.openconstructor.org');
 	//Копирайты
 	define('WC_COPYRIGHTS','&#169; 2003—<script>document.write((new Date()).getUTCFullYear());</script> eSector Solutions, LLC.');
 	define('WC_READ_LICENSE_BEFORE_USING','Пожалуйста ознакомтесь с лицензией <a href="%s/LICENSE.txt">GNU General Public License</a> перед использованием и распространением Open Constructor\'а.');
 	define('WC_READ_LICENSE_AT_GNU','Также вы можете ознакомиться с этой лицензией на <a href="http://www.gnu.org/licenses/gpl.html">официальном сайте GNU</a>.');
-	
+
 	//Сессия
 	define('EDITING_SITE','Сайт');
 	define('CURRENT_USER','Текущий пользователь');
@@ -36,7 +36,7 @@
 	define('ABOUT_WC','О программе');
 	define('SWITCH_USER','Сменить пользователя');
 	define('LOGOUT','Выход');
-	
+
 	//Вкладки
 	define('SITEMAP','Карта сайта');
 	define('DATASOURCES','Данные');
@@ -45,7 +45,7 @@
 	define('CATALOG','Каталог');
 	define('USERS','Пользователи');
 	define('HELP','Помощь');
-	
+
 	//Общие
 	define('REFRESH','Обновить');
 	define('REMOVE','Удалить');
@@ -60,7 +60,7 @@
 	define('INFO','Информация');
 	define('SHOW_HIDE_PANEL','Показать/скрыть панель');
 	define('HIDE_PANEL','Скрыть панель');
-	
+
 	//Авторизация
 	define('H_AUTHORIZE','Вход в систему');
 	@define('USR_LOGIN','Логин');
@@ -70,10 +70,10 @@
 	@define('BTN_CANCEL','Отмена');
 	define('INSTALLER_FIRST_LOGON_I','Установка Open Constructor\'а прошла успешно.<br>Пожалуйста, войдите в систему как администратор используя логин <b>root</b>, без пароля и смените пожалуйста пароль.');
 	define('WCS_LACK_OF_AUTHORITIES_I','у вас нет прав к запрашиваемому ресурсу.<br>Пожалуйста, войдите от имени пользователя имеющего на это право.');
-	
+
 	//Выход
 	define('H_EXIT','Выход');
-	
+
 	//Карта сайта :: Toolbar
 	define('PR_PAGE_TPL','Шаблон');
 	define('H_NO_TPL_SELECTED','Без шаблона &nbsp; &nbsp; &nbsp; ');
@@ -85,7 +85,8 @@
 	define('REPUBLISH_SUBTREE','Перепубликовать страницу и её подразделы');
 	@define('EDIT_PAGE','Редактировать страницу');
 	@define('MOVE_PAGE','Переместить страницу');
-	
+	@define('COPY_PAGE','Скопировать страницу');
+
 	//Карта сайта :: Headline
 	define('HL_OBJECT_NAME','Название объекта');
 	define('HL_CRUMBS','Крошки');
@@ -94,13 +95,13 @@
 	define('HL_OPEN_IN_NEW_WINDOW','Открыть в новом окне');
 	define('THIS_OBJ_HB_REMOVED_W','Этот объект был удалён');
 	define('TPL_NOT_FOUND_W','Шаблон страницы был удалён или сохранен неправильно');
-	
+
 	//Карта сайта :: Сообщения
 	define('REMOVE_PAGE_Q','Удалить страницу');
 	define('SURE_REMOVE_PAGE_Q','Вы действительно хотите удалить страницу?');
 	define('EXCLUDE_SELECTED_OBJECTS_Q','Убрать выделенные объекты?');
 	define('YOU_CANNOT_REMOVE_SITEROOT_W','Вы не можете удалить корневую страницу!');
-	
+
 	//Данные :: Toolbar
 	define('CREATE_DOCUMENT','Новый документ');
 	define('CREATE_ALIAS','Создать алиас');
@@ -120,7 +121,7 @@
 	define('CREATE_DS_HYBRID','Создать гибридный раздел данных');
 	define('CREATE_DS_RATING','Создать журнал оценок');
 	define('EDIT_CURRENT_DS','Редактировать текущий раздел');
-	
+
 	//Данные :: Headline
 	define('HL_NAME','Имя');
 	define('HL_DATE','Дата');
@@ -133,7 +134,7 @@
 	define('HL_HYBRIDTYPE','Раздел');
 	define('HL_RATING','Рейтинг');
 	define('HL_RATERS','Голосов');
-	
+
 	//Данные :: Right Panel
 	define('RP_SEARCH_FOR_DOCUMENTS','Поиск документов');
 	define('RP_DONT_USE_INDEX','Не использовать индекс');
@@ -151,7 +152,7 @@
 	define('RP_SHOW_HYBRIDTYPE','Показывать тип');
 	define('RP_SHOW_NODES','Показывать узлы документа');
 	define('RP_DOCUMENTS_PER_PAGE','Документов на странице');
-	
+
 	//Данные :: Сообщения
 	define('REMOVE_DS_Q','Удалить Раздел?');
 	define('SURE_REMOVE_DS_Q','Вы действительно хотите удалить раздел?');
@@ -159,48 +160,48 @@
 	define('REMOVE_SELECTED_DOCUMENTS_Q','Удалить выделенные документы?');
 	define('PUBLISH_SELECTED_DOCUMENTS_Q','Опубликовать выделенные документы?');
 	define('UNPUBLISH_SELECTED_DOCUMENTS_Q','Снять выделенные документы с публикации?');
-	
+
 	//Объекты :: Toolbar
 	@define('CREATE_OBJECT','Создать объект');
-	
+
 	//Объекты :: Right Panel
 	define('RP_SEARCH_FOR_OBJECTS','Поиск объектов');
 	define('RP_OBJECTS_PER_PAGE','Объектов на странице');
-	
+
 	//Объекты :: Сообщения
 	define('REMOVE_SELECTED_OBJECTS_Q','Удалить выделенные объекты?');
-	
+
 	//Шаблоны :: Toolbar
 	@define('CREATE_TEMPLATE','Создать шаблон');
 	@define('VIEW_DEFAULT_TEMPLATE','Посмотреть на шаблон по умолчанию');
-	
+
 	//Шаблоны :: Headline
 	define('HL_TPL','Файл');
-	
+
 	//Шаблоны :: Right Panel
 	define('RP_SEARCH_FOR_TEMPLATES','Поиск шаблонов');
 	define('RP_TEMPLATES_PER_PAGE','Объектов на странице');
 	define('RP_SHOW_TPL','Показывать имя файла');
-	
+
 	//Шаблоны :: Сообщения
 	define('REMOVE_SELECTED_TEMPLATES_Q','Удалить выделенные шаблоны?');
-	
+
 	//Каталог :: Левая панель
 	define('H_TREES','Деревья');
 	define('H_TREES_TAB','Деревья');
 	define('H_BROWSE_TAB','Просмотр');
-	
+
 	//Каталог :: Toolbar
 	define('CREATE_TREE','Создать дерево');
 	define('CREATE_NODE','Создать узел');
 	define('EDIT_NODE','Редактировать текущий узел');
 	define('MOVE_NODE_UP','Повысить приоритет');
 	define('MOVE_NODE_DOWN','Понизить приоритет');
-	
+
 	//Каталог :: Сообщения
 	define('REMOVE_NODE_Q','Удалить Узел?');
 	define('SURE_REMOVE_NODE_Q','Вы действительно хотите удалить узел?');
-	
+
 	//Пользователи :: Toolbar
 	@define('CREATE_USER','Новый пользователь');
 	@define('CREATE_USERGROUP','Новая группа');
@@ -213,31 +214,31 @@
 	define('MOVE_USERGROUP','Переместить группу');
 	define('ENABLE_SELECTED_USERS_Q','Разморозить выделенных пользователей?');
 	define('DISABLE_SELECTED_USERS_Q','Заморозить выделенных пользователей?');
-	
+
 	//Пользователи :: Headline
 	define('HL_EMAIL','E-mail');
 	define('HL_LOGIN','Логин');
 	define('HL_PROFILE','Профиль');
 	define('H_EDIT_PROFILE','Открыть');
-	
+
 	//Пользователи :: Right Panel
 	define('RP_SEARCH_FOR_USERS','Поиск пользователей');
 	define('RP_SHOW_EMAIL','Показывать e-mail');
 	define('RP_SHOW_LOGIN','Показывать логин');
 	define('RP_SHOW_PROFILE','Показывать профиль');
 	define('RP_USERS_PER_PAGE','Пользователей на странице');
-	
+
 	//Пользователи :: Сообщения
 	define('REMOVE_USERGROUP_Q','Удалить группу пользователей?');
 	define('SURE_REMOVE_USERGROUP_Q','Вы действительно хотите удалить группу?');
 	define('REMOVE_SELECTED_USERS_Q','Удалить выделенных пользователей?');
 	define('REMOVE_SELECTED_MEMBERS_Q','Удалить выделенных пользователей из группы?');
-	
+
 	//About
 	define('BTN_ACKNOWLEDGEMENTS','Разработчики');
 	@define('BTN_CLOSE','Закрыть');
 	define('BTN_BACK','Назад');
-	
+
 	// Assertions
 	define('H_CANNOT_HANDLE_REQUEST', 'Невозможно выполнить запрашиваемую операцию');
 	define('H_ADDITIONAL_ASSERT_INFO', 'Дополнительные сведения');
@@ -245,12 +246,12 @@
 	define('H_EXIT_SYSTEM', 'Выйти из системы');
 	define('H_POSSIBLE_REASONS', 'Возможные причины');
 	define('TXT_POSSIBLE_REASONS', '<ul><li>введен неправильный URL</li><li>попытка перейти на удаленный документ</li><li>попытка сохранить удаленный документ</li><li>попытка сохранить документ с незаполненными полями</li></ul>');
-	
+
 	define('H_ACCESS_DENIED_RES', 'У вас нет прав доступа к запрашиваемому ресурсу');
 	define('TPL_RES_REQURES_AUTH', 'Для доступа к %s вам необходимы следующие полномочия: %s');
-	
+
 	//Confirmation
 	define('BTN_YES', 'Да');
-	
+
 	error_reporting($_oldLevel);
 ?>

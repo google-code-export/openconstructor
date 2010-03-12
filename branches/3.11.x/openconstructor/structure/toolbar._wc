@@ -1,28 +1,28 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * $Id: toolbar._wc,v 1.4 2007/02/27 11:23:19 sanjar Exp $
  */
 	$isFirst = @$tree->node[$curnode]->index == 0 || @$tree->node[$curnode]->index == @$tree->node[$curnode]->parent->index + 1;
 	$isLast = @$tree->node[$curnode]->next == @$tree->node[$curnode]->parent->next;
-	
+
 	$toolbar = array(
 		SAVE => array(
 			'pic' => 'save',
@@ -40,6 +40,10 @@
 		MOVE_PAGE => array(
 			'pic' => 'movepage',
 			'action' => $super ? 'wxyopen(wchome+"/structure/move_page.php?node="+curnode,700,320)' : ''
+		),
+		COPY_PAGE => array(
+			'pic' => 'copy',
+			'action' => $super ? 'copyPage(' . $page->id . ')' : ''
 		),
 		'separator',
 		MOVE_NODE_UP => array(

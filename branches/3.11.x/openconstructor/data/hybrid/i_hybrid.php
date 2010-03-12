@@ -25,7 +25,6 @@ WCS::requireAuthentication();
 require_once(LIBDIR.'/dsmanager._wc');
 $dsm = new DSManager();
 
-
 switch(@$_POST['action'])
 {
 	case 'add_field':

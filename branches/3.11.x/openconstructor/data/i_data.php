@@ -644,6 +644,12 @@ switch(@$_POST['action'])
 		$_ds->setIndexable(isset($_POST['isindexable']));
 		if((@$_POST['autoPublish'] == 'true') != $_ds->autoPublish && WCS::decide($_ds, 'publishdoc'))
 			$_ds->autoPublish = !$_ds->autoPublish;
+		
+		//Events
+		$_ds->listeners['onDocCreate'] = $_POST['onDocCreate'];
+		$_ds->listeners['onDocUpdate'] = $_POST['onDocUpdate'];
+		$_ds->listeners['onDocDelete'] = $_POST['onDocDelete'];
+		
 		if($_ds->save())
 			header('Location: '.$_SERVER['HTTP_REFERER'].'&ok=1');
 		else

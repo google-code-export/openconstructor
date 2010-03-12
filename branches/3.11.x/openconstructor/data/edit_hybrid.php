@@ -39,6 +39,18 @@
 	$ds_name=$_ds->name;
 	$description=$_ds->description;
 	$record = &$_ds->getRecord();
+	
+	$sources = array(); // Events section
+	$db = &WCDB::bo();
+	$res = $db->query(
+		'SELECT id, header'.
+		' FROM dsphpsource'.
+		' WHERE 1'
+	);
+	if(mysql_num_rows($res)>0)
+		while($row = mysql_fetch_assoc($res))
+			$sources[$row['id']] = $row['header'];
+	
 	//read values that have not been saved
 	read_fail_header();
 ?>
@@ -175,6 +187,43 @@ UL.fieldlist LI {}
 		</tr>
 		<tr>
 			<td colspan="2"><input type="checkbox" name="autoPublish" value="true"<?=@$_ds->autoPublish ? ' CHECKED':''?> <?=WCS::decide($_ds, 'publishdoc')?'':'DISABLED'?>> <?=DS_ALLOW_AUTOPUBLISHING?></td>
+		</tr>
+	</table>
+	</fieldset><br>
+	<fieldset style="padding:10"><legend><?=H_DSH_EVENTS?></legend>
+	<table style="margin:5 0" cellspacing="3">
+		<tr>
+			<td><?=H_DSH_EVENTS_ON_CREATE?></td>
+			<td>
+				<select size="1" name="onDocCreate"><option value=0>-</option>
+					<?php
+						foreach($sources as $id => $name)
+							echo '<option value="'.$id.'"'.($id == $_ds->listeners['onDocCreate'] ? ' SELECTED' : '').'>'.htmlspecialchars($name, ENT_COMPAT, 'UTF-8').'</option>';
+					?>	
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><?=H_DSH_EVENTS_ON_UPDATE?></td>
+			<td>
+				<select size="1" name="onDocUpdate"><option value=0>-</option>
+					<?php
+						foreach($sources as $id => $name)
+							echo '<option value="'.$id.'"'.($id == $_ds->listeners['onDocUpdate'] ? ' SELECTED' : '').'>'.htmlspecialchars($name, ENT_COMPAT, 'UTF-8').'</option>';
+					?>	
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><?=H_DSH_EVENTS_ON_DELETE?></td>
+			<td>
+				<select size="1" name="onDocDelete"><option value=0>-</option>
+					<?php
+						foreach($sources as $id => $name)
+							echo '<option value="'.$id.'"'.($id == $_ds->listeners['onDocDelete'] ? ' SELECTED' : '').'>'.htmlspecialchars($name, ENT_COMPAT, 'UTF-8').'</option>';
+					?>	
+				</select>
+			</td>
 		</tr>
 	</table>
 	</fieldset><br>

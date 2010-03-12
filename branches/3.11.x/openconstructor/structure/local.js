@@ -103,6 +103,9 @@ function moveDown() {
 	f_doc.all('action').value='move_down';
 	f_doc.submit();
 }
+function copyPage(node) {
+	wxyopen(wchome+'/structure/copy_page.php?node=' + node, 700, 320);
+}
 function setPageState(state) {
 	f_doc.all('action').value = state ? 'publish_page' : 'unpublish_page';
 	f_doc.submit();
