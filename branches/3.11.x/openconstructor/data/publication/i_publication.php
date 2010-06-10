@@ -31,8 +31,9 @@ switch(@$_POST['action'])
 	case 'create_publication':
 		assert(trim(@$_POST['header']) != '');
 		if(@$_POST['hybridid'] > 0) {
-			$hDoc = &WCDataSource::getHybridDoc($_POST['hybridid']);
-			WCS::assert($hDoc, 'editdoc');
+			$ownerDs = &WCDataSource::loadByDoc($_POST['hybridid']);
+			$ownerDoc = &$ownerDs->getDocument($_POST['hybridid']);
+			WCS::assertValue(WCS::decide($ownerDoc, 'editdoc') || WCS::decide($ownerDs, 'editdoc'), $ownerDoc, 'editdoc');
 			WCS::runAs(WCS_ROOT_ID);
 		}
 		$_ds = &$dsm->load(@$_POST['ds_id']); 
