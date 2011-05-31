@@ -30,7 +30,7 @@ class WCSmartyCache {
 	var $smarty;
 	
 	function WCSmartyCache(){
-		$this->smarty = & new WCSmarty();
+		$this->smarty = new WCSmarty();
 	}
 	
 	function page_updated($ids, $updateObj = true) {

@@ -32,7 +32,7 @@ class ConsoleTask_Smarty_ClearCache extends ConsoleTask  {
 	
 	function run() {
 		require_once(LIBDIR.'/smarty/wcsmarty._wc');
-		$smarty = & new WCSmarty();
+		$smarty = new WCSmarty();
 		$smarty->clear_all_cache();
 		$this->runner->info('Successfully evicted Smarty cache');
 	}

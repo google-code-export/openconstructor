@@ -157,28 +157,28 @@ class FieldFactory {
 				$result->allowedTags = $r['allowedtags'];
 			break;
 			case 'datasource':
-				$result = & new DatasourceField($r['name'], $r['header'], $r['type'], $r['fromds']);
+				$result = new DatasourceField($r['name'], $r['header'], $r['type'], $r['fromds']);
 				$result->isRequired = $r['isreq'];
 			break;
 			case 'document':
-				$result = & new DocumentField($r['name'], $r['header'], $r['type'], $r['isreq'], $r['isown'], $r['fromds']);
+				$result = new DocumentField($r['name'], $r['header'], $r['type'], $r['isreq'], $r['isown'], $r['fromds']);
 			break;
 			case 'array':
-				$result = & new ArrayField($r['name'], $r['header'], $r['type'], $r['isreq'], $r['isown'], $r['fromds']);
+				$result = new ArrayField($r['name'], $r['header'], $r['type'], $r['isreq'], $r['isown'], $r['fromds']);
 			break;
 			case 'tree':
-				$result = & new TreeField($r['name'], $r['header'], $r['tree'], $r['isreq'], $r['isarray']);
+				$result = new TreeField($r['name'], $r['header'], $r['tree'], $r['isreq'], $r['isarray']);
 			break;
 			case 'enum':
-				$result = & new EnumField($r['name'], $r['header'], $r['enum_id'], $r['isreq'], $r['isarray']);
+				$result = new EnumField($r['name'], $r['header'], $r['enum_id'], $r['isreq'], $r['isarray']);
 			break;
 			case 'file':
-				$result = & new FileField($r['name'], $r['header'], $r['types'], $r['isreq']);
+				$result = new FileField($r['name'], $r['header'], $r['types'], $r['isreq']);
 				$result->maxSize = $r['max'];
 				$result->setImgBounds($r['img_bounds']);
 			break;
 			case 'rating':
-				$result = & new RatingField($r['name'], $r['header'], $r['fromds']);
+				$result = new RatingField($r['name'], $r['header'], $r['fromds']);
 			break;
 			
 			default:

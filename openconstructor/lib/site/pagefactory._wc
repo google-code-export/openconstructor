@@ -31,7 +31,7 @@ class PageFactory {
 	var $tree;
 
 	function PageFactory() {
-		$this->reader = & new PageReader();
+		$this->reader = new PageReader();
 		$this->treeTable = $this->reader->treeTable;
 		$this->pagesTable = $this->reader->pagesTable;
 		$this->objTable = $this->reader->objTable;
@@ -57,7 +57,7 @@ class PageFactory {
 				$result = $tree->addNode($parent->id, $name, $header);
 				if($result > 0) {
 					$db = &WCDB::bo();
-					$page = & new Page($name, $header);
+					$page = new Page($name, $header);
 					$auth = &Authentication::getOriginal();
 					$page->loadAuths($auth->userId, $auth->groupId, constant('WCS_PAGE_MASK'), null);
 					$db->query(sprintf(
@@ -644,7 +644,7 @@ class PageFactory {
 	function &_getTreeHelper() {
 		if(!is_object($this->treeHelper)) {
 			require_once('sitesqltree._wc');
-			$this->treeHelper = & new SiteSqlTree();
+			$this->treeHelper = new SiteSqlTree();
 		}
 		return $this->treeHelper;
 	}
@@ -652,7 +652,7 @@ class PageFactory {
 	function &_getFsHelper() {
 		if(!is_object($this->fsHelper)) {
 			require_once('sitefiles._wc');
-			$this->fsHelper = & new SiteFiles();
+			$this->fsHelper = new SiteFiles();
 		}
 		return $this->fsHelper;
 	}
@@ -660,7 +660,7 @@ class PageFactory {
 	function &_getCompiler() {
 		if(!is_object($this->compiler)) {
 			require_once('pagecompiler._wc');
-			$this->compiler = & new PageCompiler();
+			$this->compiler = new PageCompiler();
 		}
 		return $this->compiler;
 	}

@@ -90,7 +90,7 @@ class SiteMap {
 	function &_newPage($pageId, $title) {
 		$result = null;
 		if(isset($this->id[$pageId])) {
-			$result = & new WebPage($this, $pageId, $this->id[$pageId]['uri']);
+			$result = new WebPage($this, $pageId, $this->id[$pageId]['uri']);
 			$result->_cTitle = $title;
 		}
 		return $result;

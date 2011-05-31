@@ -438,11 +438,11 @@ class WCFTP {
 			register_shutdown_function(array('WCFTP', 'performGC'));
 		}
 		if($host) {
-			$result = & new WCFTP(false, false);
+			$result = new WCFTP(false, false);
 			$result->configure($host, $username, $pwd, $siteroot, $port);
 			WCFTP::_addToGC($result);
 		} else
-			$result = & new WCFTP();
+			$result = new WCFTP();
 		return $result;
 	}
 }

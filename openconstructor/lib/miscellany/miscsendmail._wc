@@ -111,7 +111,7 @@ class MiscSendMail extends WCObject {
 			return false;
 		$cc = str_replace("\n", ' ', $this->proccessPattern($this->cc));
 		$bcc = str_replace("\n", ' ', $this->proccessPattern($this->bcc));
-		$msg = & new WCMessage();
+		$msg = new WCMessage();
 		$msg->setTemplate($this->tpl.'.tpl');
 		$msg->setContentType($this->isHtml ? 'text/html' : 'text/plain');
 		$msg->setContent($this->msg);

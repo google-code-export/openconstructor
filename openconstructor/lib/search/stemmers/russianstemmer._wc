@@ -150,7 +150,7 @@ class RussianStemmer {
 		$this->data->R2 = 0;
 		
 		$i = 0;
-		$word = & new StringBuffer($word);
+		$word = new StringBuffer($word);
 		
 		/* 
 		 * Find RV

@@ -49,7 +49,7 @@ class PageReader {
 		$res = $db->query($query);
 		if(mysql_num_rows($res) == 1) {
 			$r = mysql_fetch_assoc($res);
-			$result = & new Page($r['name'], $r['header']);
+			$result = new Page($r['name'], $r['header']);
 			$result->id = (int) $r['id'];
 			$result->index = (int) $r['num'];
 			$result->parent = (int) $r['parent'];
@@ -108,13 +108,13 @@ class PageReader {
 			require_once('sitetree._wc');
 			$i = 0;
 			while($r = mysql_fetch_assoc($res)) {
-				$node[$i] = & new Node((int) $r['id'],(int) $r['num'],(int) $r['parent'],(int) $r['next'], $r['name'], $r['header']);
+				$node[$i] = new Node((int) $r['id'],(int) $r['num'],(int) $r['parent'],(int) $r['next'], $r['name'], $r['header']);
 				$node[$i]->published = $r['published'] > 0;
 				$node[$i]->users = $r['users'];
 				$node[$i]->linkTo = (int) $r['linkto'];
 				$node[$i]->router = $r['router'] > 0;
 				if($tree === null)
-					$tree = & new SiteTree($node[$i]);
+					$tree = new SiteTree($node[$i]);
 				else
 					$tree->addNode($node[$i]);
 				$i++;

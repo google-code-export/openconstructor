@@ -69,7 +69,7 @@ class WCTemplate {
 		require_once(LIBDIR.'/templates/wctparsehelper._wc');
 		$blocks = $this->blocks; $this->blocks = array();
 		$this->errors = array(); $this->hasError = false;
-		$helper = & new WCTParseHelper($this);
+		$helper = new WCTParseHelper($this);
 		$smarty->register_compiler_function('run_block', array(&$helper, 'smarty_run_block'));
 		$smarty->register_compiler_function('def_block', array(&$helper, 'smarty_def_block'));
 		$smarty->register_function('@error_handler', array(&$helper, 'smarty_error_handler'));

@@ -37,7 +37,7 @@ class TreeSiteMapView {
 		if($node->published) {
 			if($node->id == $this->tree->root->id)
 				$result .= sprintf(
-					"\$m = & new SiteMap();\n\$m->_root($node->id, '%s', %s);\n"
+					"\$m = new SiteMap();\n\$m->_root($node->id, '%s', %s);\n"
 					, $node->header, strpos($node->users, ',') ? "array($node->users)" : intval($node->users)
 				);
 			else
