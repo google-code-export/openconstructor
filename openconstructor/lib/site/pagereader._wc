@@ -98,7 +98,7 @@ class PageReader {
 		$tree = null;
 		$db = &WCDB::bo();
 		$res = $db->query(
-			"SELECT t2.id, t2.num, t2.parent, t2.level, t2.next, t2.name, t2.header, p.published, p.linkto, p.router, p.users".
+			"SELECT t2.id, t2.num, t2.parent, t2.next, t2.name, t2.header, p.published, p.linkto, p.router, p.users".
 			" FROM $this->treeTable t1, $this->treeTable t2, $this->pagesTable p".
 			" WHERE ".($nodeId == null ? 't1.num = 0' : 't1.id = '.intval($nodeId))." AND t2.num >= t1.num AND ( t1.next = 0 OR t2.num < t1.next)".($depth ? " AND t2.level <= t1.level + $depth":'').
 			"  AND t2.id = p.id".
@@ -108,7 +108,7 @@ class PageReader {
 			require_once('sitetree._wc');
 			$i = 0;
 			while($r = mysql_fetch_assoc($res)) {
-				$node[$i] = & new Node((int) $r['id'],(int) $r['num'],(int) $r['level'],(int) $r['parent'],(int) $r['next'], $r['name'], $r['header']);
+				$node[$i] = & new Node((int) $r['id'],(int) $r['num'],(int) $r['parent'],(int) $r['next'], $r['name'], $r['header']);
 				$node[$i]->published = $r['published'] > 0;
 				$node[$i]->users = $r['users'];
 				$node[$i]->linkTo = (int) $r['linkto'];

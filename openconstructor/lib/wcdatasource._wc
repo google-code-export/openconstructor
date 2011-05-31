@@ -211,6 +211,19 @@ class WCDataSource {
 		return true;
 	}
 
+	function &loadByDoc($docId) {
+		$result = null;
+		$db = &WCDB::bo();
+		$res = $db->query("SELECT ds_id FROM dshybrid WHERE id = $docId");
+		if(mysql_num_rows($res) == 1) {
+			list($dsId) =  mysql_fetch_row($res);
+			require_once(LIBDIR.'/dsmanager._wc');
+			$result = &DSManager::load($dsId);
+		}
+		mysql_free_result($res);
+		return $result;
+	}
+
 	function &getHybridDoc($docId) {
 		static $ds, $doc;
 		$result = null;

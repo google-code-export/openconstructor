@@ -69,7 +69,7 @@
 			</td>
 		</tr>
 	</table>
-	<iframe id="rrf" name="restore_results"  style="border:none; margin: 10px; display: none;" width="100%" height="80"></iframe>
+	<iframe id="rrf" name="restore_results"  style="border:none; margin: 10px; display: none;" width="100%" height="400"></iframe>
 </fieldset>
 </form>
 <form name="f_backup" action="i_backup.php" method="POST" target="backup_results" onsubmit="document.getElementById('fs.restore').disabled = true; this.backup.disabled = true; return true;">
@@ -92,7 +92,7 @@
 			</td>
 		</tr>
 	</table>
-	<iframe id="brf" name="backup_results"  style="border:none; margin: 10px; display: none;" width="100%" height="80"></iframe>
+	<iframe id="brf" name="backup_results"  style="border:none; margin: 10px; display: none;" width="100%" height="400"></iframe>
 </fieldset>
 </form>
 <a href="index.php"><?=H_SETUP_BACK?></a>

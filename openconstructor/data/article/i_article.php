@@ -32,8 +32,9 @@ switch(@$_POST['action'])
 	case 'create_article':
 		assert(isset($_POST['header'][0]) && trim($_POST['header'][0]) != '');
 		if(@$_POST['hybridid'] > 0) {
-			$hDoc = &WCDataSource::getHybridDoc($_POST['hybridid']);
-			WCS::assert($hDoc, 'editdoc');
+			$ownerDs = &WCDataSource::loadByDoc($_POST['hybridid']);
+			$ownerDoc = &$ownerDs->getDocument($_POST['hybridid']);
+			WCS::assertValue(WCS::decide($ownerDoc, 'editdoc') || WCS::decide($ownerDs, 'editdoc'), $ownerDoc, 'editdoc');
 			WCS::runAs(WCS_ROOT_ID);
 		}
 		$_ds = &$dsm->load(@$_POST['ds_id']); 
@@ -184,18 +185,6 @@ switch(@$_POST['action'])
 			$_ds->create_alias($id);//$result=
 		}
 		die('<meta http-equiv="Refresh" content="0; URL='.$_SERVER['HTTP_REFERER'].'">');
-	break;
-	
-	case 'view_detail':
-		foreach((array) @$_COOKIE['vd'] as $key => $val){
-			if(!array_key_exists($key, (array) @$_POST['vdetail']))
-				setcookie('vd['.$key.']', '', time() - 3600, WCHOME.'/data/');
-		}
-		foreach($_POST['vdetail'] as $key => $val)
-			setcookie('vd['.$key.']', $key, 0, WCHOME.'/data/');
-		setcookie('pagesize', $_POST['pagesize'], 0, WCHOME.'/data/');
-		setcookie('vd[_touched]', '_touched', 0, WCHOME.'/data/');
-		header('Location: '.$_SERVER['HTTP_REFERER']);
 	break;
 	
 	default:

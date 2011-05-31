@@ -26,13 +26,8 @@
 	require_once(LIBDIR.'/tree/sqltreereader._wc');
 	require_once(LIBDIR.'/dsmanager._wc');
 	require_once('../include/sections._wc');
-	
-	require_once(LIBDIR.'/smarty/ocmsmartybackend._wc');
-	$smartybackend = & new OcmSmartyBackend();
-	$smartybackend->caching = false;
-	
+
 	$dsm = new DSManager();
-//	$siteroot='catalogRoot';
 	$dsh = &$dsm->getAll('hybrid');
 	$reader = new SqlTreeReader();
 	$currentDs = @$dsh[@$_COOKIE['dsh']] ? @$_COOKIE['dsh'] : key($dsh);
@@ -44,8 +39,8 @@
 	if($curtab == 'browse') {
 		$rootNode = null;
 		$tree = $reader->getPartialTree($treeFields);
-		require_once(LIBDIR.'/tree/export/tplviewmultiple._wc');
-		$view = new TreeTplViewMultiple();
+		require_once(LIBDIR.'/tree/export/xmlviewmultiple._wc');
+		$view = new TreeXmlViewMultiple();
 		if((int) $tmp == -1) { // Special node to select unassigned documents
 			$selected = array();
 			$curnode = -1;
@@ -78,57 +73,141 @@
 			$rootNode = &$rootNode->parent;
 		if($rootNode->id != 1)
 			$reader->loadAuths($rootNode);
-		require_once(LIBDIR.'/tree/export/tplview._wc');
-		$view = new TreeTplView();
+		require_once(LIBDIR.'/tree/export/xmlview._wc');
+		$view = new TreeXmlView();
 		$view->setSelected($curnode);
 		foreach($treeFields as $fieldName=>$nodeId)
 			if($tree->contains($nodeId, $curnode)) {
 				$presetValue = $fieldName.'='.$curnode;
 				break;
 			}
-			
 	}
 	$tree->root->header = H_TREES;
 	setcookie('curnode', $curnode, 0, WCHOME.'/catalog/');
-	
-	$ds_name = ($currentDs > 0 ? ' | '.htmlspecialchars($dsh[$currentDs]['name'], ENT_COMPAT, 'UTF-8') : '');
-	foreach($dsh as &$v)
-		$v['pathView'] = str_repeat("&#160;", (substr_count($v['path'],',') - 1) * 3);
-
-	$smartybackend->assign("ds", $ds);
-	$smartybackend->assign("dsh", $dsh);
-	$smartybackend->assign("ds_name", $ds_name);
-	$smartybackend->assign("curnode", $curnode);
-	$smartybackend->assign("currentDs", $currentDs);
-	$smartybackend->assign("curtab", $curtab);
-	if(isset($presetValue))
-		$smartybackend->assign("presetValue", $presetValue);
-	$smartybackend->assign("rootNode", $rootNode);
-	$smartybackend->assign("treeFields", $treeFields);
-	$smartybackend->assign("tree", $tree);
-	$smartybackend->assign("view", $view);
-	if(isset($selected))
-		$smartybackend->assign("selected", $selected);
-	
-	$smartybackend->assign("cur_section", 'catalog');
-	$smartybackend->assign_by_ref("auth", $auth);
-	$smartybackend->assign("menu", getTabs('catalog'));
-	
-	include('toolbar._wc');
-	$smartybackend->assign_by_ref("toolbar", $toolbar);
-	
-	include('headline._wc');
-	$smartybackend->assign("fields", $fields);
-	$smartybackend->assign("docs", $hl);
-    $smartybackend->assign("editor_width", $eWidth);
-	$smartybackend->assign("editor_height", $eHeight);
-	$smartybackend->assign("editor", $editor);
-	$smartybackend->assign("icon", $icon);
-    $smartybackend->assign("fieldnames", $fieldnames);
-    $smartybackend->assign("pagesize", $pagesize);
-	$smartybackend->assign("pager", $pager);
-	
-	$smartybackend->assign("search_text", htmlspecialchars(@$_GET['search'], ENT_COMPAT, 'UTF-8'));
-	
-	$smartybackend->display('catalog/main.tpl');
+	header("Content-type: text/xml; charset=utf-8");
+	echo '<?xml version="1.0" encoding="utf-8"?>';
+	if(!isset($_GET['rawXml']))
+		echo '<?xml-stylesheet type="text/xsl" href="'.WCHOME.'/skins/'.SKIN.'/main.xsl"?>';
 ?>
+
+<interface uri="<?=htmlspecialchars($_SERVER['REQUEST_URI'])?>" node="<?=$curnode?>">
+	<?php
+		set_xslt_vars(array(
+			'WC',
+			'WC_HOMEPAGE_URI',
+			'EDITING_SITE',
+			'CURRENT_USER',
+			'WC_SETUP',
+			'ABOUT_WC',
+			'SWITCH_USER',
+			'LOGOUT',
+			'SELECT_ALL',
+			'REFRESH',
+			'GOTO_FIRST_PAGE',
+			'GOTO_PREVIOUS_PAGE',
+			'GOTO_NEXT_PAGE',
+			'GOTO_LAST_PAGE',
+			'TOTAL',
+			'SHOW_HIDE_PANEL',
+			'HIDE_PANEL',
+			'START_SEARCH',
+			'RP_DONT_USE_INDEX',
+			'VIEW',
+			'INFO'
+		));
+	?>
+	<title><?=WC.' | '.CATALOG.($currentDs > 0 ? ' | '.htmlspecialchars($dsh[$currentDs]['name'], ENT_COMPAT, 'UTF-8') : '')?></title>
+	<script>
+	<![CDATA[
+		var
+			wchome=<?='"'.WCHOME.'"'?>,
+			skin=<?='"'.SKIN.'"'?>,
+			imghome=wchome+'/i/'+skin,
+			curTab = '<?=$curtab?>',
+			curDS = '<?=$currentDs?>',
+			curnode = '<?=$curnode?>',
+			preset = '<?=@$presetValue?>',
+			rootNode = <?=@$curnode > 1 && $curnode == @$rootNode->id ? $curnode : 0?>
+			;
+		<?php
+			set_js_vars(array(
+				'REMOVE_NODE_Q',
+				'SURE_REMOVE_NODE_Q',
+				'REMOVE_SELECTED_DOCUMENTS_Q',
+				'PUBLISH_SELECTED_DOCUMENTS_Q',
+				'UNPUBLISH_SELECTED_DOCUMENTS_Q'
+				));
+		?>
+	]]>
+	</script>
+	<script src="<?=WCHOME?>/lib/js/base.js"></script>
+	<script src="<?=WCHOME?>/common.js"></script>
+	<script src="<?=WCHOME?>/catalog/local.js"></script>
+	<form name="f_remove" method="POST" action="<?=WCHOME?>/catalog/i_catalog.php" style="margin:0">
+		<input type="hidden" name="action" value="remove_node"/>
+		<input type="hidden" name="node_id" value="<?=$curnode?>"/>
+	</form>
+	<session>
+		<site host="<?=$_host?>" insight="/openconstructor"/>
+		<user name="<?=$auth->userName?>" id="<?=$auth->userLogin?>"/>
+	</session>
+	<logo language="<?=LANGUAGE?>"/>
+	<?php
+		menu('catalog');
+		include('toolbar._wc');
+
+		echo '<pretoolbar><![CDATA[<select size="1" onchange="setCookie(\'dsh\', this.options[this.selectedIndex].value, wchome + \'/\'); location.href = location.href;" style="margin-right:10px;">';
+		foreach($dsh as $v)
+			echo "<option value='{$v['id']}'".($v['id'] == $currentDs ? ' selected>' : '>').str_repeat('&#160;', (substr_count($v['path'],',') - 1) * 3)."{$v['name']}</option>";
+		echo '</select>]]></pretoolbar>';
+		toolbar(&$toolbar);
+	?>
+		<navigation>
+			<tabs>
+				<item href="<?=WCHOME?>/catalog/index.php/browse/" current="<?=$curtab=='browse'?'yes':'no'?>"><?=H_BROWSE_TAB?></item>
+				<item href="<?=WCHOME?>/catalog/index.php/trees/" current="<?=$curtab=='trees'?'yes':'no'?>"><?=H_TREES_TAB?></item>
+			</tabs>
+	<?php
+		if($curtab == 'browse') {
+			foreach($treeFields as $fieldName => $nodeId)
+				if($tree->exists($nodeId)) {
+					$sub = $tree->getSubTree($nodeId);
+					$sub->export($view);
+				}
+			echo '<postscript>tree.root = 0;';
+			foreach($selected as $id)
+				if(@$tree->node[$id])
+					echo "setNodeState({$tree->node[$id]->index},1);";
+
+			echo '</postscript><apply/>';
+		} else
+			$tree->export($view);
+		echo '</navigation>';
+		if($curnode) {
+			require_once('headline._wc');
+		} else echo '&#160;';
+	?>
+	<settings display="<?=@$_COOKIE['panelstate']?$_COOKIE['panelstate']:'inline'?>">
+		<searchbar title="<?=htmlspecialchars(RP_SEARCH_FOR_DOCUMENTS, ENT_COMPAT, 'UTF-8')?>" text="<?=htmlspecialchars(@$_GET['search'], ENT_COMPAT, 'UTF-8')?>" showNoIndex="<?=@$ds->isIndexable ? 'yes' : 'no'?>" useIndex="<?=@$_GET['noindex'] == 'on' ? 'no' : 'yes'?>"/>
+	</settings>
+	<postscript>
+	<![CDATA[
+//		disableButton(btn_addrecord, imghome+'/tool/addrecord_.gif');
+		disableButton(btn_publish,imghome+'/tool/publish_.gif');
+		disableButton(btn_unpublish,imghome+'/tool/unpublish_.gif');
+		if(!rootNode)
+			disableButton(btn_editsec,imghome+'/tool/editsec_.gif');
+		if(<?=$curtab == 'browse' ? 1 : 0?>)
+			disableButton(btn_remove,imghome+'/tool/remove_.gif');
+		function rf_view()
+		{
+			<?php
+			if(is_array(@$fieldnames)) foreach($fieldnames as $k=>$v) echo 'if(!frm_v.'.$k.'.checked) setCookie("vf['.$k.']","disabled","'.WCHOME.'/catalog/"); else setCookie("vf['.$k.']","enabled","'.WCHOME.'/catalog/");';
+			?>
+			setCookie("pagesize",frm_v.pagesize.value,"<?=WCHOME?>/data/");
+			window.location.reload();
+		}
+	]]>
+	</postscript>
+	<copyrights><![CDATA[<div id="copyrights"><?=WC_COPYRIGHTS?></div>]]></copyrights>
+</interface>

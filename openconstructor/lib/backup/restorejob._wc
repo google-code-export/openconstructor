@@ -26,6 +26,9 @@ require_once('zipfile._wc');
 require_once(LIBDIR.'/db/dbsetup._wc');
 require_once(LIBDIR.'/db/sqltokenizer._wc');
 
+require_once(LIBDIR.'/backup/patch/patchhistory._wc');
+require_once(LIBDIR.'/backup/patch/patcher._wc');
+
 class RestoreJob {
 	var $_ftp;
 	var $_zip;
@@ -46,19 +49,30 @@ class RestoreJob {
 
 	function run() {
 		$this->loadMeta();
-		if(@$this->_meta['version'] == WC_VERSION) {
+
+		$versions = new PatchHistory();
+		$version = $this->_getMetaVersion();
+		if ($versions->isRestorable($version, WC_VERSION)) {
 			$this->_zip = &ZipFile::newReader($this->_folder.'/backup.zip');
 
 			$this->_closeSite();
 			$this->_removePages();
 			$this->_cleanRes();
+			
 			$this->_restoreRes();
 			$this->_restoreDB();
+			
+			$patchIds = $versions->getPatches($version, WC_VERSION, $this->_getMetaPatches());
+			$this->_applyPatches($patchIds);
+			
 			$this->_republishSite();
 			$this->_openSite();
+			
 			$this->_createIndex();
 
 			return true;
+		} else {
+			echo sprintf('<p>Cannot import backup from version "%s" to "%s"</p>', $version, WC_VERSION);
 		}
 		return false;
 	}
@@ -175,6 +189,16 @@ class RestoreJob {
 			unset($sql);
 		}
 	}
+	
+	function _applyPatches(&$patchIds) {
+		if (sizeof($patchIds)) {
+			$db = &WCDB::bo();
+			$p = new Patcher($this->_ftp, $db);
+			if (!$p->applyAll($patchIds)) {
+				echo '<p>Failed to apply patches</p>';
+			}
+		}
+	}
 
 	function _republishSite() {
 		$pf = &$this->_getPageFactory();
@@ -221,6 +245,16 @@ class RestoreJob {
 			$this->_meta = parse_ini_file($this->_folder.'/backup.ini', false);
 			settype($this->_meta, 'array');
 		}
+	}
+	
+	function _getMetaVersion() {
+		$version = (string) @$this->_meta['version'];
+		return $version . (substr_count($version, '.') < 2 ? '.0' : '');
+	}
+	
+	function _getMetaPatches() {
+		$patches = str_replace(' ', '', (string) @$this->_meta['patches']);
+		return empty($patches) ? array() : explode(',', $patches);
 	}
 
 	function _compileIgnores() {
