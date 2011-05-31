@@ -46,7 +46,7 @@ class TextRandom extends WCObject {
 	
 	function fetchData(&$smarty) {
 		$result = false;
-		$doc = &$this->getDocument();
+		$doc = $this->getDocument();
 		if(sizeof($doc)) {
 			$smarty->assign('header', $this->header);
 			$smarty->assign_by_ref('text', $doc);
@@ -61,7 +61,7 @@ class TextRandom extends WCObject {
 		$this->document = array();
 		$offset = $this->getOffset();
 
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT real_id, header, html'.
 			' FROM '.$this->DSTable.
@@ -82,7 +82,7 @@ class TextRandom extends WCObject {
 		static $offset;
 		if(!@$this) return;
 		if(!isset($offset[$this->obj_id])) {
-			$db = &$this->ctx->_getDB();
+			$db = $this->ctx->_getDB();
 			$res = $db->query('SELECT COUNT(*) as items FROM '.$this->DSTable.' WHERE ds_id IN ('.$this->ds_id.') AND published!=0');
 			if(mysql_num_rows($res) == 1) {
 				$items = mysql_result($res, 0, 'items');
@@ -95,7 +95,7 @@ class TextRandom extends WCObject {
 	}
 	
 	function _inlineEditGetDocId() {
-		$doc = &$this->getDocument();
+		$doc = $this->getDocument();
 		return sizeof($doc) ? $doc['id'] : null;
 	}
 }

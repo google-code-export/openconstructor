@@ -32,7 +32,7 @@
 		$blocks = '';
 		assert($tpls->objectSupported($type));
 	} else {
-		$tpl = &$tpls->load(@$_GET['id']);
+		$tpl = $tpls->load(@$_GET['id']);
 		assert($tpl != null);
 		$blocks = implode(', ', array_keys($tpl->blocks));
 		$tpls->parse($tpl);

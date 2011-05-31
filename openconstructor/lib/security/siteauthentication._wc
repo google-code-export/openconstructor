@@ -50,7 +50,7 @@ class SiteAuthentication {
 	function _profileLoaderObserver() {
 		if($this->profileId > 0 && $this->_profileLoader > 0) {
 			$ctx = &Context::getInstance();
-			if($obj = &$ctx->page->_getObject($this->_profileLoader, true)) {
+			if($obj = $ctx->page->_getObject($this->_profileLoader, true)) {
 				$this->profile = (array) $obj->getDocument($this->profileId);
 				@$_SESSION['wcsProfile'] = $this->profile;
 				$ctx->_fireEventArgs('onLoadProfile', $args = array('profile' => &$this->profile));

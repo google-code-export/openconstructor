@@ -165,7 +165,7 @@
 				sprintf("% 5.01f%%  [ %01.03f sec ]\n", $p, $time);
 		}
 		$ctx = &Context::getInstance();
-		$db = &$ctx->_getDB();
+		$db = $ctx->_getDB();
 		echo sprintf("Date: %s GMT\n", gmdate('D, j M Y H:i:s'));
 		echo sprintf("SQL queries used: %d\n", $db->getQueryCount());
 		echo sprintf('Speed: % 5.1f pps  [ %01.03f sec ]', round(1/$all, 1), $all);
@@ -181,7 +181,7 @@
 	function &wcfStripTags($html, $allowedTags) {
 		require_once(LIBDIR.'/htmlcleaner._wc');
 		$cleaner = &HtmlCleaner::getInstance($allowedTags);
-		$result = &$cleaner->clean($html);
+		$result = $cleaner->clean($html);
 		return $result;
 	}
 

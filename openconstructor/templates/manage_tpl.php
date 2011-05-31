@@ -26,7 +26,7 @@
 	
 	require_once(LIBDIR.'/templates/wctemplates._wc');
 	$tpls = new WCTemplates();
-	$tpl = &$tpls->load(@$_GET['id']);
+	$tpl = $tpls->load(@$_GET['id']);
 	assert($tpl != null);
 	WCS::assert($tpl, 'edittpl');
 	require_once(LIBDIR.'/smarty/wcsmartycache._wc');

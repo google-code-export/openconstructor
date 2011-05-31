@@ -78,7 +78,7 @@ class Crumbs {
 			if(is_array($result))
 				$result = implode($s, array_diff($result, array(null)));
 		} else
-			$result = &$this->getFull($s);
+			$result = $this->getFull($s);
 		return $result;
 	}
 	
@@ -98,7 +98,7 @@ class Crumbs {
 	}
 	
 	function _addParts(&$router) {
-		$path = &$this->_page->getPath();
+		$path = $this->_page->getPath();
 		$routed = false;
 		for($i = 0, $l = sizeof($path); $i < $l; $i++) {
 			$p = &$this->_map->id[$path[$i]];

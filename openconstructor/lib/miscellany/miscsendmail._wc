@@ -168,7 +168,7 @@ class MiscSendMail extends WCObject {
 		}
 		if($this->isHtml)
 			switch($type = $f[0] - $src) {
-				case FTYPE_HTML:	$value = &wcfStripTags($value, $this->allowedTags);	break;
+				case FTYPE_HTML:	$value = wcfStripTags($value, $this->allowedTags);	break;
 				case FTYPE_TXT:		$value = htmlspecialchars($value, ENT_COMPAT, 'UTF-8');
 			}
 		return $value;

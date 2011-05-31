@@ -57,7 +57,7 @@ switch(@$_POST['action'])
 	case 'save_blocks':
 		require_once(LIBDIR.'/site/pagefactory._wc');
 		$pf = &PageFactory::getInstance();
-		$page = &$pf->getPage(@$_POST['uri_id']);
+		$page = $pf->getPage(@$_POST['uri_id']);
 		assert($page != null);
 
 		$result = true;
@@ -84,7 +84,7 @@ switch(@$_POST['action'])
 	case 'edit_page':
 		require_once(LIBDIR.'/site/pagefactory._wc');
 		$pf = &PageFactory::getInstance();
-		$page = &$pf->getPage(@$_POST['uri_id']);
+		$page = $pf->getPage(@$_POST['uri_id']);
 		assert($page != null && trim(@$_POST['header']) != '');
 
 		if(isset($_POST['uri_name']))

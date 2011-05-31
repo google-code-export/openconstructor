@@ -26,9 +26,9 @@
 	require_once(LIBDIR.'/tree/sqltreereader._wc');
 	
 	$reader = new SqlTreeReader();
-	$node = &$reader->getNode(@$_GET['id']);
+	$node = $reader->getNode(@$_GET['id']);
 	assert($node != null);
-	$rootNode = &$reader->getRootNode($node->id);
+	$rootNode = $reader->getRootNode($node->id);
 //	$reader = new SqlTreeReader();
 //	$tree = $reader->getTree(1);
 //	$in = (int) @$_GET['id'];

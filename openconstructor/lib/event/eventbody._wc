@@ -54,7 +54,7 @@ class EventBody extends WCObject {
 	
 	function fetchData(&$smarty) {
 		$result = false;
-		$event = &$this->getDocument();
+		$event = $this->getDocument();
 		if(sizeof($event) > 0) {
 			$smarty->assign('header', $this->header);
 			$smarty->assign_by_ref('event', $event);
@@ -70,7 +70,7 @@ class EventBody extends WCObject {
 			$id = $this->getDocId();
 			if($id > 0) {
 				$dsIdCheck = $this->ds_id ? 'AND ds_id IN ('.$this->ds_id.')' : '';
-				$db = &$this->ctx->_getDB();
+				$db = $this->ctx->_getDB();
 				$res = $db->query(
 					'SELECT real_id as id,  header, content, date, end_date, place, img_main as image'.
 					' FROM '.$this->DSTable.
@@ -99,7 +99,7 @@ class EventBody extends WCObject {
 			$id = (int) $this->getDocId();
 			if($id > 0) {
 				$dsIdCheck = $this->ds_id ? 'AND ds_id IN ('.$this->ds_id.')' : '';
-				$db = &$this->ctx->_getDB();
+				$db = $this->ctx->_getDB();
 				$res = $db->query(
 					'SELECT header FROM '.$this->DSTable.' WHERE id='.$id.' AND published!=0 '.$dsIdCheck.' LIMIT 1'
 				);
@@ -108,7 +108,7 @@ class EventBody extends WCObject {
 				mysql_free_result($res);
 			}
 		} else {
-			$event = &$this->getDocument();
+			$event = $this->getDocument();
 			$header = @$event['header'];
 		}
 		$crumbs->set($this->ctx->page->uri, $header);

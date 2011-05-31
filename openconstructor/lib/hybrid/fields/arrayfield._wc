@@ -48,7 +48,7 @@ class ArrayField extends HybridField {
 				return false;
 			}
 		} else {
-			$ds = &$this->getDS();
+			$ds = $this->getDS();
 			$ds->increaseLock();
 		}
 		$this->update();
@@ -64,7 +64,7 @@ class ArrayField extends HybridField {
 	}
 	
 	function remove() {
-		$ds = &$this->getDS(); 
+		$ds = $this->getDS(); 
 		if($this->isOwn) {
 			WCS::runAs(WCS_ROOT_ID);
 			if($this->type != 'hybrid')

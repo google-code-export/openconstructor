@@ -46,7 +46,7 @@ class DSGuestBook extends WCDataSource
 		WCS::assert($this, 'createdoc');
 		assert(trim($subject) != '');
 		if($this->isFull()) return false;
-		$html = &$this->cleanHTML(&$html);
+		$html = $this->cleanHTML($html);
 		$db = &WCDB::bo();
 		$db->query(
 			'INSERT INTO '.$this->DSTable.
@@ -91,13 +91,13 @@ class DSGuestBook extends WCDataSource
 
 	function update($id, $subject, $html, $date, $author = '', $email = '') {
 		assert(trim($subject) != '');
-		$rec = &$this->get_record($id);
+		$rec = $this->get_record($id);
 		assert($rec['id'] == $rec['real_id']);
-		$doc = &$this->wrapDocument($rec);
+		$doc = $this->wrapDocument($rec);
 		assert($doc->id > 0);
 		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
 		
-		$html = &$this->cleanHTML(&$html);
+		$html = $this->cleanHTML($html);
 		$ids = $this->getAliases($id, true);
 		$db = &WCDB::bo();
 		$db->query(

@@ -30,9 +30,9 @@
 	$to = $pr->getPage(@$_GET['node']);
 	assert($to != null);
 	$super = $pr->superDecide($to->id, 'managesub');
-	$_objm = & new ObjManager();
+	$_objm = new ObjManager();
 	$objs = $_objm->get_all_objects();
-	$ex = &$to->getObjects();
+	$ex = $to->getObjects();
 	foreach($ex as $id => $j)
 		unset($objs[$id]);
 	$c_obj_type = @current($objs);

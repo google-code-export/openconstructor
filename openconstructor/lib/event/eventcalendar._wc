@@ -60,7 +60,7 @@ class EventCalendar extends WCObject {
 		$m = $this->getMonth();
 		$y = intval($this->year)?intval($this->year):date('Y');
 		
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT id, real_id as rid, header, place, img_intro as image, date, end_date'.
 			' FROM '.$this->DSTable.

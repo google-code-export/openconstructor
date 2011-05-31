@@ -21,7 +21,7 @@
  * $Id: headline._wc,v 1.11 2007/02/27 11:23:19 sanjar Exp $
  */
 	require_once(LIBDIR.'/objmanager._wc');
-	$obj = &$page->getObjects();
+	$obj = $page->getObjects();
 	$blocks = array();
 	$stubs = array();
 	$events = Page::getAllEvents();

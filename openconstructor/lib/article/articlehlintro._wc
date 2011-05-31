@@ -57,7 +57,7 @@ class ArticleHLIntro extends WCObject {
 		$cacheId = null;
 		if(!$this->ids) {
 			$page = (int) @$_GET[$this->pid];
-			$displayed = &$this->getDisplayedDocs();
+			$displayed = $this->getDisplayedDocs();
 			if(--$page < 0) $page = 0;
 			$cacheId = $this->obj_id.'|p'.$page.'-c'.implode(',', array_keys($displayed));
 		}
@@ -71,7 +71,7 @@ class ArticleHLIntro extends WCObject {
 		
 		$where = $this->ids ? 'd.id IN ('.$this->ids.')' : 'd.ds_id IN ('.$this->ds_id.')';
 		$search = &WCObject::getSearchQuery($this->keywordKey, 'd');
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT d.id, d.real_id as rid, d.header, d.intro, d.date, d.img_main as image'.
 			' FROM '.$this->DSTable.' d'.$search['from'].
@@ -81,7 +81,7 @@ class ArticleHLIntro extends WCObject {
 		);
 		if(mysql_num_rows($res) > 0) {
 			$fet = array();
-			$displayed = &$this->getDisplayedDocs();
+			$displayed = $this->getDisplayedDocs();
 			$ctx = &Context::getInstance();
 			$href = $ctx->getPatternFor($this->srvuri, $this->articleid);
 			while($row=mysql_fetch_assoc($res)) {

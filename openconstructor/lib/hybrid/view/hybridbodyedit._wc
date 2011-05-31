@@ -64,10 +64,10 @@ class HybridBodyEdit extends WCObject {
 		$result = false;
 		if($this->agent && sizeof($this->docFields)) {
 			$ctx = &Context::getInstance();
-			$ds = &$this->agent->_getDs($this->agent->dsId);
+			$ds = $this->agent->_getDs($this->agent->dsId);
 			$id = $ctx->getParam($this->docId);
 			if($id == 'new') {
-				$hDoc = &$ds->getEmptyDocument();
+				$hDoc = $ds->getEmptyDocument();
 				$preset = array_keys($_GET);
 				for($i = 0; $i < sizeof($preset); $i++)
 					if(array_key_exists($preset[$i], $hDoc->fields))
@@ -76,7 +76,7 @@ class HybridBodyEdit extends WCObject {
 						$hDoc->header = @$_GET['header'];
 			} else {
 				settype($id, 'int');
-				$hDoc = &$ds->getDocument($id);
+				$hDoc = $ds->getDocument($id);
 			}
 			if($hDoc) {
 				$this->agent->getTrees();
@@ -98,7 +98,7 @@ class HybridBodyEdit extends WCObject {
 					'_published' => array('key' => 'published'),
 				);
 				$fields['id'] = $fields['_id'];
-				$rec = &$ds->getRecord();
+				$rec = $ds->getRecord();
 				for($i = 0, $l = sizeof($this->docFields); $i < $l; $i++) 
 					if(isset($this->agent->dsFields[$this->docFields[$i]['id']])) {
 						$f = &$this->agent->dsFields[$this->docFields[$i]['id']];
@@ -127,7 +127,7 @@ class HybridBodyEdit extends WCObject {
 									loadClass('wcenumfactory', '/enum/wcenumfactory._wc');
 									$ef = &WCEnumFactory::getInstance();
 								}
-								$enum = &$ef->load($hf->enumId);
+								$enum = $ef->load($hf->enumId);
 								$fld['enumId'] = $hf->enumId;
 								$fld['isArray'] = $hf->isArray;
 								$fld['values'] = $fld['keys'] = $fld['headers'] = array();

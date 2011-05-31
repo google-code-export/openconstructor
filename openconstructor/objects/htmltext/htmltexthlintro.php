@@ -137,7 +137,7 @@ function markLi(value) {
 			<td><select name="page_id" size="1" onchange="markLi(this.options[this.selectedIndex].value);">
 			<OPTION value="0">.
 <?php
-	$pages = &$pr->getAllPages();
+	$pages = $pr->getAllPages();
 	foreach($pages as $id => $uri)
 		echo '<OPTION value="'.$id.'"'.($id == $obj->pageId ? ' SELECTED' : '').'>'.$uri;
 ?>
@@ -152,7 +152,7 @@ function markLi(value) {
 	<div style="padding: 10px;">
 	<?php
 		settype($obj->exclude, 'array');
-		$tree = &$pr->getTree();
+		$tree = $pr->getTree();
 		$ids = array_keys($pages);
 		for($i = 0, $_l = sizeof($ids); $i < $_l; $i++) {
 			$node = &$tree->node[$ids[$i]];

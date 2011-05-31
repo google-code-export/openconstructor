@@ -27,7 +27,7 @@
 	if(!isset($_GET['ds_id'])||!isset($_GET['id'])) die();
 	require_once(LIBDIR.'/dsmanager._wc');
 	$dsm = new DSManager();
-	$_ds = &$dsm->load($_GET['ds_id']);
+	$_ds = $dsm->load($_GET['ds_id']);
 	if($_GET['id']!='new') {
 		$_doc=$_ds->get_record($_GET['id']);
 		assert($_doc != null);

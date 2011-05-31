@@ -48,7 +48,7 @@ class DSGallery extends WCDataSource
 		assert(trim($header) != '');
 		WCS::assert($this, 'createdoc');
 		if($this->isFull()) return false;
-		$content = &$this->cleanHTML(&$content);
+		$content = $this->cleanHTML($content);
 		$db = &WCDB::bo();
 		$db->query(
 			'INSERT INTO '.$this->DSTable.
@@ -198,12 +198,12 @@ class DSGallery extends WCDataSource
 	
 	function update($id,$header,$content,$date,$imagemain,$imageintro) {
 		assert($header != '');
-		$rec = &$this->get_record($id);
+		$rec = $this->get_record($id);
 		assert($rec['id'] == $rec['real_id']);
-		$doc = &$this->wrapDocument($rec);
+		$doc = $this->wrapDocument($rec);
 		assert($doc->id > 0);
 		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
-		$content = &$this->cleanHTML(&$content);
+		$content = $this->cleanHTML($content);
 		$ids = $this->getAliases($id, true);
 		
 		$db = &WCDB::bo();

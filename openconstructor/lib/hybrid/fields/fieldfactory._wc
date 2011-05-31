@@ -45,7 +45,7 @@ class FieldFactory {
 	function updateField(&$old, &$new) {
 		require_once(LIBDIR.'/dsmanager._wc');
 		$dsm = new DSManager();
-		$ds = &$dsm->load($old->ds_id);
+		$ds = $dsm->load($old->ds_id);
 		WCS::assert($ds, 'editds');
 		switch ($old->family) {
 			case 'primitive':

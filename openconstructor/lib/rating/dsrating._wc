@@ -64,7 +64,7 @@ class DSRating extends WCDataSource {
 	function update($id, $rating, $strategy = DSR_FAKING_ADDUSER) {
 		settype($rating, 'int');
 		assert($rating >= $this->minRating && $rating <= $this->maxRating && $this->fakeRaters > 0);
-		$doc = &$this->getDocument($id);
+		$doc = $this->getDocument($id);
 		assert($doc->id > 0);
 		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
 		switch($strategy) {
@@ -121,7 +121,7 @@ class DSRating extends WCDataSource {
 	
 	function removeVotes($ratingId, $userIds) {
 		$result = true;
-		$doc = &$this->getDocument($ratingId);
+		$doc = $this->getDocument($ratingId);
 		assert($doc->id > 0);
 		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
 		if(sizeof($userIds) > 0) {
@@ -139,7 +139,7 @@ class DSRating extends WCDataSource {
 	
 	function setVotesState($ratingId, $userIds, $state) {
 		$result = true;
-		$doc = &$this->getDocument($ratingId);
+		$doc = $this->getDocument($ratingId);
 		assert($doc->id > 0);
 		WCS::assertValue(WCS::decide($doc, 'publishdoc') || WCS::decide($this, 'publishdoc'), $doc, 'publishdoc');
 		if(sizeof($userIds) > 0) {
@@ -171,7 +171,7 @@ class DSRating extends WCDataSource {
 		WCS::assert($this, 'createdoc');
 		settype($userId, 'int');
 		assert(!empty($clause) && $userId > 0);
-		$comment = &$this->cleanHTML($comment);
+		$comment = $this->cleanHTML($comment);
 		$db = &WCDB::bo();
 		$db->query(sprintf(
 			"INSERT INTO dsratinglog (id, user_id, active, rating, comment, date) SELECT id, $userId, 1, %d, '%s' AS comment, %d FROM {$this->DSTable} d WHERE $clause"
@@ -300,14 +300,14 @@ class DSRating extends WCDataSource {
 	}
 	
 	function updateVote($ratingId, $userId, $active, $comment, $rating = null, $votes = null, $date = null) {
-		$doc = &$this->getDocument($ratingId);
+		$doc = $this->getDocument($ratingId);
 		assert($doc->id > 0);
 		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
 		$vote = $this->getVote($doc->id, $userId);
 		assert($vote != null);
 		settype($rating, 'int');
 		assert(!$vote['fake'] || ($rating >= $this->minRating && $rating <= $this->maxRating && $votes > 0));
-		$comment = &$this->cleanHTML($comment);
+		$comment = $this->cleanHTML($comment);
 		$extra = ''; $dirty = false;
 		if($vote['fake']) {
 			if($vote['rating'] != ($rating * $votes) || $vote['votes'] != $votes) {

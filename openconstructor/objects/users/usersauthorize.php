@@ -122,7 +122,7 @@ function dsb(){
 			<td><?=H_NEXTPAGE_URI?></td>
 		</tr>
 		<?php
-			$groups = &$gf->getAllGroups();
+			$groups = $gf->getAllGroups();
 			foreach($groups as $id => $title) :
 		?>
 		<tr>

@@ -30,7 +30,7 @@
 	$searchclause = $ds->isIndexable  && !isset($_GET['noindex']) ? get_index_clause(@$_GET['search']) : get_clause(@$_GET['search'],'html, s.name, s.header');
 	list($items, $hl) = $_ds->get_headline(@$_GET['page'], $pagesize, $searchclause);
 	if(is_array($searchclause)) {
-		$pages = &$pr->getAllPages();
+		$pages = $pr->getAllPages();
 		$ids = array_keys($hl);
 		for($i = 0, $l = sizeof($ids); $i < $l; $i++) {
 			$hl[$ids[$i]]['uri'] = '<u>'.$pages[$ids[$i]].'</u>';

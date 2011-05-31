@@ -120,7 +120,7 @@ class GBAddMsgLogic extends WCObject {
 			sendRedirect($ref.'?'.implode('&', $query));
 			die();
 		}
-		if(!$ds = &$dsm->load($ds_id)) {
+		if(!$ds = $dsm->load($ds_id)) {
 			return;
 		}
 		$subject = @$_POST[$this->fields['subject']['id']];

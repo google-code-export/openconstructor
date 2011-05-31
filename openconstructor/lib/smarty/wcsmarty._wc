@@ -83,7 +83,7 @@ function smarty_func_run_block($params, &$smarty) {
 	$ctx = &$smarty->_ctx;
 	if($ctx->page->status == 404)
 		return;
-	$obj = &$ctx->getObjectAt(@$params['id']);
+	$obj = $ctx->getObjectAt(@$params['id']);
 	if($obj !== null) {
 		if(!isset($smarty->_object_stack[$obj->obj_id])) {
 			$smarty->_object_stack[$obj->obj_id] = true;
@@ -122,7 +122,7 @@ function smarty_func_href($params, &$smarty) {
 		if(isset($cache[$uid])) {
 			$pattern = &$cache[$uid];
 		} else {
-			$pattern = &$smarty->_ctx->getPatternFor($uri, $p);
+			$pattern = $smarty->_ctx->getPatternFor($uri, $p);
 			$cache[$uid] = $pattern;
 		}
 		return vsprintf($pattern, $v);

@@ -78,7 +78,7 @@ function dsb(){
 			<td><select name="profileType" size="1"><option value="0">-
 	<?php
 		require_once(LIBDIR.'/dsmanager._wc');
-		$dsm = & new DSManager();
+		$dsm = new DSManager();
 		$ds = $dsm->getAll('hybrid');
 		foreach($ds as $v)
 			echo '<option value="'.$v['id'].'"'.($v['id'] == $group->profileType ? ' selected' : '').'>'.str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;',substr_count($v['path'],',') - 1).

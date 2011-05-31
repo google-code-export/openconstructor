@@ -26,10 +26,10 @@
 	require_once(LIBDIR.'/tree/sqltreereader._wc');
 	
 	$reader = new SqlTreeReader();
-	$tree = &$reader->getTree(1);
+	$tree = $reader->getTree(1);
 	assert($tree->exists(@$_GET['in']) == true);
 	$in = &$tree->node[$_GET['in']];
-	$rootNode = &$reader->getRootNode($in->id);
+	$rootNode = $reader->getRootNode($in->id);
 ?>
 <html>
 <head>

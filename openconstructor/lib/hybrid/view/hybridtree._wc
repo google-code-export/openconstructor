@@ -51,18 +51,18 @@ class HybridTree extends WCObject {
 	}
 	
 	function getCacheId() {
-		$agent = &$this->getAgent();
+		$agent = $this->getAgent();
 		$nodeId = str_replace(array('/', '\\'), array('', ''), $this->ctx->getParam($this->nodeId));
 		return $this->obj_id.'|'.$agent->dsId.'|'.$nodeId;
 	}
 	
 	function onPageLoad() {
-		if(!$this->no404 && !is_object($agent = &$this->getAgent()))
+		if(!$this->no404 && !is_object($agent = $this->getAgent()))
 			$this->ctx->throw404();
 	}
 	
 	function changeCrumbs(&$crumbs) {
-		$agent = &$this->getAgent();
+		$agent = $this->getAgent();
 		if(is_object($agent)) {
 			$agent->_changeDsCrumbs($crumbs, $this->dsIdKey);
 			$agent->_changeNodeCrumbs($crumbs, $this->nodeId);
@@ -71,7 +71,7 @@ class HybridTree extends WCObject {
 	
 	function fetchData(&$smarty) {
 		$result = false;
-		$tree = &$this->getTrees();
+		$tree = $this->getTrees();
 		if(sizeof($tree)) {
 			$smarty->assign('header', $this->header);
 			$smarty->assign_by_ref('tree', $tree);
@@ -84,7 +84,7 @@ class HybridTree extends WCObject {
 		if(!isset($this->tree)) {
 			$this->tree = array();
 			$result = &$this->tree;
-			$agent = &$this->getAgent();
+			$agent = $this->getAgent();
 			if(!$agent)
 				return $result;
 			$trees = $agent->getTrees();
@@ -99,11 +99,11 @@ class HybridTree extends WCObject {
 			$uri = $ctx->getPatternFor($this->srvUri, array($this->dsIdKey, $this->nodeId));
 			$result = array(1 => array('id' => 1, 'parent' => null, 'key' => null, 'at' => null, 'header' => null, 'level' => 0, 'href' => sprintf($uri, $agent->dsKey, '')));
 			$result['root'] = &$result[1];
-			$db = &$this->ctx->_getDB();
+			$db = $this->ctx->_getDB();
 			$res = $db->query($this->_getQuery($treeIds));
 			if(mysql_num_rows($res) > 0) {
 				$curnode = $ctx->getParam($this->nodeId);
-				$nodes = &$agent->_getNodesCache();
+				$nodes = $agent->_getNodesCache();
 				$fetchCount = $this->countDocs;
 				while($r = mysql_fetch_assoc($res)) {
 					$id = (int) $r['id'];
@@ -145,7 +145,7 @@ class HybridTree extends WCObject {
 	
 	function &_getQuery($treeIds) {
 		if($this->countDocs) {
-			$agent = &$this->getAgent();
+			$agent = $this->getAgent();
 			$result = '
 				SELECT t.id, t.parent, t.name, t.header, COUNT(DISTINCT c.doc) AS docs
 				FROM

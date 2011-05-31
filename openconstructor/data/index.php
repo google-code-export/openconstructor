@@ -31,7 +31,7 @@
 	$map[$siteroot]=array(DATASOURCES=>$_dsm->getTree());
 	$tmp = @$_GET['node']?$_GET['node']:@$_COOKIE['curnode'];
 	$curnode = $_dsm->exists($tmp) ? $tmp : $_dsm->first;
-	if(!($ds = &$_dsm->load($curnode))) {
+	if(!($ds = $_dsm->load($curnode))) {
 		$curnode = 0;
 	} elseif($ds->isInternal) {
 		sendRedirect('http://'.$_SERVER['HTTP_HOST'].WCHOME.'/data/internal_ds.php?node='.$ds->ds_id);

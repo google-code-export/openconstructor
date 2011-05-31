@@ -33,7 +33,7 @@ class ConsoleTask_Users_Activate extends AbstractConsoleTask_Users {
 	function run() {
 		$ids = $this->_getUserIds();
 		if(sizeof($ids) > 0) {
-			$uf = &$this->_getUserFactory();
+			$uf = $this->_getUserFactory();
 			$uf->setUserState($ids, 1);
 			$this->runner->info('Successfully activated '.sizeof($ids).' user(s)');
 		}

@@ -35,7 +35,7 @@
 		if(file_exists(LIBDIR.'/tpl/'.$type.'.tpl'))
 			$defTpl = implode('', file(LIBDIR.'/tpl/'.$type.'.tpl'));
 	} else {
-		$tpl = &$tpls->load(@$_GET['id']);
+		$tpl = $tpls->load(@$_GET['id']);
 		assert($tpl != null);
 		$tpls->parse($tpl);
 	}

@@ -173,7 +173,7 @@ class Page {
 	}
 	
 	function getParentUri($level = -1) {
-		$p = &$this->getPath();
+		$p = $this->getPath();
 		return $level < 0 ? @$p[sizeof($p) + $level - 1] : @$p[$level];
 	}
 	

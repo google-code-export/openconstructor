@@ -29,7 +29,7 @@
 	
 	$obj = &ObjManager::load(@$_GET['id']);
 	assert($obj != null);
-	$_dsm = & new DSManager();
+	$_dsm = new DSManager();
 	$ds = $_dsm->getAll($obj->ds_type);
 	$fields = FieldFactory::getRelatedFields($obj->ds_id);
 ?>

@@ -28,12 +28,12 @@
 	require_once('../include/sections._wc');
 
 	$dsm = new DSManager();
-	$dsh = &$dsm->getAll('hybrid');
+	$dsh = $dsm->getAll('hybrid');
 	$reader = new SqlTreeReader();
 	$currentDs = @$dsh[@$_COOKIE['dsh']] ? @$_COOKIE['dsh'] : key($dsh);
 	@list(,$curtab) = explode('/',$_SERVER['PATH_INFO']);
 	if(!$curtab) $curtab = $currentDs ? 'browse' : 'trees';
-	$ds = &$dsm->load($currentDs);
+	$ds = $dsm->load($currentDs);
 	$tmp = @$_GET['node'] ? $_GET['node'] : @$_COOKIE['curnode'];
 	$treeFields = getTreesFor($currentDs);
 	if($curtab == 'browse') {

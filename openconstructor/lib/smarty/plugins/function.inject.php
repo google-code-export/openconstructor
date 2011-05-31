@@ -26,7 +26,7 @@
 function smarty_function_inject($params, &$smarty) {
 	if(isset($params['block']) && !empty($params['block'])) {
 		if(isset($params['field']) && !empty($params['field'])) {
-			if($obj = &$smarty->_ctx->getObjectAt($params['block'])) {
+			if($obj = $smarty->_ctx->getObjectAt($params['block'])) {
 				if(isset($params['value']))
 					$smarty->_ctx->inject($obj, $params['field'], $params['value']);
 				elseif(isset($params['param']))

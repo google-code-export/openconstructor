@@ -46,7 +46,7 @@ class WCMessage {
 	function send() {
 		$recipients = $this->_encodeAddrHeader(implode(', ', $this->recipient));
 		$subject = $this->_encodeHeader($this->subject);
-		$message = &$this->_getMessage();
+		$message = $this->_getMessage();
 		$headers = $this->_getHeaders();
 		return mail($recipients, $subject, $message, $headers);
 	}
@@ -151,7 +151,7 @@ class WCMessage {
 	
 	function _getContent() {
 		if($this->tpl) {
-			$smarty = &$this->_getSmarty();
+			$smarty = $this->_getSmarty();
 			$oldCaching = $smarty->caching;
 			$oldCompilecheck = $smarty->compile_check;
 			$smarty->caching = 0;

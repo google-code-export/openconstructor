@@ -47,7 +47,7 @@
 		return $result;
 	}
 	if(isset($_GET['keyword']))
-		$hl = &get_images($_GET['keyword'], 1, $pageSize);
+		$hl = get_images($_GET['keyword'], 1, $pageSize);
 ?>
 <html>
 <head>

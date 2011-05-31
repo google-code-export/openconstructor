@@ -57,7 +57,7 @@
 	}
 //	echo '<postscript>alert("'.($showProf ? 'yes' : 'no').'")</postscript>';
 	$hl = users_hl($curnode, (int) @$_GET['page'], $pageSize, $showProf);
-	$uids = array_keys(&$hl);
+	$uids = array_keys($hl);
 	for($i = 0, $l = sizeof($uids); $i < $l; $i++) {
 		if($hl[$uids[$i]]['native'])
 			$hl[$uids[$i]]['name'] = '<b>'.$hl[$uids[$i]]['name'].'</b>';

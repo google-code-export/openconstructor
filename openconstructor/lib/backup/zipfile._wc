@@ -60,7 +60,7 @@ class ZipFileWriter {
 		if(substr($dirName, -1) != '/')
 			$dirName .= '/';
 		$l = strlen($dirName);
-		$entries = &$this->_getAllEntries($dirName);
+		$entries = $this->_getAllEntries($dirName);
 		ksort($entries);
 		foreach($entries as $entry => $isDir)
 			if($isDir) {

@@ -92,9 +92,9 @@ function dsb(){
 	<fieldset style="padding:10" id="sitemap"><legend><?=H_EXCLUDE_PAGES?></legend>
 	<div style="padding: 10px 0;"><ul>
 	<?php
-		$pages = &$pr->getAllPages();
+		$pages = $pr->getAllPages();
 		settype($obj->exclude, 'array');
-		$tree = &$pr->getTree();
+		$tree = $pr->getTree();
 		$ids = array_keys($pages);
 		for($i = 0, $_l = sizeof($ids); $i < $_l; $i++) {
 			$node = &$tree->node[$ids[$i]];

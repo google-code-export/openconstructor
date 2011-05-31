@@ -148,6 +148,7 @@ class WCObject {
 	function changeCrumbs(&$crumbs) {}
 
 	// TODO: кажется этот метод нигде не используется... выяснить и удалить
+	// rustam.akhmedov: Правильно, не используется
 	function &cache($key, $value = null) {
 		global $__cache;
 		$result = null;

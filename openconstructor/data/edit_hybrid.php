@@ -26,10 +26,10 @@
 	
 	require_once(LIBDIR.'/dsmanager._wc');
 	$dsm = new DSManager();
-	$_ds = &$dsm->load(@$_GET['ds_id']);
+	$_ds = $dsm->load(@$_GET['ds_id']);
 	assert($_ds != null);
 	WCS::request($_ds, 'editds');
-	$dss = &$dsm->getAll('hybrid');
+	$dss = $dsm->getAll('hybrid');
 	//userfriendly names
 	$uf['ds_name']=DS_NAME;
 	$uf['ds_key']=DS_KEY;
@@ -38,7 +38,7 @@
 	$ds_id=$_GET['ds_id'];
 	$ds_name=$_ds->name;
 	$description=$_ds->description;
-	$record = &$_ds->getRecord();
+	$record = $_ds->getRecord();
 	
 	$sources = array(); // Events section
 	$db = &WCDB::bo();

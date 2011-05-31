@@ -27,7 +27,7 @@
 
 	require_once(LIBDIR.'/dsmanager._wc');
 	$dsm = new DSManager();
-	$ds = &$dsm->load($_GET['ds_id']);
+	$ds = $dsm->load($_GET['ds_id']);
 	if(@$ds->editTpl > 0) {
 		require_once(LIBDIR.'/smarty/wcsmarty._wc');
 		require_once(LIBDIR.'/wcobject._wc');
@@ -35,9 +35,9 @@
 		require_once(LIBDIR.'/hybrid/view/hybridagent._wc');
 		require_once(LIBDIR.'/hybrid/view/hybridbodyedit._wc');
 		$ctx = &Context::getInstance();
-		$smarty = & new WCSmarty();
+		$smarty = new WCSmarty();
 //		$smarty->compile_check = true;
-		$obj = & new HybridBodyEdit();
+		$obj = new HybridBodyEdit();
 		$obj->ctx = &Context::getInstance();
 		$obj->ctx->_smarty = &$smarty;
 		$obj->docId = 'id';

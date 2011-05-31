@@ -55,7 +55,7 @@ class PublicationBody extends WCObject {
 	
 	function fetchData(&$smarty) {
 		$result = false;
-		$doc = &$this->getDocument();
+		$doc = $this->getDocument();
 		if(sizeof($doc) > 0) {
 			$smarty->assign('header', $this->header);
 			$smarty->assign_by_ref('news', $doc);
@@ -71,7 +71,7 @@ class PublicationBody extends WCObject {
 			$id = $this->getDocId();
 			if($id > 0) {
 				$dsIdCheck = $this->ds_id ? 'AND ds_id IN ('.$this->ds_id.')' : '';
-				$db = &$this->ctx->_getDB();
+				$db = $this->ctx->_getDB();
 				$res = $db->query(
 					'SELECT real_id as id, gallery as gid, header, content, date, img_main as image'.
 					' FROM '.$this->DSTable.
@@ -99,14 +99,14 @@ class PublicationBody extends WCObject {
 			$id = $this->getDocId();
 			if($id > 0) {
 				$dsIdCheck = $this->ds_id ? 'AND ds_id IN ('.$this->ds_id.')' : '';
-				$db = &$this->ctx->_getDB();
+				$db = $this->ctx->_getDB();
 				$res = $db->query('SELECT header FROM '.$this->DSTable.' WHERE id='.$id.' AND published!=0 '.$dsIdCheck);
 				if($r = mysql_fetch_row($res))
 					$header = escapeTags($r[0]);
 				mysql_free_result($res);
 			}
 		} else {
-			$doc = &$this->getDocument();
+			$doc = $this->getDocument();
 			$header = @$doc['header'];
 		}
 		$crumbs->set($this->ctx->page->uri, $header);

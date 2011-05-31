@@ -61,9 +61,9 @@ class MiscInjector extends WCObject {
 			$job = &$this->jobs[$i];
 			$type = $job[0] % 10;
 			if(intval($job[0] / 10) == 1)
-				$obj = &$ctx->getObject($job[1]);
+				$obj = $ctx->getObject($job[1]);
 			else
-				$obj = &$ctx->getObjectAt($job[1]);
+				$obj = $ctx->getObjectAt($job[1]);
 			if($obj) {
 				switch($type) {
 					case INJ_CTX:

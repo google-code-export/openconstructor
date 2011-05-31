@@ -79,7 +79,7 @@ class GroupFactory {
 	}
 	
 	function removeGroup($groupId) {
-		$group = &$this->getGroup($groupId);
+		$group = $this->getGroup($groupId);
 		assert($group != null && !$group->builtIn);
 		WCS::assert($group, 'removegroup');
 		$db = &WCDB::bo();
