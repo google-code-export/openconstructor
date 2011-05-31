@@ -1,0 +1,147 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: documentfield._wc,v 1.4 2007/02/27 11:23:19 sanjar Exp $
+ */
+require_once('fieldutils._wc');
+
+class DocumentField extends HybridField {
+	var $isOwn;
+	var $fromDS;
+	var $ds;
+	
+	function DocumentField($key, $header, $type, $required, $isOwn, $fromDS) {
+		assert($type != 'phpsource' && $type != 'htmltext' && $type != 'rating');
+		$this->HybridField($key, $header, 'document', $type, $required);
+		$this->isOwn = $isOwn ? 1 : 0;
+		$this->fromDS = intval($fromDS);
+		$this->ds = null;
+	}
+	
+	function create() {
+		HybridField::create();
+		if(!$this->id)
+			return false;
+		if($this->isOwn && $this->type != 'hybrid'){
+			$this->fromDS = FieldUtils::createInternalDS($this->header, $this->type, $this->fromDS);
+			if(!$this->fromDS){
+				$this->remove();
+				return false;
+			}
+		} else {
+			$ds = &$this->getDS();
+			$ds->increaseLock();
+		}
+		$this->update();
+		return $this->id;
+	}
+	
+	function update() {
+		$db = &WCDB::bo();
+		$db->query(
+			sprintf("UPDATE $this->table SET header='%1\$s', isreq='%2\$d', isown='%3\$d', fromds='%4\$d' WHERE id=$this->id"
+			, addslashes($this->header), intval($this->isRequired), intval($this->isOwn),intval($this->fromDS))
+		);
+	}
+	
+	function remove() {
+		$ds = &$this->getDS();
+		if($this->isOwn) {
+			WCS::runAs(WCS_ROOT_ID);
+			if($this->type != 'hybrid')
+				$ds->remove();
+			else {
+				$db = &WCDB::bo();
+				$res = $db->query("SELECT {$this->key} FROM {$this->ds_table} WHERE {$this->key} > 0");
+				if(mysql_num_rows($res) > 0) {
+					while($r = mysql_fetch_row($res))
+						$doc[] = $r[0];
+					loadClass('dshybridfactory', '/hybrid/dshybridfactory._wc');
+					$dsf = new DSHybridFactory();
+					$dsf->removeDocuments(&$doc);
+				}
+				mysql_free_result($res);
+				$ds->decreaseLock(); 
+			}
+			WCS::stopRunAs();
+		}
+		else
+			$ds->decreaseLock();
+		HybridField::remove();
+	}
+	
+	function onUpdateDocument(&$old, &$new) {
+		$new->fields[$this->key] = (int) $new->fields[$this->key];
+		if($new->fields[$this->key] < 0 && !$this->isRequired) {
+			if($this->isOwn && $this->isValid($old->fields[$this->key])) {
+				$ds = $this->getDS();
+				WCS::runAs(WCS_ROOT_ID);
+				$ds->delete($old->fields[$this->key]);
+				WCS::stopRunAs();
+			}
+			$new->fields[$this->key] = '';
+			return;
+		}
+		if(!$this->isValid($new->fields[$this->key]))
+			$new->fields[$this->key] = $old->fields[$this->key];
+	} 
+	
+	function onRemoveDocument(&$doc) {
+		if($this->isOwn && $doc->fields[$this->key]){
+			$ds = &$this->getDS();
+			WCS::runAs(WCS_ROOT_ID);
+			$ds->delete(&$doc->fields[$this->key]);
+			WCS::stopRunAs();
+		}
+	}
+	
+	function fetchValue(&$doc) {
+		$header = FieldUtils::getDocumentHeader($this->type, $this->fromDS, $doc->fields[$this->key]);
+		$doc->fields[$this->key] = array(
+			'id' => $header ? $doc->fields[$this->key] : null,
+			'header' => $header
+		);
+	}
+	
+	function convertToPlain(&$doc) {
+		$doc->fields[$this->key] = @$doc->fields[$this->key]['header'];
+	}
+	
+	function isValid($value) {
+		return $this->isRequired ? $value > 0 : $value >= 0;
+	}
+
+	function getMysqlType() {
+		switch($this->type) {
+			case 'publication': case 'event': case 'gallery': case 'article': case 'textpool': case 'guestbook': case 'file': case 'hybrid':
+				return 'INT(11) UNSIGNED';
+		}
+		return null;
+	}
+	
+	function &getDS() {
+		if(!is_object($this->ds))
+			$this->ds = &FieldUtils::loadDS($this->type, $this->fromDS);
+		return $this->ds;
+	}
+}
+?>

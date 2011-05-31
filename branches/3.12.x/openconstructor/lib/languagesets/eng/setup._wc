@@ -1,0 +1,116 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: setup._wc,v 1.3 2007/03/02 08:37:07 sanjar Exp $
+ */
+	error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
+	
+	define('H_SYSTEM_SETUP','Setup');
+	define('H_SETUP_GENERAL_INFRO','General Information');
+	define('PR_SETUP_HTTP_HOST','HTTP Host');
+	define('PR_SETUP_SERVER_IP','Server IP');
+	define('PR_SETUP_WEBSERVER','Web Server');
+	define('PR_WC_MODE_DEBUG','Debug Mode');
+	define('H_WC_MODE_DEBUG_W','Ought to disable');
+	define('PR_WC_BLOCK_CACHING','Block Level Caching');
+	define('PR_WC_PAGE_CACHING','Page Level Caching');
+	define('H_SETUP_WCS_USERS','Groups that have access to the system');
+	define('H_SETUP_VIEW_LS_DIFFS','View <a href="%s">differencies in Language Packs</a>');
+	define('H_SETUP_VIEW_ERROR_LOGS','View <a href="%s">Error Logs</a>');
+	define('H_SETUP_PHP_PREFS','PHP Preferences');
+	define('H_SETUP_OK_I','<font color="green">Ok</font>');
+	define('H_SETUP_ENABLE_W','<font color="red">Ought to enable [On]</font>');
+	define('H_SETUP_DISABLE_W','<font color="red">Ought to disable [Off]</font>');
+	define('H_SETUP_VIEW_PHPINFO','Open <a href="%s">phpinfo()</a>');
+	define('H_SETUP_FTP_PREFS','FTP Connection Settings');
+	define('PR_SETUP_FTP_HOST','Host');
+	define('PR_SETUP_FTP_PORT','Port');
+	define('PR_SETUP_FTP_LOGIN','User');
+	define('PR_SETUP_FTP_SITEROOT','Site Root');
+	define('H_ELSES_FTP_PREFS_GIVEN','Else\'s FTP settings given');
+	define('H_SETUP_DB_PREFS','Database');
+	define('H_SETUP_DB_VERSION','MySQL version');
+	define('PR_SETUP_DB_NAME','Database Name');
+	define('PR_SETUP_DB_LOGIN','User');
+	define('H_SETUP_DB_OPTIMIZE','<a href="%s">Optimize</a> all system tables ( OPTIMIZE TABLE ... )');
+	define('H_SETUP_DB_TABLES_INFO','<a href="checktables.php">Information</a> about system tables');
+	define('H_SETUP_SYS_ALL','Total');
+	define('H_SETUP_SYS_PAGES','Pages');
+	define('H_SETUP_SYS_DS_DOCS','Datasources / Documents');
+	define('H_SETUP_SYS_ENUMS','Enumerations');
+	define('H_SETUP_SYS_NODES','Nodes');
+	define('H_SETUP_SYS_OBJECTS','Objects');
+	define('H_SETUP_SYS_TPLS','Templates');
+	define('H_SETUP_SYS_USERS_GROUPS','Users / Groups');
+	define('H_SETUP_SYS_REMOVE','Remove');
+	define('H_SETUP_SYS_REMOVE_ALL','Remove All');
+	define('H_SETUP_SYS_BACKUP_SITE','<a href="%s">Create / Restore</a> Site Backups');
+	define('H_SETUP_SMARTY_PREFS','Smarty Templates');
+	define('H_SETUP_SMARTY_CLEAR_CACHE','Clear All Smarty Cache ( $smarty->clear_all_cache )');
+	define('H_SETUP_SMARTY_CLEAR_COMPILED','Clear All Compiled Templates ( $smarty->clear_compiled )');
+	define('H_SETUP_MISC_PREFS','Miscellaneous');
+	define('H_SETUP_MISC_RESAVE_DS','Resave all Datasources (may last long time)');
+	define('H_SETUP_MISC_RESAVE_PAGES','Resava all Pages (may last long time)');
+	define('H_SETUP_MISC_UPDATE_INDEX','Update Search Index (%d documents) <i>may take from %s to %s</i>');
+	define('H_SETUP_MISC_CLEAR_CAPTCHA','Clear Captcha Cache');
+	define('H_SETUP_MISC_CHMOD','Set access mode of Open Constructor\'s files');
+	define('BTN_APPLY','Apply');
+	define('BTN_EXIT_SETUP','Exit Setup');
+	define('BTN_EXIT_SYSTEM','Logout');
+	define('H_SETUP_RESULTS','Results');
+	define('R_SETUP_OK','Ok');
+	define('R_SETUP_SKIPPED','Skipping');
+	define('R_SETUP_TIME_SPENT','Took');
+	define('R_SETUP_REMOVE_PAGES','Remove Pages...');
+	define('R_SETUP_REMOVE_DS','Remove all Datasources...');
+	define('R_SETUP_REMOVE_ENUMS','Remove Enumerations...');
+	define('R_SETUP_REMOVE_NODES','Remove Nodes...');
+	define('R_SETUP_REMOVE_OBJECTS','Remove Objects...');
+	define('R_SETUP_REMOVE_TPLS','Remove Templates...');
+	define('R_SETUP_REMOVE_USERS_GROUPS','Remove Users and Groups...');
+	define('R_SETUP_SMARTY_CLEAR_CACHE','Evict Smarty Cache...');
+	define('R_SETUP_SMARTY_CLEAR_COMPILED','Clear Compiled Templates...');
+	define('R_SETUP_RESAVE_DS','Resave all Datasources...');
+	define('R_SETUP_RESAVE_PAGES','Resave all Pages...');
+	define('R_SETUP_UPDATE_INDEX','Update Search Index...');
+	define('R_SETUP_EVICT_CAPTCHA','Evict Captcha Cache...');
+	define('R_SETUP_CHMOD','Set acces mode of system files...');
+	define('H_SETUP_BACK','Back');
+	define('H_SETUP_OPTIMIZE_TABLES','Optimize System Tables');
+	define('H_SETUP_TABLES_INFO','Open Constructor Tables');
+	define('H_SETUP_EXISTING_TABLES','Existing tables of Open Constructor');
+	define('H_SETUP_ABSENT_TABLES','Absent tables of Open Constructor');
+	define('H_SETUP_FOREIGN_TABLES','Tables not used by Open Constructor');
+	define('H_SETUP_BACKUPS','Site Backups');
+	define('H_SETUP_RESTORE_BACKUP','Restore Backup');
+	define('PR_SETUP_BACKUP_ID','Backup');
+	define('BTN_SELECT_LATEST_BACKUP','Select Newest');
+	define('BTN_RESTORE_BACKUP','Restore');
+	define('H_SETUP_CREATE_BACKUP','Create Backup');
+	define('PR_BACKUP_MAX_ARCHIVABLE','Max compressable file size (MB)');
+	define('PR_BACKUP_TIMEOUT','Backup Timeout (seconds)');
+	define('BTN_CREATE_BACKUP','Create');
+	define('H_CREATING_BACKUP_ID','Creating Backup[ID = %s]');
+	define('CREATING_BACKUP_BG_I','Creating Backup in background...');
+	define('H_RESTORING_BACKUP_ID','Restoring site from %s');
+	define('RESTORING_BACKUP_BG_I','Restoring Backup in background...');
+	
+	error_reporting($_oldLevel);
+?>

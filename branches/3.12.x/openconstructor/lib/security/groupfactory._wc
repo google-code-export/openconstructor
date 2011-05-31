@@ -1,0 +1,228 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: groupfactory._wc,v 1.5 2007/02/27 11:23:21 sanjar Exp $
+ */
+require_once('group._wc');
+
+class GroupFactory {
+	function GroupFactory() {
+		
+	}
+	
+	function createGroup(&$group) {
+		System::assert('users.manage');
+		assert($group->name && $group->title && !$group->id);
+		$group->name = $this->validateName($group->name);
+		$db = &WCDB::bo();
+		$res = $db->query(
+			sprintf('SELECT id FROM wcsgroups WHERE name = "%s"', addslashes($group->name))
+		);
+		$exists = mysql_num_rows($res) > 0;
+		mysql_free_result($res);
+		if($exists) return;
+		$auth = &Authentication::getInstance();
+		$group->loadAuths(0, 0, constant('WCS_GROUP_MASK'), null);
+		$group->umask = WCS_DEFAULT_USER_MASK;
+		$db->query(
+			sprintf('INSERT INTO wcsgroups (name, title, umask, wcsowner, wcsgroup, oauths, gauths) VALUES ("%s", "%s", "%s", %d, %d, CONV("%s", 2, 10), CONV("%s", 2, 10))',
+				addslashes($group->name), addslashes($group->title), addslashes($group->umask), $auth->userId, $auth->groupId, $group->sRes->getOwnerAuths(), $group->sRes->getGroupAuths()
+			)
+		);
+		$id = $db->lastInsertId();
+		if($id)
+			$group->id = (int) $id;
+	}
+	
+	function updateGroup(&$group) {
+		assert($group->id > 0 && $group->title);
+		$old = &GroupFactory::getGroup($group->id);
+		WCS::assert($old, 'editgroup');
+		$authSet = WCS::privileged(Authentication::getInstance()) ? ", auths = CONV('{$group->auths}', 2, 10)" : '';
+		if($old->profileType != $group->profileType) {
+			if($old->profileType > 0 && $group->profileType > 0)
+				GroupFactory::castProfiles($old, $group->profileType);
+			else {
+				if($old->profileType > 0)
+					GroupFactory::removeProfiles($old);
+				if($group->profileType > 0)
+					GroupFactory::setDSLock($group->profileType, true);
+			}
+		}
+		if($old->umask != $group->umask && WCS::decide($old, 'editgroup.umask'))
+			$mask = sprintf(', umask = "%s"', addslashes(str_replace(array(' ', "\t", "\n", "\r"), '', $group->umask)));
+		else
+			$mask = '';
+		$db = &WCDB::bo();
+		$db->query(
+			sprintf("UPDATE wcsgroups SET title = '%s' $mask , profile = %d $authSet WHERE id = %d", addslashes($group->title), (int) $group->profileType, (int) $group->id)
+		);
+	}
+	
+	function removeGroup($groupId) {
+		$group = &$this->getGroup($groupId);
+		assert($group != null && !$group->builtIn);
+		WCS::assert($group, 'removegroup');
+		$db = &WCDB::bo();
+		$res = $db->query("SELECT id FROM wcsusers WHERE group_id = {$group->id} AND builtin > 0");
+		if(mysql_num_rows($res) > 0) {
+			require_once('userfactory._wc');
+			$uf = &UserFactory::getInstance();
+			WCS::runAs(WCS_ROOT_ID);
+			while($r = mysql_fetch_row($res)) {
+				$user = &User::load($r[0], false);
+				$user->groupId = WCS_EVERYONE_ID;
+				$uf->updateUser($user);
+			}
+			WCS::stopRunAs();
+		}
+		mysql_free_result($res);
+		if($group->profileType > 0)
+			GroupFactory::removeProfiles($group);
+		$db->query(
+			"DELETE wcsmembership.* FROM wcsmembership, wcsgroups WHERE wcsgroups.id = {$group->id} AND wcsgroups.builtin = 0 AND wcsgroups.id = wcsmembership.group_id"
+		);
+		$db->query("DELETE FROM wcsgroups WHERE id = {$group->id}");
+		$db->query("DELETE FROM wcsusers WHERE group_id = {$group->id}");
+	}
+	
+	function updateAuths(&$group) {
+		assert($group->id > 0);
+		$querySet = '';
+		$userId = Authentication::getUserId();
+		if($group->sRes->owner > 0 && $userId == WCS_ROOT_ID)
+			$querySet .= ", wcsowner = {$group->sRes->owner}";
+		if($group->sRes->group > 0 && $userId == WCS_ROOT_ID)
+			$querySet .= ", wcsgroup = {$group->sRes->group}";
+		$querySet .= sprintf(', oauths = CONV("%s", 2, 10), gauths = CONV("%s", 2, 10)', $group->sRes->getOwnerAuths(), $group->sRes->getGroupAuths());
+		if($querySet) {
+			$querySet = substr($querySet, 1);
+			$db = &WCDB::bo();
+			$db->query("UPDATE wcsgroups SET $querySet WHERE id = {$group->id} AND ".WCS::getAuthCheckQuery('editgroup.chmod'));
+		}
+	}
+	
+	function &getGroup($groupId) {
+		$result = &GroupFactory::getGroupByClause('id = '.intval($groupId));
+		return $result;
+	}
+	
+	function &getGroupByName($groupName) {
+		$result = &GroupFactory::getGroupByClause('name = "'.addslashes(strtolower($groupName)).'"');
+		return $result;
+	}
+	
+	function &getGroupByClause($clause) {
+		$result = null;
+		$db = &WCDB::bo();
+		$res = $db->query("SELECT id, name, umask, BIN(ROUND(auths)) as auths, title, builtin, profile, wcsowner, wcsgroup, BIN(ROUND(oauths)) as oauths, BIN(ROUND(gauths)) as gauths FROM wcsgroups WHERE $clause LIMIT 1");
+		if(mysql_num_rows($res) == 1) {
+			$r = mysql_fetch_assoc($res);
+			$result = new Group($r['name'], $r['title']);
+			$result->id = (int) $r['id'];
+			$result->builtIn = $r['builtin'] > 0;
+			$result->profileType = (int) $r['profile'];
+			$result->auths = $r['auths'];
+			$result->umask = $r['umask'];
+			$result->loadAuths($r['wcsowner'], $r['wcsgroup'], $r['oauths'], $r['gauths']);
+		}
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &getAllGroups() {
+		$result = array();
+		$db = &WCDB::bo();
+		$res = $db->query('SELECT id, title FROM wcsgroups ORDER BY name');
+		if(mysql_num_rows($res) > 0)
+			while($r = mysql_fetch_assoc($res))
+				$result[(int) $r['id']] = $r['title'];
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function castProfiles(&$group, $newType) {
+		assert($group->id > 0 && $group->profileType > 0 && $newType > 0);
+		$profiles = &GroupFactory::getProfileIds($group->id);
+		if(sizeof($profiles) > 0) {
+			loadClass('userfactory', '/security/userfactory._wc');
+			UserFactory::castProfiles(&$profiles, $group->profileType, $newType);
+		}
+		GroupFactory::setDSLock($group->profileType, false);
+		GroupFactory::setDSLock($newType, true);
+	}
+	
+	function removeProfiles(&$group) {
+		assert($group->id > 0 && $group->profileType > 0);
+		$profiles = &GroupFactory::getProfileIds($group->id);
+		if(sizeof($profiles) > 0) {
+			loadClass('userfactory', '/security/userfactory._wc');
+			UserFactory::removeProfiles(&$profiles);
+			$db = &WCDB::bo();
+			$db->query("UPDATE wcsusers SET profile = 0 WHERE group_id = {$group->id}");
+		}
+		GroupFactory::setDSLock($group->profileType, false);
+	}
+	
+	function setDSLock($dsId, $lock) {
+		assert($dsId > 0);
+		loadClass('dsmanager', '/dsmanager._wc');
+		$ds = &DSManager::load($dsId);
+		if($ds != null) {
+			WCS::runAs(WCS_ROOT_ID);
+			if($lock)
+				$ds->increaseLock();
+			else
+				$ds->decreaseLock();
+			WCS::stopRunAs();
+		}
+		unset($ds);
+	}
+	
+	function &getProfileIds($groupId) {
+		assert($groupId > 0);
+		$result = array();
+		$db = &WCDB::bo();
+		$res = $db->query("SELECT profile FROM wcsusers WHERE group_id = {$groupId} AND profile > 0");
+		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++)
+			list($result[$i]) = mysql_fetch_row($res);
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function validateName($name) {
+		$name = preg_replace('/[^A-Za-z_0-9]+/u', '', $name);
+		$name = preg_replace('/^[0-9_]+/', '', $name);
+		$name = strtolower($name);
+		if(strlen($name) > 32)
+			$name = substr($name, 0, 32);
+		return $name;
+	}
+	
+	function &getInstance() {
+		static $instance;
+		if(!is_object($instance))
+			$instance = new GroupFactory();
+		return $instance;
+	}
+}
+?>

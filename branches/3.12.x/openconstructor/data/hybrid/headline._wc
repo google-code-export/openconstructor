@@ -1,0 +1,73 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: headline._wc,v 1.5 2007/02/27 11:23:19 sanjar Exp $
+ */
+	require_once('../include/headlines._wc');
+	$alldoc = @$_COOKIE['vf']['alldoc'] != 'disabled';
+	if($alldoc) {
+//		require_once(LIBDIR.'/hybrid/dshybridfactory._wc');
+//		$dsf = new DSHybridFactory();
+//		$ids = implode(',', $tmp = $dsf->getChildren($curnode));
+		$autocast = @$_COOKIE['vf']['cast'] != 'disabled';
+	} else {
+		$ids = $curnode;
+		$autocast = false;
+	}
+	$pagesize=30;
+	if(intval(@$_COOKIE['pagesize'])>0)
+		$pagesize=$_COOKIE['pagesize'];
+	$searchclause = $ds->isIndexable && !isset($_GET['noindex']) ? get_index_clause(@$_GET['search']) : get_clause(@$_GET['search'], 'header');
+	list($items, $hl) = get_hybrid_headline($ds->ds_id, $alldoc, $autocast, $pagesize, @$_GET['page'], $searchclause);
+	$icon='hyb';
+	$w=788;$h=520;
+	$editor='hybrid/edit.php?'.($autocast ? 1 : 'ds_id='.$curnode);
+	$fields=array(
+		'header'=>HL_HEADER,
+		'type'=>HL_HYBRIDTYPE,
+		'alldoc'=>true,
+		'cast'=>true,
+		'date'=>HL_DATE
+	);
+	$fieldnames=array(
+		'type'=>RP_SHOW_HYBRIDTYPE,
+		'alldoc'=>RP_INCLUDE_SUBDOCUMENTS,
+		'cast'=>RP_AUTOCAST_ON_EDIT,
+		'date'=>RP_SHOW_DATE
+	);
+	if(!$alldoc)
+		unset($fieldnames['type'],$fieldnames['cast'],$fields['type']);
+	if(is_array(@$_COOKIE['vf']))
+		foreach($_COOKIE['vf'] as $f=>$st)
+			if($st=='disabled') unset($fields[$f]);
+	echo '<documents server="hybrid/i_hybrid.php"'
+			.' type="'.$icon.'"'
+			.' defaultaction="delete_hybrid"'
+			.' size="'.(intval(@$_COOKIE['pagesize'])>0?$_COOKIE['pagesize']:$pagesize).'"'
+		.'>';
+	echo '<editor href="'.$editor.'" width="'.$w.'" height="'.$h.'"/>';
+	echo '<hidden name="ds_id" value="'.$curnode.'"/>';
+	echo '<hidden name="dest_ds_id" value="'.$curnode.'"/>';
+	print_headline($hl);
+	require_once(LIBDIR.'/pager._wc');
+//	pager('page','dshybrid','id','WHERE ds_id IN ('.$ids.')',$pagesize,10,$searchclause);
+	noSqlPager($items, 'page', $pagesize, 10);
+	echo '</documents>';
+?>

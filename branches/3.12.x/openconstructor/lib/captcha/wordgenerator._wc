@@ -1,0 +1,68 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id$
+ */
+
+class WordGenerator {
+	function generate($length) {
+		$result = '';
+		settype($length, 'int');
+		if($length > 7)
+			$length = 7;
+		$abc = &WordGenerator::getAbc($length);
+		for($i = 0; $i < $length; $i++) {
+			$char = $abc[$i]{rand(0, strlen($abc[$i]) - 1)};
+			$result .= rand(1, 10) %2 ? $char : strtoupper($char);
+		}
+		return $result;
+	}
+	
+	function &getAbc($length) {
+		static $abc;
+		if(!isset($abc[$length])) {
+			$base = WordGenerator::getBaseAbc();
+			$chunk = intval(strlen($base) / $length) + (strlen($base) % $length ? 1 : 0);
+			for($i = 0; $i < $length; $i++)
+				$abc[$length][$i] = substr($base, $i * $chunk, $chunk);
+		}
+		return $abc[$length];
+	}
+	
+	function getBaseAbc() {
+		return 'qt7yu2we3r8pdfa4ghzxjk6cmvb9n';
+//		return 'qt7yu2we3r8pdf5as4ghzxjk6cm1vb9n';
+//		return 'qt7yu2we3ri8pdf5as4ghlzxjk6cm1vb9n';
+	}
+	
+	function getMaxPossible($length) {
+		$result = 1;
+		$l = strlen(WordGenerator::getBaseAbc());
+		$last = $l % $length;
+		$chunk = intval($l / $length) + ($last ? 1 : 0);
+		for($i = 1; $i < $length; $i++)
+			$result = $result * $chunk;
+		$result *= $chunk + ($last ? $last - $length : 0);
+		return $result;
+	}
+}
+?>

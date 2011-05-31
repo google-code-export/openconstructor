@@ -1,0 +1,374 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ *
+ * All rights reserved.
+ *
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ *
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ *
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * Выводит список гибридных документов.
+ *
+ * Объект вывода ВК.
+ *
+ * @author Sanjar Akhmedov
+ *
+ * $Id: hybridhl._wc,v 1.41 2007/04/23 09:50:22 sanjar Exp $
+ */
+require_once('hybridagent._wc');
+
+define('NID_PLAIN', 0);
+define('NID_OR', 1);
+define('NID_AND', 2);
+
+class HybridHL extends WCObject {
+
+	var $srvUri, $docId, $nodeId, $nodeType;
+	var $dsIdKey, $onlySub;
+	var $docFields, $docOrder, $docFilter, $sortByRand;
+	var $listOffset, $listSize;
+	var $keywordKey, $sortByRank, $noResTpl;
+	var $ids;
+	var $no404;
+	var $_pma, $_agent; // fetch primitives as arrays
+
+	function HybridHL() {
+		$this->DSTable='dshybrid';
+		$this->ds_type='hybrid';
+		$this->obj_type='hybridhl';
+		$this->srvUri = '.';
+		$this->docId = 'item={_id}';
+		$this->nodeType = NID_PLAIN;
+		$this->dsIdKey = '';
+		$this->onlySub = false;
+		$this->docFields = array();
+		$this->docOrder = array();
+		$this->listOffset = 0;
+		$this->listSize = 10;
+		$this->no404 = false;
+		$this->caching = 0;
+		$this->cached_by_WC = true;
+	}
+
+	function getCacheId() {
+		$agent = &$this->getAgent();
+		$nodeId = str_replace(array('/', '\\'), array('', ''), $this->ctx->getParam($this->nodeId));
+		return $this->obj_id.'|'.$agent->dsId.'|'.$nodeId.'-o'.$this->listOffset.'-'.$this->listSize;
+	}
+
+	function onPageLoad() {
+		if(!$this->no404 && !is_object($agent = &$this->getAgent()))
+			$this->ctx->throw404();
+	}
+
+	function changeCrumbs(&$crumbs) {
+		$agent = &$this->getAgent();
+		if(is_object($agent)) {
+			$agent->_changeDsCrumbs($crumbs, $this->dsIdKey);
+			$agent->_changeNodeCrumbs($crumbs, $this->nodeId);
+		}
+	}
+
+	function fetchData(&$smarty) {
+		$result = false;
+		$docs = &$this->getDocuments();
+		if(is_array($docs)) {
+			if(sizeof($docs)) {
+				$smarty->assign('header', $this->header);
+				$smarty->assign_by_ref('docs', $docs);
+				$smarty->assign('foundDocsCount', $this->availableDocsCount);
+				$result = array('header', 'docs', 'foundDocsCount');
+			} elseif($this->noResTpl) {
+				$smarty->assign('header', $this->header);
+				$smarty->assign('keyword', $this->ctx->getParam($this->keywordKey));
+				$smarty->assign('found', 0);
+				$smarty->assign('result', array());
+				$this->tpl = $this->noResTpl;
+				$result = array('header', 'keyword', 'found', 'result');
+			}
+		} elseif(!$this->no404)
+			$this->ctx->throw404();
+		return $result;
+	}
+
+	function &getDocuments($recurse = 3) {
+		$ctx = &Context::getInstance();
+		$nodeId = addslashes($ctx->getParam($this->nodeId));
+		if(isset($this->documents[$nodeId][$this->ids]))
+			return $this->documents[$nodeId][$this->ids];
+		$result = null;
+		$agent = &$this->getAgent();
+		if(!$agent)
+			return $result;
+		$searchQuery = &WCObject::getSearchQuery($this->keywordKey, 'd');
+		$query = &$this->_getQuery($nodeId, $searchQuery);
+		$db = &$this->ctx->_getDB();
+		$res = $db->query($query);
+		$this->countAvailableDocs();
+		if(mysql_num_rows($res) > 0) {
+			$result = array();
+			$ids = explode("\n", $this->docId);
+			$paramNames = $paramValues = array();
+			for($i = 0, $l = sizeof($ids), $j = 0; $i < $l; $i++)
+				if(($pos = strpos($ids[$i], '=')) !== false) {
+					$paramValues[$j] = substr($ids[$i], $pos + 2, -1);
+					$paramNames[$j++] = substr($ids[$i], 0, $pos);
+				}
+			$href = $ctx->getPatternFor($this->srvUri, $paramNames);
+			$params = array_fill(0, sizeof($paramNames) + 1, null);
+			$params[0] = $href;
+			$paramNames = &$paramValues;
+			$dsf = &$agent->getFields();
+			$fields = array();
+			for($i = 0, $l = sizeof($this->docFields); $i < $l; $i++)
+				if($dsf[$this->docFields[$i]['id']]) $fields[] = $this->docFields[$i];
+			$enums = '0'; $nodes = array(); $arrays = array();
+			for($i = 0, $docIds = array(), $l = sizeof($fields); $r = mysql_fetch_assoc($res); $i++) {
+				$docIds[] = $id = (int) $r['id'];
+				$result[$id] = array();
+				$doc = &$result[$id];
+				$doc['id'] = $doc['_id'] = $id;
+				$doc['_dsKey'] = $agent->dsPath[$r['ds_id']];
+				$doc['header'] = escapeTags($r['header']);
+				$dh = $r['_dh'] > 0 ? $r['_dh'] : 1;
+				for($j = 0; $j < $l; $j++) {
+					$fId = $fields[$j]['id'];
+					$f = &$dsf[$fId];
+					switch($f['type']) {
+						case DSF_ENUM :
+							$doc[$f['name']] = explode(',', $r[$fId]);
+							$enums .= $r[$fId] ? ','.$r[$fId] : '';
+							if($i == 0)
+								$enumkeys[$fId] = $f['name'];
+						break;
+						case DSF_TREE :
+							$doc[$f['name']] = $r[$fId];
+							if($r[$fId]) {
+								$nodes[] = $r[$fId];
+								$treekeys[$f['name']] = true;
+							}
+						break;
+						case DSF_DATASOURCE :
+							$doc[$f['name']] = array('id' => $r[$fId], 'docs' => $r[$fId.'docs']);
+						break;
+						case DSF_DOCUMENT :
+							if($recurse > 0 && @$fields[$j]['fetcher']) {
+								$doc[$f['name']] = $r[$fId];
+								if($r[$fId])
+									$arrays[$fields[$j]['fetcher']][$f['name']] .= (@$arrays[$fields[$j]['fetcher']][$f['name']] ? "," : "").$r[$fId];
+							} else{
+								$doc[$f['name']] = array('id' => $r[$fId], 'header' => htmlspecialchars($r[$fId.'header'], ENT_COMPAT, 'UTF-8'));
+							}
+						break;
+						case DSF_ARRAY :
+							if($recurse > 0 && @$fields[$j]['fetcher']) {
+								if($r[$fId]) {
+									$doc[$f['name']] = array_flip(explode(',', $r[$fId]));
+									$arrays[$fields[$j]['fetcher']][$f['name']] .= (@$arrays[$fields[$j]['fetcher']][$f['name']] ? "," : "").$r[$fId];
+								} else{
+									$doc[$f['name']] = array();
+								}
+							} else{
+								$doc[$f['name']] = $r[$fId];
+							}
+						break;
+						case DSF_RATING :
+							$doc[$f['name']] = array('id' => $r[$fId], 'value' => (int) $r[$fId.'value'], 'votes' => (int) $r[$fId.'votes'], 'voted' => $r[$fId.'voted'] > 0, 'vote' => (int) $r[$fId.'vote']);
+							$h = (int) $r[$fId.'h'];
+							$doc[$f['name']]['votes'] /= $dh * ($h ? $h : 1);
+						break;
+						case DSF_PRIMITIVE :
+							if($this->_pma && (($p = strpos($f['name'], '_')) !== false)) {
+								$top = substr($f['name'], 0, $p);
+								$var = '$doc[\''.str_replace('_', '\'][\'', $f['name']).'\']';
+								if(eval("if(!isset($var) && (!isset(\$doc['$top']) || is_array(\$doc['$top']))) {@$var = \$r[\$fId]; return true;}"))
+									break;
+							}
+						default:
+							$doc[$f['name']] = $r[$fId];
+					}
+				}
+				if($this->nodeId && !isset($doc[$this->nodeId]))
+					$doc[$this->nodeId] = $nodeId;
+				unset($doc);
+			}
+			if(sizeof($nodes)) {
+				$nodes = &$agent->getNodes(&$nodes);
+				foreach($treekeys as $key => $j)
+					foreach($docIds as $id) {
+						$n = &$nodes[$result[$id][$key]];
+						$result[$id][$key] = array('key' => $n['key'], 'header' => $n['header'], 'id' => $n['id']);
+					}
+				unset($n);
+			}
+			$enums = array_values(array_unique(explode(',', $enums)));
+			if(sizeof($enums) > 1) {
+				$enums = &$agent->getEnumValues($enums);
+				foreach($docIds as $id) {
+					$doc = &$result[$id];
+					foreach($enumkeys as $fid => $efn)
+						if(!$dsf[$fid]['isarray'])
+							$doc[$efn] = array('value' => $enums[$doc[$efn][0]]['value'], 'id' => $doc[$efn][0], 'header' => $enums[$doc[$efn][0]]['header']);
+						else
+							for($k = 0, $lk = sizeof($doc[$efn]); $k < $lk; $k++)
+								$doc[$efn][$k] = array('value' => $enums[$doc[$efn][$k]]['value'], 'id' => $doc[$efn][$k], 'header' => $enums[$doc[$efn][$k]]['header']);
+				}
+				unset($doc);
+			}
+			if(sizeof($arrays) > 0) {
+				foreach($arrays as $objId => $v) {
+					if(($obj = &$ctx->getObject((int) $objId)) != null) {
+						$obj->ids = implode(',', $v);
+						if(($sub = &$obj->getDocuments($recurse - 1)) != null) {
+							$ids = array_keys($sub);
+							foreach($v as $fname => $j)
+								foreach($docIds as $id) {
+									$f = &$result[$id][$fname];
+									if(is_array($f)) {
+										foreach($f as $k => $j)
+											if(isset($sub[$k])) {
+												$f[$k] = &$sub[$k];
+											} else {
+												unset($f[$k]);
+											}
+										if(sizeof($obj->docOrder) && sizeof($f) > 1) {
+											$s = array();
+											for($i = 0, $j = 0, $l = sizeof($ids), $l1 = sizeof($f); $i < $l && $j < $l1; $i++)
+												if(isset($f[$ids[$i]])) {
+													unset($f[$ids[$i]]);
+													$s[$ids[$i]] = &$sub[$ids[$i]];
+												}
+											$result[$id][$fname] = $s;
+										}
+									} else {
+										if(isset($sub[$f])) {
+											$result[$id][$fname] = &$sub[$f];
+										} else {
+											$result[$id][$fname] = null;
+										}
+									}
+								}
+						}
+					}
+
+				}
+			}
+			foreach($docIds as $id) {
+				if(($lj = sizeof($paramNames)) && array_key_exists($paramNames[0], $result[$id]))
+					for($j = 0; $j < $lj; $j++) {
+						$v = &$result[$id][$paramNames[$j]];
+						$params[$j + 1] = is_array($v) ? urlencode(current($v)) : urlencode($v);
+					}
+				$result[$id]['href'] = call_user_func_array('sprintf', &$params);
+			}
+		} elseif($searchQuery['where'] && $this->availableDocsCount <= (int) @$this->originalOffset)
+			$result = array();
+		elseif($this->availableDocsCount > (int) @$this->originalOffset)
+			$result = null;
+		mysql_free_result($res);
+		$this->documents[$nodeId][$this->ids] = &$result;
+		return $result;
+	}
+
+	function countAvailableDocs() {
+		if(!isset($this->availableDocsCount)) {
+			$db = &$this->ctx->_getDB();
+			$res = $db->query('SELECT FOUND_ROWS()');
+			list($this->availableDocsCount) = mysql_fetch_row($res);
+			mysql_free_result($res);
+		}
+	}
+
+	function &getAgent() {
+		if($this->_agent === null)
+			if(!($this->_agent = &HybridAgent::getInstance($this->dsIdKey && ($dsId = $this->ctx->getParam($this->dsIdKey)) ? $dsId : $this->ds_id, $this->ds_id, $this->onlySub)))
+				$this->_agent = false;
+		return $this->_agent;
+	}
+
+	function setDocOrder($order) {
+		if($order && ($agent = &$this->getAgent())) {
+			require_once(LIBDIR.'/func/parsedocorder._wc');
+			$this->docOrder = wcfParseDocOrder($order, $agent);
+		}
+	}
+
+	function &_getQuery($nodeId, &$searchQuery) {
+		$result = null;
+		$agent = &$this->getAgent();
+		$props = $agent->_getQueryProps($this->docFields, &$this->docOrder, &$this->docFilter);
+		if($this->sortByRand) {
+			$props['order'] = 'RAND()';
+		} elseif ($searchQuery['order'] && $this->sortByRank)
+			$props['order'] = $searchQuery['order'].' DESC'.($props['order'] ? ',' : '').$props['order'];
+		if($this->ids && (strspn($this->ids, ' ,-0123456789') == strlen($this->ids))) {
+			if(!$this->ids) $this->ids = 0;
+			$idCheck = "AND d.id IN($this->ids)";
+		} else
+			$idCheck = '';
+		if(!$nodeId) {
+			$result = '
+				SELECT SQL_CALC_FOUND_ROWS '.$props['fields'].', 1 AS _dh
+				FROM '.$props['tables'].$searchQuery['from'].'
+				WHERE '.$props['where'].$searchQuery['where'].'
+					'.$idCheck.' AND d.published
+				'.($props['group'] ? ' GROUP BY d.id' : '').'
+				'.($props['order'] ? ' ORDER BY '.$props['order'] : '').'
+				LIMIT '.$this->listOffset.','.$this->listSize;
+		} else {
+			if($this->nodeType == NID_PLAIN) {
+				$key = intval($nodeId) > 0 ? intval($nodeId) : '"'.addslashes($nodeId).'"';
+				$cnt = 1;
+			} else {
+				$cnt = substr_count($nodeId, ',') + 1;
+				$key = '"'.str_replace(',', '","', addslashes($nodeId)).'"';
+			}
+			settype($nodeId, 'int');
+			if($nodeId > 0) {
+				$rootT = '';
+				$root = 't0.id '.($cnt > 1 ? 'IN' : '=')."($key)";
+			} else {
+				$rootT = 'catalognode n JOIN ';
+				$root = 'n.name '.($cnt > 1 ? 'IN' : '=')."($key) AND t0.id = n.id";
+			}
+			$and = $cnt > 1 && $this->nodeType == NID_AND;
+			$result = '
+				SELECT SQL_CALC_FOUND_ROWS '.$props['fields'].($and ? ', COUNT(DISTINCT t0.id) AS _cnt' : '').($props['group'] ? ', COUNT(DISTINCT c.node)' : ', 1').' AS _dh
+				FROM '.$rootT.' catalogtree t0 JOIN catalogtree t FORCE INDEX(num)
+					INNER JOIN catalogdocs c IGNORE INDEX(doc) ON (t.id = c.node) JOIN
+					'.$props['tables'].$searchQuery['from'].'
+				WHERE '.$root.'
+					AND t.num >= t0.num AND (t0.next = 0 OR t0.next > t.num)
+					AND ds.id = c.doc AND '.$props['where'].$searchQuery['where'].'
+					'.$idCheck.' AND d.published
+				GROUP BY d.id
+				'.($and ? " HAVING _cnt = $cnt " : '').
+				($props['order'] ? 'ORDER BY '.$props['order'] : '').'
+				LIMIT '.$this->listOffset.','.$this->listSize;
+		}
+		return $result;
+	}
+
+	function _inlineEditGetDsId() {
+		$agent = &$this->getAgent();
+		return is_object($agent) ? $agent->dsId : null;
+	}
+
+	function &_getDSFields() {
+		static $result;
+		if(!is_array(&$result)) $result = array('ds_id', 'dsIdKey');
+		return $result;
+	}
+}
+?>

@@ -1,0 +1,266 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ *
+ * All rights reserved.
+ *
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ *
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ *
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @author Sanjar Akhmedov
+ *
+ * $Id: restorejob._wc,v 1.4 2007/02/27 11:23:26 sanjar Exp $
+ */
+require_once('zipfile._wc');
+require_once(LIBDIR.'/db/dbsetup._wc');
+require_once(LIBDIR.'/db/sqltokenizer._wc');
+
+require_once(LIBDIR.'/backup/patch/patchhistory._wc');
+require_once(LIBDIR.'/backup/patch/patcher._wc');
+
+class RestoreJob {
+	var $_ftp;
+	var $_zip;
+	var $_id, $_folder;
+	var $_pf;
+	var $_meta = null;
+	var $_ignore = array(
+		'/res/backup',
+		'/res/config\._wc', '/res/map\._wc'
+	);
+
+	function RestoreJob($folder, $id) {
+		$this->_id = $id;
+		$this->_folder = $folder.'/'.$id;
+		$this->_ftp = &WCFTP::getNew();
+		$this->_compileIgnores();
+	}
+
+	function run() {
+		$this->loadMeta();
+
+		$versions = new PatchHistory();
+		$version = $this->_getMetaVersion();
+		if ($versions->isRestorable($version, WC_VERSION)) {
+			$this->_zip = &ZipFile::newReader($this->_folder.'/backup.zip');
+
+			$this->_closeSite();
+			$this->_removePages();
+			$this->_cleanRes();
+			
+			$this->_restoreRes();
+			$this->_restoreDB();
+			
+			$patchIds = $versions->getPatches($version, WC_VERSION, $this->_getMetaPatches());
+			$this->_applyPatches($patchIds);
+			
+			$this->_republishSite();
+			$this->_openSite();
+			
+			$this->_createIndex();
+
+			return true;
+		} else {
+			echo sprintf('<p>Cannot import backup from version "%s" to "%s"</p>', $version, WC_VERSION);
+		}
+		return false;
+	}
+
+	function _closeSite() {
+		$htaccess = "<Files ~ \".*\">\n".
+			"	Order allow,deny\n".
+			"	Deny from all\n".
+			"</Files>";
+		$this->_ftp->open();
+		$this->_ftp->move('/.htaccess', '/.htaccess.'.$this->_id);
+		$this->_ftp->write_file('/.htaccess', $htaccess);
+		$this->_ftp->close();
+	}
+
+	function _openSite() {
+		$this->_ftp->open();
+		$this->_ftp->unlink('/.htaccess');
+		$this->_ftp->move('/.htaccess.'.$this->_id, '/.htaccess');
+		$this->_ftp->close();
+	}
+
+	function _removePages() {
+		$pf = & $this->_getPageFactory();
+		WCS::runAs(WCS_ROOT_ID);
+		$pf->_dropAll();
+		WCS::stopRunAs();
+	}
+
+	function _cleanRes() {
+		$captcha = (array) glob($_SERVER['DOCUMENT_ROOT'].FILES.'/captcha/*.png');
+		if(sizeof($captcha)) {
+			if(@unlink($captcha[0])) {
+				unset($captcha[0]);
+				foreach($captcha as $png)
+					@unlink($png);
+			}
+		}
+		unset($captcha);
+
+		require_once(LIBDIR.'/smarty/wcsmarty._wc');
+		$smc = new WCSmarty();
+		$smc->clear_all_cache();
+		$smc->clear_compiled_tpl();
+
+		$res = glob($_SERVER['DOCUMENT_ROOT'].FILES.'/*');
+		$this->_ftp->open();
+		$drl = strlen($_SERVER['DOCUMENT_ROOT']);
+		foreach($res as $e) {
+			$ignore = false;
+			for($i = 0, $l = sizeof($this->_ignore); !$ignore && $i < $l; $i++)
+				$ignore = preg_match($this->_ignore[$i], $e);
+			if(!$ignore) {
+				$f = substr($e, $drl);
+				if(is_dir($e)) {
+					$this->_ftp->rdEntire($f);
+				} else {
+					$this->_ftp->unlink($f);
+				}
+			}
+		}
+		$this->_ftp->close();
+	}
+
+	function _restoreRes() {
+		$dirs = $this->_zip->getDirList();
+		sort($dirs);
+		$this->_ftp->open();
+		$res = substr(FILES, 1).'/';
+		$l = strlen($res) - 1;
+		foreach($dirs as $dir)
+			if(($p = strpos($dir, $res)) === 0 && $dir != $res)
+				$this->_ftp->md(FILES.substr($dir, $l));
+		$tmp = wcfTmpFilename('ocm_restore_');
+		$files = $this->_zip->getFileList();
+		foreach($files as $file)
+			if(($p = strpos($file, $res)) === 0) {
+				$this->_zip->extract($file, $tmp);
+				$this->_ftp->copy_local_file($tmp, FILES.substr($file, $l), FTP_BINARY);
+			}
+		unlink($tmp);
+		$this->_restoreLargeFiles();
+		$this->_ftp->close();
+	}
+
+	function _restoreLargeFiles() {
+		$l = (int) $this->_meta['largefiles.clusters'];
+		if($l > 0) {
+			$folder = $this->_folder.'/large-files/';
+			for($i = 0; $i < $l; $i++) {
+				$names = $this->_zip->getFileContents('.large-files/'.$i);
+				$t = strtok($names, '?'); $j = 0;
+				while($t !== false) {
+					$this->_ftp->copy_local_file($folder.$i.'/'.$j, FILES.'/'.$t, FTP_BINARY);
+					$t = strtok('?'); $j++;
+				}
+			}
+		}
+	}
+
+	function _restoreDB() {
+		$db = &WCDB::bo();
+		$ht = DBSetup::getDSHybridTables();
+		foreach($ht as $t)
+			$db->query("DROP TABLE `$t`");
+		$folder = $this->_folder.'/large-files/';
+		$l = (int) $this->_meta['db.dumps'];
+		$tok = new SqlTokenizer();
+		for($i = 0; $i < $l; $i++) {
+			$sql = $this->_zip->getFileContents(".db-dump/vol-{$i}.sql");
+			$tok->bind($sql);
+			while($q = $tok->next())
+				$db->query($q);
+			unset($sql);
+		}
+	}
+	
+	function _applyPatches(&$patchIds) {
+		if (sizeof($patchIds)) {
+			$db = &WCDB::bo();
+			$p = new Patcher($this->_ftp, $db);
+			if (!$p->applyAll($patchIds)) {
+				echo '<p>Failed to apply patches</p>';
+			}
+		}
+	}
+
+	function _republishSite() {
+		$pf = &$this->_getPageFactory();
+		$ids = array_keys($pf->reader->getAllPages());
+		$ftp = &$pf->getFtp();
+		$ftp->open();
+		WCS::runAs(WCS_ROOT_ID);
+		foreach($ids as $id) {
+			$page = &$pf->reader->getPage($id);
+			$pf->updatePage($page);
+		}
+		WCS::stopRunAs();
+		$ftp->close();
+	}
+
+	function _createIndex() {
+		require_once(LIBDIR.'/dsmanager._wc');
+		$db = &WCDB::bo();
+		$res = $db->query('SELECT ds_id FROM datasources WHERE indexed');
+		WCS::runAs(WCS_ROOT_ID);
+		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++) {
+			list($id) = mysql_fetch_row($res);
+			$ds = & DSManager::load($id);
+			if($ds != null && $ds->isIndexable) {
+				$ds->setIndexable(false);
+				$ds->setIndexable(true);
+			}
+		}
+		WCS::stopRunAs();
+		mysql_free_result($res);
+	}
+
+	function &_getPageFactory() {
+		if(!is_object($this->_pf)) {
+			require_once(LIBDIR.'/site/pagefactory._wc');
+			$this->_pf = &PageFactory::getInstance();
+			$this->_pf->setFtp($this->_ftp);
+		}
+		return $this->_pf;
+	}
+
+	function loadMeta() {
+		if($this->_meta == null) {
+			$this->_meta = parse_ini_file($this->_folder.'/backup.ini', false);
+			settype($this->_meta, 'array');
+		}
+	}
+	
+	function _getMetaVersion() {
+		$version = (string) @$this->_meta['version'];
+		return $version . (substr_count($version, '.') < 2 ? '.0' : '');
+	}
+	
+	function _getMetaPatches() {
+		$patches = str_replace(' ', '', (string) @$this->_meta['patches']);
+		return empty($patches) ? array() : explode(',', $patches);
+	}
+
+	function _compileIgnores() {
+		$docRoot = preg_quote($_SERVER['DOCUMENT_ROOT'], '~');
+		for($i = 0, $l = sizeof($this->_ignore); $i < $l; $i++)
+			$this->_ignore[$i] = '~^'.$docRoot.$this->_ignore[$i].'$~';
+	}
+}
+?>

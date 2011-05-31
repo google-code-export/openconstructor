@@ -1,0 +1,103 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ *
+ * All rights reserved.
+ *
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ *
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ *
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * $Id: toolbar._wc,v 1.4 2007/02/27 11:23:19 sanjar Exp $
+ */
+	$isFirst = @$tree->node[$curnode]->index == 0 || @$tree->node[$curnode]->index == @$tree->node[$curnode]->parent->index + 1;
+	$isLast = @$tree->node[$curnode]->next == @$tree->node[$curnode]->parent->next;
+
+	$toolbar = array(
+		SAVE => array(
+			'pic' => 'save',
+			'action' => $super || WCS::decide($page, 'pageblock') || WCS::decide($page, 'editpage') ? 's = document.getElementById("tplId"); f_doc.tplId.value = s.options[s.selectedIndex].value; f_doc.submit()' : ''
+		),
+		INCLUDE_OBJECT => array(
+			'pic' => 'addobject',
+			'action' => 'wxyopen(wchome+"/structure/add_object.php?node="+curnode,600,450)'
+		),
+		'separator',
+		CREATE_PAGE => array(
+			'pic' => 'newpage',
+			'action' => $super || WCS::decide($page, 'managesub') ? 'wxyopen(wchome+"/structure/create_page.php?node="+curnode,700,370)' : ''
+		),
+		MOVE_PAGE => array(
+			'pic' => 'movepage',
+			'action' => $super ? 'wxyopen(wchome+"/structure/move_page.php?node="+curnode,700,320)' : ''
+		),
+		COPY_PAGE => array(
+			'pic' => 'copy',
+			'action' => $super ? 'copyPage(' . $page->id . ')' : ''
+		),
+		'separator',
+		MOVE_NODE_UP => array(
+			'pic' => 'nodeup',
+			'action' => !$isFirst && $super ? "moveUp()" : ''
+		),
+		MOVE_NODE_DOWN => array(
+			'pic' => 'nodedown',
+			'action' => !$isLast && $super ? 'moveDown()' : ''
+		),
+		'separator',
+		PUBLISH_PAGE => array(
+			'pic' => 'publishpage',
+			'action' => !$page->published && ($super || WCS::decide($page, 'editpage.publish')) && (!$page->parent || $pr->isPublished($page->parent)) ? "setPageState(true)" : ''
+		),
+		UNPUBLISH_PAGE => array(
+			'pic' => 'unpublishpage',
+			'action' => $page->published && ($super || WCS::decide($page, 'editpage.publish')) ? 'setPageState(false)' : ''
+		),
+		REPUBLISH_SUBTREE => array(
+			'pic' => 'republishtree',
+			'action' => $page->published && ($super || WCS::decide($page, 'editpage.publish')) ? 'republishSubTree()' : ''
+		),
+		'separator',
+		EDIT_PAGE => array(
+			'pic' => 'editpage',
+			'action' => 'wxyopen(wchome+"/structure/edit_page.php?node="+curnode,650)'
+		),
+		EDIT_SECURITY => array(
+			'pic' => 'editsec',
+			'action' => 'edit_security()'
+		),
+		'separator',
+		REFRESH => array(
+			'pic' => 'reload',
+			'action' => 'window.location.href += ""'
+		),
+		'separator',
+		REMOVE => array(
+			'pic' => 'remove',
+			'action' => 'remove()'
+		)
+	);
+/*	$toolbar=array(
+		SAVE=>array('pic'=>'save','action'=> $super || WCS::decide($page, 'pageblock') ?'if(document.all("f_doc")) f_doc.submit()':''),
+		CREATE_PAGE=>array('pic'=>'newpage','action'=> $super || WCS::decide($page, 'managesub') ? 'wxyopen(wchome+"/structure/create_page.php?node="+curnode,700,370)' : ''),
+		INCLUDE_OBJECT=>array('pic'=>'addobject','action'=> 'wxyopen(wchome+"/structure/add_object.php?node="+curnode,600,450)'),
+		'separator',
+		EDIT_PAGE=>array('pic'=>'editpage','action'=>'wxyopen(wchome+"/structure/edit_page.php?node="+curnode,650)'),
+		EDIT_SECURITY=>array('pic'=>'editsec','action'=> 'edit_security()'),
+		MOVE_PAGE=>array('pic'=>'movepage','action'=>!isset($versions[$_site->id_hash[$curnode]])?'wxyopen(wchome+"/structure/move_page.php?node="+curnode,700,250)':''),
+		'separator',
+		REFRESH=>array('pic'=>'reload','action'=>'window.location.href += ""'),
+		'separator',
+		REMOVE=>array('pic'=>'remove','action'=>'remove()')
+	);
+*/?>

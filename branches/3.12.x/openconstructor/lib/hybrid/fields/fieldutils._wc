@@ -1,0 +1,138 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ *
+ * All rights reserved.
+ *
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ *
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ *
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @author Sanjar Akhmedov
+ *
+ * $Id: fieldutils._wc,v 1.6 2007/02/27 11:23:19 sanjar Exp $
+ */
+require_once(LIBDIR.'/dsmanager._wc');
+
+class FieldUtils {
+	function FieldUtils() {
+	}
+
+	function createInternalDS($name, $type, $orig_id = null, $ownerId = null) {
+		$ds = null;
+		$class = 'ds' . $type;
+		loadClass($class, '/'.$type.'/'.$class.'._wc');
+		WCS::runAs(WCS_ROOT_ID);
+		$ds=new $class;
+		$ds->create($name, $name.' (Internal Datasource)', 1);
+		if($orig_id) {
+			$prototype = &DSManager::load($orig_id);
+			$ds->copyProps($prototype);
+			if($type == 'file')
+				$ds->initFilePath(true);
+			$ds->save();
+		}
+		if($ownerId) {
+			loadClass('user', '/security/user._wc');
+			$owner = &User::load($ownerId);
+			if(is_object(&$owner)) {
+				$ds->sRes->setOwner($owner->id);
+				$ds->sRes->setGroup($owner->groupId);
+				$ds->updateAuths();
+			}
+		}
+		WCS::stopRunAs();
+		return $ds->ds_id;
+	}
+
+	function &loadDS($type, $ds_id) {
+		require_once(LIBDIR.'/dsmanager._wc');
+		$dsm = new DSManager();
+		$ds = &$dsm->load($ds_id);
+		return $ds;
+	}
+
+	function getDocumentHeader($type, $ds_id, $id) {
+		if(!$id)
+			return '';
+		$res = FieldUtils::queryDocumentHeaders($type, $ds_id, array($id));
+		if(mysql_num_rows($res) == 1){
+			$r = mysql_fetch_assoc($res);
+			$header = $r['header'];
+		}
+		else
+			$header = '';
+		mysql_free_result($res);
+		return $header;
+	}
+
+	function getRatingDetails($dsId, $id) {
+		$db = &WCDB::bo();
+		$res = $db->query(sprintf('SELECT rating, raters FROM dsrating WHERE id = %d AND ds_id = %d', $id, $dsId));
+		$result = mysql_fetch_row($res);
+		mysql_free_result($res);
+		return $result;
+	}
+
+	function getDocumentHeaders($type, $ds_id, $ids) {
+		$result = array();
+		if(sizeof($ids) > 0) {
+			if($res = FieldUtils::queryDocumentHeaders($type, $ds_id, $ids)) {
+				if(mysql_num_rows($res) > 0)
+					while($r = mysql_fetch_assoc($res))
+						$result[(int) $r['id']] = $r['header'];
+				else
+				mysql_free_result($res);
+			}
+		}
+		return $result;
+	}
+
+	function &queryDocumentHeaders($type, $ds_id, $ids) {
+		$limit = sizeof($ids);
+		$ids = implode(',', $ids);
+		if($type == 'file')
+			$col = 'name';
+		else if($type == 'guestbook')
+			$col = 'subject';
+		else
+			$col = 'header';
+		$db = &WCDB::bo();
+		if($type == 'htmltext')
+			$res = $db->query("SELECT id, description as header FROM sitestruct, dshtmltext WHERE ds_id=$ds_id AND id IN ($ids) AND page_id=id LIMIT $limit");
+		elseif($type == 'hybrid')
+			$res = $db->query("SELECT dsh.id, dsh.header FROM ds{$type}_{$ds_id} ds, dshybrid dsh WHERE ds.id IN ($ids) AND dsh.id = ds.id LIMIT $limit");
+		else
+			$res = $db->query("SELECT id, $col as header FROM ds$type WHERE id IN ($ids) AND ds_id=$ds_id LIMIT $limit");
+		return $res;
+	}
+
+	function getNodeHeaders($parentId, $ids) {
+		if(empty($ids))
+			return array();
+		$db = &WCDB::bo();
+		$res = $db->query(
+			'SELECT t2.id AS id, t2.header AS header'.
+			' FROM catalogtree t1, catalogtree t2'.
+			" WHERE t1.id = $parentId AND t2.num > t1.num AND (t1.next = 0 OR t1.next > t2.num) AND t2.id IN($ids)".
+			' ORDER BY t2.num'
+		);
+		if(mysql_num_rows($res) > 0)
+			while($r = mysql_fetch_assoc($res))
+				$result[(int) $r['id']] = $r['header'];
+		else
+			$result = array();
+		return $result;
+	}
+}
+?>

@@ -1,0 +1,115 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Включение PHP кода.
+ * 
+ * Объект вывода.
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: phpinclude._wc,v 1.9 2007/02/27 11:23:18 sanjar Exp $
+ */
+require_once(LIBDIR.'/context._wc'); // Used by included php code
+require_once(LIBDIR.'/wcobject._wc'); // Used by included php code
+
+class PHPInclude extends WCObject {
+	var $once;
+	var $sourcePath, $source;
+	var $header;
+	var $cidTpl, $_ccid;
+	
+	function PHPInclude() {
+		$this->DSTable='dsphpsource';
+		$this->ds_type='phpsource';
+		$this->obj_type='phpinclude';
+		$this->once=false;
+		$this->sourcePath='/php/';
+		$this->source=false;
+		$this->header='';
+		$this->caching=2;
+		$this->cached_by_WC=true;
+		$this->_setCidTpl('');
+	}
+	
+	function getCacheId() {
+		$cacheId = $this->obj_id.'|'.$this->source.$this->_getCacheId();
+		return $cacheId;
+	}
+	
+	function _getCacheId() {
+		if(!isset($this->_cid)) {
+			$this->_cid = '';
+			if($this->_ccid) {
+				$x = &$this->ctx; $p = &$x->page; $t = &$this;
+				$this->_cid = eval("return $this->_ccid;");
+				unset($x, $p, $t);
+				if(strlen($this->_cid))
+					$this->_cid = '|'.$this->_cid;
+			}
+		}
+		return $this->_cid;
+	}
+	
+	function _encCID($cid) {
+		return sprintf('%x', crc32($cid));
+	}
+	
+	function fetchData(&$smarty) {
+		if($this->source) {
+			$file=ROOT.FILES.$this->sourcePath.intval($this->source).'._wc';
+			$smarty->assign('header', $this->header);
+			$smarty->assign('file', $file);
+			$smarty->assign('once', $this->once);
+			return array('header','file','once');
+		}
+		return false;
+	}
+	
+	function exec(&$smarty, $params = array()) {
+		if($this->block != 'PRE')
+			WCObject::exec($smarty, $params);
+	}
+	
+	function run() {
+		settype($this->source, 'int');
+		include_once(ROOT.FILES.$this->sourcePath.$this->source.'._wc');
+		return call_user_func('_wcf_phpsource_'.$this->source, $a = array());
+	}
+	
+	function _setCidTpl($tpl) {
+		$this->cidTpl = $tpl;
+		$this->_ccid = null;
+		if($this->cidTpl) {
+			require_once(LIBDIR.'/func/compilecacheid._wc');
+			$this->_ccid = wcfCompileCacheId($this->cidTpl);
+		}
+	}
+	
+	function getDocId() {
+		return $this->source;
+	}
+	
+	function &_getDSFields() {
+		static $result;
+		if(!is_array(&$result)) $result = array('ds_id', 'source');
+		return $result;
+	}
+}
+?>

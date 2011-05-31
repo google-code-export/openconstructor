@@ -1,0 +1,123 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Листалка для списка событий.
+ * 
+ * Объект вывода.
+ * 
+ * @author Rustam Akhmedov
+ * 
+ * $Id: eventpager._wc,v 1.7 2007/02/27 11:23:18 sanjar Exp $
+ */
+
+class EventPager extends WCObject {
+	var $header;
+	var $pid;
+	var $pagerSize;
+	
+	function EventPager() {
+		$this->DSTable='dsevent';
+		$this->ds_type='event';
+		$this->obj_type='eventpager';
+		$this->pagerSize=10;
+		$this->master=NULL;
+		$this->caching=2;
+		$this->cached_by_WC=true;
+	}
+	
+	function getCacheId() {
+		$ctx = &Context::getInstance();
+		if($master = &$ctx->getObject((int) $this->master)) {
+			$page = (int) @$_GET[$master->pid];
+			if(--$page) $page = 0;
+			$cacheId = $this->obj_id.'|p'.$page;
+		}
+		return $cacheId;
+	}
+	
+	function fetchData(&$smarty) {
+		$result = false;
+		$ctx = &Context::getInstance();
+		$master = &$ctx->getObject((int) $this->master);
+		if(!$master) return $result;
+		$current = intval(@$_GET[$master->pid])+!intval(@$_GET[$master->pid]);
+		
+		$where = $master->ids ? 'id IN ('.$master->ids.')' : 'ds_id IN ('.$master->ds_id.')';
+		if ($master->comingEventsOnly) {
+			$gmtOffset = -date('Z') + WC_TIMEZONE;
+			$where .= ' AND end_date >= FROM_UNIXTIME(' . (mktime() + $gmtOffset) . ')';
+		}
+		$db = &$this->ctx->_getDB();
+		$res = $db->query(
+			'SELECT COUNT(*) as items FROM '.$this->DSTable.' WHERE '.$where.' AND published != 0'
+		);
+		$items = mysql_result($res,0,'items');
+		mysql_free_result($res);
+		$items -= $master->offset;
+		$pages = intval($items / $master->pageSize) + intval(($items % $master->pageSize) && true);
+		if($pages > 1) {
+			$first=$current-intval($this->pagerSize/2)-!($this->pagerSize%2)*1;
+			if($first<1) $first=1;
+			$last=$first+$this->pagerSize-1;
+			if($last>$pages) {$first-=$last-$pages;$last=$pages;}
+			if($first<1) $first=1;
+			$ref=$_SERVER['QUERY_STRING'];
+			if($ref) {	
+				$ref = '?'.preg_replace('/(&?)'.$master->pid.'=(.(?!&))*.(&|$)/', '\\1', $ref);
+				$ref .= (strrpos($ref, '&') + 1 < strlen($ref) ? '&' : '').$master->pid.'=';
+			} else
+				$ref = "?{$master->pid}=";
+			
+			if($current>1){
+				$pfirst=$ref.'1';
+				$pprev=$ref.($current-1);
+			} else {
+				$pfirst=null;
+				$pprev=null;
+			}
+			
+			$ppages=array();
+			for($i=$first;$i<=$last;$i++)
+				$ppages[$i]=$i!=$current?$ref.$i:null;
+			
+			if($current<$pages){
+				$pnext=$ref.($current+1);
+				$plast=$ref.$pages;
+			} else {
+				$pnext=null;
+				$plast=null;
+			}
+			$smarty->assign_by_ref('first',$pfirst);
+			$smarty->assign_by_ref('prev',$pprev);
+			$smarty->assign_by_ref('pages',$ppages);
+			$smarty->assign_by_ref('next',$pnext);
+			$smarty->assign_by_ref('last',$plast);
+			$result = array('first', 'prev', 'pages', 'next', 'last');
+		}
+		return $result;
+	}
+	
+	function &_getDSFields() {
+		static $result;
+		if(!is_array(&$result)) $result = array('master');
+		return $result;
+	}
+}
+?>

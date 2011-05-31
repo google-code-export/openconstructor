@@ -1,0 +1,95 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ *
+ * All rights reserved.
+ *
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ *
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ *
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @author Sanjar Akhmedov
+ *
+ * $Id: authenticator._wc,v 1.5 2007/02/27 11:23:21 sanjar Exp $
+ */
+require_once('authentication._wc');
+require_once('user._wc');
+
+class Authenticator {
+	function &authenticate($login, $password) {
+		$result = null;
+		if(User::isLoginValid($login)) {
+			$pwd = wcs_pwd_hash($password);
+			$db = &WCDB::fo();
+			$res = $db->query(sprintf(
+				'SELECT id FROM wcsusers WHERE login = "%s" AND pwd = "%s" AND active AND (expiry = 0 OR expiry > %d)'
+				, addslashes(strtolower($login)), addslashes($pwd), time()
+			));
+			if(mysql_num_rows($res) == 1) {
+				list($id) = mysql_fetch_row($res);
+				$result = &Authenticator::create($id);
+			}
+			mysql_free_result($res);
+		}
+		return $result;
+	}
+
+	function &restore($autologinId) {
+		$result = null;
+		$db = &WCDB::bo();
+		$res = $db->query(sprintf(
+			'SELECT id FROM wcsusers WHERE autologin = "%s" AND active AND (expiry = 0 OR expiry > %d)'
+			, addslashes($autologinId), time()
+		));
+		if(mysql_num_rows($res) ==  1) {
+			list($id) = mysql_fetch_row($res);
+			$result = &Authenticator::create($id);
+		}
+		mysql_free_result($res);
+		return $result;
+	}
+
+	function &create($userId) {
+		assert($userId > 0);
+		$result = null;
+		$user = &User::load($userId);
+		if($user != null) {
+			$db = &WCDB::bo();
+			$db->query('UPDATE wcsusers SET lastlogin = '.time().' WHERE id = '.intval($userId));
+			$result = &Authentication::create($user);
+		}
+		return $result;
+	}
+
+	function &loadProfile($profileId) {
+		$result = array();
+		$db = &WCDB::fo();
+		$res = $db->query("SELECT dsh.path FROM dshybrid ds, hybriddatasources dsh WHERE ds.id = $profileId AND dsh.ds_id = ds.ds_id");
+		$row = mysql_fetch_row($res);
+		mysql_free_result($res);
+		if($row) {
+			$path = explode(',', substr($row[0], 2));
+			$query = 'SELECT * FROM %s WHERE %s';
+			for($i = 0, $l = sizeof($path); $i < $l; $i++)
+				$query = sprintf($query, ($i > 0 ? ',' : '')."dshybrid_{$path[$i]}%s", ($i > 0 ? ' AND ' : '')."dshybrid_{$path[$i]}.id = {$profileId}%s");
+			$res = $db->query(sprintf($query, '', ''));
+			$row = mysql_fetch_assoc($res);
+			mysql_free_result($res);
+			foreach($row as $k => $v)
+				if(strpos($k, 'f_') === 0)
+					$result[substr($k, 2)] = $v;
+		}
+		return $result;
+	}
+}
+?>

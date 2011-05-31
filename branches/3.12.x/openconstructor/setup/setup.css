@@ -1,0 +1,46 @@
+HTML {
+	border: none;
+}
+BODY {
+	border: none;
+	background:#f2f2f2;
+	font-family: verdana, sans-serif;
+	font-size: 0.9em;
+	margin: 0;
+}
+FIELDSET {
+	margin: 20px 0;
+}
+FIELDSET TABLE {
+	margin: 10px 0;
+}
+LEGEND {
+	font-size: 120%;
+	font-family: tahoma;
+}
+TABLE {
+	font-size: 100%;
+}
+H3 {
+	font-family: tahoma;
+}
+A, A:visited {
+	color: blue;
+}
+.param {
+	padding-left:10px;
+}
+.value {
+	font-family:courier new, monospace;
+	padding-left:10px;
+	padding-right:10px;
+}
+.ok {
+	color: green;
+}
+.cancel {
+	color: #888;
+}
+.fail {
+	color: red;
+}

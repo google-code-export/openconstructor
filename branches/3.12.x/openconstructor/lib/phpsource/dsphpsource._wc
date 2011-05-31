@@ -1,0 +1,136 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ *
+ * All rights reserved.
+ *
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ *
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ *
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @author Sanjar Akhmedov
+ *
+ * $Id: dsphpsource._wc,v 1.12 2007/02/27 11:23:18 sanjar Exp $
+ */
+require_once(LIBDIR.'/wcftp._wc');
+class DSPHPSource extends WCDataSource {
+	var $sourcePath;
+
+	function DSPHPSource() {
+		$this->ds_type='phpsource';
+		$this->DSTable='dsphpsource';
+		$this->size=0;
+		$this->sourcePath='/php/';
+		$this->ftp=NULL;
+		umask(0);
+	}
+
+	function add($header, $source) {
+		WCS::assert($this, 'createdoc');
+		assert(trim($header) != '');
+		if($this->isFull()) return false;
+		$db = &WCDB::bo();
+		$db->query(
+			'INSERT INTO '.$this->DSTable.
+				' (ds_id, header, source, date, wcsowner)'.
+			'VALUES'.
+				' ('.$this->ds_id.', "'.addslashes($header).'", "'.addslashes($source).'", "'.time().'", '.Authentication::getOriginalUserId().')'
+			);
+			$id = (int) $db->lastInsertId();
+			if($id > 0) {
+				$this->updateSize();
+				return $this->update_file($id, $source);
+			}
+			return false;
+		}
+
+	function delete($ids) {
+		WCS::assertValue(WCS::decide($this, 'removedoc') || WCS::ownerAllowed($this->getSDoc(), 'removedoc'), $this, 'removedoc');
+		$this->filterDocs($ids);
+		if(!sizeof($ids)) return;
+
+		foreach($ids as $k => $id) {
+			@unlink($_SERVER['DOCUMENT_ROOT'].FILES.$this->sourcePath.intval($id).'._wc');
+			if(@file_exists($_SERVER['DOCUMENT_ROOT'].FILES.$this->sourcePath.intval($id).'._wc'))
+				unset($ids[$k]);
+		}
+		if(sizeof($ids) > 0) {
+			$db = &WCDB::bo();
+			$db->query(
+				'DELETE FROM '.$this->DSTable.
+				' WHERE id IN('.implode(',',$ids).') AND ds_id='.$this->ds_id
+			);
+			$this->updateSize();
+		}
+	}
+
+	function update($id,$header,$source) {
+		assert(trim($header) != '');
+		$doc = &$this->getDocument($id);
+		assert($doc->id > 0);
+		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
+
+		$db = &WCDB::bo();
+		$db->query(
+			'UPDATE '.$this->DSTable.
+			' SET header="'.addslashes($header).'", source="'.addslashes($source).'", date="'.time().'"'.
+			' WHERE id='.$id
+		);
+		$res = $this->update_file($id,$source);
+		if(!$res)
+			return false;
+		$this->evictDocCache($id);
+		return $res;
+	}
+
+	function &get_record($id) {
+		$db = &WCDB::bo();
+		$res = $db->query(
+			"SELECT * FROM {$this->DSTable} WHERE ds_id={$this->ds_id} AND id=".intval($id)
+		);
+		$result = mysql_fetch_assoc($res);
+		mysql_free_result($res);
+		return $result;
+	}
+
+	function update_file($id,$source) {
+		$this->init_ftp();
+		$this->ftp->open();
+		$incfile=FILES.$this->sourcePath.$id.'._wc';
+		$func = '_wcf_phpsource_'.$id;
+		$content = "<?php if(!function_exists('{$func}')) { function {$func}(&\$args){ \$ctx = &Context::getInstance();?>$source<?php } } if(isset(\$this) && strtolower(get_class(\$this)) == 'wcsmarty') {\$__j = array(); {$func}(\$__j);}?>";
+		$this->ftp->write_file($incfile,$content);
+		$this->ftp->close();
+		if($this->ftp->success())
+			return $id;
+		echo $this->ftp->get_message(true);
+		return false;
+	}
+
+	function moveDocuments(&$fromDs, $ids) {
+		if($this->ds_id != $fromDs->ds_id) {
+			WCS::assert($this, 'createdoc');
+			$sCheck = WCS::decide($fromDs, 'removedoc') ? '' : 'AND '.WCS::getOwnerCheckQuery();
+			$userId = Authentication::getUserId();
+			$db = &WCDB::bo();
+			$db->query(
+				"UPDATE {$this->DSTable}".
+				" SET ds_id = {$this->ds_id}, wcsowner = $userId".
+				' WHERE id IN ('.implode(',',$ids).") $sCheck"
+			);
+			$this->updateSize();
+			$fromDs->updateSize();
+		}
+	}
+}
+?>

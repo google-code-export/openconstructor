@@ -1,0 +1,167 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: sqldumper._wc,v 1.2 2007/02/27 11:23:25 sanjar Exp $
+ */
+define('SD_CURSOR_IDLE', 0);
+define('SD_CURSOR_TABLE_CREATE', 1);
+define('SD_CURSOR_TABLE_INSERT', 2);
+define('SD_CURSOR_TABLE_COMPLETE', 3);
+define('SD_CURSOR_COMPLETE', 4);
+define('SD_CURSOR_END', -1);
+
+class SqlDumper {
+	var $comments = true, $drop = true, $data = true;
+	var $disableKeys = 100;
+	var $table, $_tables = array(), $_ti = -1;
+	var $_td = null, $_tdn, $_tdi, $_tdCols;
+	var $cursor = SD_CURSOR_IDLE;
+	var $_db;
+	
+	function SqlDumper($tables = null) {
+		$this->_db = &WCDB::bo();
+		if($tables === null)
+			$tables = SqlDumper::_getAllTables();
+		$this->_tables = array_values($tables);
+		sort($this->_tables);
+	}
+	
+	function next() {
+		$result = null;
+		switch($this->cursor) {
+			case SD_CURSOR_IDLE:
+				$result = $this->_nextTable();
+			break;
+			case SD_CURSOR_TABLE_CREATE:
+				$this->_queryTableData();
+				$this->cursor = SD_CURSOR_TABLE_INSERT;
+				$result = $this->_beforeInserts().$this->next();
+			break;
+			case SD_CURSOR_TABLE_INSERT:
+				$result = $this->_nextInsert();
+			break;
+			case SD_CURSOR_TABLE_COMPLETE:
+				$this->cursor = SD_CURSOR_IDLE;
+				$result = $this->_afterInserts();
+				$this->_releaseTableData();
+				$result .= $this->next();
+			break;
+			case SD_CURSOR_COMPLETE:
+				$this->cursor = SD_CURSOR_END;
+		}
+		return $result;
+	}
+	
+	function skipTableData() {
+		$this->cursor = SD_CURSOR_TABLE_COMPLETE;
+	}
+	
+	function _nextTable() {
+		$result = null;
+		$this->_ti++;
+		if($this->_ti < sizeof($this->_tables)) {
+			$this->table = $this->_tables[$this->_ti];
+			$result = $this->_getCreateTable();
+			$this->cursor = $this->data ? SD_CURSOR_TABLE_CREATE : SD_CURSOR_IDLE;
+		} else
+			$this->cursor = SD_CURSOR_COMPLETE;
+		return $result;
+	}
+	
+	function _nextInsert() {
+		$result = '';
+		if($this->_tdi < $this->_tdn) {
+			$this->_tdi++;
+			if($this->_tdCols == null) {
+				$row = mysql_fetch_assoc($this->_td);
+				$this->_tdCols = '`'.implode('`,`', array_keys($row)).'`';
+				$row = array_values($row);
+				$this->_tdc = sizeof($row);
+			} else
+				$row = mysql_fetch_row($this->_td);
+			for($i = 0; $i < $this->_tdc; $i++)
+				$row[$i] = str_replace('\"', '"', mysql_escape_string($row[$i]));
+			$result = "INSERT INTO `{$this->table}` ({$this->_tdCols}) VALUES ('".implode("','", $row)."');\n";
+			if($this->_tdi == $this->_tdn) {
+				$result .= $this->_afterInserts();
+				$this->_releaseTableData();
+			}
+		} else {
+			$this->cursor = SD_CURSOR_TABLE_COMPLETE;
+			$result = $this->next();
+		}
+		return $result;
+	}
+	
+	function _beforeInserts() {
+		$result = '';
+		if($this->comments && $this->_tdn > 0)
+			$result .= "--\n"
+				."-- Table data for table `{$this->table}`\n"
+				."--\n\n";
+		if($this->disableKeys > 0 && $this->_tdn > $this->disableKeys)
+			$result .= "ALTER TABLE `{$this->table}` DISABLE KEYS;\n";
+		return $result;
+	}
+	
+	function _afterInserts() {
+		if($this->disableKeys > 0 && $this->_tdn > $this->disableKeys)
+			return "ALTER TABLE `{$this->table}` ENABLE KEYS;\n";
+		return '';
+	}
+	
+	function _queryTableData() {
+		$this->_td = $this->_db->query("SELECT * FROM `{$this->table}`");
+		$this->_tdi = 0;
+		$this->_tdn = mysql_num_rows($this->_td);
+	}
+	
+	function _releaseTableData() {
+		if($this->_td != null) {
+			mysql_free_result($this->_td);
+			$this->_td = $this->_tdi = $this->_tdn = $this->_tdCols = null;
+		}
+	}
+	
+	function _getCreateTable() {
+		$res = $this->_db->query("SHOW CREATE TABLE `{$this->table}`");
+		$result = "\n\n\n";
+		if($row = mysql_fetch_row($res)) {
+			if($this->comments)
+				$result .= "--\n"
+					."-- Table structure for table `{$this->table}`\n"
+					."--\n\n";
+			if($this->drop)
+				$result .= "DROP TABLE IF EXISTS `{$this->table}`;\n";
+			$result .= $row[1].";\n";
+		} else
+			$result .= "-- Table `{$this->table}` doesn't exist\n";
+		$result .= "\n";
+		return $result;
+	}
+	
+	function _getAllTables() {
+		require_once('dbsetup._wc');
+		return DBSetup::getAllTables();
+	}
+}
+?>

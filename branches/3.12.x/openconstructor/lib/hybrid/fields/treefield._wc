@@ -1,0 +1,125 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: treefield._wc,v 1.4 2007/02/27 11:23:19 sanjar Exp $
+ */
+require_once('fieldutils._wc');
+
+class TreeField extends HybridField {
+	var $treeId;
+	var $isArray;
+	
+	function TreeField($key, $header, $treeId, $required, $isArray) {
+		$this->treeId = (int) $treeId;
+		$this->HybridField($key, $header, 'tree', $this->treeId, $required);
+		$this->isArray = $isArray ? 1 : 0;
+	}
+	
+	function create() {
+		if(HybridField::create())
+			$this->update();
+		return $this->id;
+	}
+	
+	function update() {
+		$db = &WCDB::bo();
+		$db->query(
+			sprintf("UPDATE $this->table SET header='%1\$s', tree=%2\$d, isreq='%3\$d', isarray='%4\$d' ".
+					"WHERE id=$this->id", addslashes($this->header), intval($this->treeId), intval($this->isRequired), intval($this->isArray))
+		);
+	}
+	
+	function remove() {
+		$db = &WCDB::bo();
+		$res = $db->query("SELECT num, next FROM catalogtree WHERE id = $this->treeId");
+		if(mysql_num_rows($res) == 1) {
+			list($num, $next) = mysql_fetch_array($res, MYSQL_NUM);
+			$db->query(
+				'DELETE catalogdocs.*'.
+				" FROM catalogtree, catalogdocs, $this->ds_table".
+				" WHERE catalogdocs.doc = $this->ds_table.id AND catalogdocs.node = catalogtree.id AND catalogtree.num >= $num".($next > 0 ? " AND catalogtree.num < $next" : '')
+			);
+		}
+		mysql_free_result($res);
+		HybridField::remove();
+	}
+	
+	function onCreateDocument(&$doc) {
+		if($this->isValid($doc->fields[$this->key]))
+			$this->addValues($doc->id, $doc->fields[$this->key]);
+		else
+			$doc->fields[$this->key] = null;
+	}
+	
+	function onUpdateDocument(&$old, &$new) {
+		if($this->isValid($new->fields[$this->key])) {
+			$o = explode(',', $old->fields[$this->key]);
+			$n = explode(',', $new->fields[$this->key]);
+			$this->removeValues($old->id, implode(',', array_diff($o, $n)));
+			$this->addValues($old->id, implode(',', array_diff($n, $o)));
+		} else
+			$new->fields[$this->key] = $old->fields[$this->key];
+	} 
+	
+	function onRemoveDocument(&$doc) {
+		$db = &WCDB::bo();
+		$db->query(
+			'DELETE catalogdocs.*'.
+			" FROM catalogtree t1, catalogtree t2, catalogdocs, $this->ds_table".
+			" WHERE t1.id = $this->treeId AND t2.num > t1.num AND (t1.next = 0 OR t1.next > t2.num) AND catalogdocs.node = t2.id AND doc = $doc->id"
+		);
+	}
+	
+	function fetchValue(&$doc) {
+		$doc->fields[$this->key] = FieldUtils::getNodeHeaders($this->treeId, $doc->fields[$this->key]);
+	}
+	
+	function convertToPlain(&$doc) {
+		if(is_array($doc->fields[$this->key]))
+			$doc->fields[$this->key] = implode(', ', $doc->fields[$this->key]);
+	}
+	
+	function isValid($value) {
+		if($this->isArray)
+			return strlen($value) == strspn($value, '0123456789,');
+		return $this->isRequired ? intval($value) == $value && intval($value) > 0 : intval($value) == $value;
+	}
+
+	function getMysqlType() {
+		return $this->isArray ? 'VARCHAR(255)' : 'INT(11) UNSIGNED';
+	}
+	
+	function addValues($docId, $values) {
+		if(!empty($values)) {
+			$db = &WCDB::bo();
+			$db->query("INSERT INTO catalogdocs (node, doc) SELECT id, $docId FROM catalogtree WHERE id IN ($values)");
+		}
+	}
+	
+	function removeValues($docId, $values) {
+		if(!empty($values)) {
+			$db = &WCDB::bo();
+			$db->query("DELETE FROM catalogdocs WHERE node IN ($values) AND doc=$docId");
+		}
+	}
+}
+?>

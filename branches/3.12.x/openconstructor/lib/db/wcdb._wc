@@ -1,0 +1,110 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: wcdb._wc,v 1.2 2007/02/27 11:23:25 sanjar Exp $
+ */
+
+class WCDB {
+	function &fo() {
+		return WCDB::_get(WCDB_FRONT);
+	}
+	
+	function &bo() {
+		static $bo;
+		if(!is_object($bo))
+			$bo = &WCDB::_get(WCDB_SYSTEM);
+		return $bo;
+	}
+	
+	function &get($key) {
+		return WCDB::_get($key);
+	}
+	
+	function &_get($key) {
+		static $instances, $dbs;
+		if(!isset($instances[$key])) {
+			$instances[$key] = null;
+			if(!isset($dbs)) {
+				$dbs = (array) $GLOBALS['WCDB_DATABASES'];
+				unset($GLOBALS['WCDB_DATABASES']);
+			}
+			if(isset($dbs[$key])) {
+				$instances[$key] = new WCC_MySqlDB($dbs[$key]['server'], $dbs[$key]['user'], $dbs[$key]['pwd'], $dbs[$key]['db']);
+				if(isset($dbs[$key]['setnames']) && $dbs[$key]['setnames'])
+					$instances[$key]->query('SET NAMES \'utf8\'');
+				if(class_exists('Context')) {
+					$ctx = & Context::getInstance();
+					$ctx->_fireEventArgs('onDBConnect', $args = array('db' => &$instances[$key]));
+				}
+			}
+		}
+		return $instances[$key];
+	}
+}
+
+class WCC_MySqlDB {
+	var $_qc = 0; // query count
+	var $_link = false;
+	
+	function WCC_MySqlDB($server, $username, $pwd, $db) {
+		if($link = mysql_connect($server, $username, $pwd, true)) {
+			if(mysql_select_db($db, $link)) {
+				$this->_link = $link;
+			} else
+				mysql_close($link);
+		}
+	}
+	
+	function close() {
+		if($this->_link)
+			mysql_close($this->_link);
+	}
+	
+	function query($query) {
+		$this->_qc++;
+		$result = mysql_query($query, $this->_link);
+		return $result;
+	}
+	
+	function lastInsertId() {
+		$this->_qc++;
+		$result = mysql_insert_id($this->_link);
+		return $result;
+	}
+	
+	function affectedRows() {
+		return mysql_affected_rows($this->_link);
+	}
+	
+	function errorCode() {
+		return mysql_errno($this->_link);
+	}
+	
+	function error() {
+		return mysql_error($this->_link);
+	}
+	
+	function getQueryCount() {
+		return $this->_qc;
+	}
+}
+?>

@@ -1,0 +1,148 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: wcs._wc,v 1.5 2007/02/27 11:23:21 sanjar Exp $
+ */
+require_once('authentication._wc');
+
+class WCS {
+	
+	function WCS() {
+	}
+	
+	function requireAuthentication($res = null) {
+		$auth = &Authentication::getInstance();
+		if(WCS::privileged($auth))
+			return;
+		if($res === null)
+			$res = &System::getInstance();
+		if(WCS::inGroup(&$res, $auth->membership))
+			return;
+		WCS::request($res, ',.,');
+	}
+	
+	function request(&$res, $act = '') {
+		WCS::_request(WCS::_decide($res, $act), @$res->authenticationPage);
+	}
+	
+	function assert(&$res, $act = '') {
+		$decision = WCS::_decide($res, $act);
+		WCS::_assert($decision == true, $res->sRes->name, $act);
+	}
+	
+	function assertValue($value, &$res, $act = '') {
+		WCS::_assert($value, $res->sRes->name, $act);
+	}
+	
+	function decide(&$res, $act = '') {
+		return WCS::_decide($res, $act);
+	}
+	
+	function runAs($userId) {
+		loadClass('user', '/security/user._wc');
+		$user = &User::load($userId);
+		Authentication::runAs($user);
+	}
+	
+	function stopRunAs() {
+		Authentication::stopRunAs();
+	}
+	
+	function ownerAllowed(&$res, $act) {
+		return isset($res->sRes) && (!$act || $res->sRes->decision($act, $res->sRes->authorities[0]));
+	}
+	
+	function userAllowed(&$res, $act, $auth = null) {
+		if($auth == null)
+			$auth = &Authentication::getInstance();
+		if(WCS::privileged($auth))
+			return isset($res->sRes->map[$act]);
+		return $auth->userId == $res->sRes->owner && (!$act || $res->sRes->decision($act, $res->sRes->authorities[0]));
+	}
+	
+	function groupAllowed(&$res, $act, $auth = null) {
+		if($auth == null)
+			$auth = &Authentication::getInstance();
+		if(WCS::privileged($auth))
+			return isset($res->sRes->map[$act]);
+		return WCS::inGroup($res, $auth->membership) && (!$act || $res->sRes->decision($act, $res->sRes->authorities[1]));
+	}
+	
+	function inGroup(&$res, &$membership) {
+		return is_array(&$res->sRes->group) ?
+			sizeof(array_intersect(&$res->sRes->group, &$membership)) :
+			array_search($res->sRes->group, &$membership) !== false;
+		
+	}
+	
+	function getAuthCheckQuery($act, $prefix = '', $ownerField = 'wcsowner', $groupField = 'wcsgroup') {
+		$auth = &Authentication::getInstance();
+		if(WCS::privileged($auth))
+			return 1;
+		$group = implode(',', $auth->membership);
+		if($prefix) $prefix .= '.';
+		$query = "(({$prefix}{$ownerField} = {$auth->userId} AND FIND_IN_SET('$act', {$prefix}oauths)) OR ({$prefix}{$groupField} IN ($group) AND FIND_IN_SET('$act', {$prefix}gauths)))";
+		return $query;
+	}
+	
+	function getOwnerCheckQuery($prefix = '') {
+		$auth = &Authentication::getInstance();
+		if(WCS::privileged($auth))
+			return 1;
+		if($prefix) $prefix .= '.';
+		$query = "({$prefix}wcsowner = {$auth->userId})";
+		return $query;
+	}
+	
+	function privileged(&$auth) {
+		return $auth->userId == WCS_ROOT_ID || array_search(WCS_ADMINS_ID, $auth->membership) !== false;
+	}
+	
+	function _request($true, $loginPage = false) {
+		if($true == true)
+			return;
+		if($loginPage === false) {
+			$sys = &System::getInstance();
+			$loginPage = $sys->authenticationPage;
+		}
+		if(headers_sent() || !$loginPage)
+			WCS::_assert(true == false);
+		sendRedirect('http://'.$_SERVER['HTTP_HOST'].$loginPage.(Authentication::getOriginalUserId() > 0 ? '?authlack&' : '?').'next='.urlencode($_SERVER['REQUEST_URI']), 302);
+		die();
+	}
+	
+	function _decide(&$res, &$act) {
+		if(!@isset($res->sRes))
+			return false;
+		$auth = &Authentication::getInstance();
+		return WCS::userAllowed($res, &$act, &$auth) || WCS::groupAllowed($res, &$act, &$auth);
+	}
+	
+	function _assert($true, $resName = null, $act = null) {
+		if(!$true) {
+			include(LIBDIR.'/../assertions.php');
+			assert_options(ASSERT_CALLBACK, create_function('$a, $b, $c', 'wcsAssertHandler($a, $b, $c, \''.addslashes($resName).'\', \''.addslashes($act).'\');'));
+		}
+		assert($true == true);
+	}
+}
+?>

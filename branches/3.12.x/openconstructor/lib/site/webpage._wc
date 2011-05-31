@@ -1,0 +1,312 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: webpage._wc,v 1.28 2007/03/10 09:56:59 sanjar Exp $
+ */
+
+class WebPage {
+	var $id, $title, $uri, $links;
+	var $robots, $keywords, $description;
+	var $generator, $contentType, $style, $_favicon = array();
+	var $tpl, $status;
+	var $index, $next, $level, $name;
+	var $_children, $_siblings, $_path;
+	var $_isSecure, $_objects, $_map;
+	var $_cTitle;
+	var $_uid, $_caching, $_cacheId, $_cacheGz, $_eTag = null;
+	var $sRes, $authenticationPage;
+	var $_isCommentable = null;
+	
+	function WebPage(&$map, $id, $uri) {
+		$this->_map = &$map;
+		$this->id = (int) $id;
+		$this->uri = $uri;
+		$this->title = null;
+		$this->links = null;
+		
+		$this->sRes = null;
+		$this->authenticationPage = null;
+		
+		$this->index = $map->id[$id][MN_INDEX];
+		$this->next = $map->id[$id][MN_NEXT];
+		$this->level = $map->id[$id][MN_LEVEL];
+		$this->name = $map->id[$id]['name'];
+		
+		$this->_isSecure = null;
+		$this->_children = null;
+		$this->_siblings = null;
+		$this->_path = null;
+		
+		$this->status = 200;
+	}
+	
+	function getTitle() {
+		if($this->title === null) {
+			$x = &Context::getInstance();
+			$c = &$x->crumbs;
+			$this->title = $this->_cTitle ? eval("return {$this->_cTitle};") : '';
+			unset($x, $c);
+		}
+		return $this->title;
+	}
+	
+	function &getHeadTags($xml = false, $i = "\t") {
+		$result = "\n".
+			$this->getMetaTags($xml, $i).
+			$this->getStyleTags($xml, $i).
+			$this->getFaviconTags($xml, $i).
+			$this->getWciTags($xml, $i).
+			"\n";
+		return $result;
+	}
+	
+	function &getMetaTags($xml = false, $i = "\t") {
+		if($this->contentType == 'text/html') {
+			$end = $xml ? ' /' : '';
+			$ctx = &Context::getInstance();
+			$result = 
+				"$i<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"$end>\n".
+				"$i<meta name=\"ROBOTS\" content=\"{$this->robots}\"$end>\n";
+			if(!empty($this->keywords))
+				$result .= "$i<meta name=\"Keywords\" content=\"{$this->keywords}\"$end>\n";
+			if(!empty($this->description))
+				$result .= "$i<meta name=\"Description\" content=\"{$this->description}\"$end>\n";
+			$result .=
+				"$i<meta name=\"Generator\" content=\"{$this->generator}\"$end>\n".
+				"$i<base href=\"".$ctx->getBaseHref()."\"$end>\n";
+		} else
+			$result = '';
+		return $result;
+	}
+	
+	function &getStyleTags($xml = false, $i = "\t") {
+		$result = '';
+		$end = $xml ? ' /' : '';
+		if(is_array($this->style)) {
+			foreach($this->style as $sheet)
+				$result .= "$i<link href=\"$sheet\" type=\"text/css\" rel=\"stylesheet\"$end>\n";
+		} elseif($this->style)
+			$result = "$i<link href=\"{$this->style}\" type=\"text/css\" rel=\"stylesheet\"$end>\n";
+		return $result;
+	}
+	
+	function getFaviconTags($xml = false, $i = "\t") {
+		$end = $xml ? ' /' : '';
+		$result = '';
+		foreach($this->_favicon as $f)
+			$result .= "$i<link rel=\"{$f[1]}\" type=\"{$f[2]}\" href=\"{$f[0]}\"$end>\n";
+		return $result;
+	}
+	
+	function getContentTypeHeader() {
+		static $text;
+		if($text == null)
+			$text = array_flip(array('text/html', 'text/plain'));
+		return $this->contentType.(isset($text[$this->contentType]) ? '; charset=utf-8' : '');
+	}
+	
+	function getWciTags($xml = false, $i = "\t") {
+		if(WCI_ENABLED) {
+			$end = $xml ? ' /' : '';
+			$ctx = &Context::getInstance();
+			return "$i<script src=\"".WCHOME."/lib/js/base.js\"></script>\n".
+				"$i<script src=\"".WCHOME."/lib/languagesets/".DEFAULT_LANGUAGE."/wci-messages.js\"></script>\n".
+				"$i<script src=\"".WCHOME."/lib/js/inline-edit.js\"></script>\n".
+				"$i<link href=\"".WCHOME."/inline-edit.css\" type=\"text/css\" rel=\"stylesheet\"$end>\n"
+			;
+		}
+		return '';
+	}
+	
+	function setTemplate($tpl) {
+		$this->tpl = $tpl;
+	}
+	
+	function setStyleSheet($style) {
+		$this->style = $style;
+	}
+	
+	function addFavicon($href, $rel = 'icon', $type = '') {
+		$this->_favicon[] = array($href, $rel, $type);
+	}
+
+	function setContentType($contentType) {
+		$this->contentType = $contentType;
+	}
+	
+	function isSecure() {
+		if($this->_isSecure === null) {
+			$this->_isSecure = false;
+			$page = &$this->_map->id[$this->id];
+			while(!$this->_isSecure && $page != null) {
+				$this->_isSecure = is_array($page['usr']) ? true : $page['usr'] != WCS_EVERYONE_ID;
+				$page = &$page['parent'];
+			}
+		}
+		return $this->_isSecure;
+	}
+	
+	function is($uri) {
+		return $this->uri == $uri || ($this->links && array_search(@$this->_map->uri[$uri]['id'], $this->links) !== false);
+	}
+	
+	function isChildOf($uri, $strict = true) {
+		if(isset($this->_map->uri[$uri])) {
+			$u = &$this->_map->uri[$uri];
+			return !$strict && $this->is($uri) ? 2
+				: (($u[MN_INDEX] < $this->index && ($u[MN_NEXT] > $this->index || $u[MN_NEXT] == 0)) ? 1 : 0);
+		}
+		return 0;
+	}
+	
+	function isParentOf($uri, $strict = true) {
+		if(isset($this->_map->uri[$uri])) {
+			$u = &$this->_map->uri[$uri];
+			return !$strict && $this->is($uri) ? 2
+				: ($this->index < $u[MN_INDEX] && ($this->next > $u[MN_INDEX] || $this->next == 0) ? 1 : 0);
+		}
+		return 0;
+	}
+	
+	function isCommentable() {
+		if($this->_isCommentable === null)
+			$this->_isCommentable = in_array($this->contentType, array('text/html', 'text/xml', 'application/xml'));
+		return $this->_isCommentable;
+	}
+	
+	function &getChildren() {
+		if($this->_children === null)
+			$this->_children = &$this->_map->getChildrenOf($this->uri);
+		return $this->_children;
+	}
+	
+	function &getSiblings() {
+		if($this->_siblings === null)
+			$this->_siblings = &$this->_map->getSiblings($this->uri);
+		return $this->_siblings;
+	}
+	
+	function getParent($level = -1, $uri = false) {
+		$result = null;
+		if($level < 0)
+			$level += $this->level;
+		$path = &$this->getPath();
+		if(isset($path[$level]))
+			$result = $uri ? $this->_map->id[$path[$level]]['uri'] : $path[$level];
+		return $result;
+	}
+	
+	function &getPath() {
+		if($this->_path === null) {
+			$this->_path = array_fill(0, $this->level + 1, null);
+			for($l = $this->level, $p = &$this->_map->id[$this->id]; $l >= 0; $l--, $p = &$p['parent'])
+				$this->_path[$l] = $p['id'];
+		}
+		return $this->_path;
+	}
+	
+	function &_getObjects() {
+		if(!is_array($this->_objects)) {
+			$this->_objects = array();
+			if($this->id > 0) {
+				$ctx = &Context::getInstance();
+				$db = &$ctx->_getDB();
+				$obj = array();
+				$query = 'SELECT o.id, o.tpl, o.code, s.crumbs, s.observer, s.block FROM siteobjects s, objects o WHERE s.page_id = '.intval($this->id).' AND s.block > "" AND o.id = s.obj_id AND NOT(s.observer > 0 AND o.obj_type = "phpcallback") ORDER BY s.block';
+				$res = $db->query($query);
+				if(mysql_num_rows($res)>0)
+					while($row = mysql_fetch_row($res)) {
+						settype($row[0], 'int');
+						$obj[$row[0]] = unserialize(($row[2]));
+						$obj[$row[0]]->tpl = $row[1];
+						$obj[$row[0]]->crumbs = $row[3] > 0;
+						$obj[$row[0]]->block = $row[4] ? null : (string) $row[5];
+						$obj[$row[0]]->ctx = &$ctx;
+						$id[] = $row[0];
+					}
+				mysql_free_result($res);
+				if(sizeof($obj)) {
+					for($i = 0, $l = sizeof($id); $i < $l; $i++) {
+						$obj[$id[$i]]->prev = $i > 0 ? $id[$i - 1] : 0;
+						$obj[$id[$i]]->next = $i < ($l - 1) ? $id[$i + 1] : 0;
+					}
+					$first = WebPage::_sortObjects($obj, $id);
+					for($i = $first; $i; $i = $obj[$i]->next)
+						$this->_objects[$i] = &$obj[$i];
+				}
+			}
+		}
+		return $this->_objects;
+	}
+	
+	function &_getObject($objId, $load = false) {
+		$result = null;
+		settype($objId, 'int');
+		if(isset($this->_objects[$objId])) {
+			$result = &$this->_objects[$objId];
+		} elseif($load && $objId > 0) {
+			$ctx = &Context::getInstance();
+			$db = &$ctx->_getDB();
+			$res = $db->query("SELECT ds_type, obj_type, tpl, code FROM objects WHERE id = $objId LIMIT 1");
+			if($r = mysql_fetch_row($res)) {
+				require_once(LIBDIR."/{$r[0]}/".($r[0] == 'hybrid' ? 'view/' : '')."{$r[1]}._wc");
+				$result = unserialize($r[3]);
+				list($result->tpl, $result->block, $result->crumbs) = array($r[2], null, false);
+				$result->ctx = &$ctx;
+				$this->_objects[$objId] = &$result;
+			}
+			mysql_free_result($res);
+		}
+		return $result;
+	}
+	
+	function _sortObjects(&$obj, &$id) {
+		$first = $id[0];
+		foreach($id as $i)
+			if(@$obj[$i]->master > 0 && isset($obj[$obj[$i]->master])) {
+				$first = $first == $i ? $obj[$i]->next : $first;
+				WebPage::_moveObject($obj, $i, $obj[$i]->master);
+			} elseif(@$obj[$i]->slave > 0 && isset($obj[$obj[$i]->slave])) {
+				$first = $first == $obj[$i]->slave ? $obj[$obj[$i]->slave]->next : $first;
+				WebPage::_moveObject($obj, $obj[$i]->slave, $i);
+			}
+		return $first;
+	}
+	
+	function _moveObject(&$o, $id, $prevId) {
+		if($o[$id]->prev)
+			$o[$o[$id]->prev]->next = $o[$id]->next;
+		$o[$o[$id]->next]->prev = $o[$id]->prev;
+		
+		$o[$id]->next = $o[$prevId]->next;
+		$o[$id]->prev = $prevId;
+		
+		$o[$prevId]->next = $id;
+		if($o[$id]->next)
+			$o[$o[$id]->next]->prev = $id;
+	}
+	
+	function _setUID($uid) {
+		$this->_uid = (string) $uid;
+	}
+}
+?>
