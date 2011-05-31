@@ -77,7 +77,7 @@ class HTMLTextHLIntro extends WCObject {
 				'at' => $ctx->page->isChildOf($ctx->map->id[$pageId]['uri'], false),
 				'header' => $ctx->map->id[$pageId]['title']
 			);
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT id, intro '.
 			'FROM '.$this->DSTable.' '.

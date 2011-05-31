@@ -6,9 +6,9 @@
 function wcfParseDocOrder($order, &$agent) {
 	$result = array(); $i = 0;
 	$order = explode(',', $order);
-	$dsf = &$agent->getFields();
-	$sf = &$agent->_getSystemFields();
-	$fn = &$agent->getFieldNames();
+	$dsf = $agent->getFields();
+	$sf = $agent->_getSystemFields();
+	$fn = $agent->getFieldNames();
 	foreach($order as $rule) {
 		$rule = explode('|', $rule, 2);
 		$sign = substr($rule[0], 0, 1) == '-' ? '-' : '+';

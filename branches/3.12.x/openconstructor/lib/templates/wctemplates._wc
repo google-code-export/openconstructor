@@ -63,7 +63,7 @@ class WCTemplates {
 
 	function update(&$template){
 		assert($template->id > 0 && trim($template->name));
-		$old = &$this->load($template->id);
+		$old = $this->load($template->id);
 		WCS::assert($old, 'edittpl');
 
 		$this->parse($template);
@@ -255,7 +255,7 @@ class WCTemplates {
 			$tpl->id = 0;
 			$result = array(wcfClone($tpl), wcfClone($tpl));
 //			unset($result[1]->sRes);
-			$result[1]->sRes = &$result[0]->sRes->copy();
+			$result[1]->sRes = $result[0]->sRes->copy();
 			$r = mysql_fetch_row($res);
 			$result[0]->sRes->setAuthorities($r[0], $r[1]);
 			$result[1]->sRes->setAuthorities($r[2], $r[3]);
@@ -298,7 +298,7 @@ class WCTemplates {
 
 	function objectSupported($type) {
 		if(!is_array($this->objTypes)) {
-			$map = &$this->get_map();
+			$map = $this->get_map();
 			$this->objTypes = array();
 			foreach($map as $dstype => $v)
 				foreach(current($v) as $t => $j)

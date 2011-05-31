@@ -26,7 +26,7 @@
 	
 	require_once(LIBDIR.'/dsmanager._wc');
 	$dsm = new DSManager();
-	$_ds = &$dsm->load(@$_GET['ds_id']);
+	$_ds = $dsm->load(@$_GET['ds_id']);
 	assert($_ds != null);
 	WCS::request($_ds, 'editds');
 	//userfriendly names

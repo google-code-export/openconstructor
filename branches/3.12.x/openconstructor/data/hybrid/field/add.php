@@ -178,8 +178,8 @@ function prepare() {
 					<td>
 						<select size="1" name="document_from_none" style="display:none"></select>
 						<?php
-							$map = &$_dsm->getTree();
-							$hds = &$_dsm->getAll('hybrid');
+							$map = $_dsm->getTree();
+							$hds = $_dsm->getAll('hybrid');
 							foreach($_dsm->types as $k=>$v){
 								if($k == 'htmltext' || $k == 'phpsource' || $k == 'rating' || !@$map[$k][$v]) continue;
 								echo '<select size="1" name="document_from_'.$k.'" style="display:none">';

@@ -67,7 +67,7 @@ class FileHL extends WCObject {
 	
 	function fetchData(&$smarty) {
 		$result = false;
-		$docs = &$this->getDocuments();
+		$docs = $this->getDocuments();
 		if(is_array($docs)) {
 			if(sizeof($docs)) {
 				$smarty->register_object('obj', $this, array('availableDocsCount'));
@@ -86,8 +86,8 @@ class FileHL extends WCObject {
 		if(is_array($this->documents[$cacheId])) return $this->documents[$cacheId];
 		$result = null;
 		$searchQuery = &WCObject::getSearchQuery($this->keywordKey, 'd');
-		$query = &$this->_getQuery($searchQuery);
-		$db = &$this->ctx->_getDB();
+		$query = $this->_getQuery($searchQuery);
+		$db = $this->ctx->_getDB();
 		$res = $db->query($query);
 		$this->countAvailableDocs();
 		if(mysql_num_rows($res) > 0) {
@@ -134,7 +134,7 @@ class FileHL extends WCObject {
 	
 	function countAvailableDocs() {
 		if(!isset($this->availableDocsCount)) {
-			$db = &$this->ctx->_getDB();
+			$db = $this->ctx->_getDB();
 			$res = $db->query('SELECT FOUND_ROWS()');
 			list($this->availableDocsCount) = mysql_fetch_row($res);
 			mysql_free_result($res);

@@ -52,20 +52,20 @@ class HybridBody extends WCObject {
 	}
 	
 	function getCacheId() {
-		$agent = &$this->getAgent();
+		$agent = $this->getAgent();
 		return is_object($agent) ? $this->obj_id.'|'.intval($this->getDocId()).'|'.$agent->dsId : null;
 	}
 	
 	function onPageLoad() {
-		if(!$this->no404 && !is_object($agent = &$this->getAgent()))
+		if(!$this->no404 && !is_object($agent = $this->getAgent()))
 			$this->ctx->throw404();
 		$this->getDocument();
 	}
 	
 	function changeCrumbs(&$crumbs) {
-		$agent = &$this->getAgent();
+		$agent = $this->getAgent();
 		if(is_object($agent)) {
-			$doc = &$this->getDocument();
+			$doc = $this->getDocument();
 			$crumbs->set($this->docId, (string) @$doc['header']);
 			$agent->_changeDsCrumbs($crumbs, $this->dsIdKey);
 		}
@@ -73,7 +73,7 @@ class HybridBody extends WCObject {
 	
 	function fetchData(&$smarty) {
 		$result = false;
-		$doc = &$this->getDocument();
+		$doc = $this->getDocument();
 		if(sizeof($doc)) {
 			$smarty->assign('header', $this->header);
 			$smarty->assign_by_ref('agent', $this->getAgent());
@@ -88,7 +88,7 @@ class HybridBody extends WCObject {
 		$result = null;
 		$id = $docId === null ? $this->getDocId() : $docId;
 		if($id) {
-			$agent = &$this->getAgent();
+			$agent = $this->getAgent();
 			if(isset($this->document[$id])) {
 				$result = &$this->document[$id];
 			} elseif(is_object($agent)) {
@@ -102,7 +102,7 @@ class HybridBody extends WCObject {
 				else
 					$idf = 'ds.id';
 				$stateCheck = '(d.published'.($ctx->auth->userId > 0 ? " OR d.wcsowner = {$ctx->auth->userId}" : '').')';
-				$db = &$this->ctx->_getDB();
+				$db = $this->ctx->_getDB();
 				$res = $db->query('
 					SELECT '.$props['fields'].', d.published
 					FROM '.$props['tables'].'
@@ -186,7 +186,7 @@ class HybridBody extends WCObject {
 							$ctx->setParam('.'.$this->docId.'.'.$top, $result[$top]);
 					// Фетчим заголовки и ссылки узлов полей типа Tree
 					if(sizeof($nodes)) {
-						$nodes = &$agent->getNodes(&$nodes);
+						$nodes = $agent->getNodes(&$nodes);
 						foreach($treekeys as $ni => $key)
 							if($agent->dsFields[$ni]['isarray'])
 								for($i = 0, $l = sizeof($result[$key]); $i < $l; $i++)
@@ -197,7 +197,7 @@ class HybridBody extends WCObject {
 					// Фетчим заголовки и значения полей типа Enum
 					$enums = array_values(array_unique(explode(',', $enums)));
 					if(sizeof($enums) > 1) {
-						$enums = &$agent->getEnumValues($enums);
+						$enums = $agent->getEnumValues($enums);
 						for($i = 0, $l = sizeof($enumkeys); $i < $l; $i++) {
 							$fn = $agent->dsFields[$enumkeys[$i]]['name'];
 							if(!@$agent->dsFields[$enumkeys[$i]]['isarray'])
@@ -227,12 +227,12 @@ class HybridBody extends WCObject {
 	}
 	
 	function _inlineEditGetDocId() {
-		$doc = &$this->getDocument();
+		$doc = $this->getDocument();
 		return sizeof($doc) ? $doc['_id'] : null;
 	}
 		
 	function _inlineEditGetDsId() {
-		$agent = &$this->getAgent();
+		$agent = $this->getAgent();
 		return $agent->dsId;
 	}
 		

@@ -63,7 +63,7 @@ class DSPublication extends WCDataSource
 			WCS::stopRunAs();
 		} else
 			$gallery = 'NULL';
-		$content = &$this->cleanHTML(&$content);
+		$content = $this->cleanHTML($content);
 		if($intro === null) $intro=$this->create_intro(&$content,$this->introSize);
 		settype($date, 'int');
 		$db = &WCDB::bo();
@@ -229,7 +229,7 @@ class DSPublication extends WCDataSource
 			$gIds = array();
 			WCS::runAs(WCS_ROOT_ID);
 			while($r = mysql_fetch_assoc($res)) {
-				$ds = &$dsm->load((int) $r['gallery']);
+				$ds = $dsm->load((int) $r['gallery']);
 				$ds->remove();
 			}
 			WCS::stopRunAs();
@@ -240,12 +240,12 @@ class DSPublication extends WCDataSource
 	
 	function update($id, $header, $content, $date, $intro = null) {
 		assert($header != '');
-		$rec = &$this->get_record($id);
+		$rec = $this->get_record($id);
 		assert($rec['id'] == $rec['real_id']);
-		$doc = &$this->wrapDocument($rec);
+		$doc = $this->wrapDocument($rec);
 		assert($doc->id > 0);
 		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
-		$content = &$this->cleanHTML(&$content);
+		$content = $this->cleanHTML($content);
 		if($intro === null)
 			$intro=$this->create_intro(&$content, $this->introSize);
 		$ids = $this->getAliases($id, true);

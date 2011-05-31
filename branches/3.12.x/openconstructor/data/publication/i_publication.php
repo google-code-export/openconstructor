@@ -32,11 +32,11 @@ switch(@$_POST['action'])
 		assert(trim(@$_POST['header']) != '');
 		if(@$_POST['hybridid'] > 0) {
 			$ownerDs = &WCDataSource::loadByDoc($_POST['hybridid']);
-			$ownerDoc = &$ownerDs->getDocument($_POST['hybridid']);
+			$ownerDoc = $ownerDs->getDocument($_POST['hybridid']);
 			WCS::assertValue(WCS::decide($ownerDoc, 'editdoc') || WCS::decide($ownerDs, 'editdoc'), $ownerDoc, 'editdoc');
 			WCS::runAs(WCS_ROOT_ID);
 		}
-		$_ds = &$dsm->load(@$_POST['ds_id']); 
+		$_ds = $dsm->load(@$_POST['ds_id']); 
 		$date = getTimestamp(@$_POST['year'], @$_POST['month'], @$_POST['day'], @$_POST['time']);
 		if(@$_POST['autointro'] != 'true') {
 			$intro = @$_POST['intro'];
@@ -66,7 +66,7 @@ switch(@$_POST['action'])
 	case 'edit_publication':
 		assert(@$_POST['id'] > 0);
 		assert(trim(@$_POST['header']) != '');
-		$_ds = &$dsm->load(@$_POST['ds_id']); 
+		$_ds = $dsm->load(@$_POST['ds_id']); 
 		if(@$_POST['main_publication']=='yes')
 			$_ds->set_main($_POST['id']);
 		elseif(@$_POST['main_publication']=='was')
@@ -99,7 +99,7 @@ switch(@$_POST['action'])
 
 	case 'delete_publication':
 		if(isset($_POST['ds_id'])) {
-			$_ds = &$dsm->load($_POST['ds_id']); 
+			$_ds = $dsm->load($_POST['ds_id']); 
 			$_ds->delete(implode(',',@$_POST['ids']));
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -108,7 +108,7 @@ switch(@$_POST['action'])
 	
 	case 'remove_ds':
 		if(isset($_POST['ds_id'])) {
-			$_ds = &$dsm->load($_POST['ds_id']);
+			$_ds = $dsm->load($_POST['ds_id']);
 			$_ds->remove();
 		}
 //		header('Location: http://'.$_host.WCHOME.'/data/');
@@ -119,8 +119,8 @@ switch(@$_POST['action'])
 		assert(@$_POST['ds_id'] > 0 && @$_POST['dest_ds_id'] > 0);
 		$failed = false;
 		if(isset($_POST['ids'])) {
-			assert($_ds = &$dsm->load($_POST['ds_id'])); 
-			assert($dest_ds = &$dsm->load($_POST['dest_ds_id']));
+			assert($_ds = $dsm->load($_POST['ds_id'])); 
+			assert($dest_ds = $dsm->load($_POST['dest_ds_id']));
 			assert($_ds->ds_id != $dest_ds->ds_id);
 			if($dest_ds->attachGallery) {
 				$_dsg = new DSGallery();
@@ -169,7 +169,7 @@ switch(@$_POST['action'])
 	case 'publish_documents':
 		if(isset($_POST['ds_id']))
 		{
-			$_ds = &$dsm->load($_POST['ds_id']); 
+			$_ds = $dsm->load($_POST['ds_id']); 
 			$_ds->publish(implode(',',@$_POST['ids']));
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -179,7 +179,7 @@ switch(@$_POST['action'])
 	case 'unpublish_documents':
 		if(isset($_POST['ds_id']))
 		{
-			$_ds = &$dsm->load($_POST['ds_id']);
+			$_ds = $dsm->load($_POST['ds_id']);
 			$_ds->unpublish(implode(',',@$_POST['ids']));
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -188,7 +188,7 @@ switch(@$_POST['action'])
 //Case blocks for aliases	
 	case 'create_alias':
 		assert(@sizeof($_POST['ids']) > 0);
-		assert($_ds = &$dsm->load(@$_POST['ds_id'])); 
+		assert($_ds = $dsm->load(@$_POST['ds_id'])); 
 		$_ids = $_POST['ids'];
 		foreach($_ids as $id){
 			$_ds->create_alias($id);//$result=

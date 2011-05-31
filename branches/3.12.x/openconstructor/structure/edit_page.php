@@ -27,16 +27,16 @@
 	require_once(LIBDIR.'/site/pagereader._wc');
 
 	$pr = &PageReader::getInstance();
-	$page = &$pr->getPage(@$_GET['node']);
+	$page = $pr->getPage(@$_GET['node']);
 	assert($page != null);
 	$super = $pr->superDecide($page->id, 'managesub');
 	require_once(LIBDIR.'/security/groupfactory._wc');
 	$gf = &GroupFactory::getInstance();
 	require_once(LIBDIR.'/templates/wctemplates._wc');
-	$tpls = & new WCTemplates();
+	$tpls = new WCTemplates();
 	$tpl = null;
 	if($page->tpl)
-		$tpl = &$tpls->load($page->tpl);
+		$tpl = $tpls->load($page->tpl);
 ?>
 <html>
 <head>
@@ -223,7 +223,7 @@ function suggestCacheVary() {
 		<tr>
 			<td><select size="10" name="users[]" multiple>
 <?php
-	$groups = &$gf->getAllGroups();
+	$groups = $gf->getAllGroups();
 	foreach($groups as $id => $title)
 		echo '<option value="'.$id.'"'.(array_search($id, $page->users) !== false ? ' SELECTED' : '').'>'.$title;
 ?></select></td>

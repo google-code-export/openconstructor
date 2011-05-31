@@ -62,7 +62,7 @@
 			<td><?=MOVE_TO?>:</td>
 			<td><select name="dest_id" size="1" onchange="if(this.selectedIndex != -1) {document.getElementById('uri').innerHTML = this.options[this.selectedIndex].uri; f.create.disabled = this.options[this.selectedIndex].current ? true : false;}">
 <?php
-	$tree = &$pr->getTree();
+	$tree = $pr->getTree();
 	$nodeIds = array_keys($tree->node);
 	$map = array();
 	foreach($nodeIds as $id)

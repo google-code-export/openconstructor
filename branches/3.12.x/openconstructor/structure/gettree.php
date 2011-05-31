@@ -29,7 +29,7 @@
 	$tree = $pr->getTree((int) @$_GET['id']);
 	assert($tree != null);
 	require_once(LIBDIR.'/tree/export/ajaxview._wc');
-	$view = & new AjaxView();
+	$view = new AjaxView();
 	header("Content-type: text/xml; charset=utf-8");
 	echo '<?xml version="1.0" encoding="utf-8"?>';
 	echo '<!--?xml-stylesheet type="text/xsl" href="'.WCHOME.'/skins/'.SKIN.'/tree.xsl"?-->';

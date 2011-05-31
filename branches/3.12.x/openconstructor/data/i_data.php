@@ -62,7 +62,7 @@ switch(@$_POST['action'])
 			die();
 		}
 
-		$_ds = &$dsm->load($_POST['ds_id']);
+		$_ds = $dsm->load($_POST['ds_id']);
 		if(is_numeric(@$_POST['dssize']))
 			$_ds->setSize($_POST['dssize']);
 		if(intval(@$_POST['introsize'])>0)
@@ -135,7 +135,7 @@ switch(@$_POST['action'])
 			die();
 		}
 
-		$_ds = &$dsm->load($_POST['ds_id']);
+		$_ds = $dsm->load($_POST['ds_id']);
 		if(is_numeric(@$_POST['dssize']))
 			$_ds->setSize($_POST['dssize']);
 		if(intval(@$_POST['introsize'])>0)
@@ -208,7 +208,7 @@ switch(@$_POST['action'])
 			header('Location: '.$ref);
 			die();
 		}
-		$_ds = &$dsm->load($_POST['ds_id']);
+		$_ds = $dsm->load($_POST['ds_id']);
 		if(is_numeric(@$_POST['dssize']))
 			$_ds->setSize($_POST['dssize']);
 		if(@$_POST['stripHTML']=='true')
@@ -269,7 +269,7 @@ switch(@$_POST['action'])
 			header('Location: '.$ref);
 			die();
 		}
-		$_ds = &$dsm->load($_POST['ds_id']);
+		$_ds = $dsm->load($_POST['ds_id']);
 		if(is_numeric(@$_POST['dssize']))
 			$_ds->setSize($_POST['dssize']);
 		$_ds->name=$_POST['ds_name'];
@@ -313,7 +313,7 @@ switch(@$_POST['action'])
 			header('Location: '.$ref);
 			die();
 		}
-		$_ds = &$dsm->load($_POST['ds_id']);
+		$_ds = $dsm->load($_POST['ds_id']);
 		if(is_numeric(@$_POST['dssize']))
 			$_ds->setSize($_POST['dssize']);
 		$_ds->name=$_POST['ds_name'];
@@ -367,7 +367,7 @@ switch(@$_POST['action'])
 			header('Location: '.$ref);
 			die();
 		}
-		$_ds = &$dsm->load($_POST['ds_id']);
+		$_ds = $dsm->load($_POST['ds_id']);
 		if(is_numeric(@$_POST['dssize']))
 			$_ds->setSize($_POST['dssize']);
 		if(intval(@$_POST['introsize'])>0)
@@ -438,7 +438,7 @@ switch(@$_POST['action'])
 			header('Location: '.$ref);
 			die();
 		}
-		$_ds = &$dsm->load($_POST['ds_id']);
+		$_ds = $dsm->load($_POST['ds_id']);
 		if(is_numeric(@$_POST['dssize']))
 			$_ds->setSize($_POST['dssize']);
 		$_ds->name=$_POST['ds_name'];
@@ -503,7 +503,7 @@ switch(@$_POST['action'])
 			header('Location: '.$ref);
 			die();
 		}
-		$_ds = &$dsm->load($_POST['ds_id']);
+		$_ds = $dsm->load($_POST['ds_id']);
 		if(is_numeric(@$_POST['dssize']))
 			$_ds->setSize($_POST['dssize']);
 		if(@$_POST['stripHTML']=='true')
@@ -567,7 +567,7 @@ switch(@$_POST['action'])
 			header('Location: '.$ref);
 			die();
 		}
-		$_ds = &$dsm->load($_POST['ds_id']);
+		$_ds = $dsm->load($_POST['ds_id']);
 		if(is_numeric(@$_POST['dssize']))
 			$_ds->setSize($_POST['dssize']);
 		if(intval(@$_POST['introsize'])>0)
@@ -633,7 +633,7 @@ switch(@$_POST['action'])
 			header('Location: '.$ref);
 			die();
 		}
-		$_ds = &$dsm->load($_POST['ds_id']);
+		$_ds = $dsm->load($_POST['ds_id']);
 		$_ds->name=$_POST['ds_name'];
 		$_ds->description=@$_POST['description'];
 		$_ds->editTpl = (int) @$_POST['editTpl'];
@@ -658,7 +658,7 @@ switch(@$_POST['action'])
 
 	case 'create_dsrating':
 		require_once(LIBDIR.'/rating/dsrating._wc');
-		$_ds = & new DSRating();
+		$_ds = new DSRating();
 		$fail = $message = array();
 		if(!@$_POST['ds_name'])
 			$fail[] = 'ds_name';
@@ -676,7 +676,7 @@ switch(@$_POST['action'])
 	case 'edit_dsrating':
 		assert(@$_POST['ds_id'] > 0);
 		require_once(LIBDIR.'/rating/dsrating._wc');
-		$_ds = & new DSRating();
+		$_ds = new DSRating();
 
 		$fail = $message = array();
 		if(!@$_POST['ds_name'])
@@ -685,7 +685,7 @@ switch(@$_POST['action'])
 			header('Location: '.$ref);
 			die();
 		}
-		$_ds = &$dsm->load($_POST['ds_id']);
+		$_ds = $dsm->load($_POST['ds_id']);
 		$_ds->name = $_POST['ds_name'];
 		$_ds->description = (string) @$_POST['description'];
 

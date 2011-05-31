@@ -56,7 +56,7 @@ class SearchDSs extends WCObject {
 	
 	function fetchData(&$smarty) {
 		$result = false;
-		$searchResults = &$this->performSearch();
+		$searchResults = $this->performSearch();
 		$ctx = &Context::getInstance();
 		$keyword = $ctx->getParam($this->keywordKey);
 		$smarty->assign('keyword', escapeTags($keyword));
@@ -81,7 +81,7 @@ class SearchDSs extends WCObject {
 		$match = sprintf('MATCH(i.header, i.content) AGAINST("%s")', addslashes($stemmedKeyword));
 		$dsId = $this->ds_id ? $this->ds_id : 0;
 		$start = _gettime();
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			"SELECT SQL_CALC_FOUND_ROWS i.document_id as id, i.ds_id, i.ds_type as type, i.title, i.annotation, sum($match) as rank, IF(i.ds_type = 'file', f.filename, NULL) as file".
 			' FROM `index` i LEFT JOIN dsfile f ON(i.document_id = f.id AND i.ds_id = f.ds_id)'.
@@ -115,7 +115,7 @@ class SearchDSs extends WCObject {
 	}
 	
 	function countAvailableDocs() {
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query('SELECT FOUND_ROWS()');
 		list($this->availableDocsCount) = mysql_fetch_row($res);
 		mysql_free_result($res);

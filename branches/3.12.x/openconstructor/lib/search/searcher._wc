@@ -90,7 +90,7 @@ class Searcher {
 	 * 		stemmed text without any tag
 	 */
 	function getStemmedText($text) {
-		$text = &Tokenizer::toLowerCase($text);
+		$text = Tokenizer::toLowerCase($text);
 		$result = "";
 		
 		$text = strip_tags($text);

@@ -58,12 +58,12 @@ class WCDataSource {
 		}
 		$oAuths = $this->sRes->getOwnerAuths();
 		$gAuths = $this->sRes->getGroupAuths();
-		$doc = &$this->getEmptyDocument();
+		$doc = $this->getEmptyDocument();
 		$doc->loadAuths(0, 0);
 		$doc->sRes->setAuthorities(WCS_DOC_MASK);
 		$dAuths = $doc->sRes->getOwnerAuths();
 		$indexed = $this->isIndexable ? 1 : 0;
-		$clone = &wcfClone($this);
+		$clone = wcfClone($this);
 		unset($clone->docs, $clone->sRes, $clone->docAuths, $clone->isIndexable);
 		$db = &WCDB::bo();
 		$db->query(
@@ -100,7 +100,7 @@ class WCDataSource {
 		if(!@$this->ds_id) return NULL;
 		WCS::assert($this, 'editds');
 		$indexed = $this->isIndexable ? 1 : 0;
-		$ds = &wcfClone($this);
+		$ds = wcfClone($this);
 		unset($ds->docs, $ds->sRes, $ds->docAuths, $ds->isIndexable, $ds->ftp, $ds->smartycache);
 		$db = &WCDB::bo();
 		$db->query(
@@ -128,13 +128,13 @@ class WCDataSource {
 	}
 
 	function &getDocument($docId) {
-		$record = &$this->get_record($docId);
-		$result = &$this->wrapDocument($record);
+		$record = $this->get_record($docId);
+		$result = $this->wrapDocument($record);
 		return $result;
 	}
 
 	function &wrapDocument(&$record) {
-		$result = &$this->getEmptyDocument();
+		$result = $this->getEmptyDocument();
 		$result->readValues($record);
 		$result->loadAuths((int) @$record['wcsowner'], $this->docAuths);
 		return $result;
@@ -293,9 +293,9 @@ class WCDataSource {
 		return $this->size <= $this->docs;
 	}
 
-	function &cleanHTML($html) {
+	function &cleanHTML(&$html) {
 		if(@$this->stripHTML) {
-			$result = &wcfStripTags($html, $this->allowedTags);
+			$result = wcfStripTags($html, $this->allowedTags);
 			if(@$this->encodeemail)
 				$result = preg_replace_callback('/(mailto:)?([a-zA-Z0-9_\\-\\.]+)@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.)|(([a-zA-Z0-9\\-]+\\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\\]?)/us', create_function('$m', 'return encodestr($m[0]);'), $result);
 		} else
@@ -372,7 +372,7 @@ class WCDataSource {
 		$this->encodeemail = $from->encodeemail;
 		$this->setSize($from->size);
 		$this->setIndexable($from->isIndexable);
-		$props = &$this->getCopiableProps();
+		$props = $this->getCopiableProps();
 		for($i = 0, $l = sizeof($props); $i < $l; $i++)
 			if($from->ds_type == 'file' && $props[$i] == 'filetypes')
 				$this->setTypes($from->filetypes);
@@ -419,7 +419,7 @@ class WCDataSource {
 		if($ids && $header)
 			$indexer->add($this->ds_id, $this->ds_type, $ids, $header, $content, $intro);
 		else {
-			$docs = &$this->getIndexableDocs($ids);
+			$docs = $this->getIndexableDocs($ids);
 			for($i = 0, $l = sizeof($docs); $i < $l; $i++)
 				$indexer->add($this->ds_id, $this->ds_type, $docs[$i]['id'], $docs[$i]['header'], $docs[$i]['content'], $docs[$i]['intro']);
 		}
@@ -444,7 +444,7 @@ class WCDataSource {
 				$indexer->update($this->ds_id, $id, $header, false, $content, $intro);
 		}
 		else {
-			$doc = &$this->getIndexableDocs($id);
+			$doc = $this->getIndexableDocs($id);
 			if(sizeof($doc) == 1)
 				$indexer->update($this->ds_id, $doc[0]['id'], $doc[0]['header'], false, $doc[0]['content'], $doc[0]['intro']);
 		}

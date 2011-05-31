@@ -76,7 +76,7 @@ class DSPHPSource extends WCDataSource {
 
 	function update($id,$header,$source) {
 		assert(trim($header) != '');
-		$doc = &$this->getDocument($id);
+		$doc = $this->getDocument($id);
 		assert($doc->id > 0);
 		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
 

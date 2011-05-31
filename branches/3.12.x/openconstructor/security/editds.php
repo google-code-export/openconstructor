@@ -91,7 +91,7 @@ function dsb(){
 			<td><?=H_OWNER_AUTHS?></td>
 		</tr>
 		<?php
-		$doc = &$ds->wrapDocument($rec = array());
+		$doc = $ds->wrapDocument($rec = array());
 		$sRes = &$doc->sRes;
 		foreach($sRes->actions as $act):
 			$c = 'DOC_'.strtoupper(strtr($act, '.', '_'));

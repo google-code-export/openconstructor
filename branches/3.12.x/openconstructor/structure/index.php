@@ -29,19 +29,19 @@
 	
 	$siteroot = @$_COOKIE['siteroot'] ? $_COOKIE['siteroot'] : null;
 	$pr = &PageReader::getInstance();
-	$tree = &$pr->getTree($siteroot);
+	$tree = $pr->getTree($siteroot);
 	if($tree == null) {
 		if($siteroot != 1) {
 			$siteroot = 1;
-			$tree = &$pr->getTree($siteroot);
+			$tree = $pr->getTree($siteroot);
 		}
 		assert($tree != null);
 	}
 	$curnode = isset($_GET['node']) ? $_GET['node'] : @$_COOKIE['curnode'];
-	$page = &$pr->getPage($curnode);
+	$page = $pr->getPage($curnode);
 	if($page == null) {
 		$curnode = $tree->root->id;
-		$page = &$pr->getPage($curnode);
+		$page = $pr->getPage($curnode);
 	}
 	$router = $page->router ? $page->id : $pr->getPageRouter($page->id);
 	$super = $pr->superDecide($page->id, 'managesub');
@@ -105,7 +105,7 @@
 		menu('structure');
 		
 		require_once(LIBDIR.'/templates/wctemplates._wc');
-		$wct = & new WCTemplates();
+		$wct = new WCTemplates();
 		$tpls = $wct->get_all_tpls('page');
 		echo '<posttoolbar><![CDATA[';
 		echo PR_PAGE_TPL.': <select id="tplId" align="absmiddle" '.($super || WCS::decide($page, 'editpage') ? '' : 'disabled').'><option value="0" style="background:#eee;color: gray;">'.H_NO_TPL_SELECTED;
@@ -113,7 +113,7 @@
 			echo '<OPTION VALUE="'.$id.'"'.($id == $page->tpl?' SELECTED':'').'>'.htmlspecialchars($name, ENT_COMPAT, 'UTF-8');
 		echo '</select>&nbsp;';
 		if($page->tpl) {
-			$tpl = &$wct->load($page->tpl);
+			$tpl = $wct->load($page->tpl);
 			echo '<a href="javascript:editTpl('.$page->tpl.');"><img src="'.WCHOME.'/i/'.SKIN.'/tool/edittpl.gif" style="margin-right:20px; border: none;" align="absmiddle"></a>';
 		} else {
 			$tpl = null;
@@ -126,7 +126,7 @@
 //		require_once('common._wc');
 	//	$opened=array_flip(explode(',',get_path_id($_site->id_hash[$curnode])));
 		//unset($opened['-1']);
-		$view = & new TreeSiteView();
+		$view = new TreeSiteView();
 		$view->setSelected($page->id);
 		echo '<navigation>';
 			$tree->export($view);

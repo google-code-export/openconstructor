@@ -59,7 +59,7 @@ class GBMsgHL extends WCObject {
 		$cacheId = null;
 		if(!$this->ids) {
 			$page = (int) @$_GET[$this->pid];
-			$displayed = &$this->getDisplayedDocs();
+			$displayed = $this->getDisplayedDocs();
 			if(--$page < 0) $page = 0;
 			$cacheId = $this->obj_id.'|p'.$page.'-c'.implode(',', array_keys($displayed));
 		}
@@ -73,7 +73,7 @@ class GBMsgHL extends WCObject {
 		
 		$where = $this->ids ? 'd.id IN ('.$this->ids.')' : 'd.ds_id IN ('.$this->ds_id.')';
 		$search = &WCObject::getSearchQuery($this->keywordKey, 'd');
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT d.id, d.ds_id, d.real_id as rid, d.subject, d.published, d.author, d.email, '.($this->fetchContent?'d.html, ':'').'d.date'.
 			' FROM '.$this->DSTable.' d'.$search['from'].
@@ -86,7 +86,7 @@ class GBMsgHL extends WCObject {
 		} else {
 			if($n > 0) {
 				$fet = array();
-				$displayed = &$this->getDisplayedDocs();
+				$displayed = $this->getDisplayedDocs();
 				$href = $this->ctx->getPatternFor($this->srvuri, $this->messageid);
 				while($row = mysql_fetch_assoc($res)) {
 					if(isset($fet[$row['rid']])) continue;

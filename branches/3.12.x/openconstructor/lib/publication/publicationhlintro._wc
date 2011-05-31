@@ -62,7 +62,7 @@ class PublicationHLIntro extends WCObject {
 		if(!$this->ids) {
 			$page = (int)@$_GET[$this->pid];
 			if(--$page < 0) $page = 0;
-			$displayed = &$this->getDisplayedDocs();
+			$displayed = $this->getDisplayedDocs();
 			$cacheId = $this->obj_id.'|p'.$page.'-c'.implode(':', array_keys($displayed));
 		}
 		return $cacheId;
@@ -75,7 +75,7 @@ class PublicationHLIntro extends WCObject {
 		
 		$where = $this->ids ? 't.id IN ('.$this->ids.')' : 't.ds_id IN ('.$this->ds_id.')';
 		$search = &WCObject::getSearchQuery($this->keywordKey, 't');
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT t.id, t.real_id as rid, t.ds_id, t.gallery, t.header, t.intro, t.img_intro as image, t.date'.($this->glruri ? ', ds.docs' : '').
 			' FROM '.$this->DSTable.' t'.($this->glruri ? ' INNER JOIN datasources ds ON (t.gallery=ds.ds_id)' : '').$search['from'].
@@ -85,7 +85,7 @@ class PublicationHLIntro extends WCObject {
 		);
 		if(mysql_num_rows($res) > 0) {
 			$fet = array();
-			$displayed = &$this->getDisplayedDocs();
+			$displayed = $this->getDisplayedDocs();
 			$ctx = &Context::getInstance();
 			settype($this->cutIntro, 'int');
 			$href = substr($this->srvuri, -1) == '?'

@@ -58,7 +58,7 @@ switch(@$_POST['action'])
 		assert(@$_POST['id'] > 0);
 		assert(trim(@$_POST['tpl_name']) != '');
 		$tpls = new WCTemplates();
-		$tpl = &$tpls->load($_POST['id']);
+		$tpl = $tpls->load($_POST['id']);
 		$tpl->name = $_POST['tpl_name'];
 		$tpl->tpl = @$_POST['html'];
 		$tpl->setMockup(@$_POST['mockup']);
@@ -87,7 +87,7 @@ switch(@$_POST['action'])
 		die();
 		if(isset($_POST['ds_id']))
 		{
-			$_ds = &$dsm->load($_POST['ds_id']);
+			$_ds = $dsm->load($_POST['ds_id']);
 			$_ds->remove();
 		}
 //		header('Location: http://'.$_host.WCHOME.'/data/');

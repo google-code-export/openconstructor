@@ -100,9 +100,9 @@ class RatingRateLogic extends WCObject {
 		assert($this->ctx->auth->userId > 0);
 		require_once(LIBDIR.'/dsmanager._wc');
 		$dsm = new DSManager();
-		if($ds = &$dsm->load($this->ds_id)) {
+		if($ds = $dsm->load($this->ds_id)) {
 			loadClass('wcs', '/security/wcs._wc');
-			$db = &$this->ctx->_getDB();
+			$db = $this->ctx->_getDB();
 			$res = $db->query("SELECT id FROM dsrating WHERE ds_id = {$ds->ds_id} AND hdoc = ".intval($docId));
 			if(mysql_num_rows($res) == 0) {
 				WCS::runAs(WCS_ROOT_ID);

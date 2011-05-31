@@ -48,7 +48,7 @@ class DocumentField extends HybridField {
 				return false;
 			}
 		} else {
-			$ds = &$this->getDS();
+			$ds = $this->getDS();
 			$ds->increaseLock();
 		}
 		$this->update();
@@ -64,7 +64,7 @@ class DocumentField extends HybridField {
 	}
 	
 	function remove() {
-		$ds = &$this->getDS();
+		$ds = $this->getDS();
 		if($this->isOwn) {
 			WCS::runAs(WCS_ROOT_ID);
 			if($this->type != 'hybrid')
@@ -107,7 +107,7 @@ class DocumentField extends HybridField {
 	
 	function onRemoveDocument(&$doc) {
 		if($this->isOwn && $doc->fields[$this->key]){
-			$ds = &$this->getDS();
+			$ds = $this->getDS();
 			WCS::runAs(WCS_ROOT_ID);
 			$ds->delete(&$doc->fields[$this->key]);
 			WCS::stopRunAs();

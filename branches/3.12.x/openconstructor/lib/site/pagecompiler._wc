@@ -40,21 +40,21 @@ class PageCompiler {
 		switch($location['type']) {
 			case PAGE_LOCATION_EMPTY:
 				if(!$page->router) {
-					$result = &$this->compilePlainPage($page, $location['query']);
+					$result = $this->compilePlainPage($page, $location['query']);
 					$result[$page->uri.'index._wc'] = null;
 				} else
-					$result = &$this->compileRoutedPage($page, $page->uri, $page->name);
+					$result = $this->compileRoutedPage($page, $page->uri, $page->name);
 			break;
 			case PAGE_LOCATION_EXT:
-				$result = &$this->compileRedirectPage($page, $location['page']);
+				$result = $this->compileRedirectPage($page, $location['page']);
 				$result[$page->uri.'index._wc'] = null;
 			break;
 			case PAGE_LOCATION_INT:
-				$result = &$this->compileLinkedPage($page, $location['page'], $location['query']);
+				$result = $this->compileLinkedPage($page, $location['page'], $location['query']);
 				$result[$page->uri.'index._wc'] = null;
 			break;
 			case PAGE_LOCATION_ROUTE:
-				$result = &$this->compileRoutedPage($page, $location['page'], $location['name'], $location['param'], $location['query']);
+				$result = $this->compileRoutedPage($page, $location['page'], $location['name'], $location['param'], $location['query']);
 			break;
 		}
 		return $result;
@@ -62,7 +62,7 @@ class PageCompiler {
 
 	function generateSitemap() {
 		require_once(LIBDIR.'/tree/export/sitemapview._wc');
-		$tree = &$this->_getSiteTree(true);
+		$tree = $this->_getSiteTree(true);
 		return "<?php\n".
 			PageCompiler::_getWcSign('').
 			"\n".
@@ -118,7 +118,7 @@ class PageCompiler {
 	function &compileRoutedPage(&$page, $route, $name, $pathInfo = '/', $query = '') {
 		$result = null;
 		if($page->uri == $route || $page->router) {
-			$result = &$this->compilePlainPage($page, $query);
+			$result = $this->compilePlainPage($page, $query);
 			$result[$page->uri.'index._wc'] = $result[$page->uri.'index.php'];
 		} else
 			$result = array($page->uri.'index._wc' => null);
@@ -140,7 +140,7 @@ class PageCompiler {
 		$routerContent .=
 			"\t\$router = new Router('$route', '$name', \$info);\n";
 		if($route != $page->uri) {
-			$tree = &$this->_getSiteTree();
+			$tree = $this->_getSiteTree();
 			$router = $tree->getPageByUri($route);
 			$routerContent .= sprintf(
 				"\t@include(\$_SERVER['DOCUMENT_ROOT'].'$route'.(\$router->target ? \$router->target.'/index.php' : 'index.%s'));\n"
@@ -210,7 +210,7 @@ class PageCompiler {
 				$i."	\$ctx->router = &\$router;\n";
 		}
 		$phpcallback = array();
-		$objects = &$page->getObjects();
+		$objects = $page->getObjects();
 		foreach($objects as $id => $obj)
 			if($obj['observer'] && $obj['type'] == 'phpcallback' && $obj['block'] != '')
 				$phpcallback[] = sprintf("\$ctx->_attachEventListener('%s', %s);", $obj['block'], PageCompiler::_getCreateObserverStatement($id));
@@ -227,7 +227,7 @@ class PageCompiler {
 			"\n".
 			$i."require_once(ROOT.FILES.'/map._wc');\n".
 			$i."\$ctx->map = &\$map;\n".
-			$i.sprintf("\$page = &\$map->_newPage($page->id, '%s');\n", PageCompiler::_escapeSingleQuotes($this->_getPageTitle($page))).
+			$i.sprintf("\$page = \$map->_newPage($page->id, '%s');\n", PageCompiler::_escapeSingleQuotes($this->_getPageTitle($page))).
 			$i."\$ctx->page = &\$page;\n".
 			$i."\$ctx->_fireEvent('onLoadSitemap');\n".
 			$i."_register_phase('Loading sitemap');\n";
@@ -244,7 +244,7 @@ class PageCompiler {
 			$i."	Authentication::importFromSession();\n".
 			$i."	\$page->authenticationPage = _getAuthenticationPage();\n".
 			$i."	\$page->sRes = new WCSResource(&\$page->uri, WCS_ROOT_ID, 0);\n";
-		$tree = &$this->_getSiteTree();
+		$tree = $this->_getSiteTree();
 		$node = &$tree->node[$page->id];
 		$authCheck = array();
 		while(($node = &$node->parent) != null)
@@ -328,7 +328,7 @@ class PageCompiler {
 		$contentType = $this->reader->getPageContentType($page);
 		$links = $this->reader->getPageLinks($page->id);
 		if(sizeof($links)) {
-			$tree = &$this->_getSiteTree();
+			$tree = $this->_getSiteTree();
 			foreach($links as $id)
 				$linkUris[] = $tree->node[$id]->getFullKey('/');
 			$result .= sprintf($i."\$page->links = array(%s); // %s\n", implode(', ', $links), implode(', ', $linkUris));
@@ -353,7 +353,7 @@ class PageCompiler {
 			$i.sprintf("\$page->_caching = \$smarty->caching && %s;\n", $page->caching ? 'true' : 'false').
 			"\n";
 		$includes = array();
-		$objects = &$page->getObjects();
+		$objects = $page->getObjects();
 		foreach($objects as $id => $obj)
 			if($obj['block'] != '' && ($filename = PageCompiler::_getClassFile($obj['type'])) != null)
 				$includes[$filename] = "require_once(LIBDIR.'$filename');";
@@ -362,7 +362,7 @@ class PageCompiler {
 				$i."require_once(LIBDIR.'/wcobject._wc');\n".
 				$i.implode("\n$i", $includes)."\n".
 				"\n".
-				$i."\$objects = &\$page->_getObjects();\n".
+				$i."\$objects = \$page->_getObjects();\n".
 				$i."\$ctx->_fireEventArgs('onLoadObjects', \$args = array('objects' => &\$objects));	unset(\$args, \$objects);\n".
 				$i."\$ctx->_registerObjects(\$page->_getObjects());\n".
 				$i."_register_phase('Loading objects');\n".
@@ -492,14 +492,14 @@ class PageCompiler {
 			$result['type'] = PAGE_LOCATION_EXT;
 			$result['page'] = $page->location;
 			if($page->linkTo > 0) {
-				$tree = &$this->_getSiteTree();
+				$tree = $this->_getSiteTree();
 				$result['type'] = PAGE_LOCATION_INT;
 				$result['page'] = $tree->node[$page->linkTo]->getFullKey('/').'index.php';
 			} elseif($page->location{0} == '/') {
 				$url = parse_url("http://{$_SERVER['HTTP_HOST']}{$page->location}");
 				if(substr($url['path'], -10) == '/index.php' && empty($url['fragment'])) {
 					$uri = substr($url['path'], 0, -9);
-					$tree = &$this->_getSiteTree();
+					$tree = $this->_getSiteTree();
 					if($tree->uriExists($uri)) {
 						if($uri == $page->uri) {
 							$result['type'] = PAGE_LOCATION_EMPTY;
@@ -512,7 +512,7 @@ class PageCompiler {
 					}
 				} elseif(($p = utf8_strpos($url['path'], '/index.php/')) !== false && empty($url['fragment'])) {
 					$uri = utf8_substr($url['path'], 0, $p + 1);
-					$tree = &$this->_getSiteTree();
+					$tree = $this->_getSiteTree();
 					if($tree->uriExists($uri)) {
 						$result['type'] = PAGE_LOCATION_ROUTE;
 						$result['page'] = $uri;
@@ -530,7 +530,7 @@ class PageCompiler {
 
 	function &_getSiteTree($reload = false) {
 		if($reload || !is_object($this->tree))
-			$this->tree = &$this->reader->getTree();
+			$this->tree = $this->reader->getTree();
 		return $this->tree;
 	}
 

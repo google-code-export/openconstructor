@@ -95,7 +95,7 @@ function dsb(){
 			<td><select name="page_id" size="1">
 			<OPTION value="0">.
 <?php
-	$pages = &$pr->getAllPages();
+	$pages = $pr->getAllPages();
 	foreach($pages as $id => $uri)
 		echo '<OPTION value="'.$id.'"'.($id == $obj->page_id ? ' SELECTED' : '').'>'.$uri;
 ?>

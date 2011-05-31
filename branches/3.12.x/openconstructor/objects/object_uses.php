@@ -135,9 +135,9 @@
 	<fieldset style="padding:10"><legend><?=H_OBJECT_USES?></legend>
 	<ul id="pages">
 	<?php
-		$pages = &$pr->getAllPages();
+		$pages = $pr->getAllPages();
 		settype($obj->exclude, 'array');
-		$tree = &$pr->getTree();
+		$tree = $pr->getTree();
 		$ids = array_keys($pages);
 		for($i = 0, $_l = sizeof($ids); $i < $_l; $i++) {
 			$node = &$tree->node[$ids[$i]];

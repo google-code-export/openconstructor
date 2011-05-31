@@ -25,8 +25,8 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/templates._wc');
 	assert(isset($_GET['type']));
 	require_once(LIBDIR.'/templates/wctemplates._wc');
-	$tpls = & new WCTemplates();
-	$map = &$tpls->get_map();
+	$tpls = new WCTemplates();
+	$map = $tpls->get_map();
 	$types = array();
 	foreach($map as $k => $v)
 		$types = array_merge($types, current($v));

@@ -45,7 +45,7 @@ class HybridPager extends WCObject {
 	
 	function getCacheId() {
 		$cacheId = null;
-		if($docList = &$this->ctx->getObject($this->slave)) {
+		if($docList = $this->ctx->getObject($this->slave)) {
 			$cacheId = $docList->getCacheId();
 			$cacheId = $this->obj_id.substr($cacheId, strpos($cacheId, '|'));
 		}
@@ -54,7 +54,7 @@ class HybridPager extends WCObject {
 	
 	function onPageLoad() {
 		$ctx = &Context::getInstance();
-		$docList = &$ctx->getObject($this->slave);
+		$docList = $ctx->getObject($this->slave);
 		if($docList && !isset($docList->originalOffset)) {
 			$docList->originalOffset = $docList->listOffset;
 			$pageNum = (int) $ctx->getParam($this->pageNumberKey); $pageNum += (int) !$pageNum;
@@ -68,7 +68,7 @@ class HybridPager extends WCObject {
 	function fetchData(&$smarty) {
 		$result = false;
 		$ctx = &Context::getInstance();
-		$docList = &$ctx->getObject($this->slave);
+		$docList = $ctx->getObject($this->slave);
 		if($docList) {
 			$docList->getDocuments();
 			$listSize = $docList->listSize;
@@ -108,8 +108,8 @@ class HybridPager extends WCObject {
 				$pages[$i] = $i != $pageNum ? $href.$i : null;
 			
 			$order = array();
-			$agent = &$docList->getAgent();
-			$dsf = &$agent->getFields();
+			$agent = $docList->getAgent();
+			$dsf = $agent->getFields();
 			foreach($docList->docOrder as $v)
 				if(is_numeric($v['id'])){
 					if(isset($dsf[abs($v['id'])]))

@@ -58,7 +58,7 @@ class FieldUtils {
 	function &loadDS($type, $ds_id) {
 		require_once(LIBDIR.'/dsmanager._wc');
 		$dsm = new DSManager();
-		$ds = &$dsm->load($ds_id);
+		$ds = $dsm->load($ds_id);
 		return $ds;
 	}
 

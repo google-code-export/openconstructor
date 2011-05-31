@@ -59,7 +59,7 @@ class DSArticle extends WCDataSource
 		if(count($header)<=0&&count($header)!=count($intro)) return false;
 		if($this->isFull()) return false;
 		for($i=0;$i<count($content);$i++)
-			$content[$i] = &$this->cleanHTML(&$content[$i]);
+			$content[$i] = $this->cleanHTML($content[$i]);
 		settype($date, 'int');
 		$db = &WCDB::bo();
 		$db->query(
@@ -89,14 +89,14 @@ class DSArticle extends WCDataSource
 
 	function update($id, $header, $content, $date, $related, $intro) {
 		assert($header != '');
-		$rec = &$this->get_record($id);
+		$rec = $this->get_record($id);
 		assert($rec['id'] == $rec['real_id']);
-		$doc = &$this->wrapDocument($rec);
+		$doc = $this->wrapDocument($rec);
 		assert($doc->id > 0);
 		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
 		if(count($header)<=0&&count($header)!=count($intro)) return false;
 		for($i=0;$i<count($content);$i++)
-			$content[$i] = &$this->cleanHTML(&$content[$i]);
+			$content[$i] = $this->cleanHTML($content[$i]);
 		$ids = $this->getAliases($id, true);
 		settype($date, 'int');
 		$db = &WCDB::bo();

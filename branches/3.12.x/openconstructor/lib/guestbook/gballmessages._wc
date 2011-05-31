@@ -61,7 +61,7 @@ class GBAllMessages extends WCObject {
 		if(!$this->defaultGB) return $result;
 		$ds_id = $this->getDsId();
 		$multi = strpos($ds_id, ',');
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT d.id, d.real_id as rid,d.subject,d.author,d.email,d.html,d.date'.($multi ? '' : ', ds.name').
 			' FROM '.$this->DSTable.' d'.($multi ? '' : ', datasources ds').

@@ -78,7 +78,7 @@ class FileField extends HybridField {
 			list($value['name'], $value['type'], $value['size'], $isImg) = FileField::getFileDetails($new->fields[$this->key]);
 			if($this->isValid($value, false) && $isImg && $this->maxX > 0 && $this->maxY > 0) {
 				$tmp = wcfTmpFilename();
-				$ic = &$this->_getImgCopier();
+				$ic = $this->_getImgCopier();
 				if(!$ic->setSource($value['name']))
 					return;
 				$ic->copy($tmp);
@@ -88,7 +88,7 @@ class FileField extends HybridField {
 			if($this->isValid($value)) {
 				$this->onRemoveDocument($old);
 				$filename = FILES.$this->folder.'/'.$new->id.'.'.$value['type'];
-				$ftp = &$this->getFtp();
+				$ftp = $this->getFtp();
 				$ftp->open();
 				$ftp->copy_local_file($value['name'], $filename);
 				$ftp->close();
@@ -171,7 +171,7 @@ class FileField extends HybridField {
 	function createFolder() {
 		$folder = $this->folder;
 		if(!empty($folder) && $this->ds_id && !@file_exists(ROOT.FILES.$folder)) {
-			$ftp = &$this->getFtp();
+			$ftp = $this->getFtp();
 			$ftp->open();
 			$ftp->md(FILES.$folder);
 			$ftp->close();
@@ -185,7 +185,7 @@ class FileField extends HybridField {
 	function removeFolder() {
 		$folder = $this->folder;
 		if(!empty($folder) && @file_exists(ROOT.FILES.$folder)) {
-			$ftp = &$this->getFtp();
+			$ftp = $this->getFtp();
 			$ftp->open();
 			$ftp->rdEntire(FILES.$folder);
 			$ftp->close();

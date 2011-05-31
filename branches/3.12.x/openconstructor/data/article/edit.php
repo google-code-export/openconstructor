@@ -28,13 +28,13 @@
 	require_once($_SERVER['DOCUMENT_ROOT'].WCHOME.'/include/toolbar._wc');
 	require_once(LIBDIR.'/dsmanager._wc');
 	$dsm = new DSManager();
-	$_ds = &$dsm->load($_GET['ds_id']);
+	$_ds = $dsm->load($_GET['ds_id']);
 	if($_GET['id']!='new') {
 		$_doc = $_ds->get_record($_GET['id']);
 		assert($_doc !== null);
 		if($_doc['id']!= $_doc['real_id']) {
-			$_ds = &$dsm->load($_doc['realDsId']);
-			$_doc = &$_ds->get_record($_doc['real_id']);
+			$_ds = $dsm->load($_doc['realDsId']);
+			$_doc = $_ds->get_record($_doc['real_id']);
 		}
 	} else {
 		$_doc['date'] = time();

@@ -48,8 +48,8 @@ class DSEvent extends WCDataSource {
 		WCS::assert($this, 'createdoc');
 		if(empty($header)) return false;
 		if($this->isFull()) return false;
-		$content = &$this->cleanHTML(&$content);
-		$place = &$this->cleanHTML(&$place);
+		$content = $this->cleanHTML($content);
+		$place = $this->cleanHTML($place);
 		if($intro === null) $intro=$this->create_intro(&$content,$this->introSize);
 		settype($date, 'int');
 		settype($enddate, 'int');
@@ -207,13 +207,13 @@ class DSEvent extends WCDataSource {
 	function update($id,$header,$content,$date,$enddate,$place,$intro=NULL)
 	{
 		if(empty($header)) return false;
-		$rec = &$this->get_record($id);
+		$rec = $this->get_record($id);
 		assert($rec['id'] == $rec['real_id']);
-		$doc = &$this->wrapDocument($rec);
+		$doc = $this->wrapDocument($rec);
 		assert($doc->id > 0);
 		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
-		$content = &$this->cleanHTML(&$content);
-		$place = &$this->cleanHTML(&$place);
+		$content = $this->cleanHTML($content);
+		$place = $this->cleanHTML($place);
 		if($intro === null) $intro=$this->create_intro(&$content,$this->introSize);
 		$ids = $this->getAliases($id, true);
 		settype($date, 'int');

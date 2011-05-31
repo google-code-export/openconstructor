@@ -35,7 +35,7 @@ class SiteFiles {
 		assert(!empty($parent) && !empty($folder));
 		if(@file_exists($_SERVER['DOCUMENT_ROOT'].substr($parent, 0, strlen($parent > 2) ? -1 : 1))) {
 			if(!@file_exists($_SERVER['DOCUMENT_ROOT'].$parent.$folder)) {
-				$ftp = &$this->_getFtp();
+				$ftp = $this->_getFtp();
 				$ftp->open();
 				$ftp->md($parent.$folder);
 				$ftp->copy_local_file($_SERVER['DOCUMENT_ROOT'].WCHOME.'/404.php', $parent.$folder.'/index.php');
@@ -62,7 +62,7 @@ class SiteFiles {
 		if($folder{strlen($folder) - 1} == '/')
 			$folder = substr($folder, 0, -1);
 		if(@file_exists($_SERVER['DOCUMENT_ROOT'].$folder)) {
-			$ftp = &$this->_getFtp();
+			$ftp = $this->_getFtp();
 			$ftp->open();
 			$ftp->rdEntire($folder);
 			$ftp->close();
@@ -78,7 +78,7 @@ class SiteFiles {
 	
 	function writePage($filename, $content = null) {
 		$result = true;
-		$ftp = &$this->_getFtp();
+		$ftp = $this->_getFtp();
 		$ftp->open();
 		if(is_array($filename)) {
 			foreach($filename as $name => $source)
@@ -101,7 +101,7 @@ class SiteFiles {
 		if($newName{strlen($newName) - 1} == '/')
 			$newName = substr($newName, 0, -1);
 		if(@file_exists($_SERVER['DOCUMENT_ROOT'].$name) && !@file_exists($_SERVER['DOCUMENT_ROOT'].$newName)) {
-			$ftp = &$this->_getFtp();
+			$ftp = $this->_getFtp();
 			$ftp->open();
 			$ftp->move($name, $newName);
 			$ftp->close();
@@ -118,7 +118,7 @@ class SiteFiles {
 		$result = false;
 		$uris = (array) $uris;
 		if(sizeof($uris)) {
-			$ftp = &$this->_getFtp();
+			$ftp = $this->_getFtp();
 			$ftp->open();
 			foreach($uris as $uri) {
 				$uriExists = true;
@@ -150,7 +150,7 @@ class SiteFiles {
 	
 	function _writeFile($filename, $content) {
 		$result = true;
-		$ftp = &$this->_getFtp();
+		$ftp = $this->_getFtp();
 		$pos = 0;
 		while($result && (($pos = strpos($filename, '/', $pos + 1)) !== false)) {
 			$dir = substr($filename, 0, $pos);

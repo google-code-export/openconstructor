@@ -28,7 +28,7 @@ function smarty_function_treewidget($params, &$smarty) {
         $smarty->trigger_error("treewidget: missing 'field' parameter");
         return;
     }
-	$doc = &$smarty->get_template_vars('doc');
+	$doc = $smarty->get_template_vars('doc');
     if(!array_key_exists(@substr($params['field'], 2), $doc)) {
         $smarty->trigger_error("treewidget: field '{$params['field']}' doesn't exists");
         return;

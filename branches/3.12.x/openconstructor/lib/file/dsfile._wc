@@ -180,7 +180,7 @@ class DSFile extends WCDataSource {
 		if(!$this->filePath)
 			return;
 		assert(trim($name) != '');
-		$doc = &$this->getDocument($id);
+		$doc = $this->getDocument($id);
 		assert($doc->id > 0);
 		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
 		

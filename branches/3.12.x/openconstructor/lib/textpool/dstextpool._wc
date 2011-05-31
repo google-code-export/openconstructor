@@ -41,7 +41,7 @@ class DSTextPool extends WCDataSource {
 		WCS::assert($this, 'createdoc');
 		assert(trim($header) != '');
 		if($this->isFull()) return false;
-		$html = &$this->cleanHTML(&$html);
+		$html = $this->cleanHTML($html);
 		$db = &WCDB::bo();
 		$db->query(
 			'INSERT INTO '.$this->DSTable.
@@ -82,12 +82,12 @@ class DSTextPool extends WCDataSource {
 	
 	function update($id,$header,$html) {
 		assert($header != '');
-		$rec = &$this->get_record($id);
+		$rec = $this->get_record($id);
 		assert($rec['id'] == $rec['real_id']);
-		$doc = &$this->wrapDocument($rec);
+		$doc = $this->wrapDocument($rec);
 		assert($doc->id > 0);
 		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
-		$html = &$this->cleanHTML(&$html);
+		$html = $this->cleanHTML($html);
 		$ids = $this->getAliases($id, true);
 		$db = &WCDB::bo();
 		$db->query(

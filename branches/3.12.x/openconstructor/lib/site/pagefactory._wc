@@ -42,17 +42,17 @@ class PageFactory {
 
 		assert(Page::isNameValid($name) && !empty($header));
 		$name = strtolower($name);
-		$parent = &$this->reader->getPage($parentId);
+		$parent = $this->reader->getPage($parentId);
 		assert($parent != null);
-		$sample = &$this->reader->getPage($sampleId === null ? $parentId : $sampleId);
+		$sample = $this->reader->getPage($sampleId === null ? $parentId : $sampleId);
 		assert($sample != null);
 
 		$super = $this->reader->superDecide($parent->id, 'managesub');
 		WCS::assertValue($super || WCS::decide($parent, 'managesub'), $parent, 'managesub');
 
-		$tree = &$this->_getTreeHelper();
+		$tree = $this->_getTreeHelper();
 		if(!$tree->exists($parent->id, $name)) {
-			$fs = &$this->_getFsHelper();
+			$fs = $this->_getFsHelper();
 			if($fs->createPage($parent->uri, $name)) {
 				$result = $tree->addNode($parent->id, $name, $header);
 				if($result > 0) {
@@ -91,22 +91,22 @@ class PageFactory {
 	function removePage($pageId) {
 		$result = false;
 		assert($pageId > 0);
-		$page = &$this->reader->getPage($pageId);
+		$page = $this->reader->getPage($pageId);
 		assert($page != null && $page->index > 0);
 
 		$super = $this->reader->superDecide($page->id, 'managesub');
 		WCS::assertValue($super || WCS::decide($page, 'removepage'), $page, 'removepage');
 
-		$fs = &$this->_getFsHelper();
+		$fs = $this->_getFsHelper();
 		if($fs->removePage($page->uri)) {
-			$tree = &$this->_getTreeHelper();
+			$tree = $this->_getTreeHelper();
 			if($tree->removeNode($page->id)) {
 				$db = &WCDB::bo();
 				$res = $db->query("SELECT p.id FROM {$this->pagesTable} p LEFT JOIN {$this->treeTable} t ON(p.id = t.id) WHERE t.id IS NULL");
 				for($i = 0, $ids = array(), $l = mysql_num_rows($res); $i < $l; $i++)
 					list($ids[]) = mysql_fetch_row($res);
 				mysql_free_result($res);
-				$smc = &$this->_getSmartyCache();
+				$smc = $this->_getSmartyCache();
 				$smc->page_updated($ids);
 
 				$db->query("UPDATE {$this->pagesTable} SET linkto = 0 WHERE linkto IN(".implode(',', $ids).")");
@@ -137,7 +137,7 @@ class PageFactory {
 		$result = false;
 		assert($page != null && $page->id > 0 && !empty($page->header) && ($page->uri == '/' || Page::isNameValid($page->name)));
 		$page->name = strtolower($page->name);
-		$old = &$this->reader->getPage($page->id);
+		$old = $this->reader->getPage($page->id);
 		assert($old != null);
 
 		$super = $this->reader->superDecide($page->id, 'managesub');
@@ -160,7 +160,7 @@ class PageFactory {
 			);
 		if($super || WCS::decide($old, 'editpage.uri')) {
 			if($old->uri != '/' && $page->name != $old->name) {
-				$fs = &$this->_getFsHelper();
+				$fs = $this->_getFsHelper();
 				if($fs->rename($old->uri, substr($old->uri, 0, -strlen($old->name) - 1).$page->name))
 					$updates[] = "t.name = '{$page->name}'";
 				$this->_clearTree();
@@ -176,9 +176,9 @@ class PageFactory {
 			$page->linkTo = 0;
 			if(substr($page->location, 0, 1) == '/') {
 				$uri = substr($page->location, -10) == '/index.php' ? substr($page->location, 0, -9) : $page->location;
-				$tree = &$this->_getTree();
+				$tree = $this->_getTree();
 				if($tree->uriExists($uri)) {
-					$link = &$tree->getPageByUri($uri);
+					$link = $tree->getPageByUri($uri);
 					$page->linkTo = $link->linkTo ? $link->linkTo : $link->id;
 					unset($link);
 					$page->location = $tree->node[$page->linkTo]->getFullKey('/').'index.php';
@@ -218,7 +218,7 @@ class PageFactory {
 	function _updateLinks(&$page) {
 		assert($page != null && $page->id > 0);
 		if($page->linkTo > 0) {
-			$link = &$this->reader->getPage($page->linkTo);
+			$link = $this->reader->getPage($page->linkTo);
 			assert($page != null);
 		} else
 			$link = &$page;
@@ -230,7 +230,7 @@ class PageFactory {
 
 	function setSubtreeUsers($pageId, $users = null) {
 		$result = false;
-		$page = &$this->reader->getPage($pageId);
+		$page = $this->reader->getPage($pageId);
 		assert($page != null);
 		$super = $this->reader->superDecide($pageId, 'managesub');
 
@@ -251,7 +251,7 @@ class PageFactory {
 	function updateBlocks(&$page) {
 		$result = true;
 		assert($page != null && $page->id > 0);
-		$old = &$this->reader->getPage($page->id);
+		$old = $this->reader->getPage($page->id);
 		assert($old != null);
 
 		if(is_array($page->objects)) {
@@ -285,7 +285,7 @@ class PageFactory {
 	function _manageBlocks($pageId, &$objIds, $action) {
 		assert($action == 'add' || $action == 'remove');
 		assert($pageId > 0 && !empty($objIds));
-		$page = &$this->reader->getPage($pageId);
+		$page = $this->reader->getPage($pageId);
 		assert($page != null);
 
 		$super = $this->reader->superDecide($page->id, 'managesub');
@@ -333,14 +333,14 @@ class PageFactory {
 		$remove = array_diff(array_keys($currentUses), array_keys($uses));
 		foreach($remove as $pageId) {
 			$super = $this->reader->superDecide($pageId, 'managesub');
-			$page = &$this->reader->getPage($pageId);
+			$page = $this->reader->getPage($pageId);
 			if($super || WCS::decide($page, 'pageblock.manage'))
 				$this->removeObject($pageId, $objId);
 		}
 		foreach($uses as $pageId => $block) {
 			if(!isset($currentUses[$pageId]) || $block != $currentUses[$pageId]) {
 				$super = $this->reader->superDecide($pageId, 'managesub');
-				$page = &$this->reader->getPage($pageId);
+				$page = $this->reader->getPage($pageId);
 				if(!isset($currentUses[$pageId])
 					&& ($super || WCS::decide($page, 'pageblock.manage'))
 					) {
@@ -376,7 +376,7 @@ class PageFactory {
 
 	function publishPage($pageId, $recursive = false) {
 		$result = true;
-		$page = &$this->reader->getPage($pageId);
+		$page = $this->reader->getPage($pageId);
 		$super = $this->reader->superDecide($page->id, 'managesub');
 
 		WCS::assertValue($super || WCS::decide($page, 'editpage.publish'), $page, 'editpage.publish');
@@ -385,23 +385,23 @@ class PageFactory {
 			return false;
 
 		$compiled = $published = array();
-		$compiler = &$this->_getCompiler();
-		$compiled[$page->id] = &$compiler->compile($page);
+		$compiler = $this->_getCompiler();
+		$compiled[$page->id] = $compiler->compile($page);
 
 		if($recursive && @sizeof($compiled[$page->id])) {
 			$subSuper = $super || WCS::decide($page, 'managesub');
 			$tree = $this->_getTree();
-			$ids = &$tree->getAllSubpages($page->id);
+			$ids = $tree->getAllSubpages($page->id);
 			foreach($ids as $id) {
-				$p = &$this->reader->getPage($id);
+				$p = $this->reader->getPage($id);
 				if(isset($compiled[$p->parent]) && is_array($compiled[$p->parent]) && sizeof($compiled[$p->parent])
 					&& ($subSuper || WCS::decide($p, 'editpage.publish') || $this->reader->superDecide($p->id, 'managesub'))
 				)
-					$compiled[$id] = &$compiler->compile($p);
+					$compiled[$id] = $compiler->compile($p);
 			}
 		}
-		$fs = &$this->_getFsHelper();
-		$ftp = &$fs->_getFtp();
+		$fs = $this->_getFsHelper();
+		$ftp = $fs->_getFtp();
 		$ftp->open();
 		foreach($compiled as $id => $files) {
 			if(is_array($files)) {
@@ -417,7 +417,7 @@ class PageFactory {
 			$db = &WCDB::bo();
 			$db->query(sprintf("UPDATE {$this->pagesTable} SET published = 1 WHERE id IN (%s)", implode(',', $published)));
 			$this->_updateSitemap();
-			$smc = &$this->_getSmartyCache();
+			$smc = $this->_getSmartyCache();
 			$smc->page_updated($published);
 			require_once(LIBDIR.'/wcdatasource._wc');
 			require_once(LIBDIR.'/htmltext/dshtmltext._wc');
@@ -429,19 +429,19 @@ class PageFactory {
 
 	function unpublishPage($pageId) {
 		$result = true;
-		$page = &$this->reader->getPage($pageId);
+		$page = $this->reader->getPage($pageId);
 		$super = $this->reader->superDecide($page->id, 'managesub');
 
 		WCS::assertValue($super || WCS::decide($page, 'editpage.publish'), $page, 'editpage.publish');
 
 		if($page->published) {
 			$pages[] = $page->uri;
-			$tree = &$this->_getTree();
-			$ids = &$tree->getAllSubpages($page->id);
+			$tree = $this->_getTree();
+			$ids = $tree->getAllSubpages($page->id);
 			foreach($ids as $id)
 				if($tree->node[$id]->published)
 					$pages[] = $tree->node[$id]->getFullKey('/');
-			$fs = &$this->_getFsHelper();
+			$fs = $this->_getFsHelper();
 			$result = $result && $fs->unpublishPages($pages);
 			$db = &WCDB::bo();
 			$db->query(
@@ -451,7 +451,7 @@ class PageFactory {
 			$result = $result && ($db->errorCode() == 0);
 			$this->_updateSitemap();
 			if($result) {
-				$smc = &$this->_getSmartyCache();
+				$smc = $this->_getSmartyCache();
 				$smc->page_updated($ids);
 				require_once(LIBDIR.'/wcdatasource._wc');
 				require_once(LIBDIR.'/htmltext/dshtmltext._wc');
@@ -462,29 +462,29 @@ class PageFactory {
 	}
 
 	function republishPages($pageId) {
-		$page = &$this->reader->getPage($pageId);
+		$page = $this->reader->getPage($pageId);
 		assert($page != null && $page->published);
 		$super = $this->reader->superDecide($page->id, 'managesub');
 		WCS::assertValue($super || WCS::decide($page, 'editpage.publish'), $page, 'editpage.publish');
 
 
-		$compiler = &$this->_getCompiler();
-		$fs = &$this->_getFsHelper();
-		$ftp = &$fs->_getFtp();
+		$compiler = $this->_getCompiler();
+		$fs = $this->_getFsHelper();
+		$ftp = $fs->_getFtp();
 		$ftp->open();
 
-		$compiled = &$compiler->compile($page);
+		$compiled = $compiler->compile($page);
 		if(is_array($compiled))
 			$fs->writePage($compiled);
 
 		$tree = $this->_getTree();
-		$ids = &$tree->getAllSubpages($page->id);
+		$ids = $tree->getAllSubpages($page->id);
 		$unpublished = array();
 		foreach($ids as $id)
 			if($tree->node[$id]->published) {
-				$page = &$this->reader->getPage($id);
+				$page = $this->reader->getPage($id);
 				if($super || WCS::decide($page, 'editpage.publish') || $this->reader->superDecide($page->id, 'managesub')) {
-					$compiled = &$compiler->compile($page);
+					$compiled = $compiler->compile($page);
 					if(is_array($compiled))
 						$fs->writePage($compiled);
 				}
@@ -494,7 +494,7 @@ class PageFactory {
 			$fs->unpublishPages($unpublished);
 		$this->_updateSitemap();
 		$ftp->close();
-		$smc = &$this->_getSmartyCache();
+		$smc = $this->_getSmartyCache();
 		$smc->page_updated(array_merge(array($pageId), $ids));
 	}
 
@@ -502,16 +502,16 @@ class PageFactory {
 		$result = false;
 		assert($pageId > 0 && $newParentId > 0);
 
-		$page = &$this->reader->getPage($pageId);
-		$parent = &$this->reader->getPage($newParentId);
+		$page = $this->reader->getPage($pageId);
+		$parent = $this->reader->getPage($newParentId);
 		assert($page != null && $page->index > 0 && $parent != null && strpos($parent->uri, $page->uri) !== 0);
 
 		WCS::assertValue($this->reader->superDecide($page->id, 'managesub') || WCS::decide($page, 'removepage'), $page, 'removepage');
 		WCS::assertValue($this->reader->superDecide($parent->id, 'managesub') || WCS::decide($parent, 'managesub'), $parent, 'managesub');
 
-		$tree = &$this->_getTreeHelper();
+		$tree = $this->_getTreeHelper();
 		if(!$tree->exists($parent->id, $page->name) && !@file_exists($_SERVER['DOCUMENT_ROOT'].$parent->uri.$page->name)) {
-			$fs = &$this->_getFsHelper();
+			$fs = $this->_getFsHelper();
 			if($fs->rename($page->uri, $parent->uri.$page->name)) {
 				if($tree->moveNode($page->id, $parent->id)) {
 					$result = true;
@@ -532,17 +532,17 @@ class PageFactory {
 
 	function copyPage($pageId, $destId, $pageName = null, $pageHeader = null) {
 		$result = true;
-		$page = &$this->reader->getPage($pageId);
+		$page = $this->reader->getPage($pageId);
 		$destIds = array();
 		$destIds[$page->uri] = $this->createPage($destId, $pageName !== null ? $pageName : $page->name, $pageHeader !== null ? $pageHeader : $page->header, $page->id);
 
 		$tree = $this->_getTree();
-		$ids = &$tree->getAllSubpages($page->id);
-		$fs = &$this->_getFsHelper();
-		$ftp = &$fs->_getFtp();
+		$ids = $tree->getAllSubpages($page->id);
+		$fs = $this->_getFsHelper();
+		$ftp = $fs->_getFtp();
 		$ftp->open();
 		foreach($ids as $id) {
-			$p = &$this->reader->getPage($id);
+			$p = $this->reader->getPage($id);
 			$parentUri = substr($p->uri, 0, -strlen($p->name) - 1);
 			$parentId = (int) @$destIds[$parentUri];
 			assert($parentId > 0);
@@ -562,26 +562,26 @@ class PageFactory {
 
 	function incrementPriority($pageId) {
 		assert($pageId > 0);
-		$page = &$this->reader->getPage($pageId);
+		$page = $this->reader->getPage($pageId);
 		assert($page != null && $page->index > 0);
 
-		$parent = &$this->reader->getPage($page->parent);
+		$parent = $this->reader->getPage($page->parent);
 		WCS::assertValue($this->reader->superDecide($page->id, 'managesub'), $parent, 'managesub');
 
-		$tree = &$this->_getTreeHelper();
+		$tree = $this->_getTreeHelper();
 		$tree->moveNodeUp($page->id);
 		$this->_updateSitemap();
 	}
 
 	function decrementPriority($pageId) {
 		assert($pageId > 0);
-		$page = &$this->reader->getPage($pageId);
+		$page = $this->reader->getPage($pageId);
 		assert($page != null && $page->index > 0);
 
-		$parent = &$this->reader->getPage($page->parent);
+		$parent = $this->reader->getPage($page->parent);
 		WCS::assertValue($this->reader->superDecide($page->id, 'managesub'), $parent, 'managesub');
 
-		$tree = &$this->_getTreeHelper();
+		$tree = $this->_getTreeHelper();
 		$tree->moveNodeDown($page->id);
 		$this->_updateSitemap();
 	}
@@ -609,7 +609,7 @@ class PageFactory {
 	}
 
 	function &getFtp() {
-		$fs = &$this->_getFsHelper();
+		$fs = $this->_getFsHelper();
 		return $fs->_getFtp();
 	}
 
@@ -621,19 +621,19 @@ class PageFactory {
 	}
 
 	function setFtp(&$ftp) {
-		$fs = &$this->_getFsHelper();
+		$fs = $this->_getFsHelper();
 		$fs->_setFtp($ftp);
 	}
 
 	function _updateSitemap() {
-		$compiler = &$this->_getCompiler();
-		$fs = &$this->_getFsHelper();
+		$compiler = $this->_getCompiler();
+		$fs = $this->_getFsHelper();
 		$fs->writePage(FILES.'/map._wc', $compiler->generateSitemap());
 	}
 
 	function &_getTree($reload = false) {
 		if($reload || !is_object($this->tree))
-			$this->tree = &$this->reader->getTree();
+			$this->tree = $this->reader->getTree();
 		return $this->tree;
 	}
 
@@ -678,7 +678,7 @@ class PageFactory {
 		WCS::_assert(Authentication::getUserId() == WCS_ROOT_ID);
 		$root = $this->reader->getRootId();
 		assert($root > 0);
-		$level1 = &$this->reader->getSubPages($root, 1);
+		$level1 = $this->reader->getSubPages($root, 1);
 		foreach($level1 as $id => $header) {
 			$result = $result && $this->removePage($id);
 		}

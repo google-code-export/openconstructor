@@ -31,7 +31,7 @@ switch(@$_POST['action'])
 	case 'edit_ds':
 		require_once(LIBDIR.'/dsmanager._wc');
 		$dsm = new DSManager();
-		$ds = &$dsm->load(@$_POST['ds_id']);
+		$ds = $dsm->load(@$_POST['ds_id']);
 		assert($ds != null);
 		if($owner != null)
 			$ds->sRes->setOwner($owner->id);
@@ -42,7 +42,7 @@ switch(@$_POST['action'])
 			$ds->sRes->setOwnerBit($act, isset($_POST['oAuths'][$act]));
 			$ds->sRes->setGroupBit($act, isset($_POST['gAuths'][$act]));
 		}
-		$doc = &$ds->wrapDocument($rec = array());
+		$doc = $ds->wrapDocument($rec = array());
 		$doc->sRes->setAuthorities(0, 0);
 		foreach($doc->sRes->actions as $act)
 			$doc->sRes->setOwnerBit($act, isset($_POST['docAuths'][$act]));
@@ -54,7 +54,7 @@ switch(@$_POST['action'])
 	case 'edit_doc':
 		require_once(LIBDIR.'/dsmanager._wc');
 		$dsm = new DSManager();
-		$ds = &$dsm->load(@$_POST['ds_id']);
+		$ds = $dsm->load(@$_POST['ds_id']);
 		assert($ds != null && @$_POST['doc_id']);
 		if($owner != null)
 			$ds->updateDocAuths($_POST['doc_id'], $owner->id);
@@ -81,7 +81,7 @@ switch(@$_POST['action'])
 	
 	case 'edit_group':
 		$gf = &GroupFactory::getInstance();
-		$gr = &$gf->getGroup(@$_POST['group_id']);
+		$gr = $gf->getGroup(@$_POST['group_id']);
 		assert($gr != null);
 		if($owner != null)
 			$gr->sRes->setOwner($owner->id);
@@ -104,8 +104,8 @@ switch(@$_POST['action'])
 			assert(@$_POST['user_id'] > 0);
 			$user = &User::load(WCS_ROOT_ID);
 			$user->sRes->setAuthorities(0, 0);
-			$setSRes = &$user->sRes->copy();
-			$unsetSRes = &$user->sRes->copy();
+			$setSRes = $user->sRes->copy();
+			$unsetSRes = $user->sRes->copy();
 			foreach($user->sRes->actions as $act) {
 				$setSRes->setOwnerBit($act, @$_POST['oAuths'][$act] == 1);
 				$setSRes->setGroupBit($act, @$_POST['gAuths'][$act] == 1);
@@ -134,8 +134,8 @@ switch(@$_POST['action'])
 			$obj = &ObjManager::load((int) $_POST['obj_id']);
 			$obj->sRes->setAuthorities(0, 0);
 			$obj->sRes->setOwner(0); $obj->sRes->setGroup(0);
-			$setSRes = &$obj->sRes->copy();
-			$unsetSRes = &$obj->sRes->copy();
+			$setSRes = $obj->sRes->copy();
+			$unsetSRes = $obj->sRes->copy();
 			foreach($obj->sRes->actions as $act) {
 				$setSRes->setOwnerBit($act, @$_POST['oAuths'][$act] == 1);
 				$setSRes->setGroupBit($act, @$_POST['gAuths'][$act] == 1);
@@ -172,8 +172,8 @@ switch(@$_POST['action'])
 			$tpl = &WCTemplates::load((int) $_POST['tpl_id']);
 			$tpl->sRes->setAuthorities(0, 0);
 			$tpl->sRes->setOwner(0); $tpl->sRes->setGroup(0);
-			$setSRes = &$tpl->sRes->copy();
-			$unsetSRes = &$tpl->sRes->copy();
+			$setSRes = $tpl->sRes->copy();
+			$unsetSRes = $tpl->sRes->copy();
 			foreach($tpl->sRes->actions as $act) {
 				$setSRes->setOwnerBit($act, @$_POST['oAuths'][$act] == 1);
 				$setSRes->setGroupBit($act, @$_POST['gAuths'][$act] == 1);
@@ -223,7 +223,7 @@ switch(@$_POST['action'])
 	case 'edit_page':
 		require_once(LIBDIR.'/site/pagefactory._wc');
 		$pf = &PageFactory::getInstance();
-		$page = &$pf->getPage(@$_POST['page_id']);
+		$page = $pf->getPage(@$_POST['page_id']);
 		assert($page != null);
 		if($owner != null)
 			$page->sRes->setOwner($owner->id);

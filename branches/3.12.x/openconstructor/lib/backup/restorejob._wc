@@ -96,7 +96,7 @@ class RestoreJob {
 	}
 
 	function _removePages() {
-		$pf = & $this->_getPageFactory();
+		$pf = $this->_getPageFactory();
 		WCS::runAs(WCS_ROOT_ID);
 		$pf->_dropAll();
 		WCS::stopRunAs();
@@ -201,13 +201,13 @@ class RestoreJob {
 	}
 
 	function _republishSite() {
-		$pf = &$this->_getPageFactory();
+		$pf = $this->_getPageFactory();
 		$ids = array_keys($pf->reader->getAllPages());
-		$ftp = &$pf->getFtp();
+		$ftp = $pf->getFtp();
 		$ftp->open();
 		WCS::runAs(WCS_ROOT_ID);
 		foreach($ids as $id) {
-			$page = &$pf->reader->getPage($id);
+			$page = $pf->reader->getPage($id);
 			$pf->updatePage($page);
 		}
 		WCS::stopRunAs();

@@ -26,7 +26,7 @@
 	require_once(LIBDIR.'/site/pagereader._wc');
 	
 	$pr = &PageReader::getInstance();
-	$page = &$pr->getPage(@$_GET['id']);
+	$page = $pr->getPage(@$_GET['id']);
 	assert($page != null);
 	$super = $pr->superDecide($page->id, 'managesub');
 	require_once(LIBDIR.'/security/groupfactory._wc');

@@ -64,11 +64,11 @@ class DSHybridFactory {
 			return;
 		require_once(LIBDIR.'/dsmanager._wc');
 		$dsm = new DSManager();
-		$ds = &$dsm->load($id);
+		$ds = $dsm->load($id);
 		WCS::assert($ds, 'removeds');
 		WCS::runAs(WCS_ROOT_ID);
 		foreach($ids as $id) {
-			$ds = &$dsm->load($id);
+			$ds = $dsm->load($id);
 			$ds->remove();
 			$this->removeTable($id);
 			$this->removeFolder($id);
@@ -91,7 +91,7 @@ class DSHybridFactory {
 			while($r = mysql_fetch_assoc($res))
 				$type[(int) $r['ds_id']][] = (int) $r['id'];
 			foreach($type as $id=>$docs) {
-				$ds = &$dsm->load($id);
+				$ds = $dsm->load($id);
 				$ds->removeOwnDocuments(&$docs);
 			}
 			unset($ds, $type);
@@ -131,7 +131,7 @@ class DSHybridFactory {
 				$smc = &WCSmartyCache::getInstance();
 				WCS::runAs(WCS_ROOT_ID);
 				foreach($dsIds as $dsId) {
-					$ds = &$dsm->load($dsId);
+					$ds = $dsm->load($dsId);
 					assert($ds->ds_id > 0);
 					$_ids = implode(',', $docs[$dsId]);
 					if($value)
@@ -153,14 +153,14 @@ class DSHybridFactory {
 		if(sizeof($ids) > 0) {
 			require_once(LIBDIR.'/dsmanager._wc');
 			$dsm = new DSManager();
-			assert($from = &$dsm->load($fromId) && $to = &$dsm->load($toId));
+			assert($from = $dsm->load($fromId) && $to = $dsm->load($toId));
 			WCS::assert($to, 'createdoc');
 			$ids = implode(',', $ids);
 			$db = &WCDB::bo();
 			$res = $db->query("SELECT id FROM dshybrid WHERE ds_id = {$from->ds_id} AND id IN ($ids)");
 			if(($l = mysql_num_rows($res)) > 0) {
 				$add = $remove = array();
-				$fromRec = &$from->getRecord(); $toRec = &$to->getRecord();
+				$fromRec = $from->getRecord(); $toRec = $to->getRecord();
 				$path1 = explode(',', $from->path); $path2 = explode(',', $to->path);
 				$removeDs = array_diff($path1, $path2);
 				$addDs = array_diff($path2, $path1);
@@ -177,7 +177,7 @@ class DSHybridFactory {
 
 				for($i = 0; $i < $l; $i++) {
 					list($docId) = mysql_fetch_row($res);
-					$doc = &$from->getDocument($docId);
+					$doc = $from->getDocument($docId);
 					if(WCS::decide($doc, 'removedoc')) {
 						for($r = 0; $r < $lr; $r++)
 							$remove[$r]->onRemoveDocument($doc);
@@ -214,7 +214,7 @@ class DSHybridFactory {
 					}
 					if(sizeof($ids)) {
 						foreach($ids as $id) {
-							$doc = &$to->getDocument($id);
+							$doc = $to->getDocument($id);
 							for($a = 0; $a < $la; $a++)
 								$add[$a]->onCreateDocument($doc);
 							$query = $toRec->getSQL($doc);
@@ -294,7 +294,7 @@ class DSHybridFactory {
 	function createFolder($folder) {
 		settype($folder, 'int');
 		if($folder > 0 && !@file_exists(ROOT.FILES.'/hyb/'.$folder)) {
-			$ftp = &$this->getFtp();
+			$ftp = $this->getFtp();
 			$ftp->open();
 			$ftp->md(FILES.'/hyb/'.$folder);
 			$ftp->close();
@@ -308,7 +308,7 @@ class DSHybridFactory {
 	function removeFolder($folder) {
 		settype($folder, 'int');
 		if($folder > 0 && @file_exists(ROOT.FILES.'/hyb/'.$folder)) {
-			$ftp = &$this->getFtp();
+			$ftp = $this->getFtp();
 			$ftp->open();
 			$ftp->rdEntire(FILES.'/hyb/'.$folder);
 			$ftp->close();

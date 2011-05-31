@@ -29,7 +29,7 @@
 	
 	
 	
-	$_ds = &$dsm->load($_GET['ds_id']);
+	$_ds = $dsm->load($_GET['ds_id']);
 	$_doc = $_ds->get_record($_GET['id']);
 	assert($_doc !== null);
 	

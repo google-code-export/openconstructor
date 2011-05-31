@@ -28,7 +28,7 @@ $dsm = new DSManager();
 switch(@$_POST['action'])
 {
 	case 'add_field':
-		$ds = &$dsm->load(@$_POST['ds_id']);
+		$ds = $dsm->load(@$_POST['ds_id']);
 		assert($ds->ds_id > 0 && @$_POST['fieldclass'] != '' && utf8_strpos($_POST['fieldclass'], '/') === false);
 
 		require_once(LIBDIR.'/hybrid/fields/'.$_POST['fieldclass'].'field._wc');
@@ -136,7 +136,7 @@ switch(@$_POST['action'])
 	break;
 
 	case 'remove_field':
-		$ds = &$dsm->load(@$_POST['ds_id']);
+		$ds = $dsm->load(@$_POST['ds_id']);
 		assert($ds->ds_id > 0);
 
 		if(@sizeof($_POST['field']))
@@ -152,11 +152,11 @@ switch(@$_POST['action'])
 		assert(isset($_POST['header']) && trim($_POST['header']) !='' && @$_POST['ds_id'] > 0);
 		if(@$_POST['hybridid'] > 0) {
 			$ownerDs = &WCDataSource::loadByDoc($_POST['hybridid']);
-			$ownerDoc = &$ownerDs->getDocument($_POST['hybridid']);
+			$ownerDoc = $ownerDs->getDocument($_POST['hybridid']);
 			WCS::assertValue(WCS::decide($ownerDoc, 'editdoc') || WCS::decide($ownerDs, 'editdoc'), $ownerDoc, 'editdoc');
 			WCS::runAs(WCS_ROOT_ID);
 		}
-		$ds = &$dsm->load($_POST['ds_id']);
+		$ds = $dsm->load($_POST['ds_id']);
 
 		$doc = $ds->getEmptyDocument();
 		$doc->readValues($_POST);
@@ -183,7 +183,7 @@ switch(@$_POST['action'])
 	case 'edit_hybrid':
 		require_once(LIBDIR.'/hybrid/hybriddocument._wc');
 		assert(isset($_POST['header']) && trim($_POST['header']) !='' && @$_POST['ds_id'] > 0);
-		$ds = &$dsm->load($_POST['ds_id']);
+		$ds = $dsm->load($_POST['ds_id']);
 
 		$doc = $ds->getEmptyDocument();
 		$doc->readValues($_POST);
@@ -219,7 +219,7 @@ switch(@$_POST['action'])
 		assert(isset($_POST['ds_id']) && isset($_POST['dest_ds_id']) && isset($_POST['ids']));
 		require_once(LIBDIR.'/hybrid/dshybrid._wc');
 		require_once(LIBDIR.'/hybrid/dshybridfactory._wc');
-		$dsf = & new DSHybridFactory();
+		$dsf = new DSHybridFactory();
 		$dsf->castDocuments($_POST['ids'], $_POST['ds_id'], $_POST['dest_ds_id']);
 		$failed = headers_sent();
 		if(!$failed) {

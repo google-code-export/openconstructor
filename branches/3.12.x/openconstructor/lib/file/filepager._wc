@@ -46,7 +46,7 @@ class FilePager extends WCObject {
 	
 	function getCacheId() {
 		$cacheId = null;
-		if($docList = &$this->ctx->getObject($this->slave)) {
+		if($docList = $this->ctx->getObject($this->slave)) {
 			$cacheId = $docList->getCacheId();
 			$cacheId = $this->obj_id.substr($cacheId, strpos($cacheId, '|'));
 		}
@@ -55,7 +55,7 @@ class FilePager extends WCObject {
 
 	function onPageLoad() {
 		$ctx = &Context::getInstance();
-		$docList = &$ctx->getObject($this->slave);
+		$docList = $ctx->getObject($this->slave);
 		if($docList) {
 			$docList->originalOffset = $docList->listOffset;
 			$pageNum = (int) $ctx->getParam($this->pageNumberKey); $pageNum += (int) !$pageNum;
@@ -69,7 +69,7 @@ class FilePager extends WCObject {
 	function fetchData(&$smarty) {
 		$result = false;
 		$ctx = &Context::getInstance();
-		$docList = &$ctx->getObject($this->slave);
+		$docList = $ctx->getObject($this->slave);
 		if($docList) {
 			$docList->getDocuments();
 			$listSize = $docList->listSize;

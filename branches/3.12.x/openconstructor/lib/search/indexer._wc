@@ -65,8 +65,8 @@ class Indexer {
 			$header = implode(' ', $header);
 		if(is_array($content))
 			$content = implode(' ', $content);
-		$header = &Tokenizer::toLowerCase($header);
-		$content = &Tokenizer::toLowerCase($content);
+		$header = Tokenizer::toLowerCase($header);
+		$content = Tokenizer::toLowerCase($content);
 		
 		// TODO: replace with assertions
 		if(!$this->checkData($ds_id, $ds_type, $document_id)) return;
@@ -106,8 +106,8 @@ class Indexer {
 			$header = implode(' ', $header);
 		if(is_array($content))
 			$content = implode(' ', $content);
-		$header = &Tokenizer::toLowerCase($header);
-		$content = &Tokenizer::toLowerCase($content);
+		$header = Tokenizer::toLowerCase($header);
+		$content = Tokenizer::toLowerCase($content);
 		
 		if(!$this->checkData($ds_id, "space", $document_id)) return;
 		

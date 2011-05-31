@@ -76,7 +76,7 @@ class DSHybrid extends WCDataSource {
 		$db->query(
 			'DELETE FROM datasources WHERE ds_id IN ('.$this->ds_id.')'
 		);
-		$record = &$this->getRecord();
+		$record = $this->getRecord();
 		$record->destroy();
 	}
 
@@ -92,7 +92,7 @@ class DSHybrid extends WCDataSource {
 		$doc->id = $id;
 		if(!WCS::decide($this, 'publishdoc'))
 			$doc->isPublished = $this->autoPublish ? 1 : 0;
-		$record = &$this->getRecord();
+		$record = $this->getRecord();
 		$record->initializeDocument($doc);
 		$query = $record->getSQL($doc);
 		$success = true;
@@ -124,7 +124,7 @@ class DSHybrid extends WCDataSource {
 		WCS::assertValue(WCS::decide($old, 'editdoc') || WCS::decide($this, 'editdoc'), $old, 'editdoc');
 		if(!(WCS::decide($this, 'publishdoc') || WCS::decide($old, 'publishdoc')))
 			$doc->isPublished = $old->isPublished;
-		$record = &$this->getRecord();
+		$record = $this->getRecord();
 		$record->documentChanged($old, $doc);
 		$query = $record->getSQL($doc);
 
@@ -157,9 +157,9 @@ class DSHybrid extends WCDataSource {
 	}
 
 	function removeOwnDocuments($ids) {
-		$record = &$this->getRecord();
+		$record = $this->getRecord();
 		foreach($ids as $k => $id) {
-			$doc = &$this->getDocument($id);
+			$doc = $this->getDocument($id);
 			if(!((WCS::decide($doc, 'removedoc') || WCS::decide($this, 'removedoc')) && $record->destroyDocument($doc)))
 				unset($ids[$k]);
 		}
@@ -173,7 +173,7 @@ class DSHybrid extends WCDataSource {
 		if($id > 0) {
 			$doc = new HybridDocument($this->getRecord());
 			if(!$this->readSQL) {
-				$record = &$this->getRecord();
+				$record = $this->getRecord();
 				$parents = explode(',', $this->path);
 				unset($parents[0]);
 				foreach($parents as $parent) {
@@ -199,7 +199,7 @@ class DSHybrid extends WCDataSource {
 	}
 
 	function &getEmptyDocument() {
-		$record = &$this->getRecord();
+		$record = $this->getRecord();
 		$doc = new HybridDocument($record);
 		return $doc;
 	}
@@ -254,7 +254,7 @@ class DSHybrid extends WCDataSource {
 		$result = array();
 		$doc = new HybridDocument($this->getRecord());
 		if(!$this->indexedDocQuery) {
-			$record = &$this->getRecord();
+			$record = $this->getRecord();
 			$fields = $select = array();
 			$found = preg_match_all('/\\{([a-z][a-z0-9_]*)\\}/u', $this->indexedDoc, $fields);
 			if($found) {

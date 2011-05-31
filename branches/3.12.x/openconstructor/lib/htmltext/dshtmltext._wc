@@ -53,7 +53,7 @@ class DSHTMLText extends WCDataSource {
 		}
 		mysql_free_result($res);
 		assert($pageExists && !$docExists);
-		$html = &$this->cleanHTML(&$html);
+		$html = $this->cleanHTML($html);
 		if($intro === null) $intro = $this->create_intro(&$html,$this->introSize);
 		$db->query(
 			'INSERT INTO '.$this->DSTable.
@@ -89,11 +89,11 @@ class DSHTMLText extends WCDataSource {
 	}
 	
 	function update($id, $html, $noIndex, $intro = null) {
-		$doc = &$this->getDocument($id);
+		$doc = $this->getDocument($id);
 		assert($doc->id > 0);
 		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
 		$noIndex = $noIndex ? 1 : 0;
-		$html = &$this->cleanHTML(&$html);
+		$html = $this->cleanHTML($html);
 		if($intro === null) $intro=$this->create_intro(&$html,$this->introSize);
 		$db = &WCDB::bo();
 		$db->query(

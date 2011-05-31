@@ -58,7 +58,7 @@ class PublicationList extends WCObject {
 	function getCacheId() {
 		$page = (int)@$_GET[$this->pid];
 		if(--$page < 0) $page = 0;
-		$displayed = &$this->getDisplayedDocs();
+		$displayed = $this->getDisplayedDocs();
 		$cacheId = $this->obj_id.'|p'.$page.'-c'.implode(':', array_keys($displayed));
 		return $cacheId;
 	}
@@ -69,7 +69,7 @@ class PublicationList extends WCObject {
 		if(--$page < 0) $page = 0;
 		
 		$extra_clause = $this->getExtraClause();
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT id, real_id as rid, gallery, header,date '.
 			'FROM '.$this->DSTable.' '.
@@ -80,7 +80,7 @@ class PublicationList extends WCObject {
 		);
 		if(mysql_num_rows($res) > 0) {
 			$fet = array();
-			$displayed = &$this->getDisplayedDocs();
+			$displayed = $this->getDisplayedDocs();
 			$thref=$this->srvuri.'?'.$this->publicationid.'=%d';
 			while($row=mysql_fetch_assoc($res)) {
 				if(isset($fet[$row['rid']])||(!$this->withCurrent&&@$fet[$row['id']])) continue;

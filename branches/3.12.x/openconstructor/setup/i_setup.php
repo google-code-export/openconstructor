@@ -112,7 +112,7 @@
 	<?php
 		if(@$_POST['removedatasources'] && @$_POST['removenodes']){
 			require_once(LIBDIR.'/tree/sqltree._wc');
-			$sqltree = & new SqlTree();
+			$sqltree = new SqlTree();
 			$sqltree->_dropAll();
 			echo '<h4 class="ok">'.R_SETUP_OK.'</h4>';
 		} else
@@ -134,7 +134,7 @@
 			list($ids) = mysql_fetch_row($res);
 			if($ids) {
 				require_once(LIBDIR.'/templates/wctemplates._wc');
-				$wct = & new WCTemplates();
+				$wct = new WCTemplates();
 				$wct->remove($ids);
 			}
 			mysql_free_result($res);
@@ -219,12 +219,12 @@
 			require_once(LIBDIR.'/site/pagefactory._wc');
 			$pf = &PageFactory::getInstance();
 			$ids = array_keys($pf->reader->getAllPages());
-			$ftp = &$pf->getFtp();
+			$ftp = $pf->getFtp();
 			$ftp->open();
 			set_time_limit(10 + (sizeof($ids) + 1) * 2);
 			_marktime();
 			foreach($ids as $id) {
-				$page  = &$pf->reader->getPage($id);
+				$page  = $pf->reader->getPage($id);
 				$pf->updatePage($page);
 			}
 			set_time_limit(30);

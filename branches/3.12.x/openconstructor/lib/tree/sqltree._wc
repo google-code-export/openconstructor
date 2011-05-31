@@ -211,13 +211,13 @@ class SqlTree {
 	}
 	
 	function moveNodeUp($nodeId) {
-		$dest = &$this->getSibling($nodeId, -1);
+		$dest = $this->getSibling($nodeId, -1);
 		assert($dest != null);
 		$this->placeNodeBefore($nodeId, $dest['id']);
 	}
 	
 	function moveNodeDown($nodeId) {
-		$dest = &$this->getSibling($nodeId, 1);
+		$dest = $this->getSibling($nodeId, 1);
 		assert($dest != null);
 		$this->placeNodeAfter($nodeId, $dest['id']);
 	}
@@ -232,10 +232,10 @@ class SqlTree {
 	
 	function placeNode($nodeId, $destNodeId, $place) {
 		assert($nodeId != $destNodeId);
-		$node = &$this->getNode($nodeId);
-		$destNode = &$this->getNode($destNodeId);
+		$node = $this->getNode($nodeId);
+		$destNode = $this->getNode($destNodeId);
 		assert($nodeId != $node['parent'] && $node['parent'] == $destNode['parent']);
-		$parent = &$this->getNode($node['parent']);
+		$parent = $this->getNode($node['parent']);
 		if($parent['id'] == 1)
 			System::assert('catalog.tree');
 		else {
@@ -244,18 +244,18 @@ class SqlTree {
 		}
 		if(($destNode['num'] > $node['num'] && $place == PLACE_NODE_BEFORE) || ($destNode['num'] < $node['num'] && $place == PLACE_NODE_AFTER)) {
 			if($place == PLACE_NODE_AFTER)
-				$destNode = &$this->getNode($destNode['next']);
+				$destNode = $this->getNode($destNode['next']);
 			else
-				$destNode = &$this->getSibling($destNode['id'], -1);
+				$destNode = $this->getSibling($destNode['id'], -1);
 			if($destNode['id'] == $nodeId)
 				return;
 		}
-		$tmp = &$this->getLastChild($nodeId);
+		$tmp = $this->getLastChild($nodeId);
 		$treeSize = $tmp ? $tmp['num'] - $node['num'] + 1 : 1;
 		$min = min($node['num'], $destNode['num']);
 		$max = max($node['num'], $destNode['num']);
 		if($max == $destNode['num']) {
-			$tmp = &$this->getLastChild($destNode['id']);
+			$tmp = $this->getLastChild($destNode['id']);
 			$max = $tmp ? $tmp['num'] : $max;
 			unset($tmp);
 		} else

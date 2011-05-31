@@ -32,7 +32,7 @@
 	$map['groupRoot'][USERS] = $groups;
 	$tmp = isset($_GET['node']) ? $_GET['node'] : @$_COOKIE['curnode'];
 	$curnode = isset($groups[$tmp]) ? $tmp : (sizeof($groups) ? key($groups) : -1);
-	$group = &$gf->getGroup($curnode);
+	$group = $gf->getGroup($curnode);
 	setcookie('curnode', $curnode, 0, WCHOME.'/users/');
 	header("Content-type: text/xml; charset=utf-8");
 	echo '<?xml version="1.0" encoding="utf-8"?>';
