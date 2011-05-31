@@ -41,7 +41,7 @@ class Authentication {
 	}
 	
 	function &create(&$user) {
-		$result = & new Authentication();
+		$result = new Authentication();
 		$result->userId = $user->id;
 		$result->groupId = $user->groupId;
 		$result->membership = $user->membership;
@@ -165,7 +165,7 @@ class Authentication {
 		unset($_SESSION['wcsProfileId'], $_SESSION['wcsProfile']);
 		unset($_SESSION['wciEditor']);
 		Authentication::destroyUID();
-		$auth = & new Authentication();
+		$auth = new Authentication();
 		Authentication::_authentication($auth, 0);
 	}
 	

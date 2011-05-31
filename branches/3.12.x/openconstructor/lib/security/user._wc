@@ -85,7 +85,7 @@ class User {
 	}
 
 	function &fromArray(&$user) {
-		$result = & new User($user['login'], $user['name']);
+		$result = new User($user['login'], $user['name']);
 		$result->id = (int) $user['id'];
 		$result->groupId = (int) $user['group_id'];
 		$result->autologinId = $user['autologin'];

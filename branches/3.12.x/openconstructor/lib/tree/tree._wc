@@ -59,7 +59,7 @@ class Tree {
 	function &getSubTree($nodeId) {
 		$result = null;
 		if($this->exists($nodeId)) {
-			$result = & new Tree($this->node[$nodeId]);
+			$result = new Tree($this->node[$nodeId]);
 			$nodes = array_keys($this->node);
 			for($i = 0; $i < sizeof($nodes); $i++)
 				if($this->contains($nodeId, $nodes[$i]))

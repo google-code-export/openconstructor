@@ -136,7 +136,7 @@ class RatingRateLogic extends WCObject {
 			'userRating' => $rating,
 			'userComment' => $comment
 		);
-		$msg = & new WCMessage();
+		$msg = new WCMessage();
 		$msg->setTemplate(($this->tpl ? $this->tpl : 'file:'.LIBDIR.'/tpl/'.$this->obj_type).'.tpl');
 		$msg->setContentType('text/html');
 		$msg->setContent($content);

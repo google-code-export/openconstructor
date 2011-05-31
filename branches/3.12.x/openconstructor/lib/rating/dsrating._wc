@@ -249,7 +249,7 @@ class DSRating extends WCDataSource {
 				, strlen(DSR_FAKE_LOGIN_PREFIX), addslashes(DSR_FAKE_LOGIN_PREFIX)
 			));
 		$last = intval($r = mysql_fetch_row($res) ? $r[0] : 0);
-		$user = & new User(null, null); $user->active = false;
+		$user = new User(null, null); $user->active = false;
 		$uf = &UserFactory::getInstance();
 		$user->pwd = $uf->generatePwd(8);
 		WCS::runAs(WCS_ROOT_ID);

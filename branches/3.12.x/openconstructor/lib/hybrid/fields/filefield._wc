@@ -211,7 +211,7 @@ class FileField extends HybridField {
 	function &_getImgCopier() {
 		if(!is_object($this->ic)) {
 			require_once(LIBDIR.'/imgcopier._wc');
-			$this->ic = & new ImgCopier();
+			$this->ic = new ImgCopier();
 			$this->ic->setRequirement($this->minX, $this->minY, $this->maxX, $this->maxY);
 		}
 		return $this->ic;

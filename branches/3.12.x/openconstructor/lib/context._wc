@@ -38,7 +38,7 @@ class Context {
 		$this->page = null;
 		$this->router = null;
 		$this->auth = null;
-		$this->_events = & new PageEvents();
+		$this->_events = new PageEvents();
 	}
 
 	function getBaseHref() {
@@ -69,7 +69,7 @@ class Context {
 					$router[$rUri] = &$this->router;
 				} else {
 					require_once(LIBDIR.'/router._wc');
-					$router[$rUri] = & new Router($rUri, $this->map->uri[$rUri]['name'], '/');
+					$router[$rUri] = new Router($rUri, $this->map->uri[$rUri]['name'], '/');
 				}
 			}
 			$pattern = $router[$rUri]->route($rUri.utf8_substr($uri, $pos + 10), &$params);

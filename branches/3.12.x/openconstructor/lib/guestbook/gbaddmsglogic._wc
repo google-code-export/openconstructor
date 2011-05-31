@@ -185,7 +185,7 @@ class GBAddMsgLogic extends WCObject {
 			'mgbName' => $ds->name,
 			'gbHref' => "http://{$GLOBALS['_host']}{$GLOBALS['_wchome']}/data/?node={$ds->ds_id}"
 		);
-		$msg = & new WCMessage();
+		$msg = new WCMessage();
 		$msg->setTemplate(($this->tpl ? $this->tpl : 'file:'.LIBDIR.'/tpl/'.$this->obj_type).'.tpl');
 		$msg->setContentType('text/html');
 		$msg->setContent($content);

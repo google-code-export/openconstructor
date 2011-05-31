@@ -31,7 +31,7 @@ class PageCompiler {
 	var $reader, $tree;
 
 	function PageCompiler() {
-		$this->reader = & new PageReader();
+		$this->reader = new PageReader();
 	}
 
 	function &compile(&$page) {
@@ -138,7 +138,7 @@ class PageCompiler {
 				"\t\$info = '%s';\n", addslashes($pathInfo)
 			);
 		$routerContent .=
-			"\t\$router = & new Router('$route', '$name', \$info);\n";
+			"\t\$router = new Router('$route', '$name', \$info);\n";
 		if($route != $page->uri) {
 			$tree = &$this->_getSiteTree();
 			$router = $tree->getPageByUri($route);
@@ -243,7 +243,7 @@ class PageCompiler {
 			$i."	require_once(LIBDIR.'/security/wcs._wc');\n".
 			$i."	Authentication::importFromSession();\n".
 			$i."	\$page->authenticationPage = _getAuthenticationPage();\n".
-			$i."	\$page->sRes = & new WCSResource(&\$page->uri, WCS_ROOT_ID, 0);\n";
+			$i."	\$page->sRes = new WCSResource(&\$page->uri, WCS_ROOT_ID, 0);\n";
 		$tree = &$this->_getSiteTree();
 		$node = &$tree->node[$page->id];
 		$authCheck = array();
@@ -277,7 +277,7 @@ class PageCompiler {
 			$i."define('WCI_ENABLED', WCI_ALLOWED && \$ctx->auth->isWciEditor());\n".
 			"\n".
 			$i."require_once(LIBDIR.'/smarty/wcsmarty._wc');\n".
-			$i."\$smarty = & new WCSmarty();\n".
+			$i."\$smarty = new WCSmarty();\n".
 			$i."\$smarty->_ctx = &\$ctx;\n".
 			$i."\$ctx->_smarty = &\$smarty;\n".
 			$i."\$ctx->_fireEvent('onCreateSmarty');\n".

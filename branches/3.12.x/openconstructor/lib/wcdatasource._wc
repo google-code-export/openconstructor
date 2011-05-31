@@ -141,7 +141,7 @@ class WCDataSource {
 	}
 
 	function &getEmptyDocument() {
-		$result = & new Document();
+		$result = new Document();
 		return $result;
 	}
 
@@ -348,7 +348,7 @@ class WCDataSource {
 		static $smc;
 		if($smc === null) {
 			include_once(LIBDIR.'/smarty/wcsmartycache._wc');
-			$smc = & new WCSmartyCache();
+			$smc = new WCSmartyCache();
 		}
 		return $smc;
 	}

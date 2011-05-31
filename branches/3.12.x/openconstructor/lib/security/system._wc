@@ -53,7 +53,7 @@ class System {
 		if(is_object($instance))
 			return $instance;
 		$instance = new System();
-		$res = & new WCSResource('Open Constructor', WCS_ROOT_ID, WCS_USERGROUP);
+		$res = new WCSResource('Open Constructor', WCS_ROOT_ID, WCS_USERGROUP);
 		
 		$res->addAction('sitemap');
 		$res->addAction('data');

@@ -72,7 +72,7 @@ class SiteAuthentication {
 	}
 	
 	function &createFromSession() {
-		$result = & new SiteAuthentication();
+		$result = new SiteAuthentication();
 		if(@$_SESSION['wcsUserId']) {
 			$result->userId = @$_SESSION['wcsUserId'];
 			$result->userLogin = @$_SESSION['wcsUserLogin'];
@@ -88,7 +88,7 @@ class SiteAuthentication {
 	
 	function &createFrom(&$auth) {
 		if(is_object($auth)) {
-			$result = & new SiteAuthentication();
+			$result = new SiteAuthentication();
 			$result->_copy(&$auth);
 		} else
 			$result = null;

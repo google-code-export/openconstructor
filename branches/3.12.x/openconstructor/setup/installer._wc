@@ -44,7 +44,7 @@ function _installer_install_db() {
 	$dump = implode('', file($_SERVER['DOCUMENT_ROOT'].WCHOME.'/dist/base.sql'));
 
 	require_once(LIBDIR.'/db/sqltokenizer._wc');
-	$tok = & new SqlTokenizer();
+	$tok = new SqlTokenizer();
 	$tok->bind($dump);
 
 	$result = true;
