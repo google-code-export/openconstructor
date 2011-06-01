@@ -126,7 +126,7 @@ class GBAllMessages extends WCObject {
 	
 	function &_getDSFields() {
 		static $result;
-		if(!is_array(&$result)) $result = array('ds_id', 'defaultGB', 'gbid');
+		if(!is_array($result)) $result = array('ds_id', 'defaultGB', 'gbid');
 		return $result;
 	}
 }

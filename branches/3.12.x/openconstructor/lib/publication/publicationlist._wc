@@ -86,7 +86,7 @@ class PublicationList extends WCObject {
 				if(isset($fet[$row['rid']])||(!$this->withCurrent&&@$fet[$row['id']])) continue;
 				$fet[$row['rid']] = true;
 				$news[$row['id']]['header'] = escapeTags($row['header']);
-				$news[$row['id']]['href'] = isset($displayed[$row['id']]) ? null : sprintf(&$thref,$row['id']);
+				$news[$row['id']]['href'] = isset($displayed[$row['id']]) ? null : sprintf($thref,$row['id']);
 				$news[$row['id']]['gid'] = $row['gallery'];
 				$news[$row['id']]['date'] = wcfFormatTime($this->dateFormat, $row['date']);
 			}

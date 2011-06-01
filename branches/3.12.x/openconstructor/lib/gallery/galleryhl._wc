@@ -83,7 +83,7 @@ class GalleryHL extends WCObject {
 				if(isset($fet[$row['rid']])) continue;
 				$fet[$row['rid']] = true;
 				$image[$row['id']]['header'] = escapeTags($row['header']);
-				$image[$row['id']]['href'] = sprintf(&$thref,$offset);
+				$image[$row['id']]['href'] = sprintf($thref,$offset);
 				$image[$row['id']]['image'] = $row['image'];
 				$image[$row['id']]['content'] = $row['content'];
 				$image[$row['id']]['type'] = $row['type'];
@@ -105,7 +105,7 @@ class GalleryHL extends WCObject {
 	
 	function &_getDSFields() {
 		static $result;
-		if(!is_array(&$result)) $result = array('ds_id', 'dynamic_ds');
+		if(!is_array($result)) $result = array('ds_id', 'dynamic_ds');
 		return $result;
 	}
 }

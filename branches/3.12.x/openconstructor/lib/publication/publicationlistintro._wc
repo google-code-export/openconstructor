@@ -91,8 +91,8 @@ class PublicationListIntro extends WCObject {
 				if(isset($fet[$row['rid']])||(!$this->withCurrent&&@$fet[$row['id']])) continue;
 				$fet[$row['rid']] = true;
 				$news[$row['id']]['header'] = escapeTags($row['header']);
-				$news[$row['id']]['href'] = isset($displayed[$row['id']]) ? null : sprintf(&$thref,$this->srvuri,$row['id']);
-				$news[$row['id']]['ghref'] = sprintf(&$thref, $this->glruri, $row['id']);
+				$news[$row['id']]['href'] = isset($displayed[$row['id']]) ? null : sprintf($thref,$this->srvuri,$row['id']);
+				$news[$row['id']]['ghref'] = sprintf($thref, $this->glruri, $row['id']);
 				$news[$row['id']]['image'] = $row['image'];
 				$news[$row['id']]['date'] = wcfFormatTime($this->dateFormat, $row['date']);
 				$news[$row['id']]['intro'] = $this->cutIntro > 0

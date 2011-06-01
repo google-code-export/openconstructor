@@ -346,7 +346,7 @@ class DSHybridFactory {
 	}
 
 	function &getFtp() {
-		if(!is_object(&$this->ftp)) {
+		if(!is_object($this->ftp)) {
 			loadClass('wcftp', '/wcftp._wc');
 			$this->ftp = WCFTP::getNew();
 		}

@@ -92,9 +92,9 @@ class HybridTree extends WCObject {
 				for($i = 0, $treeIds = array(), $l = sizeof($this->docFields); $i < $l; $i++)
 					if($id = @$trees[$agent->dsFields[$this->docFields[$i]['id']]['name']])
 						$treeIds[] = $id;
-				$treeIds = sizeof($treeIds) ? implode(',', &$treeIds) : -1;
+				$treeIds = sizeof($treeIds) ? implode(',', $treeIds) : -1;
 			} else
-				$treeIds = sizeof($trees) ? implode(',', &$trees) : -1;
+				$treeIds = sizeof($trees) ? implode(',', $trees) : -1;
 			$ctx = &Context::getInstance();
 			$uri = $ctx->getPatternFor($this->srvUri, array($this->dsIdKey, $this->nodeId));
 			$result = array(1 => array('id' => 1, 'parent' => null, 'key' => null, 'at' => null, 'header' => null, 'level' => 0, 'href' => sprintf($uri, $agent->dsKey, '')));
@@ -173,7 +173,7 @@ class HybridTree extends WCObject {
 	
 	function &_getDSFields() {
 		static $result;
-		if(!is_array(&$result)) $result = array('ds_id', 'dsIdKey');
+		if(!is_array($result)) $result = array('ds_id', 'dsIdKey');
 		return $result;
 	}
 }

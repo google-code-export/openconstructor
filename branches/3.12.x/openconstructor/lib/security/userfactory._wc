@@ -80,7 +80,7 @@ class UserFactory {
 				$ids[] = $r[0];
 		mysql_free_result($res);
 		if(!sizeof($ids)) return;
-		$ids = implode(',', &$ids);
+		$ids = implode(',', $ids);
 		UserFactory::removeUserProfiles($ids);
 		$db->query(
 			'DELETE wcsmembership.* FROM wcsmembership, wcsusers WHERE wcsusers.id IN ('.$ids.') AND wcsusers.id = wcsmembership.user_id'
@@ -117,7 +117,7 @@ class UserFactory {
 		if($old->email != $user->email && ($groupOwners || WCS::decide($old, 'edit.email')))
 			$querySet .= sprintf(', email = "%s"', addslashes($user->email));
 		if($old->groupId != $user->groupId && ($groupOwners || WCS::decide($old, 'edit.group')))
-			if(array_search($user->groupId, &$old->membership) !== false) {
+			if(array_search($user->groupId, $old->membership) !== false) {
 				$newGroup = &GroupFactory::getGroup($user->groupId);
 				assert($newGroup != null);
 				if($old->profileId > 0) {
@@ -138,8 +138,8 @@ class UserFactory {
 	}
 
 	function setUserMembership(&$user, $membership) {
-		$remove = array_diff(&$user->membership, &$membership);
-		$add = array_diff(&$membership, &$user->membership);
+		$remove = array_diff($user->membership, $membership);
+		$add = array_diff($membership, $user->membership);
 		foreach($remove as $id)
 			if($id != WCS_EVERYONE_ID) {
 				$group = &GroupFactory::getGroup($id);

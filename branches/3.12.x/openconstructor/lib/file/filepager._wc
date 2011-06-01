@@ -123,7 +123,7 @@ class FilePager extends WCObject {
 	
 	function &_getDSFields() {
 		static $result;
-		if(!is_array(&$result)) $result = array('slave');
+		if(!is_array($result)) $result = array('slave');
 		return $result;
 	}
 }

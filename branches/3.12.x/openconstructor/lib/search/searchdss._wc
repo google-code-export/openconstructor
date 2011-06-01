@@ -63,7 +63,7 @@ class SearchDSs extends WCObject {
 		$smarty->assign('found', (int) @$this->availableDocsCount);
 		$smarty->assign('time', round($this->time, 3));
 		$smarty->assign('header', $this->header);
-		$smarty->assign_by_ref('results', &$searchResults);
+		$smarty->assign_by_ref('results', $searchResults);
 		$smarty->assign_by_ref('offset', $this->listOffset);
 		$smarty->assign_by_ref('size', $this->listSize);
 		$result = array('header', 'found', 'keyword', 'results');
@@ -103,7 +103,7 @@ class SearchDSs extends WCObject {
 				$paramValues[0] = &$r['id'];
 				$paramValues[1] = &$r['ds_id'];
 				$paramValues[2] = &$r['file'];
-				$results[$i]['href'] = $r['type'] != 'htmltext' ? str_replace(&$paramNames, &$paramValues, &$this->hrefs[$r['ds_id']]) : $ctx->map->getHref($ctx->map->id[$r['id']]['uri']);
+				$results[$i]['href'] = $r['type'] != 'htmltext' ? str_replace($paramNames, $paramValues, $this->hrefs[$r['ds_id']]) : $ctx->map->getHref($ctx->map->id[$r['id']]['uri']);
 			}
 		} elseif($this->availableDocsCount > (int) @$this->originalOffset && !$this->no404)
 			$this->ctx->throw404();

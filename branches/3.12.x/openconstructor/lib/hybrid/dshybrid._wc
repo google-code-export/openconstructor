@@ -288,7 +288,7 @@ class DSHybrid extends WCDataSource {
 			$rep['%'.($i + 1).'$s'] = '{'.$fields[$i].'}';
 			$fields[$i] = isset($record->fields['f_'.$fields[$i]]) ? 'f_'.$fields[$i] : $fields[$i];
 		}
-		$indexedDoc = str_replace(array_values(&$rep), array_keys(&$rep), $indexedDoc);
+		$indexedDoc = str_replace(array_values($rep), array_keys($rep), $indexedDoc);
 		$agrs = array_fill(0, $fieldsLength + 1, null);
 		$args[0] = &$indexedDoc;
 		$intro = &$this->docIntro;

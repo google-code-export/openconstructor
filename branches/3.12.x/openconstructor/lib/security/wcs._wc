@@ -88,9 +88,9 @@ class WCS {
 	}
 	
 	function inGroup(&$res, &$membership) {
-		return is_array(&$res->sRes->group) ?
-			sizeof(array_intersect(&$res->sRes->group, &$membership)) :
-			array_search($res->sRes->group, &$membership) !== false;
+		return is_array($res->sRes->group) ?
+			sizeof(array_intersect($res->sRes->group, $membership)) :
+			array_search($res->sRes->group, $membership) !== false;
 		
 	}
 	
