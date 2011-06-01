@@ -77,7 +77,7 @@ class ArrayField extends HybridField {
 					while($r = mysql_fetch_row($res))
 						if($r[0])
 							$doc[] = $r[0];
-					$doc = explode(',', implode(',', &$doc));
+					$doc = explode(',', implode(',', $doc));
 					loadClass('dshybridfactory', '/hybrid/dshybridfactory._wc');
 					$dsf = new DSHybridFactory();
 					$dsf->removeDocuments(&$doc);

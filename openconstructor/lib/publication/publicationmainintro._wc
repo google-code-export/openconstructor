@@ -80,8 +80,8 @@ class PublicationMainIntro extends WCObject {
 					$thref='javascript:wxyopen(\''.$thref.'\','.@$this->jsOpen['x'].','.@$this->jsOpen['y'].')';
 				$this->doc['id'] = $r['id'];
 				$this->doc['header'] = escapeTags($r['header']);
-				$this->doc['href'] = sprintf(&$thref, $this->srvuri, $r['id']);
-				$this->doc['ghref'] = sprintf(&$thref, $this->glruri, $r['id']);
+				$this->doc['href'] = sprintf($thref, $this->srvuri, $r['id']);
+				$this->doc['ghref'] = sprintf($thref, $this->glruri, $r['id']);
 				$this->doc['image'] = $r['image'];
 				$this->doc['image_main'] = $r['img_main'];
 				$this->doc['date'] = wcfFormatTime($this->dateFormat, $r['date']);

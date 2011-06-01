@@ -97,8 +97,8 @@ class PublicationHLIntro extends WCObject {
 				$fet[$row['rid']] = true;
 				$news[$row['id']]['ds_id'] = (int) $row['ds_id'];
 				$news[$row['id']]['header'] = escapeTags($row['header']);
-				$news[$row['id']]['href'] = isset($displayed[$row['id']]) ? null : sprintf(&$href, $row['id']);
-				$news[$row['id']]['ghref'] = @$row['docs'] ? sprintf(&$ghref, $row['id']) : null;
+				$news[$row['id']]['href'] = isset($displayed[$row['id']]) ? null : sprintf($href, $row['id']);
+				$news[$row['id']]['ghref'] = @$row['docs'] ? sprintf($ghref, $row['id']) : null;
 				$news[$row['id']]['image'] = $row['image'];
 				$news[$row['id']]['date'] = wcfFormatTime($this->dateFormat, $row['date']);
 				$news[$row['id']]['intro'] = $this->cutIntro > 0

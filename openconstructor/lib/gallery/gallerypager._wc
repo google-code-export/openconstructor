@@ -120,7 +120,7 @@ class GalleryPager extends WCObject {
 	
 	function &_getDSFields() {
 		static $result;
-		if(!is_array(&$result)) $result = array('master');
+		if(!is_array($result)) $result = array('master');
 		return $result;
 	}
 }

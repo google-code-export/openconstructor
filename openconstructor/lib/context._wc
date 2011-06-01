@@ -102,7 +102,7 @@ class Context {
 			unset($get[$params[$i]]);
 			$get[$params[$i]] = '%'.(++$i).'$s';
 		}
-		$params = array_flip(&$params);
+		$params = array_flip($params);
 		foreach($get as $name => $value)
 			if (!is_array($value)) {
 			if($value)
@@ -117,7 +117,7 @@ class Context {
 						unset($get["{$name}[$k]"]);
 				unset($get[$name]);
 			}
-		$result = $path.(sizeof($get) ? '?'.implode('&', &$get) : '').($anchor ? "#$anchor" : '');
+		$result = $path.(sizeof($get) ? '?'.implode('&', $get) : '').($anchor ? "#$anchor" : '');
 		return $result;
 	}
 
@@ -281,7 +281,7 @@ class Context {
 	function _sortObjects() {
 		if(is_array($this->objIds))
 			return;
-		$objIds = array_keys(&$this->objects);
+		$objIds = array_keys($this->objects);
 		$objects = array(); $types = array('PRE' => array(), '*hybrid' => array(), '*named' => array(), 'POST' => array());
 		foreach($objIds as $id)
 			if(isset($types[$this->objects[$id]->block]))
@@ -294,7 +294,7 @@ class Context {
 			for($i = 0, $l = sizeof($v); $i < $l; $i++)
 				if($v[$i])
 					$objects[$v[$i]] = &$this->objects[$v[$i]];
-		$this->objIds = array_keys(&$objects);
+		$this->objIds = array_keys($objects);
 		$this->objects = &$objects;
 	}
 }

@@ -181,7 +181,7 @@ class ObjManager {
 				" VALUES ('$obj->ds_id', '$obj->ds_type', '$obj->obj_type'".
 				", %d, %d, %d, CONV('%s', 2, 10), CONV('%s', 2, 10), '%s', '%s', '%s','%s')"
 				, intval($obj->cached_by_WC), $auth->userId, $auth->groupId, $oAuths, $gAuths
-				, addslashes($obj->name), addslashes($obj->description), time(), addslashes(serialize(&$obj))
+				, addslashes($obj->name), addslashes($obj->description), time(), addslashes(serialize($obj))
 			)
 		);
 		$id = (int) $db->lastInsertId();

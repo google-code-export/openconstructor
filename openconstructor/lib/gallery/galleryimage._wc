@@ -144,7 +144,7 @@ class GalleryImage extends WCObject {
 		
 	function &_getDSFields() {
 		static $result;
-		if(!is_array(&$result)) $result = array('ds_id', 'dynamic_ds');
+		if(!is_array($result)) $result = array('ds_id', 'dynamic_ds');
 		return $result;
 	}
 }

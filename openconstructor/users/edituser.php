@@ -136,7 +136,7 @@ function checkForm() {
 			<?php
 				$groups = &GroupFactory::getAllGroups();
 				foreach($groups as $id => $title)
-					echo "<option value='$id'".(array_search($id, &$user->membership) !== false ? ' selected old="yes"': '').'>'.$title.'</option>';
+					echo "<option value='$id'".(array_search($id, $user->membership) !== false ? ' selected old="yes"': '').'>'.$title.'</option>';
 			?>
 			</select></td>
 		</tr>

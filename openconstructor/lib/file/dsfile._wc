@@ -135,8 +135,8 @@ class DSFile extends WCDataSource {
 		
 	function setGroups($groups) {
 		WCS::assert($this, 'editds');
-		$this->groups = array_values(&$groups);
-		if(array_search(WCS_EVERYONE_ID, &$this->groups) !== false)
+		$this->groups = array_values($groups);
+		if(array_search(WCS_EVERYONE_ID, $this->groups) !== false)
 			$this->groups[] = WCS_EVERYONE_ID;
 		$this->updateHtAccess();
 	}
@@ -378,7 +378,7 @@ class DSFile extends WCDataSource {
 		$this->init_ftp();
 		$this->ftp->open();
 		$htaccess = FILES.$this->filePath.'.htaccess';
-		if(array_search(WCS_EVERYONE_ID, &$this->groups) !== false) {
+		if(array_search(WCS_EVERYONE_ID, $this->groups) !== false) {
 			if(@file_exists($_SERVER['DOCUMENT_ROOT'].$htaccess))
 				$this->ftp->unlink($htaccess);
 		} else {

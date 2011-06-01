@@ -84,7 +84,7 @@ class ArticleHL extends WCObject
 				if(isset($fet[$row['rid']])) continue;
 				$fet[$row['rid']] = true;
 				$article[$row['id']]['header'] = escapeTags($row['header']);
-				$article[$row['id']]['href'] = isset($displayed[$row['id']]) ? '' : sprintf(&$thref, $row['id']);
+				$article[$row['id']]['href'] = isset($displayed[$row['id']]) ? '' : sprintf($thref, $row['id']);
 				$article[$row['id']]['date'] = wcfFormatTime($this->dateFormat, $row['date']);
 			}
 			$smarty->assign('header',$this->header);

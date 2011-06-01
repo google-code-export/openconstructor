@@ -93,7 +93,7 @@ class GBMsgHL extends WCObject {
 					$fet[$row['rid']] = true;
 					$messages[$row['id']]['ds_id'] = (int) $row['ds_id'];
 					$messages[$row['id']]['subject'] = escapeTags($row['subject']);
-					$messages[$row['id']]['href'] = isset($displayed[$row['id']]) ? '' : sprintf(&$href, $row['id']);
+					$messages[$row['id']]['href'] = isset($displayed[$row['id']]) ? '' : sprintf($href, $row['id']);
 					$messages[$row['id']]['published'] = (int) $row['published'];
 					$messages[$row['id']]['author'] = escapeTags($row['author']);
 					$messages[$row['id']]['email'] = htmlspecialchars($row['email'], ENT_COMPAT, 'UTF-8');

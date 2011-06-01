@@ -155,7 +155,7 @@ class HybridBodyEdit extends WCObject {
 	
 	function &_getDSFields() {
 		static $result;
-		if(!is_array(&$result)) $result = array('ds_id', 'dsIdKey');
+		if(!is_array($result)) $result = array('ds_id', 'dsIdKey');
 		return $result;
 	}
 }

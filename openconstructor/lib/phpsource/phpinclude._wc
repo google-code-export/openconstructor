@@ -108,7 +108,7 @@ class PHPInclude extends WCObject {
 	
 	function &_getDSFields() {
 		static $result;
-		if(!is_array(&$result)) $result = array('ds_id', 'source');
+		if(!is_array($result)) $result = array('ds_id', 'source');
 		return $result;
 	}
 }

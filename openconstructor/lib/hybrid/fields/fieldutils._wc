@@ -45,7 +45,7 @@ class FieldUtils {
 		if($ownerId) {
 			loadClass('user', '/security/user._wc');
 			$owner = &User::load($ownerId);
-			if(is_object(&$owner)) {
+			if(is_object($owner)) {
 				$ds->sRes->setOwner($owner->id);
 				$ds->sRes->setGroup($owner->groupId);
 				$ds->updateAuths();

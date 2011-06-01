@@ -196,7 +196,7 @@ class Authentication {
 				return $instances[$last];
 			$auth = new Authentication();
 		}
-		if(is_object(&$auth)) {
+		if(is_object($auth)) {
 			if($index === null)
 				$instances[++$last] = &$auth;
 			elseif($index >= 0 && $index <= $last)
