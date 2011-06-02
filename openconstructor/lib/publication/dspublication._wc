@@ -64,7 +64,7 @@ class DSPublication extends WCDataSource
 		} else
 			$gallery = 'NULL';
 		$content = $this->cleanHTML($content);
-		if($intro === null) $intro=$this->create_intro(&$content,$this->introSize);
+		if($intro === null) $intro=$this->create_intro($content,$this->introSize);
 		settype($date, 'int');
 		$db = &WCDB::bo();
 		$db->query(
@@ -83,7 +83,7 @@ class DSPublication extends WCDataSource
 			
 			$this->updateSize();
 			if($this->autoPublish) {
-				$this->addToIndex($id, $header, &$content, &$intro);
+				$this->addToIndex($id, $header, $content, $intro);
 				$this->evictDocCache();
 			}
 		} elseif($dsg)
@@ -197,7 +197,7 @@ class DSPublication extends WCDataSource
 		$_ids = implode(',', $ids);
 		
 		if($this->attachGallery && !$leaveGalleries)
-			$this->removeGalleries(&$_ids);
+			$this->removeGalleries($_ids);
 		$db = &WCDB::bo();
 		$db->query(
 			'DELETE FROM '.$this->DSTable.' '.
@@ -206,7 +206,7 @@ class DSPublication extends WCDataSource
 		
 		$this->updateSize();
 			
-		$this->removeFromIndex(&$_ids);
+		$this->removeFromIndex($_ids);
 		
 		foreach($ids as $id) {
 			@unlink($_SERVER['DOCUMENT_ROOT'].FILES.$this->imagepath.intval($id).'.jpg');
@@ -215,7 +215,7 @@ class DSPublication extends WCDataSource
 			@unlink($_SERVER['DOCUMENT_ROOT'].FILES.$this->imagepath.intval($id).'_.gif');
 		}
 		
-		$this->evictDocCache(&$ids);
+		$this->evictDocCache($ids);
 	}
 	
 	function removeGalleries($ids) {
@@ -247,7 +247,7 @@ class DSPublication extends WCDataSource
 		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
 		$content = $this->cleanHTML($content);
 		if($intro === null)
-			$intro=$this->create_intro(&$content, $this->introSize);
+			$intro=$this->create_intro($content, $this->introSize);
 		$ids = $this->getAliases($id, true);
 		settype($date, 'int');
 		$db = &WCDB::bo();
@@ -257,8 +257,8 @@ class DSPublication extends WCDataSource
 			' WHERE id IN('.implode(',',$ids).')'
 		);
 		
-		$this->updateIndex($id, $header, &$content, &$intro);
-		$this->evictDocCache(&$ids);
+		$this->updateIndex($id, $header, $content, $intro);
+		$this->evictDocCache($ids);
 		return true;
 	}
 	

@@ -114,7 +114,7 @@
 	<?php
 		menu('data');
 		include('toolbar._wc');
-		toolbar(&$toolbar);
+		toolbar($toolbar);
 		$opened=@array_flip(explode(',', $ds->path));
 		$opened[$siteroot]=true;
 		$opened[$curnode]=true;

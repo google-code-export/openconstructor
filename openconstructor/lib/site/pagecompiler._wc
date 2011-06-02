@@ -243,19 +243,19 @@ class PageCompiler {
 			$i."	require_once(LIBDIR.'/security/wcs._wc');\n".
 			$i."	Authentication::importFromSession();\n".
 			$i."	\$page->authenticationPage = _getAuthenticationPage();\n".
-			$i."	\$page->sRes = new WCSResource(&\$page->uri, WCS_ROOT_ID, 0);\n";
+			$i."	\$page->sRes = new WCSResource(\$page->uri, WCS_ROOT_ID, 0);\n";
 		$tree = $this->_getSiteTree();
 		$node = &$tree->node[$page->id];
 		$authCheck = array();
 		while(($node = &$node->parent) != null)
 			$authCheck[] =
 				$i."	\$page->sRes->setGroup(\$map->id[$node->id]['usr']);\t// ".$node->getFullKey('/')."\n".
-				$i."	WCS::requireAuthentication(&\$page);\n";
+				$i."	WCS::requireAuthentication(\$page);\n";
 		$authCheck[] =
 				$i."	\$ctx->_fireEventArgs('onBeforeAuth', \$args = array('page' => &\$page));	unset(\$args);\n";
 		$result .= implode('', array_reverse($authCheck)).
 			$i."	\$page->sRes->setGroup(\$map->id[$page->id]['usr']);\t// $page->uri\n".
-			$i."	WCS::requireAuthentication(&\$page);\n".
+			$i."	WCS::requireAuthentication(\$page);\n".
 			$i."	_register_phase('Authenticating user');\n".
 			$i."	\$auth = &SiteAuthentication::createFrom(Authentication::getInstance());\n".
 			$i."} elseif(isset(\$_COOKIE[session_name()])) {\n".

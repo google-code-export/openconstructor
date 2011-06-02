@@ -90,9 +90,9 @@ function smarty_func_run_block($params, &$smarty) {
 			unset($params['id']);
 			if(is_array($obj)) {
 				for($i = 0, $l = sizeof($obj); $i < $l; $i++)
-					$obj[$i]->exec(&$smarty, $params);
+					$obj[$i]->exec($smarty, $params);
 			} else
-				$obj->exec(&$smarty, $params);
+				$obj->exec($smarty, $params);
 			unset($smarty->_object_stack[$obj->obj_id]);
 		} else {
 			$smarty->trigger_error('run_block: Recursive call. Stack = [ '.implode(' &gt; ', array_keys($smarty->_object_stack)).' &gt; <b>'.$obj->obj_id.'</b> ]');

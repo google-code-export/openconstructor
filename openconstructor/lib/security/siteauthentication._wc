@@ -89,7 +89,7 @@ class SiteAuthentication {
 	function &createFrom(&$auth) {
 		if(is_object($auth)) {
 			$result = new SiteAuthentication();
-			$result->_copy(&$auth);
+			$result->_copy($auth);
 		} else
 			$result = null;
 		return $result;

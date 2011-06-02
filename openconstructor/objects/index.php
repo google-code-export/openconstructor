@@ -96,7 +96,7 @@
 	<?php
 		menu('objects');
 		include('toolbar._wc');
-		toolbar(&$toolbar);
+		toolbar($toolbar);
 		echo '<navigation>';
 			print_tree($map, 'homeobj');
 		echo '</navigation>';

@@ -165,7 +165,7 @@ class GroupFactory {
 		$profiles = &GroupFactory::getProfileIds($group->id);
 		if(sizeof($profiles) > 0) {
 			loadClass('userfactory', '/security/userfactory._wc');
-			UserFactory::castProfiles(&$profiles, $group->profileType, $newType);
+			UserFactory::castProfiles($profiles, $group->profileType, $newType);
 		}
 		GroupFactory::setDSLock($group->profileType, false);
 		GroupFactory::setDSLock($newType, true);
@@ -176,7 +176,7 @@ class GroupFactory {
 		$profiles = &GroupFactory::getProfileIds($group->id);
 		if(sizeof($profiles) > 0) {
 			loadClass('userfactory', '/security/userfactory._wc');
-			UserFactory::removeProfiles(&$profiles);
+			UserFactory::removeProfiles($profiles);
 			$db = &WCDB::bo();
 			$db->query("UPDATE wcsusers SET profile = 0 WHERE group_id = {$group->id}");
 		}

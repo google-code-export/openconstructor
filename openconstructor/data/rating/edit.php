@@ -120,12 +120,13 @@
 	<tr>
 		<td id="tdToolbar" colspan="3">
 		<?php
-			toolbar(array(
+			toolbar($toolbar=array(
 				BTN_ACTIVATE_VOTE=>array('pic' => 'activate', 'action' => 'setVotesState(true)'),
 				BTN_DEACTIVATE_VOTE=>array('pic' => 'deactivate', 'action' => 'setVotesState(false)'),
 				'separator_',
 				BTN_REMOVE_VOTE=>array('pic' => 'remove', 'action' => 'removeVotes()')
 			));
+			unset($toolbar);
 		?>
 		</td>
 	</tr>

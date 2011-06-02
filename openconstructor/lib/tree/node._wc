@@ -46,13 +46,13 @@ class Node {
 	
 	function getFullKey($separator = '/') {
 		if($this->parent)
-			return $this->parent->getFullKey(&$separator) . $this->key . $separator;
+			return $this->parent->getFullKey($separator) . $this->key . $separator;
 		else
 			return $separator;
 	}
 	
 	function export(&$exportStrategy) {
-		return $exportStrategy->exportNode(&$this);
+		return $exportStrategy->exportNode($this);
 	}
 	
 	function size() {

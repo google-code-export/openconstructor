@@ -63,7 +63,7 @@ class DSGuestBook extends WCDataSource
 			);
 			$this->updateSize();
 			if($this->autoPublish) {
-				$this->addToIndex($id, $subject, &$html, $html);
+				$this->addToIndex($id, $subject, $html, $html);
 				$this->evictDocCache($id);
 			}
 		}
@@ -84,9 +84,9 @@ class DSGuestBook extends WCDataSource
 		
 		$this->updateSize();
 
-		$this->removeFromIndex(&$_ids);
+		$this->removeFromIndex($_ids);
 		
-		$this->evictDocCache(&$ids);
+		$this->evictDocCache($ids);
 	}
 
 	function update($id, $subject, $html, $date, $author = '', $email = '') {
@@ -110,9 +110,9 @@ class DSGuestBook extends WCDataSource
 			' WHERE id IN('.implode(',',$ids).')'
 		);
 		
-		$this->updateIndex($id, $subject, &$html, $html);
+		$this->updateIndex($id, $subject, $html, $html);
 		
-		$this->evictDocCache(&$ids);
+		$this->evictDocCache($ids);
 		return true;
 	}
 

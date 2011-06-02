@@ -52,7 +52,7 @@
 	$sFile->authenticationPage = _getAuthenticationPage();
 	$groups = explode(',', $_GET['require']);
 	$sFile->sRes = new WCSResource($filename, WCS_ROOT_ID, $groups);
-	WCS::requireAuthentication(&$sFile);
+	WCS::requireAuthentication($sFile);
 	require_once('../fileresponse._wc');
 	$response = new FileResponse($filename);
 	$response->doResponse();

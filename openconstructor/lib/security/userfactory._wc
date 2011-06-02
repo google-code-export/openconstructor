@@ -347,7 +347,7 @@ class UserFactory {
 		if(sizeof($ids)) {
 			$dsf = &UserFactory::_getHybridFactory();
 			WCS::runAs(WCS_ROOT_ID);
-			$dsf->castDocuments(&$ids, $oldType, $newType);
+			$dsf->castDocuments($ids, $oldType, $newType);
 			WCS::stopRunAs();
 		}
 	}
@@ -356,7 +356,7 @@ class UserFactory {
 		if(sizeof($ids)) {
 			$dsf = &UserFactory::_getHybridFactory();
 			WCS::runAs(WCS_ROOT_ID);
-			$dsf->removeDocuments(&$ids);
+			$dsf->removeDocuments($ids);
 			WCS::stopRunAs();
 		}
 	}

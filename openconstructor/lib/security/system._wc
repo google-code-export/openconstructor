@@ -34,17 +34,17 @@ class System {
 	
 	function request($act) {
 		$sys = &System::getInstance();
-		WCS::request($sys, &$act);
+		WCS::request($sys, $act);
 	}
 	
 	function assert($act) {
 		$sys = &System::getInstance();
-		WCS::assert($sys, &$act);
+		WCS::assert($sys, $act);
 	}
 	
 	function decide($act) {
 		$sys = &System::getInstance();
-		return WCS::decide($sys, &$act);
+		return WCS::decide($sys, $act);
 	}
 	
 	function &getInstance() {

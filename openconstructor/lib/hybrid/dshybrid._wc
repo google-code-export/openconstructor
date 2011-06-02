@@ -70,7 +70,7 @@ class DSHybrid extends WCDataSource {
 			$ids = array();
 			while($r = mysql_fetch_assoc($res))
 				$ids[] = intval($r['id']);
-			$this->removeOwnDocuments(&$ids);
+			$this->removeOwnDocuments($ids);
 		}
 		mysql_free_result($res);
 		$db->query(
@@ -165,7 +165,7 @@ class DSHybrid extends WCDataSource {
 		}
 		$this->removeEmptyDocuments($ids);
 		$this->updateSize();
-		$this->evictDocCache(&$ids);
+		$this->evictDocCache($ids);
 	}
 
 	function &getDocument($id) {
@@ -240,14 +240,14 @@ class DSHybrid extends WCDataSource {
 		unset($parents[0]);
 		foreach($parents as $parent)
 			$db->query("DELETE FROM dshybrid_$parent WHERE id IN ($ids)");
-		$this->removeFromIndex(&$ids);
+		$this->removeFromIndex($ids);
 	}
 
 	function delete($ids) {
 		loadClass('dshybridfactory', '/hybrid/dshybridfactory._wc');
 		$dsf = new DSHybridFactory();
 		$ids = explode(',', $ids);
-		$dsf->removeDocuments(&$ids);
+		$dsf->removeDocuments($ids);
 	}
 
 	function &getIndexableDocs($id = null) {

@@ -107,7 +107,7 @@
 	<div nowrap id='toolbar' width=100%><img src="<?=WCHOME?>/i/default/e/beginner.gif" style="margin:1px -4px 0px 0px;">
 	<?php
 		$save = @$_GET['hybridid'] > 0 || ($_GET['id'] == 'new' ? WCS::decide($_ds, 'createdoc') : WCS::decide($_ds, 'editdoc') || WCS::decide($sDoc, 'editdoc'));
-		toolbar(array(
+		toolbar($toolbar = array(
 			BTN_NEW_DOCUMENT=>array('pic'=>'newarticle','action'=>'window.location.assign("?id=new&ds_id='.$_GET['ds_id'].'")'),
 			BTN_SAVE=>array('pic'=>'saveart','action'=> $save ? 'sendData()' : ''),
 			'separator_',
@@ -119,6 +119,7 @@
 			'separator_',
 			BTN_REMOVE_PAGES=>array('pic'=>'rmvpage','action'=>'removePages()')
 		));
+		unset($toolbar);
 	?>
 	</div>
 	</td>
@@ -227,7 +228,7 @@
 			<nobr>
 			<div id='editbar' style='display:none;'>
 			<?php
-				toolbar(array(
+				toolbar($toolbar=array(
 					BTN_CUT=>array('pic'=>'cut','action'=>'excmd("Cut")'),
 					BTN_COPY=>array('pic'=>'copy','action'=>'excmd("Copy")'),
 					BTN_PASTE=>array('pic'=>'paste','action'=>'excmd("Paste")'),
@@ -256,6 +257,7 @@
 					BTN_EDIT_SOURCE=>array('pic'=>'editsrc','action'=>'editsource()'),
 					BTN_IMPORT_TABLE=>array('pic'=>'importtbl','action'=>'editTable()')
 				));
+				unset($toolbar);
 			?>
 				<IMG SRC="<?=WCHOME?>/i/default/e/separator.gif" align="top"> <SELECT size=1 id="tagID" align="absmiddle">
 			<?php

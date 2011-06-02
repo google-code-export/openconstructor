@@ -108,7 +108,7 @@ class DSFile extends WCDataSource {
 				$result[]='Cannot insert to DB, deleting file...';
 				@unlink($_SERVER['DOCUMENT_ROOT'].$filename);
 			} else {
-				$this->addToIndex($id, $name, &$description, $description);
+				$this->addToIndex($id, $name, $description, $description);
 				$this->updateSize();
 				$this->evictDocCache();
 			}
@@ -169,9 +169,9 @@ class DSFile extends WCDataSource {
 					' WHERE id IN('.implode(',',$ids).') AND ds_id='.$this->ds_id
 				);
 			$_ids = implode(',', $ids);
-			$this->removeFromIndex(&$_ids);
+			$this->removeFromIndex($_ids);
 			$this->updateSize();
-			$this->evictDocCache(&$ids);
+			$this->evictDocCache($ids);
 		}
 		mysql_free_result($res);
 	}
@@ -234,7 +234,7 @@ class DSFile extends WCDataSource {
 				' WHERE id='.$id
 			);
 		}
-		$this->updateIndex($id, $name, &$description, $description);
+		$this->updateIndex($id, $name, $description, $description);
 		$this->evictDocCache($id);
 		return sizeof($result) == 0 ? true : '<ul><li>'.implode('<li>', $result).'</ul>';
 	}

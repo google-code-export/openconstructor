@@ -158,7 +158,7 @@ class WCDataSource {
 			while($r = mysql_fetch_assoc($res))
 				$ids .= ','.$r['id'];
 			WCS::runAs(WCS_ROOT_ID);
-			$this->delete(&$ids);
+			$this->delete($ids);
 			WCS::stopRunAs();
 		}
 		mysql_free_result($res);
@@ -263,11 +263,11 @@ class WCDataSource {
 	function postremove() {}
 
 	function publish($ids) {
-		$this->_publish(&$ids,1);
+		$this->_publish($ids,1);
 	}
 
 	function unpublish($ids) {
-		$this->_publish(&$ids,0);
+		$this->_publish($ids,0);
 	}
 
 	function _publish($ids,$value) {
@@ -281,11 +281,11 @@ class WCDataSource {
 		);
 
 		if($value)
-			$this->addToIndex(&$ids);
+			$this->addToIndex($ids);
 		else
-			$this->removeFromIndex(&$ids);
+			$this->removeFromIndex($ids);
 
-		$this->evictDocCache(&$ids);
+		$this->evictDocCache($ids);
 	}
 
 	function isFull() {
@@ -303,7 +303,7 @@ class WCDataSource {
 		return $result;
 	}
 
-	function create_intro($html, $size) {
+	function create_intro(&$html, $size) {
 		$txt = strip_tags($html);
 		preg_match('/^.{'.($size-1).'}[^\s\.,:]*/ums', $txt, $intro);
 		return @$intro[0] ? $intro[0] : $txt;
@@ -322,7 +322,7 @@ class WCDataSource {
 
 	function evictDocCache($ids = array()) {
 		$smc = &WCDataSource::_getSmartyCache();
-		$smc->record_updated($this->ds_type, $this->ds_id, &$ids);
+		$smc->record_updated($this->ds_type, $this->ds_id, $ids);
 		if($this->isInternal) {
 			$query = array();
 			$db = &WCDB::bo();
@@ -458,7 +458,7 @@ class WCDataSource {
 		$indexer = &Indexer::getInstance();
 
 		if($ids)
-			$indexer->remove($this->ds_id, &$ids);
+			$indexer->remove($this->ds_id, $ids);
 		else
 			$indexer->remove($this->ds_id);
 	}

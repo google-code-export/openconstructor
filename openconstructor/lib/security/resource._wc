@@ -60,7 +60,7 @@ class WCSResource {
 		$this->map = &$map;
 		unset($this->actions[0]);
 		$auths = str_repeat('0', $this->length);
-		$this->setAuthorities(&$auths, &$auths);
+		$this->setAuthorities($auths, $auths);
 	}
 	
 	function setAuthorities($ownerAuths, $groupAuths = null) {

@@ -98,7 +98,7 @@
 	<?php
 		menu('templates');
 		include('toolbar._wc');
-		toolbar(&$toolbar);
+		toolbar($toolbar);
 		echo '<navigation>';
 			print_tree($map, 'hometpl');
 		echo '</navigation>';
