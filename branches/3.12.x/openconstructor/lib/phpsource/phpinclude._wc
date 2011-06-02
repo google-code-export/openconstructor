@@ -90,7 +90,7 @@ class PHPInclude extends WCObject {
 	function run() {
 		settype($this->source, 'int');
 		include_once(ROOT.FILES.$this->sourcePath.$this->source.'._wc');
-		return call_user_func('_wcf_phpsource_'.$this->source, $a = array());
+		return call_user_func('_wcf_phpsource_'.$this->source, array());
 	}
 	
 	function _setCidTpl($tpl) {

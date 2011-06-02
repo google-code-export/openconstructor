@@ -637,7 +637,7 @@ class PageFactory {
 		return $this->tree;
 	}
 
-	function &_clearTree() {
+	function _clearTree() {
 		$this->tree = null;
 	}
 
