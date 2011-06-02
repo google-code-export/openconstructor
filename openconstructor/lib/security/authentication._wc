@@ -29,6 +29,9 @@ class Authentication {
 	var $userLogin, $userName, $userEmail;
 	var $_wciEditor;
 	var $auths;
+	private static $sessions;
+	private static $instances;
+	private static $lastInst = -1;
 	
 	function Authentication() {
 		$this->userId = 0;
@@ -66,7 +69,7 @@ class Authentication {
 	}
 	
 	function getOriginalUserId() {
-		$auth = &Authentication::_authentication(0);
+		$auth = &Authentication::getInstanceAt(0);
 		return $auth->userId;
 	}
 	
@@ -170,18 +173,19 @@ class Authentication {
 	}
 	
 	function runAs(&$user) {
-		static $sessions;
-		if(!isset($sessions[$user->id]))
-			$sessions[$user->id] = &Authentication::create($user);
-		Authentication::_authentication($sessions[$user->id]);
+		if(!isset(Authentication::$sessions[$user->id]))
+			Authentication::$sessions[$user->id] = &Authentication::create($user);
+		Authentication::_authentication(Authentication::$sessions[$user->id]);
 	}
 	
 	function stopRunAs() {
-		Authentication::_authentication(-1);
+		if(Authentication::$lastInst > 0)
+			unset(Authentication::$instances[Authentication::$lastInst--]);
+		return Authentication::$instances[Authentication::$lastInst];		
 	}
 	
 	function &getOriginal() {
-		return Authentication::_authentication(0);
+		return Authentication::getInstanceAt(0);
 	}
 	
 	function &getInstance() {
@@ -190,22 +194,24 @@ class Authentication {
 	
 	function &_authentication(&$auth = null, $index = null) {
 		// TODO: продокументировать пока все помню
-		static $instances, $last = -1;
 		if($auth === null) {
-			if(isset($instances[$last]))
-				return $instances[$last];
+			if(isset(Authentication::$instances[Authentication::$lastInst]))
+				return Authentication::$instances[Authentication::$lastInst];
 			$auth = new Authentication();
 		}
 		if(is_object($auth)) {
 			if($index === null)
-				$instances[++$last] = &$auth;
-			elseif($index >= 0 && $index <= $last)
-				$instances[$index] = &$auth;
-		} elseif($auth >= 0 && $auth <= $last)
-			return $instances[$auth];
-		elseif($auth == -1 && $last > 0)
-			unset($instances[$last--]);
-		return $instances[$last];
+				Authentication::$instances[++Authentication::$lastInst] = &$auth;
+			elseif($index >= 0 && $index <= Authentication::$lastInst)
+				Authentication::$instances[$index] = &$auth;
+		}
+		return Authentication::$instances[Authentication::$lastInst];
+	}
+
+	function &getInstanceAt($index) {
+		if($index >= 0 && $index <= Authentication::$lastInst)
+			return Authentication::$instances[$index];
+		return Authentication::$instances[Authentication::$lastInst];
 	}
 }
 ?>
