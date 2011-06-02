@@ -183,7 +183,7 @@ else
 <nobr>
 <?php
 	$save = @$_GET['hybridid'] > 0 || ($_GET['id'] == 'new' ? WCS::decide($_ds, 'createdoc') : WCS::decide($_ds, 'editdoc') || WCS::decide($sDoc, 'editdoc'));
-	toolbar(array(
+	toolbar($toolbar=array(
 		BTN_NEW_DOCUMENT=>array('pic'=>'newdocument','action'=>'window.location.assign("?id=new&ds_id='.$_GET['ds_id'].'")'),
 		BTN_SAVE=>array('pic'=>'save','action'=> $save ? 'sendData()' : ''),
 		'separator',
@@ -214,6 +214,7 @@ else
 		BTN_EDIT_SOURCE=>array('pic'=>'editsrc','action'=>'editsource()'),
 		BTN_IMPORT_TABLE=>array('pic'=>'importtbl','action'=>'editTable()')
 	));
+	unset($toolbar);
 ?><IMG SRC="<?=WCHOME?>/i/default/e/separator.gif" align="top"> <SELECT size=1 id="tagID" align="absmiddle"><?php
 	foreach(explode(',','H1,H2,H3,H4,DIV,SPAN,NOBR') as $tag)
 		if(array_search($tag,$allowed)!==false)

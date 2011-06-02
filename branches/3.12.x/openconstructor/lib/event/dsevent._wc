@@ -50,7 +50,7 @@ class DSEvent extends WCDataSource {
 		if($this->isFull()) return false;
 		$content = $this->cleanHTML($content);
 		$place = $this->cleanHTML($place);
-		if($intro === null) $intro=$this->create_intro(&$content,$this->introSize);
+		if($intro === null) $intro=$this->create_intro($content,$this->introSize);
 		settype($date, 'int');
 		settype($enddate, 'int');
 		$db = &WCDB::bo();
@@ -70,7 +70,7 @@ class DSEvent extends WCDataSource {
 			$this->updateSize();
 			
 			if($this->autoPublish) {
-				$this->addToIndex($id, $header, &$content, &$intro);
+				$this->addToIndex($id, $header, $content, $intro);
 				$this->evictDocCache();
 			}
 		}
@@ -191,7 +191,7 @@ class DSEvent extends WCDataSource {
 		
 		$this->updateSize();
 		
-		$this->removeFromIndex(&$_ids);
+		$this->removeFromIndex($_ids);
 		
 		foreach($ids as $id)
 		{
@@ -201,7 +201,7 @@ class DSEvent extends WCDataSource {
 			@unlink($_SERVER['DOCUMENT_ROOT'].FILES.$this->imagepath.intval($id).'_.gif');
 		}
 		
-		$this->evictDocCache(&$ids);
+		$this->evictDocCache($ids);
 	}
 	
 	function update($id,$header,$content,$date,$enddate,$place,$intro=NULL)
@@ -214,7 +214,7 @@ class DSEvent extends WCDataSource {
 		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
 		$content = $this->cleanHTML($content);
 		$place = $this->cleanHTML($place);
-		if($intro === null) $intro=$this->create_intro(&$content,$this->introSize);
+		if($intro === null) $intro=$this->create_intro($content,$this->introSize);
 		$ids = $this->getAliases($id, true);
 		settype($date, 'int');
 		settype($enddate, 'int');
@@ -225,9 +225,9 @@ class DSEvent extends WCDataSource {
 			' WHERE id IN('.implode(',',$ids).')'
 		);
 		
-		$this->updateIndex($id, $header, &$content, &$intro);
+		$this->updateIndex($id, $header, $content, $intro);
 		
-		$this->evictDocCache(&$ids);
+		$this->evictDocCache($ids);
 		return true;
 	}
 	

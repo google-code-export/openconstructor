@@ -58,7 +58,7 @@ class DSTextPool extends WCDataSource {
 				);
 			$this->updateSize();
 			if($this->autoPublish) {
-				$this->addToIndex($id, $header, &$html, $html);
+				$this->addToIndex($id, $header, $html, $html);
 			}
 		}
 		return $id;
@@ -75,8 +75,8 @@ class DSTextPool extends WCDataSource {
 				' WHERE id IN('.$ids.') OR real_id IN('.$ids.')'
 			);
 			$this->updateSize();
-			$this->removeFromIndex(&$ids);
-			$this->evictDocCache(&$ids);
+			$this->removeFromIndex($ids);
+			$this->evictDocCache($ids);
 		}
 	}
 	
@@ -96,8 +96,8 @@ class DSTextPool extends WCDataSource {
 			' WHERE id IN('.implode(',',$ids).')'
 		);
 		
-		$this->updateIndex($id, $header, &$html, $html);
-		$this->evictDocCache(&$ids);
+		$this->updateIndex($id, $header, $html, $html);
+		$this->evictDocCache($ids);
 		return true;
 	}
 	

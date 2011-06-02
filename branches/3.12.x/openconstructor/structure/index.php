@@ -122,7 +122,7 @@
 		echo ']]></posttoolbar>';
 		
 		include('toolbar._wc');
-		toolbar(&$toolbar);
+		toolbar($toolbar);
 //		require_once('common._wc');
 	//	$opened=array_flip(explode(',',get_path_id($_site->id_hash[$curnode])));
 		//unset($opened['-1']);

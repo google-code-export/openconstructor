@@ -311,7 +311,7 @@ class ObjManager {
 	}
 
 	function loadAuths(&$obj, $owner, $group, $ownerAuths, $groupAuths) {
-		$obj->sRes = new WCSResource(&$obj->name, (int) $owner, (int) $group);
+		$obj->sRes = new WCSResource($obj->name, (int) $owner, (int) $group);
 
 		$obj->sRes->addAction('editobj');
 		$obj->sRes->addAction('editobj.tpl');

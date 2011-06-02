@@ -160,7 +160,7 @@
 		foreach($dsh as $v)
 			echo "<option value='{$v['id']}'".($v['id'] == $currentDs ? ' selected>' : '>').str_repeat('&#160;', (substr_count($v['path'],',') - 1) * 3)."{$v['name']}</option>";
 		echo '</select>]]></pretoolbar>';
-		toolbar(&$toolbar);
+		toolbar($toolbar);
 	?>
 		<navigation>
 			<tabs>

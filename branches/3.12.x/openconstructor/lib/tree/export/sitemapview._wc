@@ -51,7 +51,7 @@ class TreeSiteMapView {
 					);
 			if(sizeof($node->node))
 				foreach($node->node as $k => $v)
-					$result .= $this->exportNode(&$node->node[$k], $level + 1);
+					$result .= $this->exportNode($node->node[$k], $level + 1);
 			if($node->id == $this->tree->root->id)
 				$result .= "\$map = &\$m;\nunset(\$m);\n";
 		}

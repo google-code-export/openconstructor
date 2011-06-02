@@ -120,7 +120,7 @@ class WCEnumFactory {
 	}
 	
 	function loadAuths(&$enum, $owner, $group, $ownerAuths, $groupAuths) {
-		$enum->sRes = new WCSResource(&$enum->header, (int) $owner, (int) $group);
+		$enum->sRes = new WCSResource($enum->header, (int) $owner, (int) $group);
 		
 		$enum->sRes->addAction('editenum');
 		$enum->sRes->addAction('editenum.chmod');

@@ -197,7 +197,7 @@ switch(@$_POST['action'])
 		if(isset($_POST['ds_id']) && isset($_POST['ids'])) {
 			require_once(LIBDIR.'/hybrid/dshybridfactory._wc');
 			$ds = new DSHybridFactory();
-			$ds->removeDocuments(&$_POST['ids']);
+			$ds->removeDocuments($_POST['ids']);
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
 		die('<meta http-equiv="Refresh" content="0; URL='.$_SERVER['HTTP_REFERER'].'">');

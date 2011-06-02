@@ -169,14 +169,14 @@ class HybridBody extends WCObject {
 								} else
 									$result[$f['name']] = array();
 								if($docId === null)
-									$ctx->setParam('.'.$this->docId.'.'.$f['name'], &$result[$f['name']]);
+									$ctx->setParam('.'.$this->docId.'.'.$f['name'], $result[$f['name']]);
 							break;
 							case DSF_ENUM:
 								$result[$f['name']] = explode(',', $v);
 								$enums .= $v ? ','.$v : '';
 								$enumkeys[] = (int) $k;
 								if($docId === null)
-									$ctx->setParam('.'.$this->docId.'.'.$f['name'], &$result[$f['name']]);
+									$ctx->setParam('.'.$this->docId.'.'.$f['name'], $result[$f['name']]);
 							break;
 						}
 					}
@@ -186,7 +186,7 @@ class HybridBody extends WCObject {
 							$ctx->setParam('.'.$this->docId.'.'.$top, $result[$top]);
 					// Фетчим заголовки и ссылки узлов полей типа Tree
 					if(sizeof($nodes)) {
-						$nodes = $agent->getNodes(&$nodes);
+						$nodes = $agent->getNodes($nodes);
 						foreach($treekeys as $ni => $key)
 							if($agent->dsFields[$ni]['isarray'])
 								for($i = 0, $l = sizeof($result[$key]); $i < $l; $i++)

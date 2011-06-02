@@ -77,7 +77,7 @@ class DocumentField extends HybridField {
 						$doc[] = $r[0];
 					loadClass('dshybridfactory', '/hybrid/dshybridfactory._wc');
 					$dsf = new DSHybridFactory();
-					$dsf->removeDocuments(&$doc);
+					$dsf->removeDocuments($doc);
 				}
 				mysql_free_result($res);
 				$ds->decreaseLock(); 
@@ -109,7 +109,7 @@ class DocumentField extends HybridField {
 		if($this->isOwn && $doc->fields[$this->key]){
 			$ds = $this->getDS();
 			WCS::runAs(WCS_ROOT_ID);
-			$ds->delete(&$doc->fields[$this->key]);
+			$ds->delete($doc->fields[$this->key]);
 			WCS::stopRunAs();
 		}
 	}

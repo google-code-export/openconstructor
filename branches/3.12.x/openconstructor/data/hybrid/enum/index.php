@@ -103,7 +103,7 @@
 	<div class="head"><?=H_MANAGE_ENUMS?></div>
 	<?php
 		include('toolbar._wc');
-		html_toolbar(&$toolbar);
+		html_toolbar($toolbar);
 	?>
 	<form name="f_doc" method="POST" action="i_enum.php" style="margin:0px; padding:0px;">
 		<input type="hidden" name="enum" value="<?=$current?>">

@@ -80,7 +80,7 @@ class ArrayField extends HybridField {
 					$doc = explode(',', implode(',', $doc));
 					loadClass('dshybridfactory', '/hybrid/dshybridfactory._wc');
 					$dsf = new DSHybridFactory();
-					$dsf->removeDocuments(&$doc);
+					$dsf->removeDocuments($doc);
 				}
 				mysql_free_result($res);
 				$ds->decreaseLock(); 
@@ -110,7 +110,7 @@ class ArrayField extends HybridField {
 		if($this->isOwn && $doc->fields[$this->key]){
 			$ds = $this->getDS();
 			WCS::runAs(WCS_ROOT_ID);
-			$ds->delete(&$doc->fields[$this->key]);
+			$ds->delete($doc->fields[$this->key]);
 			WCS::stopRunAs();
 		}
 	}

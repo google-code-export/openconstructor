@@ -156,7 +156,7 @@ class GBAddMsgLogic extends WCObject {
 					WCS::runAs(WCS_ROOT_ID);
 					$ds->updateDocAuths($id, $ownerId);
 					WCS::stopRunAs();
-					$this->_notify($id, &$ds);
+					$this->_notify($id, $ds);
 					unset($ds);
 				}
 			}
@@ -178,7 +178,7 @@ class GBAddMsgLogic extends WCObject {
 		return escapeTags($result ? "[$prefix]: $result..." : "[$prefix]: Empty Message");
 	}
 
-	function _notify($id, $ds) {
+	function _notify($id, &$ds) {
 		if(empty($this->notifyEmail)) return;
 		$content = array(
 			'msgHref' => "http://{$GLOBALS['_host']}{$GLOBALS['_wchome']}/data/guestbook/edit.php?ds_id={$ds->ds_id}&id={$id}",

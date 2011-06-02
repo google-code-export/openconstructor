@@ -69,7 +69,7 @@ class WCObject {
 			$smarty->cache_lifetime = $this->cache_lifetime;
 			$cacheId = $this->getCacheId();
 			if(!$smarty->is_cached($this->tpl.'.tpl', $cacheId)) {
-				$fetched = $this->fetchData(&$smarty);
+				$fetched = $this->fetchData($smarty);
 				if($fetched) {
 					if(isset($this->tpl_args)) {
 						$tpl_params = array();
@@ -88,7 +88,7 @@ class WCObject {
 			}
 		} else {
 			$smarty->caching = 0;
-			$fetched = $this->fetchData(&$smarty);
+			$fetched = $this->fetchData($smarty);
 			if($fetched) {
 				if(isset($this->tpl_args)) {
 					$tpl_params = array();
@@ -127,7 +127,7 @@ class WCObject {
 			$keyword = $ctx->getParam($keywordKey);
 			if($keyword) {
 				loadClass('searcher', '/search/searcher._wc');
-				$part = &Searcher::getQueryPart($keyword, &$docsTable);
+				$part = &Searcher::getQueryPart($keyword, $docsTable);
 				$result['from'] = ' JOIN '.$part['from'];
 				$result['where'] = ' AND '.$part['clause'];
 				$result['order'] = &$part['order'];

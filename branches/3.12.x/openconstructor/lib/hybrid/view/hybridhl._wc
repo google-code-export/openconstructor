@@ -204,7 +204,7 @@ class HybridHL extends WCObject {
 				unset($doc);
 			}
 			if(sizeof($nodes)) {
-				$nodes = $agent->getNodes(&$nodes);
+				$nodes = $agent->getNodes($nodes);
 				foreach($treekeys as $key => $j)
 					foreach($docIds as $id) {
 						$n = &$nodes[$result[$id][$key]];
@@ -307,7 +307,7 @@ class HybridHL extends WCObject {
 	function &_getQuery($nodeId, &$searchQuery) {
 		$result = null;
 		$agent = $this->getAgent();
-		$props = $agent->_getQueryProps($this->docFields, &$this->docOrder, &$this->docFilter);
+		$props = $agent->_getQueryProps($this->docFields, $this->docOrder, $this->docFilter);
 		if($this->sortByRand) {
 			$props['order'] = 'RAND()';
 		} elseif ($searchQuery['order'] && $this->sortByRank)

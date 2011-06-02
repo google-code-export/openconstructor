@@ -184,7 +184,7 @@ class DSGallery extends WCDataSource
 		
 		$this->updateSize();
 		
-		$this->removeFromIndex(&$_ids);
+		$this->removeFromIndex($_ids);
 		
 		foreach($ids as $id) {
 			@unlink($_SERVER['DOCUMENT_ROOT'].FILES.$this->imagepath.intval($id).'.jpg');
@@ -193,7 +193,7 @@ class DSGallery extends WCDataSource
 			@unlink($_SERVER['DOCUMENT_ROOT'].FILES.$this->imagepath.intval($id).'_.gif');
 		}
 		
-		$this->evictDocCache(&$ids);
+		$this->evictDocCache($ids);
 	}
 	
 	function update($id,$header,$content,$date,$imagemain,$imageintro) {
@@ -222,7 +222,7 @@ class DSGallery extends WCDataSource
 		}
 		
 		$this->update_images($id,$imagemain,$imageintro);
-		$this->evictDocCache(&$ids);
+		$this->evictDocCache($ids);
 		return true;
 	}
 	

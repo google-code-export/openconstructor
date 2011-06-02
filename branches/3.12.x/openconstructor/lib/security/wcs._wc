@@ -29,13 +29,13 @@ class WCS {
 	function WCS() {
 	}
 	
-	function requireAuthentication($res = null) {
+	function requireAuthentication(&$res = null) {
 		$auth = &Authentication::getInstance();
 		if(WCS::privileged($auth))
 			return;
 		if($res === null)
 			$res = &System::getInstance();
-		if(WCS::inGroup(&$res, $auth->membership))
+		if(WCS::inGroup($res, $auth->membership))
 			return;
 		WCS::request($res, ',.,');
 	}
@@ -71,7 +71,7 @@ class WCS {
 		return isset($res->sRes) && (!$act || $res->sRes->decision($act, $res->sRes->authorities[0]));
 	}
 	
-	function userAllowed(&$res, $act, $auth = null) {
+	function userAllowed(&$res, $act, &$auth = null) {
 		if($auth == null)
 			$auth = &Authentication::getInstance();
 		if(WCS::privileged($auth))
@@ -79,7 +79,7 @@ class WCS {
 		return $auth->userId == $res->sRes->owner && (!$act || $res->sRes->decision($act, $res->sRes->authorities[0]));
 	}
 	
-	function groupAllowed(&$res, $act, $auth = null) {
+	function groupAllowed(&$res, $act, &$auth = null) {
 		if($auth == null)
 			$auth = &Authentication::getInstance();
 		if(WCS::privileged($auth))
@@ -134,7 +134,7 @@ class WCS {
 		if(!@isset($res->sRes))
 			return false;
 		$auth = &Authentication::getInstance();
-		return WCS::userAllowed($res, &$act, &$auth) || WCS::groupAllowed($res, &$act, &$auth);
+		return WCS::userAllowed($res, $act, $auth) || WCS::groupAllowed($res, $act, $auth);
 	}
 	
 	function _assert($true, $resName = null, $act = null) {

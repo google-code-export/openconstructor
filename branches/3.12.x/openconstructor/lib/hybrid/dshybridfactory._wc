@@ -80,7 +80,7 @@ class DSHybridFactory {
 		);
 	}
 
-	function removeDocuments($docids) {
+	function removeDocuments(&$docids) {
 		require_once(LIBDIR.'/dsmanager._wc');
 		$dsm = new DSManager();
 		$ids = implode(',', $docids);
@@ -92,7 +92,7 @@ class DSHybridFactory {
 				$type[(int) $r['ds_id']][] = (int) $r['id'];
 			foreach($type as $id=>$docs) {
 				$ds = $dsm->load($id);
-				$ds->removeOwnDocuments(&$docs);
+				$ds->removeOwnDocuments($docs);
 			}
 			unset($ds, $type);
 		}
@@ -100,11 +100,11 @@ class DSHybridFactory {
 	}
 
 	function publishDocuments(&$ids) {
-		$this->setPublished(&$ids,1);
+		$this->setPublished($ids,1);
 	}
 
 	function unpublishDocuments(&$ids) {
-		$this->setPublished(&$ids,0);
+		$this->setPublished($ids,0);
 	}
 
 	function setPublished(&$ids, $value) {
@@ -135,11 +135,11 @@ class DSHybridFactory {
 					assert($ds->ds_id > 0);
 					$_ids = implode(',', $docs[$dsId]);
 					if($value)
-						$ds->addToIndex(&$_ids);
+						$ds->addToIndex($_ids);
 					else
-						$ds->removeFromIndex(&$_ids);
+						$ds->removeFromIndex($_ids);
 					$db->query("UPDATE dshybrid SET published = $value WHERE ds_id = $dsId AND id IN ($_ids)");
-					$ds->evictDocCache(&$_ids);
+					$ds->evictDocCache($_ids);
 					unset($ds);
 				}
 				WCS::stopRunAs();
@@ -225,7 +225,7 @@ class DSHybridFactory {
 						$from->updateSize();
 						$from->evictDocCache($ids);
 						$to->updateSize();
-						$to->evictDocCache(&$ids);
+						$to->evictDocCache($ids);
 					}
 				}
 			}

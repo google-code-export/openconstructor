@@ -77,7 +77,7 @@ class Router {
 		$this->target = implode('/', $this->path);
 	}
 	
-	function route($uri, $params = null) {
+	function route($uri, &$params = null) {
 		if($uri{0} == '.') {
 			$uri = $this->uri.$this->target.'/'.(strlen($uri) > 1 ? substr($uri, 2) : '');
 		} elseif(strpos($uri, $this->uri) !== 0)

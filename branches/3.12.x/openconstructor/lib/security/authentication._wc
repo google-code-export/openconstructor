@@ -89,7 +89,7 @@ class Authentication {
 			loadClass('authenticator', '/security/authenticator._wc');
 			$result = &Authenticator::restore($_COOKIE['wcsUID']);
 			if(is_object($result)) {
-				Authentication::_authentication(&$result, 0);
+				Authentication::_authentication($result, 0);
 				$result->exportToSession();
 				if(class_exists('Context')) {
 					require_once(LIBDIR.'/security/siteauthentication._wc');
@@ -121,7 +121,7 @@ class Authentication {
 			setcookie('wcsUserLogin', $this->userLogin, $expires, '/');
 			setcookie('wcsUserName', $this->userName, $expires, '/');
 		}
-		Authentication::_authentication(&$this, 0);
+		Authentication::_authentication($this, 0);
 	}
 	
 	function exportUID($days = 90) {
@@ -152,7 +152,7 @@ class Authentication {
 		if($this->_wciEditor === null) {
 			require_once('system._wc');
 			require_once('wcs._wc');
-			$this->_wciEditor = WCS::groupAllowed(System::getInstance(), 'inlineedit', &$this) ? true : false;
+			$this->_wciEditor = WCS::groupAllowed(System::getInstance(), 'inlineedit', $this) ? true : false;
 		}
 		return $this->_wciEditor;
 	}
@@ -173,7 +173,7 @@ class Authentication {
 		static $sessions;
 		if(!isset($sessions[$user->id]))
 			$sessions[$user->id] = &Authentication::create($user);
-		Authentication::_authentication(&$sessions[$user->id]);
+		Authentication::_authentication($sessions[$user->id]);
 	}
 	
 	function stopRunAs() {
@@ -188,7 +188,7 @@ class Authentication {
 		return Authentication::_authentication();
 	}
 	
-	function &_authentication($auth = null, $index = null) {
+	function &_authentication(&$auth = null, $index = null) {
 		// TODO: продокументировать пока все помню
 		static $instances, $last = -1;
 		if($auth === null) {

@@ -115,7 +115,7 @@ class DSRating extends WCDataSource {
 				$db->query("UPDATE dshybrid_{$r[0]} h, dsrating d SET h.{$r[1]} = NULL WHERE d.id IN ($_ids) AND h.id = d.hdoc");
 			$db->query("DELETE FROM {$this->DSTable} WHERE id IN($_ids)");
 			$db->query("DELETE FROM dsratinglog WHERE id IN($_ids)");
-			$this->evictDocCache(&$ids);
+			$this->evictDocCache($ids);
 		}
 	}
 	

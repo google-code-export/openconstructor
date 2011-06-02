@@ -79,7 +79,7 @@ class DSArticle extends WCDataSource
 			
 			$this->updateSize();
 			if($this->autoPublish) {
-				$this->addToIndex($id, $header, &$content, &$intro);
+				$this->addToIndex($id, $header, $content, $intro);
 				$this->evictDocCache();
 			}
 		}
@@ -106,10 +106,10 @@ class DSArticle extends WCDataSource
 			' WHERE id IN('.implode(',',$ids).')'
 		);
 		
-		$this->updateIndex($id, $header, &$content, &$intro);
+		$this->updateIndex($id, $header, $content, $intro);
 		
 		$this->update_pages($id, $header, $content);
-		$this->evictDocCache(&$ids);
+		$this->evictDocCache($ids);
 		return true;
 	}
 	
@@ -121,7 +121,7 @@ class DSArticle extends WCDataSource
 		);
 		for($i=1;$i<count($content);$i++)
 		{
-//				if(empty($intro[$i])) $intro[$i]=$this->create_intro(&$content[$i], 100);
+//				if(empty($intro[$i])) $intro[$i]=$this->create_intro($content[$i], 100);
 			if($row = mysql_fetch_assoc($res)) {
 				$db->query(
 					'UPDATE '.$this->pagesTable.
@@ -175,9 +175,9 @@ class DSArticle extends WCDataSource
 		
 		$this->updateSize();
 		
-		$this->removeFromIndex(&$ids);
+		$this->removeFromIndex($ids);
 		
-		$this->evictDocCache(&$ids);
+		$this->evictDocCache($ids);
 	}
 	
 	function set_images($xmin, $ymin, $xmax, $ymax, $intro)
@@ -379,7 +379,7 @@ class DSArticle extends WCDataSource
 		}
 		if(sizeof($rIds))
 			$ids = array_unique(array_merge($ids, $rIds));
-		parent::evictDocCache(&$ids);
+		parent::evictDocCache($ids);
 	}
 	
 	function &getIndexableDocs($id = null) {

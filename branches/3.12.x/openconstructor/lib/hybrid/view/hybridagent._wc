@@ -384,7 +384,7 @@ class HybridAgent {
 				}
 				while($r = mysql_fetch_row($res))
 					$path[(int) $r[0]] = $r[1];
-				$instance[$dsId] = new HybridAgent($dsId, $dsKey, &$path, $dsName);
+				$instance[$dsId] = new HybridAgent($dsId, $dsKey, $path, $dsName);
 				$instance[$dsId]->ctx = &$ctx;
 				$instance[$dsKey] = &$instance[$dsId];
 			} else

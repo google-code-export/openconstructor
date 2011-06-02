@@ -103,7 +103,7 @@
 	<?php
 		menu('users');
 		include('toolbar._wc');
-		toolbar(&$toolbar);
+		toolbar($toolbar);
 		$opened[$curnode] = true;
 		echo '<navigation>';
 			print_tree($map, 'homeusr');

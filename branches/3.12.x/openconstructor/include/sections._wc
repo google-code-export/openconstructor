@@ -45,7 +45,7 @@ function &getTabs() {
 }
 
 if(!function_exists('toolbar')) {
-	function toolbar($toolbar) {
+	function toolbar(&$toolbar) {
 		echo '<toolbar>';
 		$prev=false;
 		$i=0;
@@ -161,7 +161,7 @@ function getTreesFor($id) {
 	return sizeof($trees) ? $trees : array(0);
 }
 
-function html_toolbar($toolbar) {
+function html_toolbar(&$toolbar) {
 	$img = WCHOME.'/i/'.SKIN; ?>
 	<div id="toolbar" nowrap=""><img src="<?=$img?>/tool/beginner.gif" align="absmiddle" vspace="4" hspace="5"/>
 <?php

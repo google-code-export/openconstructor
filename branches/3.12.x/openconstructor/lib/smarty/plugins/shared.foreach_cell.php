@@ -31,38 +31,38 @@ class Smarty_Foreach_Cell {
 	
 	function row_open($tag_args, &$compiler, $flip = false) {
 		$handler = & Smarty_Foreach_Cell::_getNew($flip);
-		return $handler->row_open($tag_args, &$compiler);
+		return $handler->row_open($tag_args, $compiler);
 	}
 	
 	function row_close($tag_args, &$compiler, $flip = false) {
 		$handler = & Smarty_Foreach_Cell::_getLast();
 		if($handler->flip != $flip)
 			return $compiler->_syntax_error("mismatched tag {/foreach_".($flip ? 'col' : 'row')."}", E_USER_ERROR, __FILE__, __LINE__);
-		$result = $handler->row_close($tag_args, &$compiler);
+		$result = $handler->row_close($tag_args, $compiler);
 		Smarty_Foreach_Cell::_destoyLast();
 		return $result;
 	}
 	
 	function col_open($tag_args, &$compiler) {
-		return Smarty_Foreach_Cell::row_open($tag_args, &$compiler, true);
+		return Smarty_Foreach_Cell::row_open($tag_args, $compiler, true);
 	}
 	
 	function col_close($tag_args, &$compiler) {
-		return Smarty_Foreach_Cell::row_close($tag_args, &$compiler, true);
+		return Smarty_Foreach_Cell::row_close($tag_args, $compiler, true);
 	}
 	
 	function cell_open($tag_args, &$compiler) {
 		$handler = & Smarty_Foreach_Cell::_getLast();
 		if($handler == null)
 			return $compiler->_syntax_error("'foreach_cell' can be used only inside of 'foreach_row' or 'foreach_col'", E_USER_ERROR, __FILE__, __LINE__);
-		return $handler->cell_open($tag_args, &$compiler);
+		return $handler->cell_open($tag_args, $compiler);
 	}
 	
 	function cell_close($tag_args, &$compiler) {
 		$handler = & Smarty_Foreach_Cell::_getLast();
 		if($handler == null)
 			return '';
-		return $handler->cell_close($tag_args, &$compiler);
+		return $handler->cell_close($tag_args, $compiler);
 	}
 	
 	function register(&$compiler) {
