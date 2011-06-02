@@ -72,9 +72,9 @@ class Context {
 					$router[$rUri] = new Router($rUri, $this->map->uri[$rUri]['name'], '/');
 				}
 			}
-			$pattern = $router[$rUri]->route($rUri.utf8_substr($uri, $pos + 10), &$params);
+			$pattern = $router[$rUri]->route($rUri.utf8_substr($uri, $pos + 10), $params);
 		} elseif($this->router) {
-			$pattern = $this->router->route($uri, &$params);
+			$pattern = $this->router->route($uri, $params);
 			if($pattern === false)
 				$pattern = $this->getPlainPattern($uri, $params);
 			$pattern = $this->map->relativate($pattern, $this->getBasePath());

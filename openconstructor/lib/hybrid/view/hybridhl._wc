@@ -270,7 +270,7 @@ class HybridHL extends WCObject {
 						$v = &$result[$id][$paramNames[$j]];
 						$params[$j + 1] = is_array($v) ? urlencode(current($v)) : urlencode($v);
 					}
-				$result[$id]['href'] = call_user_func_array('sprintf', &$params);
+				$result[$id]['href'] = call_user_func_array('sprintf', $params);
 			}
 		} elseif($searchQuery['where'] && $this->availableDocsCount <= (int) @$this->originalOffset)
 			$result = array();

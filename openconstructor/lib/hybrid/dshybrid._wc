@@ -307,7 +307,7 @@ class DSHybrid extends WCDataSource {
 			}
 			$result[$i] = array(
 				'id' => $doc->id, 'header' => $doc->header,
-				'content' => call_user_func_array('sprintf', &$args),
+				'content' => call_user_func_array('sprintf', $args),
 				'intro' => isset($doc->fields[$intro]) ? $doc->fields[$intro] : @$doc->$intro
 			);
 			$doc->reset();
@@ -316,7 +316,7 @@ class DSHybrid extends WCDataSource {
 		return $result;
 	}
 
-	function &getCopiableProps() {
+	function getCopiableProps() {
 		assert(true === false);
 	}
 	
