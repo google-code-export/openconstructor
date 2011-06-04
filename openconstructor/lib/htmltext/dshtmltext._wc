@@ -42,7 +42,7 @@ class DSHTMLText extends WCDataSource {
 	function add($id, $html, $noIndex, $intro = null) {
 		WCS::assert($this, 'createdoc');
 		if($this->isFull()) return false;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			"SELECT s.id, d.id FROM sitetree s LEFT JOIN {$this->DSTable} d ON (s.id = d.id AND d.ds_id = {$this->ds_id}) WHERE s.id = $id"
 		);
@@ -78,7 +78,7 @@ class DSHTMLText extends WCDataSource {
 		if(!sizeof($ids))
 			return;
 		$ids = implode(',', $ids);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query("DELETE FROM {$this->DSTable} WHERE id IN($ids) AND ds_id = {$this->ds_id}");
 		
 		$this->updateSize();
@@ -95,7 +95,7 @@ class DSHTMLText extends WCDataSource {
 		$noIndex = $noIndex ? 1 : 0;
 		$html = $this->cleanHTML($html);
 		if($intro === null) $intro=$this->create_intro($html,$this->introSize);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'UPDATE '.$this->DSTable.
 			' SET noindex='.$noIndex.',html="'.addslashes($html).'", intro="'.addslashes($intro).'", date="'.time().'"'.
@@ -115,7 +115,7 @@ class DSHTMLText extends WCDataSource {
 	}
 
 	function &get_record($id) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			'SELECT *'.
 			' FROM '.$this->DSTable.
@@ -130,7 +130,7 @@ class DSHTMLText extends WCDataSource {
 		$result = array(0, array());
 		$page=intval($page);
 		if(--$page<0) $page=0;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		if(is_array($searchclause))
 			$res = $db->query(
 				'SELECT SQL_CALC_FOUND_ROWS d.id, d.published, s.header as name, d.date'.
@@ -179,7 +179,7 @@ class DSHTMLText extends WCDataSource {
 	function &getIndexableDocs($id = null) {
 		$result = array();
 		$cond = ($id != null ? "d.id IN ($id) AND " : '')."d.ds_id = {$this->ds_id}";
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT d.id, s.header, d.html as content, d.intro FROM {$this->DSTable} d, sitetree s WHERE $cond AND published AND noindex = 0 AND d.id = s.id");
 		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++)
 			$result[$i] = mysql_fetch_assoc($res);
@@ -197,7 +197,7 @@ class DSHTMLText extends WCDataSource {
 	function pageStateChanged($pageId, $newState, $depth = -1) {
 		$newState = $newState ? 1 : 0;
 		settype($depth, 'int');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			"SELECT t2.id".
 			" FROM sitetree t1, sitetree t2, sitepages p".
@@ -217,7 +217,7 @@ class DSHTMLText extends WCDataSource {
 				WCS::runAs(WCS_ROOT_ID);
 				for($i = 0; $i < $l; $i++) {
 					list($ds_id, $ids) = mysql_fetch_row($res);
-					if($ds = &DSManager::load($ds_id)) {
+					if($ds = DSManager::load($ds_id)) {
 						if($newState)
 							$ds->publish($ids);
 						else
@@ -231,7 +231,7 @@ class DSHTMLText extends WCDataSource {
 	}
 	
 	function pageRemoved($pageId) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			"SELECT d.ds_id, GROUP_CONCAT(d.id SEPARATOR ',') FROM dshtmltext d LEFT JOIN sitepages p ON(d.id = p.id) WHERE p.id IS NULL GROUP BY d.ds_id"
 		);
@@ -240,7 +240,7 @@ class DSHTMLText extends WCDataSource {
 			WCS::runAs(WCS_ROOT_ID);
 			for($i = 0; $i < $l; $i++) {
 				list($ds_id, $ids) = mysql_fetch_row($res);
-				if($ds = &DSManager::load($ds_id))
+				if($ds = DSManager::load($ds_id))
 					$ds->delete($ids);
 			}
 			WCS::stopRunAs();

@@ -25,7 +25,7 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/structure._wc');
 	require_once(LIBDIR.'/site/pagereader._wc');
 	
-	$pr = &PageReader::getInstance();
+	$pr = PageReader::getInstance();
 	$in = $pr->getPage(@$_GET['node']);
 	assert($in != null);
 	$super = $pr->superDecide($in->id, 'managesub');

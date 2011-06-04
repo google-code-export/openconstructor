@@ -30,7 +30,7 @@
 	if(@$_GET['related']) $related=explode(',', $_GET['related']);
 	$ex='';
 	if($_GET['id']!='new') $ex='AND real_id!='.$_GET['id'].' ';
-	$db = &WCDB::bo();
+	$db = WCDB::bo();
 	$res = $db->query(
 		'SELECT id, dsarticle.ds_id as ds_id, header, intro '.
 		'FROM dsarticle, datasources '.

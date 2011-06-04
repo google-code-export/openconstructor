@@ -25,7 +25,7 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/users._wc');
 	require_once(ROOT.WCHOME.'/include/headlines._wc');
 	if(isset($_GET['keyword'])) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$keyword = addslashes(utf8_strtolower($_GET['keyword']));
 		$likeKeyword = '%'.str_replace('%','%%', $keyword).'%';
 		$res = $db->query(

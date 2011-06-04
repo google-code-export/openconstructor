@@ -29,12 +29,12 @@
 	assert(isset($_GET['id']) == true);
 	$multiple = strspn($_GET['id'], '0123456789') < strlen($_GET['id']);
 	if(!$multiple) {
-		$owner = &User::load($_GET['id']);
-		$ownerGroup = &GroupFactory::getGroup($owner->groupId);
+		$owner = User::load($_GET['id']);
+		$ownerGroup = GroupFactory::getGroup($owner->groupId);
 	} else {
 		$owner = null;
 		$ownerGroup = null;
-		$user = &UserFactory::getAggregateUser($_GET['id']);
+		$user = UserFactory::getAggregateUser($_GET['id']);
 	}
 	assert($multiple ? $user != null : $owner != null && $ownerGroup != null);
 ?>

@@ -26,13 +26,13 @@
 	
 switch(@$_POST['action']) {
 	case 'edit_uses':
-		$obj = &ObjManager::load(@$_POST['obj_id']);
+		$obj = ObjManager::load(@$_POST['obj_id']);
 		assert($obj != null);
 		require_once(LIBDIR.'/site/pagefactory._wc');
 		$uses = array();
 		foreach((array) @$_POST['page'] as $id)
 			$uses[$id] = (string) @$_POST['block'][$id];
-		$pf = &PageFactory::getInstance();
+		$pf = PageFactory::getInstance();
 		$pf->updateObjectUses($obj->obj_id, $uses);
 		header('Location: '.$_SERVER['HTTP_REFERER']);
 		die();

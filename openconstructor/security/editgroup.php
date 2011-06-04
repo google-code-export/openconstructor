@@ -25,11 +25,11 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/security._wc');
 	require_once(LIBDIR.'/security/groupfactory._wc');
 	
-	$group = &GroupFactory::getGroup(@$_GET['id']);
+	$group = GroupFactory::getGroup(@$_GET['id']);
 	assert($group != null);
 	require_once(LIBDIR.'/security/user._wc');
-	$owner = &User::load($group->sRes->owner);
-	$ownerGroup = &GroupFactory::getGroup($group->sRes->group);
+	$owner = User::load($group->sRes->owner);
+	$ownerGroup = GroupFactory::getGroup($group->sRes->group);
 ?>
 <html>
 <head>

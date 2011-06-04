@@ -26,7 +26,7 @@
 		$pagesize = (int) $_COOKIE['pagesize'];
 	function &_get_dsrating_headline(&$ds, $pageNum, $pageSize) {
 		$result = array(0, array());
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$pageNum = --$pageNum < 0 ? 0 : $pageNum;
 		$query = 
 			"SELECT SQL_CALC_FOUND_ROWS d.id, h.header, h.published, d.rating, d.raters, d.date".

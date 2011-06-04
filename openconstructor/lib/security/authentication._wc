@@ -59,24 +59,24 @@ class Authentication {
 	function fetchProfile() {
 		if($this->profileId > 0) {
 			loadClass('authenticator', '/security/authenticator._wc');
-			$this->profile = &Authenticator::loadProfile($this->profileId);
+			$this->profile = Authenticator::loadProfile($this->profileId);
 		}
 	}
 	
 	function getUserId() {
-		$auth = &Authentication::_authentication();
+		$auth = self::_authentication();
 		return $auth->userId;
 	}
 	
 	function getOriginalUserId() {
-		$auth = &Authentication::getInstanceAt(0);
+		$auth = self::getInstanceAt(0);
 		return $auth->userId;
 	}
 	
 	function &importFromSession() {
 		$result = null;
 		if(@$_SESSION['wcsUserId']) {
-			$result = &Authentication::_authentication();
+			$result = self::_authentication();
 			$result->userId = @$_SESSION['wcsUserId'];
 			$result->groupId = @$_SESSION['wcsGroupId'];
 			$result->membership = @$_SESSION['wcsMembership'];
@@ -90,13 +90,13 @@ class Authentication {
 			$result->profile = (array) @$_SESSION['wcsProfile'];
 		} elseif(@$_COOKIE['wcsUID']) {
 			loadClass('authenticator', '/security/authenticator._wc');
-			$result = &Authenticator::restore($_COOKIE['wcsUID']);
+			$result = Authenticator::restore($_COOKIE['wcsUID']);
 			if(is_object($result)) {
-				Authentication::_authentication($result, 0);
+				self::_authentication($result, 0);
 				$result->exportToSession();
 				if(class_exists('Context')) {
 					require_once(LIBDIR.'/security/siteauthentication._wc');
-					$ctx = & Context::getInstance();
+					$ctx = Context::getInstance();
 					$ctx->_fireEvent('onRestoreAuth', array('auth' => SiteAuthentication::createFrom($result)));
 				}
 			}
@@ -124,11 +124,11 @@ class Authentication {
 			setcookie('wcsUserLogin', $this->userLogin, $expires, '/');
 			setcookie('wcsUserName', $this->userName, $expires, '/');
 		}
-		Authentication::_authentication($this, 0);
+		self::_authentication($this, 0);
 	}
 	
 	function exportUID($days = 90) {
-		$user = &User::load(Authentication::getOriginalUserId());
+		$user = User::load(self::getOriginalUserId());
 		if($user != null && !headers_sent())
 			setcookie('wcsUID', $user->autologinId, time() + intval($days) * 24 * 3600, '/');
 	}
@@ -167,51 +167,51 @@ class Authentication {
 		unset($_SESSION['wcsAuths']);
 		unset($_SESSION['wcsProfileId'], $_SESSION['wcsProfile']);
 		unset($_SESSION['wciEditor']);
-		Authentication::destroyUID();
+		self::destroyUID();
 		$auth = new Authentication();
-		Authentication::_authentication($auth, 0);
+		self::_authentication($auth, 0);
 	}
 	
 	function runAs(&$user) {
-		if(!isset(Authentication::$sessions[$user->id]))
-			Authentication::$sessions[$user->id] = &Authentication::create($user);
-		Authentication::_authentication(Authentication::$sessions[$user->id]);
+		if(!isset(self::$sessions[$user->id]))
+			self::$sessions[$user->id] = self::create($user);
+		self::_authentication(self::$sessions[$user->id]);
 	}
 	
 	function stopRunAs() {
-		if(Authentication::$lastInst > 0)
-			unset(Authentication::$instances[Authentication::$lastInst--]);
-		return Authentication::$instances[Authentication::$lastInst];		
+		if(self::$lastInst > 0)
+			unset(self::$instances[self::$lastInst--]);
+		return self::$instances[self::$lastInst];		
 	}
 	
 	function &getOriginal() {
-		return Authentication::getInstanceAt(0);
+		return self::getInstanceAt(0);
 	}
 	
 	function &getInstance() {
-		return Authentication::_authentication();
+		return self::_authentication();
 	}
 	
 	function &_authentication(&$auth = null, $index = null) {
 		// TODO: продокументировать пока все помню
 		if($auth === null) {
-			if(isset(Authentication::$instances[Authentication::$lastInst]))
-				return Authentication::$instances[Authentication::$lastInst];
+			if(isset(self::$instances[self::$lastInst]))
+				return self::$instances[self::$lastInst];
 			$auth = new Authentication();
 		}
 		if(is_object($auth)) {
 			if($index === null)
-				Authentication::$instances[++Authentication::$lastInst] = &$auth;
-			elseif($index >= 0 && $index <= Authentication::$lastInst)
-				Authentication::$instances[$index] = &$auth;
+				self::$instances[++self::$lastInst] = &$auth;
+			elseif($index >= 0 && $index <= self::$lastInst)
+				self::$instances[$index] = &$auth;
 		}
-		return Authentication::$instances[Authentication::$lastInst];
+		return self::$instances[self::$lastInst];
 	}
 
 	function &getInstanceAt($index) {
-		if($index >= 0 && $index <= Authentication::$lastInst)
-			return Authentication::$instances[$index];
-		return Authentication::$instances[Authentication::$lastInst];
+		if($index >= 0 && $index <= self::$lastInst)
+			return self::$instances[$index];
+		return self::$instances[self::$lastInst];
 	}
 }
 ?>

@@ -27,7 +27,7 @@
 	require_once('../../../include/sections._wc');
 	require_once(LIBDIR.'/enum/wcenumfactory._wc');
 
-	$ef = &WCEnumFactory::getInstance();
+	$ef = WCEnumFactory::getInstance();
 	$current = (int) @$_GET['enum'];
 	$enum = $ef->load($current);
 	if(!$enum) {

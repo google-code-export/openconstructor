@@ -46,7 +46,7 @@ class DSManager {
 	function &getTree() {
 		$result = array();
 		$dsh = array();
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			'SELECT ds.ds_id as id, ds_type as type, parent, name'.
 			' FROM datasources ds LEFT JOIN hybriddatasources hds ON (ds.ds_id = hds.ds_id)'.
@@ -81,7 +81,7 @@ class DSManager {
 	
 	function &getAll($type) {
 		$result = array();
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			'SELECT ds.ds_id AS id, name, description, internal, parent, ds_key, path'.
 			' FROM datasources ds LEFT JOIN hybriddatasources hds ON (ds.ds_id = hds.ds_id)'.
@@ -97,7 +97,7 @@ class DSManager {
 	
 	function exists($id) {
 		$id = (int) $id;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query('SELECT ds_id FROM datasources WHERE ds_id = '.intval($id).' LIMIT 1');
 		$exists = mysql_num_rows($res) == 1;
 		mysql_free_result($res);
@@ -105,7 +105,7 @@ class DSManager {
 	}
 	
 	function getInfo($id) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			'SELECT ds.ds_id AS id, ds_type AS type, name, description, internal, parent, ds_key, path'.
 			' FROM datasources ds LEFT JOIN hybriddatasources hds ON (ds.ds_id = hds.ds_id)'.
@@ -123,14 +123,14 @@ class DSManager {
 	function &load($dsId) {
 		$result = null;
 		settype($dsId, 'int');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT ds_type FROM datasources WHERE ds_id = $dsId");
 		if(mysql_num_rows($res) > 0) {
 			list($dsType) = mysql_fetch_row($res);
 			$class = 'ds'.$dsType;
 			require_once('wcdatasource._wc');
 			require_once($dsType.'/'.$class.'._wc');
-			$result = &WCDataSource::_load($dsId);
+			$result = WCDataSource::_load($dsId);
 		}
 		mysql_free_result($res);
 		return $result;
@@ -138,7 +138,7 @@ class DSManager {
 
 	function &getAllIndexed() {
 		$result = array();
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			'SELECT ds_id AS id, ds_type as type, name, description'.
 			' FROM datasources'.

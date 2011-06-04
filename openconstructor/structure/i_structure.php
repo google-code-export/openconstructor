@@ -27,7 +27,7 @@ switch(@$_POST['action'])
 {
 	case 'create_page':
 		require_once(LIBDIR.'/site/pagefactory._wc');
-		$pf = &PageFactory::getInstance();
+		$pf = PageFactory::getInstance();
 		$id = $pf->createPage(@$_POST['parent_id'], @$_POST['page_name'], @$_POST['header']);
 		if($id > 0)
 			echo '<script>try{window.opener.location.href=window.opener.location.href;}catch(RuntimeException){}window.location.href="edit_page.php?node='.$id.'"</script>Succesfully created!';
@@ -35,28 +35,28 @@ switch(@$_POST['action'])
 
 	case 'remove_page':
 		require_once(LIBDIR.'/site/pagefactory._wc');
-		$pf = &PageFactory::getInstance();
+		$pf = PageFactory::getInstance();
 		if($pf->removePage(@$_POST['page_id']))
 			die('<meta http-equiv="Refresh" content="0; URL=/openconstructor/structure/"/>');
 	break;
 
 	case 'add_object':
 		require_once(LIBDIR.'/site/pagefactory._wc');
-		$pf = &PageFactory::getInstance();
+		$pf = PageFactory::getInstance();
 		if($pf->addObject(@$_POST['uri_id'], @$_POST['obj_id']))
 			echo '<script>try{window.opener.location.href=window.opener.location.href;}catch(RuntimeException){}window.close();</script>';
 	break;
 
 	case 'remove_objects':
 		require_once(LIBDIR.'/site/pagefactory._wc');
-		$pf = &PageFactory::getInstance();
+		$pf = PageFactory::getInstance();
 		if($pf->removeObject(@$_POST['uri_id'], @$_POST['ids']))
 			die('<meta http-equiv="Refresh" content="0; URL='.$_SERVER['HTTP_REFERER'].'">');
 	break;
 
 	case 'save_blocks':
 		require_once(LIBDIR.'/site/pagefactory._wc');
-		$pf = &PageFactory::getInstance();
+		$pf = PageFactory::getInstance();
 		$page = $pf->getPage(@$_POST['uri_id']);
 		assert($page != null);
 
@@ -83,7 +83,7 @@ switch(@$_POST['action'])
 
 	case 'edit_page':
 		require_once(LIBDIR.'/site/pagefactory._wc');
-		$pf = &PageFactory::getInstance();
+		$pf = PageFactory::getInstance();
 		$page = $pf->getPage(@$_POST['uri_id']);
 		assert($page != null && trim(@$_POST['header']) != '');
 
@@ -124,7 +124,7 @@ switch(@$_POST['action'])
 
 	case 'move_page':
 		require_once(LIBDIR.'/site/pagefactory._wc');
-		$pf = &PageFactory::getInstance();
+		$pf = PageFactory::getInstance();
 		$result = $pf->movePage(@$_POST['uri_id'], @$_POST['dest_id']);
 		if($result) {
 			echo '<script>try{window.opener.location.href=window.opener.location.href;}catch(RuntimeException){}window.close();</script>Succesfully moved!';
@@ -134,7 +134,7 @@ switch(@$_POST['action'])
 
 	case 'copy_page':
 		require_once(LIBDIR.'/site/pagefactory._wc');
-		$pf = &PageFactory::getInstance();
+		$pf = PageFactory::getInstance();
 		$result = $pf->copyPage(@$_POST['uri_id'], @$_POST['dest_id'], @$_POST['page_name'], @$_POST['header']);
         if(@$_POST['published'] == 'true')
         	$pf->publishPage($result, true);
@@ -146,35 +146,35 @@ switch(@$_POST['action'])
 
 	case 'move_up':
 		require_once(LIBDIR.'/site/pagefactory._wc');
-		$pf = &PageFactory::getInstance();
+		$pf = PageFactory::getInstance();
 		$pf->incrementPriority(@$_POST['uri_id']);
 		die('<meta http-equiv="Refresh" content="0; URL='.$_SERVER['HTTP_REFERER'].'">');
 	break;
 
 	case 'move_down':
 		require_once(LIBDIR.'/site/pagefactory._wc');
-		$pf = &PageFactory::getInstance();
+		$pf = PageFactory::getInstance();
 		$pf->decrementPriority(@$_POST['uri_id']);
 		die('<meta http-equiv="Refresh" content="0; URL='.$_SERVER['HTTP_REFERER'].'">');
 	break;
 
 	case 'publish_page':
 		require_once(LIBDIR.'/site/pagefactory._wc');
-		$pf = &PageFactory::getInstance();
+		$pf = PageFactory::getInstance();
 		if($pf->publishPage(@$_POST['uri_id']))
 			die('<meta http-equiv="Refresh" content="0; URL='.$_SERVER['HTTP_REFERER'].'">');
 	break;
 
 	case 'unpublish_page':
 		require_once(LIBDIR.'/site/pagefactory._wc');
-		$pf = &PageFactory::getInstance();
+		$pf = PageFactory::getInstance();
 		$pf->unpublishPage(@$_POST['uri_id']);
 		die('<meta http-equiv="Refresh" content="0; URL='.$_SERVER['HTTP_REFERER'].'">');
 	break;
 
 	case 'republish_page':
 		require_once(LIBDIR.'/site/pagefactory._wc');
-		$pf = &PageFactory::getInstance();
+		$pf = PageFactory::getInstance();
 		$pf->republishPages(@$_POST['uri_id']);
 		die('<meta http-equiv="Refresh" content="0; URL='.$_SERVER['HTTP_REFERER'].'">');
 	break;

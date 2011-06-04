@@ -22,7 +22,7 @@
  */
 	require_once(LIBDIR.'/site/pagereader._wc');
 	require_once('../include/headlines._wc');
-	$pr = &PageReader::getInstance();
+	$pr = PageReader::getInstance();
 	$pagesize = 30;
 	if(intval(@$_COOKIE['pagesize'])>0)
 		$pagesize=$_COOKIE['pagesize'];

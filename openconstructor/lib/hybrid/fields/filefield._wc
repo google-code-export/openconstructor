@@ -39,7 +39,7 @@ class FileField extends HybridField {
 	}
 
 	function create() {
-		HybridField::create();
+		parent::create();
 		if($this->id) {
 			if($this->createFolder()) {
 				$this->update();
@@ -51,7 +51,7 @@ class FileField extends HybridField {
 	}
 
 	function update() {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(sprintf(
 			"UPDATE $this->table SET header='%s', isreq='%d', max='%d', types='%s', img_bounds='%s' WHERE id=$this->id"
 			, addslashes($this->header), intval($this->isRequired), intval($this->maxSize), addslashes(implode(',', $this->types)), $this->getImgBounds())
@@ -60,11 +60,11 @@ class FileField extends HybridField {
 
 	function remove() {
 		$this->removeFolder();
-		HybridField::remove();
+		parent::remove();
 	}
 
 	function setDS($ds_id) {
-		HybridField::setDS($ds_id);
+		parent::setDS($ds_id);
 		if($this->ds_id)
 			$this->folder = '/hyb/'.$this->ds_id.'/'.substr($this->key, 2);
 	}
@@ -75,7 +75,7 @@ class FileField extends HybridField {
 
 	function onUpdateDocument(&$old, &$new) {
 		if($new->fields[$this->key]) {
-			list($value['name'], $value['type'], $value['size'], $isImg) = FileField::getFileDetails($new->fields[$this->key]);
+			list($value['name'], $value['type'], $value['size'], $isImg) = self::getFileDetails($new->fields[$this->key]);
 			if($this->isValid($value, false) && $isImg && $this->maxX > 0 && $this->maxY > 0) {
 				$tmp = wcfTmpFilename();
 				$ic = $this->_getImgCopier();
@@ -132,7 +132,7 @@ class FileField extends HybridField {
 	function &getFtp() {
 		if(!is_object($this->ftp)) {
 			loadClass('wcftp', '/wcftp._wc');
-			$this->ftp = & WCFTP::getNew();
+			$this->ftp = WCFTP::getNew();
 		}
 		return $this->ftp;
 	}

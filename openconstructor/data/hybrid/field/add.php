@@ -288,7 +288,7 @@ function prepare() {
 					<td><?=H_DSH_WCENUM?>:</td>
 					<td><select size="1" name="enum_type">
 					<?php
-						$ef = &WCEnumFactory::getInstance();
+						$ef = WCEnumFactory::getInstance();
 						$types = $ef->getAllEnums();
 						foreach($types as $id => $header)
 							echo "<option value='$id'>$header";
@@ -310,7 +310,7 @@ function prepare() {
 					<td><select size="1" name="rating_type">
 					<?php
 						if(isset($map['rating'])) {
-							$db = &WCDB::bo();
+							$db = WCDB::bo();
 							$res = $db->query('SELECT fromds FROM dshfields WHERE family="rating"');
 							while($r = mysql_fetch_row($res))
 								$usedRatings[$r[0]] = true;

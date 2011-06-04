@@ -142,7 +142,7 @@ class GBAddMsgLogic extends WCObject {
 			
 			case GBAML_ADD_AS_SPECIFIED:
 				loadClass('user', '/security/user._wc');
-				$user = &User::load($this->addAs);
+				$user = User::load($this->addAs);
 				$ownerId = (int) @$user->id;
 			break;
 		}

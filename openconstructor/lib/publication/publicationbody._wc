@@ -50,7 +50,7 @@ class PublicationBody extends WCObject {
 	}
 	
 	function onPageLoad() {
-		PublicationBody::_addDisplayed($this->getDocId());
+		self::_addDisplayed($this->getDocId());
 	}
 	
 	function fetchData(&$smarty) {
@@ -119,7 +119,7 @@ class PublicationBody extends WCObject {
 	}
 	
 	function &getDisplayedDocs() {
-		$result = PublicationBody::_addDisplayed(null, true);
+		$result = self::_addDisplayed(null, true);
 		return $result;
 	}
 	

@@ -38,9 +38,9 @@ class SqlDumper {
 	var $_db;
 	
 	function SqlDumper($tables = null) {
-		$this->_db = &WCDB::bo();
+		$this->_db = WCDB::bo();
 		if($tables === null)
-			$tables = SqlDumper::_getAllTables();
+			$tables = self::_getAllTables();
 		$this->_tables = array_values($tables);
 		sort($this->_tables);
 	}

@@ -36,12 +36,12 @@ class RatingField extends HybridField {
 	function create() {
 		$ds = $this->getDS();
 		if($ds->ds_id > 0) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$res = $db->query("SELECT id FROM {$this->table} WHERE fromds={$ds->ds_id} LIMIT 1");
 			$isFree = mysql_num_rows($res) == 0;
 			mysql_free_result($res);
 			if($isFree) {
-				HybridField::create();
+				parent::create();
 				if($this->id) {
 					$ds->increaseLock();
 					$this->update();
@@ -53,7 +53,7 @@ class RatingField extends HybridField {
 	}
 	
 	function update() {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			sprintf("UPDATE {$this->table} SET header='%s', isreq=0, fromds=%d WHERE id={$this->id}"
 			, addslashes($this->header), intval($this->fromDS))
@@ -62,7 +62,7 @@ class RatingField extends HybridField {
 	
 	function remove() {
 		$ds = $this->getDS();
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(sprintf("SELECT r.id FROM dsrating r, {$this->ds_table} d WHERE r.ds_id = %d AND r.hdoc = d.id", $this->fromDs));
 		if(mysql_num_rows($res) > 0) {
 			while($r = mysql_fetch_row($res))
@@ -74,7 +74,7 @@ class RatingField extends HybridField {
 		}
 		mysql_free_result($res);
 		$ds->decreaseLock(); 
-		HybridField::remove();
+		parent::remove();
 	}
 	
 	function onCreateDocument(&$doc) {
@@ -128,7 +128,7 @@ class RatingField extends HybridField {
 	
 	function &getDS() {
 		if(!is_object($this->ds))
-			$this->ds = &FieldUtils::loadDS($this->type, $this->fromDS);
+			$this->ds = FieldUtils::loadDS($this->type, $this->fromDS);
 		return $this->ds;
 	}
 }

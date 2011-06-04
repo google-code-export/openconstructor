@@ -28,7 +28,7 @@
 	require_once('../include/sections._wc');
 	
 	$siteroot = @$_COOKIE['siteroot'] ? $_COOKIE['siteroot'] : null;
-	$pr = &PageReader::getInstance();
+	$pr = PageReader::getInstance();
 	$tree = $pr->getTree($siteroot);
 	if($tree == null) {
 		if($siteroot != 1) {

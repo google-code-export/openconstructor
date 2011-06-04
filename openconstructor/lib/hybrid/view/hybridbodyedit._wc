@@ -50,20 +50,20 @@ class HybridBodyEdit extends WCObject {
 	}
 	
 	function getCacheId() {
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		$docId = (int) $ctx->getParam($this->docId);
 		$cacheId = $this->obj_id.'|'.$docId.'|'.$this->agent->dsId;
 		return $cacheId;
 	}
 	
 	function onPageLoad() {
-		$this->agent = &HybridAgent::getInstance($this->dsIdKey ? $this->ctx->getParam($this->dsIdKey) : $this->ds_id);
+		$this->agent = HybridAgent::getInstance($this->dsIdKey ? $this->ctx->getParam($this->dsIdKey) : $this->ds_id);
 	}
 	
 	function fetchData(&$smarty) {
 		$result = false;
 		if($this->agent && sizeof($this->docFields)) {
-			$ctx = &Context::getInstance();
+			$ctx = Context::getInstance();
 			$ds = $this->agent->_getDs($this->agent->dsId);
 			$id = $ctx->getParam($this->docId);
 			if($id == 'new') {
@@ -125,7 +125,7 @@ class HybridBodyEdit extends WCObject {
 							case DSF_ENUM:
 								if(!isset($ef)) {
 									loadClass('wcenumfactory', '/enum/wcenumfactory._wc');
-									$ef = &WCEnumFactory::getInstance();
+									$ef = WCEnumFactory::getInstance();
 								}
 								$enum = $ef->load($hf->enumId);
 								$fld['enumId'] = $hf->enumId;

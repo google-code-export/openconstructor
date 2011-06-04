@@ -114,7 +114,7 @@ class Crumbs {
 	function &getInstance() {
 		static $instance;
 		if(!is_object($instance)) {
-			$ctx = &Context::getInstance();
+			$ctx = Context::getInstance();
 			$instance = new Crumbs($ctx->page, $ctx->map, $ctx->router);
 		}
 		return $instance;

@@ -38,13 +38,13 @@ class PrimitiveField extends HybridField {
 	}
 	
 	function create() {
-		if(HybridField::create())
+		if(parent::create())
 			$this->update();
 		return $this->id;
 	}
 	
 	function update() {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			sprintf("UPDATE $this->table SET header='%1\$s', isreq='%2\$d', regex='%3\$s', allowedtags='%4\$s', length='%5\$d', default_val='%6\$s', min='%7\$d', max='%8\$d' ".
 					"WHERE id=$this->id", addslashes($this->header), intval($this->isRequired), addslashes($this->regexp), addslashes($this->allowedTags), intval($this->length), addslashes($this->default), intval($this->min), intval($this->max))

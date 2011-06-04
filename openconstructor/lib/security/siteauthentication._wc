@@ -42,14 +42,14 @@ class SiteAuthentication {
 	function _loadProfile($loaderId, $dynamic = false) {
 		$this->_profileLoader = (int) $loaderId;
 		if($this->_profileLoader > 0 && $this->profileId > 0 && ($dynamic || !sizeof($this->profile))) {
-			$ctx = &Context::getInstance();
+			$ctx = Context::getInstance();
 			$ctx->_attachEventListener('onLoadObjects', array(&$this, '_profileLoaderObserver'));
 		}
 	}
 	
 	function _profileLoaderObserver() {
 		if($this->profileId > 0 && $this->_profileLoader > 0) {
-			$ctx = &Context::getInstance();
+			$ctx = Context::getInstance();
 			if($obj = $ctx->page->_getObject($this->_profileLoader, true)) {
 				$this->profile = (array) $obj->getDocument($this->profileId);
 				@$_SESSION['wcsProfile'] = $this->profile;

@@ -52,7 +52,7 @@ class DSPublication extends WCDataSource
 		WCS::assert($this, 'createdoc');
 		assert($header != '');
 		if($this->isFull()) return false;
-		$auth = &Authentication::getInstance();
+		$auth = Authentication::getInstance();
 		$dsg = null;
 		if($this->attachGallery && !$gallery) {
 			loadClass('dsgallery', '/gallery/dsgallery._wc');
@@ -66,7 +66,7 @@ class DSPublication extends WCDataSource
 		$content = $this->cleanHTML($content);
 		if($intro === null) $intro=$this->create_intro($content,$this->introSize);
 		settype($date, 'int');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'INSERT INTO '.$this->DSTable.
 				' (ds_id, published, gallery, header, intro, content, date, wcsowner)'.
@@ -107,7 +107,7 @@ class DSPublication extends WCDataSource
 				$result=$result&&$this->update_image($id,$imageintro,$imgsize2[2]==2?'jpg':'gif',$imgsize2[0],$imgsize2[1],$this->images['intro'],'img_intro');
 			return $result;
 		}
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query('SELECT img_type FROM '.$this->DSTable.' WHERE id='.$id);
 		$r=mysql_fetch_assoc($res);
 		mysql_free_result($res);
@@ -179,7 +179,7 @@ class DSPublication extends WCDataSource
 		$img='IMG SRC="'.FILES.$this->imagepath.$id.($type=='img_main'?'':'_').'.'.$imgtype.'" BORDER="0" WIDTH="'.intval($width).'" HEIGHT="'.intval($height).'"';
 		$img='"'.addslashes($img).'"';
 
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'UPDATE '.$this->DSTable.
 			' SET '.$type.'='.$img.', img_type="'.$imgtype.'" WHERE real_id='.$id
@@ -198,7 +198,7 @@ class DSPublication extends WCDataSource
 		
 		if($this->attachGallery && !$leaveGalleries)
 			$this->removeGalleries($_ids);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'DELETE FROM '.$this->DSTable.' '.
 			'WHERE real_id IN('.$_ids.') OR id IN('.$_ids.')'
@@ -219,7 +219,7 @@ class DSPublication extends WCDataSource
 	}
 	
 	function removeGalleries($ids) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			'SELECT gallery FROM '.$this->DSTable.' WHERE id IN ('.$ids.') AND ds_id='.$this->ds_id
 		);
@@ -250,7 +250,7 @@ class DSPublication extends WCDataSource
 			$intro=$this->create_intro($content, $this->introSize);
 		$ids = $this->getAliases($id, true);
 		settype($date, 'int');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'UPDATE '.$this->DSTable.
 			' SET header="'.addslashes($header).'", intro="'.addslashes($intro).'", content="'.addslashes($content).'", date="'.$date.'"'.
@@ -286,7 +286,7 @@ class DSPublication extends WCDataSource
 	}
 	
 	function set_main($id) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query('UPDATE '.$this->DSTable.' SET main=0 WHERE main=1 AND ds_id='.$this->ds_id.' LIMIT 1');
 		$db->query('UPDATE '.$this->DSTable.' SET main=1 WHERE id='.$id.' AND ds_id='.$this->ds_id.' LIMIT 1');
 	}
@@ -296,7 +296,7 @@ class DSPublication extends WCDataSource
 		if(!@$id) return false;
 		$res=$this->get_record($id, true);
 		if($res==NULL) return false;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'INSERT INTO '.$this->DSTable.
 				' (real_id, ds_id, published, main, gallery, header, intro, content, date, img_intro, img_main, img_type, wcsowner)'.//

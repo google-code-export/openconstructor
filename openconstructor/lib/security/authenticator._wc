@@ -30,14 +30,14 @@ class Authenticator {
 		$result = null;
 		if(User::isLoginValid($login)) {
 			$pwd = wcs_pwd_hash($password);
-			$db = &WCDB::fo();
+			$db = WCDB::fo();
 			$res = $db->query(sprintf(
 				'SELECT id FROM wcsusers WHERE login = "%s" AND pwd = "%s" AND active AND (expiry = 0 OR expiry > %d)'
 				, addslashes(strtolower($login)), addslashes($pwd), time()
 			));
 			if(mysql_num_rows($res) == 1) {
 				list($id) = mysql_fetch_row($res);
-				$result = &Authenticator::create($id);
+				$result = self::create($id);
 			}
 			mysql_free_result($res);
 		}
@@ -46,14 +46,14 @@ class Authenticator {
 
 	function &restore($autologinId) {
 		$result = null;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(sprintf(
 			'SELECT id FROM wcsusers WHERE autologin = "%s" AND active AND (expiry = 0 OR expiry > %d)'
 			, addslashes($autologinId), time()
 		));
 		if(mysql_num_rows($res) ==  1) {
 			list($id) = mysql_fetch_row($res);
-			$result = &Authenticator::create($id);
+			$result = self::create($id);
 		}
 		mysql_free_result($res);
 		return $result;
@@ -62,18 +62,18 @@ class Authenticator {
 	function &create($userId) {
 		assert($userId > 0);
 		$result = null;
-		$user = &User::load($userId);
+		$user = User::load($userId);
 		if($user != null) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query('UPDATE wcsusers SET lastlogin = '.time().' WHERE id = '.intval($userId));
-			$result = &Authentication::create($user);
+			$result = Authentication::create($user);
 		}
 		return $result;
 	}
 
 	function &loadProfile($profileId) {
 		$result = array();
-		$db = &WCDB::fo();
+		$db = WCDB::fo();
 		$res = $db->query("SELECT dsh.path FROM dshybrid ds, hybriddatasources dsh WHERE ds.id = $profileId AND dsh.ds_id = ds.ds_id");
 		$row = mysql_fetch_row($res);
 		mysql_free_result($res);

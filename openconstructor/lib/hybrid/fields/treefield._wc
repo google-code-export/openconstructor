@@ -35,13 +35,13 @@ class TreeField extends HybridField {
 	}
 	
 	function create() {
-		if(HybridField::create())
+		if(parent::create())
 			$this->update();
 		return $this->id;
 	}
 	
 	function update() {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			sprintf("UPDATE $this->table SET header='%1\$s', tree=%2\$d, isreq='%3\$d', isarray='%4\$d' ".
 					"WHERE id=$this->id", addslashes($this->header), intval($this->treeId), intval($this->isRequired), intval($this->isArray))
@@ -49,7 +49,7 @@ class TreeField extends HybridField {
 	}
 	
 	function remove() {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT num, next FROM catalogtree WHERE id = $this->treeId");
 		if(mysql_num_rows($res) == 1) {
 			list($num, $next) = mysql_fetch_array($res, MYSQL_NUM);
@@ -60,7 +60,7 @@ class TreeField extends HybridField {
 			);
 		}
 		mysql_free_result($res);
-		HybridField::remove();
+		parent::remove();
 	}
 	
 	function onCreateDocument(&$doc) {
@@ -81,7 +81,7 @@ class TreeField extends HybridField {
 	} 
 	
 	function onRemoveDocument(&$doc) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'DELETE catalogdocs.*'.
 			" FROM catalogtree t1, catalogtree t2, catalogdocs, $this->ds_table".
@@ -110,14 +110,14 @@ class TreeField extends HybridField {
 	
 	function addValues($docId, $values) {
 		if(!empty($values)) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query("INSERT INTO catalogdocs (node, doc) SELECT id, $docId FROM catalogtree WHERE id IN ($values)");
 		}
 	}
 	
 	function removeValues($docId, $values) {
 		if(!empty($values)) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query("DELETE FROM catalogdocs WHERE node IN ($values) AND doc=$docId");
 		}
 	}

@@ -89,7 +89,7 @@ function dsb(){
 						<option value="0" style="background: #eee;">-</option>
 					<?php
 						require_once(LIBDIR.'/security/groupfactory._wc');
-						$groups = &GroupFactory::getAllGroups();
+						$groups = GroupFactory::getAllGroups();
 						foreach($groups as $id => $title)
 							if($id != WCS_ADMINS_ID)
 								echo "<option value='$id'".($id == $_ds->fakeRaters ? ' selected': '').'>'.$title.'</option>';

@@ -25,12 +25,12 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/security._wc');
 	require_once(LIBDIR.'/tree/sqltreereader._wc');
 	
-	$node = &SqlTreeReader::getRootNode(@$_GET['id']);
+	$node = SqlTreeReader::getRootNode(@$_GET['id']);
 	assert($node != null && $node->id == @$_GET['id']);
 	require_once(LIBDIR.'/security/groupfactory._wc');
 	require_once(LIBDIR.'/security/user._wc');
-	$owner = &User::load($node->sRes->owner);
-	$ownerGroup = &GroupFactory::getGroup($node->sRes->group);
+	$owner = User::load($node->sRes->owner);
+	$ownerGroup = GroupFactory::getGroup($node->sRes->group);
 ?>
 <html>
 <head>

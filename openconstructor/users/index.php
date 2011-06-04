@@ -26,7 +26,7 @@
 	require_once(LIBDIR.'/security/groupfactory._wc');
 	require_once('../include/sections._wc');
 	
-	$gf = &GroupFactory::getInstance();
+	$gf = GroupFactory::getInstance();
 	$groups = $gf->getAllGroups();
 	$siteroot=0;
 	$map['groupRoot'][USERS] = $groups;

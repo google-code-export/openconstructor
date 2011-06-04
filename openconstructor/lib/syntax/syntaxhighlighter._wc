@@ -30,16 +30,16 @@ class SyntaxHighlighter {
 	
 	function getPhpEditor() {
 		$result = 
-			SyntaxHighlighter::_getCommonParams("php").
-			SyntaxHighlighter::_getStylesFor("php")
+			self::_getCommonParams("php").
+			self::_getStylesFor("php")
 			;
 		return $result;
 	}
 	
 	function getHtmlEditor() {
 		$result = 
-			SyntaxHighlighter::_getCommonParams("html").
-			SyntaxHighlighter::_getStylesFor("html")
+			self::_getCommonParams("html").
+			self::_getStylesFor("html")
 			;
 		return $result;
 	}
@@ -56,7 +56,7 @@ class SyntaxHighlighter {
 	
 	function _getStylesFor($lang) {
 		$result = '';
-		$styles = &SyntaxHighlighter::getStyles();
+		$styles = self::getStyles();
 		if(is_array($styles) && isset($styles[$lang]))
 			foreach($styles[$lang] as $k => $v)
 				$result .= "\n\t<param name='$k' value='$v'>";

@@ -53,7 +53,7 @@ class GBMsgBody extends WCObject {
 	}
 	
 	function onPageLoad() {
-		GBMsgBody::_addDisplayed($this->getDocId());
+		self::_addDisplayed($this->getDocId());
 	}
 	
 	function fetchData(&$smarty) {
@@ -123,7 +123,7 @@ class GBMsgBody extends WCObject {
 	}
 	
 	function &getDisplayedDocs() {
-		$result = GBMsgBody::_addDisplayed(null, true);
+		$result = self::_addDisplayed(null, true);
 		return $result;
 	}
 	

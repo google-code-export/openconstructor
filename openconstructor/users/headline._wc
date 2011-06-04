@@ -30,7 +30,7 @@
 	function &users_hl($groupId, $pageNum, $pageSize, $fetchProf) {
 		$pageNum = --$pageNum < 0 ? 0 : $pageNum;
 		$result = array();
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		
 		if($fetchProf)
 			$query = 

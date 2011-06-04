@@ -25,7 +25,7 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/editors._wc');
 	require_once(LIBDIR.'/site/pagereader._wc');
 	
-	$pr = &PageReader::getInstance();
+	$pr = PageReader::getInstance();
 	$tree = $pr->getTree((int) @$_GET['id']);
 	assert($tree != null);
 	require_once(LIBDIR.'/tree/export/ajaxview._wc');

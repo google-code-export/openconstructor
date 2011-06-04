@@ -95,7 +95,7 @@ class HybridTree extends WCObject {
 				$treeIds = sizeof($treeIds) ? implode(',', $treeIds) : -1;
 			} else
 				$treeIds = sizeof($trees) ? implode(',', $trees) : -1;
-			$ctx = &Context::getInstance();
+			$ctx = Context::getInstance();
 			$uri = $ctx->getPatternFor($this->srvUri, array($this->dsIdKey, $this->nodeId));
 			$result = array(1 => array('id' => 1, 'parent' => null, 'key' => null, 'at' => null, 'header' => null, 'level' => 0, 'href' => sprintf($uri, $agent->dsKey, '')));
 			$result['root'] = &$result[1];
@@ -137,7 +137,7 @@ class HybridTree extends WCObject {
 	function &getAgent() {
 		if($this->_agent === null) {
 			$dsId = $this->dsIdKey ? $this->ctx->getParam($this->dsIdKey) : $this->ds_id;
-			if(!($this->_agent = &HybridAgent::getInstance($dsId ? $dsId : $this->ds_id, $this->ds_id, $this->onlySub)))
+			if(!($this->_agent = HybridAgent::getInstance($dsId ? $dsId : $this->ds_id, $this->ds_id, $this->onlySub)))
 				$this->_agent = false;
 		}
 		return $this->_agent;

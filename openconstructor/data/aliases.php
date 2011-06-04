@@ -47,7 +47,7 @@
 		}
 	function get_alias_headline($table, $ds_id, $fields, $pagesize, $page = 1, $searchclause = ''){
 		$result = array(0, array());
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$page = intval($page);
 		if(--$page < 0)
 			$page = 0;

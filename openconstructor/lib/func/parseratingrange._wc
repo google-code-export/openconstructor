@@ -9,7 +9,7 @@ function wcfParseRatingRange($range, $salt = '') {
 	$from = trim((string) @$range[0]);
 	$len = trim((string) @$range[1]);
 	if(!empty($from) || !empty($len)) {
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		$preg = '~^\{\$([A-Za-z0-9_\-\./]+)\}$~u';
 		$matches = array();
 		if(preg_match($preg, $from, $matches))

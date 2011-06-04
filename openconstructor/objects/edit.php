@@ -23,7 +23,7 @@
 	require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
 	WCS::requireAuthentication();
 	
-	$db = &WCDB::bo();
+	$db = WCDB::bo();
 	$res = $db->query('SELECT id, ds_type, obj_type FROM objects WHERE id='.$_GET['id']);
 	$obj = mysql_fetch_assoc($res);
 	mysql_free_result($res);

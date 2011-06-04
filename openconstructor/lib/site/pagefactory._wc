@@ -56,9 +56,9 @@ class PageFactory {
 			if($fs->createPage($parent->uri, $name)) {
 				$result = $tree->addNode($parent->id, $name, $header);
 				if($result > 0) {
-					$db = &WCDB::bo();
+					$db = WCDB::bo();
 					$page = new Page($name, $header);
-					$auth = &Authentication::getOriginal();
+					$auth = Authentication::getOriginal();
 					$page->loadAuths($auth->userId, $auth->groupId, constant('WCS_PAGE_MASK'), null);
 					$db->query(sprintf(
 						"UPDATE {$this->treeTable} SET wcsowner = {$page->sRes->owner}, wcsgroup = {$page->sRes->group}".
@@ -101,7 +101,7 @@ class PageFactory {
 		if($fs->removePage($page->uri)) {
 			$tree = $this->_getTreeHelper();
 			if($tree->removeNode($page->id)) {
-				$db = &WCDB::bo();
+				$db = WCDB::bo();
 				$res = $db->query("SELECT p.id FROM {$this->pagesTable} p LEFT JOIN {$this->treeTable} t ON(p.id = t.id) WHERE t.id IS NULL");
 				for($i = 0, $ids = array(), $l = mysql_num_rows($res); $i < $l; $i++)
 					list($ids[]) = mysql_fetch_row($res);
@@ -196,7 +196,7 @@ class PageFactory {
 			);
 		}
 
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(sprintf(
 			"UPDATE {$this->pagesTable} p, {$this->treeTable} t SET %s WHERE p.id = {$page->id} AND t.id = p.id"
 			, implode(',', $updates)
@@ -222,7 +222,7 @@ class PageFactory {
 			assert($page != null);
 		} else
 			$link = &$page;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(sprintf(
 			"UPDATE {$this->pagesTable} SET linkto = %d, location = '%s' WHERE linkto = $page->id", $link->id, $link->uri.'index.php'
 		));
@@ -237,7 +237,7 @@ class PageFactory {
 		if($super || (WCS::decide($page, 'editpage.security') && WCS::decide($page, 'managesub'))) {
 			if($users != null)
 				$page->setUsers($users);
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query(sprintf(
 				"UPDATE {$this->treeTable} t1, {$this->treeTable} t2, {$this->pagesTable} p SET p.users = '%s' WHERE t1.id = {$page->id} AND t2.num >= t1.num AND (t1.num = t2.num OR t1.next = 0 OR t1.next > t2.num) AND t2.id = p.id"
 				, addslashes(implode(',', $page->users))
@@ -258,7 +258,7 @@ class PageFactory {
 			$super = $this->reader->superDecide($page->id, 'managesub');
 			WCS::assertValue($super || WCS::decide($old, 'pageblock'), $old, 'pageblock');
 			require_once(LIBDIR.'/objmanager._wc');
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			foreach($page->objects as $id => $obj)
 				$db->query(sprintf(
 					"UPDATE {$this->objTable} SET observer = %d, crumbs = %d, block = '%s' WHERE page_id = {$page->id} AND obj_id = %d AND !rule"
@@ -294,7 +294,7 @@ class PageFactory {
 		if(is_array($objIds))
 			$objIds = implode(',', $objIds);
 
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		if($action == 'add') {
 			$db->query(
 				"INSERT INTO {$this->objTable} (page_id, obj_id)".
@@ -320,10 +320,10 @@ class PageFactory {
 		settype($objId, 'int');
 		assert($objId > 0);
 		require_once(LIBDIR.'/objmanager._wc');
-		$obj = &ObjManager::load($objId);
+		$obj = ObjManager::load($objId);
 		assert($obj != null);
 		$currentUses = array();
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT page_id, observer, block FROM {$this->objTable} WHERE obj_id = {$objId}");
 		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++) {
 			$r = mysql_fetch_row($res);
@@ -414,7 +414,7 @@ class PageFactory {
 				$result = false;
 		}
 		if(sizeof($published)) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query(sprintf("UPDATE {$this->pagesTable} SET published = 1 WHERE id IN (%s)", implode(',', $published)));
 			$this->_updateSitemap();
 			$smc = $this->_getSmartyCache();
@@ -443,7 +443,7 @@ class PageFactory {
 					$pages[] = $tree->node[$id]->getFullKey('/');
 			$fs = $this->_getFsHelper();
 			$result = $result && $fs->unpublishPages($pages);
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query(
 				"UPDATE {$this->treeTable} t1, {$this->treeTable} t2, {$this->pagesTable} p SET p.published = 0".
 				" WHERE t1.id = {$page->id} AND t2.num >= t1.num AND (t1.next = 0 OR t2.num < t1.next) AND t2.id = p.id"
@@ -598,7 +598,7 @@ class PageFactory {
 			$querySet .= ", wcsgroup = {$page->sRes->group}";
 		$querySet .= sprintf(', oauths = CONV("%s", 2, 10), gauths = CONV("%s", 2, 10)', $page->sRes->getOwnerAuths(), $page->sRes->getGroupAuths());
 		if($querySet) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$querySet = substr($querySet, 1);
 			$db->query("UPDATE {$this->treeTable} SET $querySet WHERE id = {$page->id} AND ".($super ? 1 : WCS::getAuthCheckQuery('editpage.chmod')));
 		}
@@ -668,7 +668,7 @@ class PageFactory {
 	function &_getSmartyCache() {
 		if(!is_object($this->smc)) {
 			require_once(LIBDIR.'/smarty/wcsmartycache._wc');
-			$this->smc = &WCSmartyCache::getInstance();
+			$this->smc = WCSmartyCache::getInstance();
 		}
 		return $this->smc;
 	}
@@ -684,7 +684,7 @@ class PageFactory {
 		}
 		$this->unpublishPage($root);
 		if($result) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$res = $db->query("SELECT * FROM {$this->treeTable} t INNER JOIN {$this->pagesTable} p ON(t.id = p.id) WHERE t.id = $root");
 			$page = mysql_fetch_assoc($res);
 			mysql_free_result($res);

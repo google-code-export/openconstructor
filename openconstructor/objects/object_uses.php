@@ -26,17 +26,17 @@
 	require_once(LIBDIR.'/objmanager._wc');
 
 	$om = new ObjManager();
-	$obj = &ObjManager::load(@$_GET['id']);
+	$obj = ObjManager::load(@$_GET['id']);
 	assert($obj != null);
 	$objId = $obj->obj_id;
 
 	require_once(LIBDIR.'/site/pagereader._wc');
-	$pr = &PageReader::getInstance();
+	$pr = PageReader::getInstance();
 	$uses = array();
 	$used = array();
 	$blocks = array();
 
-	$db = &WCDB::bo();
+	$db = WCDB::bo();
 	$res = $db->query(
 		"SELECT p.id, o.obj_id, o.block, o.observer FROM sitepages p, siteobjects o WHERE p.id = o.page_id AND (o.observer = 0 || o.obj_id = $objId)"
 	);

@@ -25,7 +25,7 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/users._wc');
 	require_once(LIBDIR.'/security/groupfactory._wc');
 	
-	$group = &GroupFactory::getGroup(@$_GET['group_id']);
+	$group = GroupFactory::getGroup(@$_GET['group_id']);
 	assert($group != null);
 ?>
 <html>

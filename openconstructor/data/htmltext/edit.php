@@ -27,7 +27,7 @@
 	assert(isset($_GET['ds_id']) && isset($_GET['id']));
 	require_once($_SERVER['DOCUMENT_ROOT'].WCHOME.'/include/toolbar._wc');
 	require_once(LIBDIR.'/site/pagereader._wc');
-	$pr = &PageReader::getInstance();
+	$pr = PageReader::getInstance();
 	require_once(LIBDIR.'/dsmanager._wc');
 	$dsm = new DSManager();
 	$_ds = $dsm->load($_GET['ds_id']); 
@@ -35,7 +35,7 @@
 	
 	if($_GET['id'] == 'new') {
 		$pages = $pr->getAllPages();
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			'SELECT id '.
 			'FROM dshtmltext '.

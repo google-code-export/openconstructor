@@ -49,7 +49,7 @@ class EventBody extends WCObject {
 	}
 	
 	function onPageLoad() {
-		EventBody::_addDisplayed($this->getDocId());
+		self::_addDisplayed($this->getDocId());
 	}
 	
 	function fetchData(&$smarty) {
@@ -122,7 +122,7 @@ class EventBody extends WCObject {
 	}
 	
 	function &getDisplayedDocs() {
-		$result = EventBody::_addDisplayed(null, true);
+		$result = self::_addDisplayed(null, true);
 		return $result;
 	}
 	

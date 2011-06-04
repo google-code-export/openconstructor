@@ -33,7 +33,7 @@ class SqlTreeReader {
 	
 	function &getChildren($nodeId) {
 		$result = array();
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			"SELECT t2.id AS id, t2.num AS num, t2.parent AS parent, t2.next AS next, t2.name AS name, t2.header AS header".
 			" FROM $this->table t1, $this->table t2".
@@ -49,7 +49,7 @@ class SqlTreeReader {
 	
 	function &getTree($nodeId, $depth = 0) {
 		$tree = null;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			"SELECT t2.id AS id, t2.num AS num, t2.parent AS parent, t2.next AS next, t2.name AS name, t2.header AS header".
 			" FROM $this->table t1, $this->table t2".
@@ -73,7 +73,7 @@ class SqlTreeReader {
 	
 	function &getPartialTree($nodeIds, $depth = 0) {
 		$tree = null;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			"SELECT t2.id AS id, t2.num AS num, t2.parent AS parent, t2.next AS next, t2.name AS name, t2.header AS header".
 			" FROM $this->table t1, $this->table t2".
@@ -101,7 +101,7 @@ class SqlTreeReader {
 	function &getNode($nodeId) {
 		$node = null;
 		settype($nodeId, 'int');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT id, num, parent, next, name, header FROM catalogtree WHERE id = $nodeId");
 		if(mysql_num_rows($res) == 1) {
 			$r = mysql_fetch_assoc($res);
@@ -114,7 +114,7 @@ class SqlTreeReader {
 	function &getRootNode($subNodeId) {
 		$node = null;
 		settype($subNodeId, 'int');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			"SELECT t2.id AS id, t2.num AS num, t2.parent AS parent, t2.next AS next, t2.name AS name, t2.header AS header".
 			" FROM catalogtree t1, catalogtree t2".
@@ -125,7 +125,7 @@ class SqlTreeReader {
 		if(mysql_num_rows($res) == 1) {
 			$r = mysql_fetch_assoc($res);
 			$node = new Node((int) $r['id'],(int) $r['num'],(int) $r['parent'],(int) $r['next'], $r['name'], $r['header']);
-			SqlTreeReader::loadAuths($node);
+			self::loadAuths($node);
 		}
 		mysql_free_result($res);
 		return $node;
@@ -133,7 +133,7 @@ class SqlTreeReader {
 	
 	function loadAuths(&$node, $owner = -1, $group = null, $ownerAuths = null, $groupAuths = null) {
 		if($owner === -1) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$res = $db->query('SELECT wcsowner, wcsgroup, BIN(ROUND(oauths)) as oauths, BIN(ROUND(gauths)) as gauths FROM catalogtree WHERE id = '.intval($node->id));
 			if(mysql_num_rows($res) == 1)
 				list($owner, $group, $ownerAuths, $groupAuths) = mysql_fetch_row($res);

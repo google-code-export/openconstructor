@@ -47,7 +47,7 @@ class DBSetup {
 		);
 		
 		if($withHybrid)
-			$tables = array_merge($tables, DBSetup::getDSHybridTables());
+			$tables = array_merge($tables, self::getDSHybridTables());
 		return $tables;
 	}
 	
@@ -55,7 +55,7 @@ class DBSetup {
 		static $hybrid;
 		if(!isset($hybrid)) {
 			$hybrid = array();
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$res = $db->query('SELECT ds_id FROM hybriddatasources');
 			if(!$db->errorCode()) {
 				while($r = mysql_fetch_row($res))
@@ -67,12 +67,12 @@ class DBSetup {
 	}
 	
 	function getAbsentWCTables() {
-		$result = array_diff(DBSetup::getWCTables(), DBSetup::getAllTables());
+		$result = array_diff(self::getWCTables(), self::getAllTables());
 		return $result;
 	}
 	
 	function getExistingWCTables() {
-		$result = array_diff(DBSetup::getWCTables(), DBSetup::getAbsentWCTables());
+		$result = array_diff(self::getWCTables(), self::getAbsentWCTables());
 		return $result;
 	}
 	
@@ -80,7 +80,7 @@ class DBSetup {
 		static $all;
 		if(!isset($all)) {
 			$all = array();
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$res = $db->query('SHOW TABLES');
 			while($r = mysql_fetch_row($res))
 				$all[] = strtolower($r[0]);

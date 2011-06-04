@@ -47,7 +47,7 @@ class DSGuestBook extends WCDataSource
 		assert(trim($subject) != '');
 		if($this->isFull()) return false;
 		$html = $this->cleanHTML($html);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'INSERT INTO '.$this->DSTable.
 				' (ds_id, published, subject, author, email, html, date, wcsowner)'.
@@ -76,7 +76,7 @@ class DSGuestBook extends WCDataSource
 		if(!sizeof($ids)) return;
 		$_ids = implode(',', $ids);
 		
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'DELETE FROM '.$this->DSTable.
 			' WHERE real_id IN('.$_ids.') OR id IN('.$_ids.')'
@@ -99,7 +99,7 @@ class DSGuestBook extends WCDataSource
 		
 		$html = $this->cleanHTML($html);
 		$ids = $this->getAliases($id, true);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'UPDATE '.$this->DSTable.
 			' SET subject="'.addslashes($subject).
@@ -121,7 +121,7 @@ class DSGuestBook extends WCDataSource
 		if(!@$id) return false;
 		$res = $this->get_record($id, true);
 		if($res == NULL) return false;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'INSERT INTO '.$this->DSTable.
 				' (real_id, ds_id, published, subject, author, email, html, date, wcsowner)'.
@@ -138,7 +138,7 @@ class DSGuestBook extends WCDataSource
 	function &getIndexableDocs($id = null) {
 		$result = array();
 		$cond = ($id != null ? "id IN ($id) AND " : '')."ds_id = {$this->ds_id}";
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT id, subject as header, html as content, html as intro FROM {$this->DSTable} WHERE $cond AND published");
 		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++)
 			$result[$i] = mysql_fetch_assoc($res);

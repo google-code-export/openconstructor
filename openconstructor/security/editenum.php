@@ -25,13 +25,13 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/security._wc');
 	require_once(LIBDIR.'/enum/wcenumfactory._wc');
 	
-	$ef = &WCEnumFactory::getInstance();
+	$ef = WCEnumFactory::getInstance();
 	$enum = $ef->load(@$_GET['id']);
 	assert($enum != null);
 	require_once(LIBDIR.'/security/groupfactory._wc');
 	require_once(LIBDIR.'/security/user._wc');
-	$owner = &User::load($enum->sRes->owner);
-	$ownerGroup = &GroupFactory::getGroup($enum->sRes->group);
+	$owner = User::load($enum->sRes->owner);
+	$ownerGroup = GroupFactory::getGroup($enum->sRes->group);
 ?>
 <html>
 <head>

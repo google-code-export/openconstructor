@@ -72,7 +72,7 @@ class GBMsgHL extends WCObject {
 		if(--$page < 0) $page = 0;
 		
 		$where = $this->ids ? 'd.id IN ('.$this->ids.')' : 'd.ds_id IN ('.$this->ds_id.')';
-		$search = &WCObject::getSearchQuery($this->keywordKey, 'd');
+		$search = parent::getSearchQuery($this->keywordKey, 'd');
 		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT d.id, d.ds_id, d.real_id as rid, d.subject, d.published, d.author, d.email, '.($this->fetchContent?'d.html, ':'').'d.date'.

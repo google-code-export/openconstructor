@@ -24,8 +24,8 @@ require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
 WCS::requireAuthentication();
 require_once(LIBDIR.'/security/groupfactory._wc');
 require_once(LIBDIR.'/security/user._wc');
-$owner = &User::load(@$_POST['owner']);
-$group = &GroupFactory::getGroupByName(@$_POST['ownerGroup']);
+$owner = User::load(@$_POST['owner']);
+$group = GroupFactory::getGroupByName(@$_POST['ownerGroup']);
 switch(@$_POST['action'])
 {
 	case 'edit_ds':
@@ -63,7 +63,7 @@ switch(@$_POST['action'])
 	
 	case 'edit_enum':
 		require_once(LIBDIR.'/enum/wcenumfactory._wc');
-		$ef = &WCEnumFactory::getInstance();
+		$ef = WCEnumFactory::getInstance();
 		$enum = $ef->load(@$_POST['enum_id']);
 		assert($enum != null);
 		if($owner != null)
@@ -80,7 +80,7 @@ switch(@$_POST['action'])
 	break;
 	
 	case 'edit_group':
-		$gf = &GroupFactory::getInstance();
+		$gf = GroupFactory::getInstance();
 		$gr = $gf->getGroup(@$_POST['group_id']);
 		assert($gr != null);
 		if($owner != null)
@@ -98,11 +98,11 @@ switch(@$_POST['action'])
 	
 	case 'edit_user':
 		require_once(LIBDIR.'/security/userfactory._wc');
-		$uf = &UserFactory::getInstance();
+		$uf = UserFactory::getInstance();
 		$multiple = strspn(@$_POST['user_id'], '0123456789') < strlen(@$_POST['user_id']);
 		if($multiple) {
 			assert(@$_POST['user_id'] > 0);
-			$user = &User::load(WCS_ROOT_ID);
+			$user = User::load(WCS_ROOT_ID);
 			$user->sRes->setAuthorities(0, 0);
 			$setSRes = $user->sRes->copy();
 			$unsetSRes = $user->sRes->copy();
@@ -114,7 +114,7 @@ switch(@$_POST['action'])
 			}
 			$uf->updateUsersAuths($_POST['user_id'], $setSRes, $unsetSRes);
 		} else {
-			$user = &User::load(@$_POST['user_id']);
+			$user = User::load(@$_POST['user_id']);
 			assert($user != null);
 			$user->sRes->setAuthorities(0, 0);
 			foreach($user->sRes->actions as $act) {
@@ -131,7 +131,7 @@ switch(@$_POST['action'])
 		$multiple = strspn(@$_POST['obj_id'], '0123456789') < strlen(@$_POST['obj_id']);
 		if($multiple) {
 			assert(@$_POST['obj_id'] > 0);
-			$obj = &ObjManager::load((int) $_POST['obj_id']);
+			$obj = ObjManager::load((int) $_POST['obj_id']);
 			$obj->sRes->setAuthorities(0, 0);
 			$obj->sRes->setOwner(0); $obj->sRes->setGroup(0);
 			$setSRes = $obj->sRes->copy();
@@ -148,7 +148,7 @@ switch(@$_POST['action'])
 				$setSRes->setGroup($group->id);
 			ObjManager::updateObjectsAuths($_POST['obj_id'], $setSRes, $unsetSRes);
 		} else {
-			$obj = &ObjManager::load(@$_POST['obj_id']);
+			$obj = ObjManager::load(@$_POST['obj_id']);
 			assert($obj != null);
 			if($owner != null)
 				$obj->sRes->setOwner($owner->id);
@@ -169,7 +169,7 @@ switch(@$_POST['action'])
 		$multiple = strspn(@$_POST['tpl_id'], '0123456789') < strlen(@$_POST['tpl_id']);
 		if($multiple) {
 			assert(@$_POST['tpl_id'] > 0);
-			$tpl = &WCTemplates::load((int) $_POST['tpl_id']);
+			$tpl = WCTemplates::load((int) $_POST['tpl_id']);
 			$tpl->sRes->setAuthorities(0, 0);
 			$tpl->sRes->setOwner(0); $tpl->sRes->setGroup(0);
 			$setSRes = $tpl->sRes->copy();
@@ -186,7 +186,7 @@ switch(@$_POST['action'])
 				$setSRes->setGroup($group->id);
 			WCTemplates::updateTemplatesAuths($_POST['tpl_id'], $setSRes, $unsetSRes);
 		} else {
-			$tpl = &WCTemplates::load(@$_POST['tpl_id']);
+			$tpl = WCTemplates::load(@$_POST['tpl_id']);
 			assert($tpl != null);
 			if($owner != null)
 				$tpl->sRes->setOwner($owner->id);
@@ -204,7 +204,7 @@ switch(@$_POST['action'])
 	
 	case 'edit_tree':
 		require_once(LIBDIR.'/tree/sqltree._wc');
-		$node = &SqlTreeReader::getRootNode(@$_POST['node_id']);
+		$node = SqlTreeReader::getRootNode(@$_POST['node_id']);
 		assert($node != null && $node->id == @$_POST['node_id'] && $node->id != 1);
 		if($owner != null)
 			$node->sRes->setOwner($owner->id);
@@ -222,7 +222,7 @@ switch(@$_POST['action'])
 	
 	case 'edit_page':
 		require_once(LIBDIR.'/site/pagefactory._wc');
-		$pf = &PageFactory::getInstance();
+		$pf = PageFactory::getInstance();
 		$page = $pf->getPage(@$_POST['page_id']);
 		assert($page != null);
 		if($owner != null)

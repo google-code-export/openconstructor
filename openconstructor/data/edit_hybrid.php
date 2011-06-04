@@ -41,7 +41,7 @@
 	$record = $_ds->getRecord();
 	
 	$sources = array(); // Events section
-	$db = &WCDB::bo();
+	$db = WCDB::bo();
 	$res = $db->query(
 		'SELECT id, header'.
 		' FROM dsphpsource'.

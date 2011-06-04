@@ -25,7 +25,7 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/data._wc');
 	require_once(LIBDIR.'/enum/wcenumfactory._wc');
 	
-	$ef = &WCEnumFactory::getInstance();
+	$ef = WCEnumFactory::getInstance();
 	$enum = null;
 	if(@$_GET['id'] != 'new') {
 		$enum = $ef->load((int) @$_GET['id']);

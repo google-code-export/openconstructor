@@ -35,7 +35,7 @@ class Router {
 	
 	function Router($uri, $folder, $path) {
 		if(strlen($path) > 512)
-			Router::_throw404();
+			self::_throw404();
 		$this->param = array();
 		$this->target = null;
 		$this->path = null;
@@ -64,7 +64,7 @@ class Router {
 					$tild = false; break;
 				case ROUTER_PARAM_VALUE:
 					if(!$tild)
-						Router::_throw404();
+						self::_throw404();
 					$this->param[$key] = @substr($path[$i], 1);
 					$this->route[$key][] = $key;
 					$tild = false; break;

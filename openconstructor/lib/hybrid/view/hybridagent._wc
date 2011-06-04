@@ -99,7 +99,7 @@ class HybridAgent {
 
 	function &getNodes($nodeIds) {
 		$result = array();
-		$nodes = &HybridAgent::_getNodesCache();
+		$nodes = self::_getNodesCache();
 		settype($nodeIds, 'array');
 		$key = (int) $nodeIds[0] > 0 ? 'id' : 'name';
 		for($i = 0, $ids = array(), $l = sizeof($nodeIds); $i < $l; $i++)
@@ -123,7 +123,7 @@ class HybridAgent {
 
 	function &getEnumValues($valueIds) {
 		$result = array();
-		$values = &HybridAgent::_getEnumValuesCache();
+		$values = self::_getEnumValuesCache();
 		settype($valueIds, 'array');
 		for($i = 0, $ids = array(), $l = sizeof($valueIds); $i < $l; $i++)
 			if($valueIds[$i] && !isset($values[$valueIds[$i]])) $ids[] = $valueIds[$i];
@@ -352,7 +352,7 @@ class HybridAgent {
 		return $datasources[$dsId];
 	}
 
-	function &_parseRatingRange($range, $salt = '') {
+	function _parseRatingRange($range, $salt = '') {
 		require_once(LIBDIR.'/func/parseratingrange._wc');
 		return wcfParseRatingRange($range, $salt);
 	}
@@ -362,7 +362,7 @@ class HybridAgent {
 		if(!isset($instance[$dsId])) {
 			$dsKey = null;
 			if(intval($dsId) > 0) $dsId = (int) $dsId; else	$dsKey = $dsId;
-			$ctx = &Context::getInstance();
+			$ctx = Context::getInstance();
 			$db = $ctx->_getDB();
 			$res = $db->query(
 				'SELECT hds.ds_id, hds.ds_key, hds.path, ds.name'.

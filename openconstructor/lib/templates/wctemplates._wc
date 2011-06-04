@@ -41,9 +41,9 @@ class WCTemplates {
 
 		$this->parse($template);
 
-		$auth = &Authentication::getInstance();
-		WCTemplates::loadAuths($template, 0, 0, constant('WCS_WCTPL_MASK'), null);
-		$db = &WCDB::bo();
+		$auth = Authentication::getInstance();
+		self::loadAuths($template, 0, 0, constant('WCS_WCTPL_MASK'), null);
+		$db = WCDB::bo();
 		$db->query(sprintf(
 			'INSERT INTO wctemplates (type, wcsowner, wcsgroup, oauths, gauths, name, has_error, tpl, mockup, date)'.
 			" VALUES ('%s', {$auth->userId}, {$auth->groupId}, CONV('%s', 2, 10), CONV('%s', 2, 10), '%s', %d, '%s','%s','%s')"
@@ -68,7 +68,7 @@ class WCTemplates {
 
 		$this->parse($template);
 
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(sprintf('UPDATE wctemplates SET name="%s", has_error=%d, tpl="%s", mockup="%s", date="%s" WHERE id=%d',
 			addslashes($template->name), $template->hasError ? 1 : 0, addslashes($template->tpl), addslashes($template->mockup), date('Y-m-d'), $template->id
 		));
@@ -78,7 +78,7 @@ class WCTemplates {
 			$this->save_as_tpl($template);
 		}
 
-		$smc = &WCSmartyCache::getInstance();
+		$smc = WCSmartyCache::getInstance();
 		if($template->type != 'page')
 			$smc->tpl_updated($template->id);
 		else
@@ -88,7 +88,7 @@ class WCTemplates {
 
 	function _updateBlocks($tplId, &$oldBlocks, &$newBlocks) {
 		settype($tplId, 'int');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$rm = array_diff(array_keys($oldBlocks), array_keys($newBlocks));
 		if(sizeof($rm))
 			$db->query("DELETE FROM wctemplate_blocks WHERE tpl_id = {$tplId} AND block IN ('".implode("','", $rm)."')");
@@ -108,7 +108,7 @@ class WCTemplates {
 	function &load($id){
 		$result = null;
 		settype($id, 'int');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query('SELECT type, wcsowner, wcsgroup, BIN(ROUND(oauths)) as oauths, BIN(ROUND(gauths)) as gauths, name, has_error, tpl, mockup, block, run FROM wctemplates LEFT JOIN wctemplate_blocks ON (tpl_id = id) WHERE id='.$id.' ORDER BY pos');
 		if(mysql_num_rows($res) > 0) {
 			$row = mysql_fetch_assoc($res);
@@ -117,7 +117,7 @@ class WCTemplates {
 			$result->tpl = $row['tpl'];
 			$result->setMockup($row['mockup']);
 			$result->id = $id;
-			WCTemplates::loadAuths($result, $row['wcsowner'], $row['wcsgroup'], $row['oauths'], $row['gauths']);
+			self::loadAuths($result, $row['wcsowner'], $row['wcsgroup'], $row['oauths'], $row['gauths']);
 			if($row['block']) {
 				$result->addBlock($row['block'], $row['run']);
 				while($row = mysql_fetch_assoc($res))
@@ -131,7 +131,7 @@ class WCTemplates {
 	function remove($ids){
 		assert(!empty($ids) && strspn($ids, ',0123456789') == strlen($ids));
 		$sCheck = WCS::getAuthCheckQuery('removetpl');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		if($sCheck != 1) {
 			$res = $db->query('SELECT id FROM wctemplates WHERE id IN('.$ids.') AND '.$sCheck);
 			$ids = array();
@@ -157,7 +157,7 @@ class WCTemplates {
 			$db->query('DELETE FROM wctemplates WHERE id IN('.$ids.')');
 			$db->query('DELETE FROM wctemplate_blocks WHERE tpl_id IN('.$ids.')');
 		}
-		$smc = &WCSmartyCache::getInstance();
+		$smc = WCSmartyCache::getInstance();
 		$smc->tpl_updated($ids);
 		$smc->pagetpl_updated($ids);
 	}
@@ -173,7 +173,7 @@ class WCTemplates {
 		$querySet .= sprintf(', oauths = CONV("%s", 2, 10), gauths = CONV("%s", 2, 10)', $tpl->sRes->getOwnerAuths(), $tpl->sRes->getGroupAuths());
 		if($querySet) {
 			$querySet = substr($querySet, 1);
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query("UPDATE wctemplates SET $querySet WHERE id = {$tpl->id} AND ".WCS::getAuthCheckQuery('edittpl.chmod'));
 		}
 	}
@@ -214,7 +214,7 @@ class WCTemplates {
 			$queryf = 'SELECT t.id, t.name, t.date, j.id as published, has_error FROM wctemplates t LEFT JOIN '.($type == 'page' ? 'sitepages' : 'objects').' j ON (t.id = j.tpl) WHERE t.type="%s" %s GROUP BY t.id ORDER BY t.name LIMIT %d,%d';
 		}
 		$query = sprintf($queryf, $type, $searchclause, $page * $pagesize, $pagesize);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query($query);
 		if(mysql_num_rows($res) > 0)
 			while($row = mysql_fetch_assoc($res))
@@ -236,7 +236,7 @@ class WCTemplates {
 			$querySet .= "wcsowner = {$set->owner}, ";
 		if($set->group > 0 && $userId == WCS_ROOT_ID)
 			$querySet .= "wcsgroup = {$set->group}, ";
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			sprintf("UPDATE wctemplates SET $querySet oauths = (ROUND(oauths) | CONV('%s', 2, 10)) & CONV('%s', 2, 10), gauths = (ROUND(gauths) | CONV('%s', 2, 10)) & CONV('%s', 2, 10) WHERE id IN ($ids) AND %s"
 				, $set->getOwnerAuths(), $unset->getOwnerAuths(), $set->getGroupAuths(), $unset->getGroupAuths(), WCS::getAuthCheckQuery('edittpl.chmod')
@@ -247,10 +247,10 @@ class WCTemplates {
 	function &getAggregateTemplate(&$ids) {
 		assert($ids > 0 && strspn($ids, ',0123456789') == strlen($ids));
 		$result = null;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT BIN(BIT_AND(ROUND(oauths))) as setoauths, BIN(BIT_AND(ROUND(gauths))) as setgauths, BIN(~BIT_AND(~ROUND(oauths))) as unsetoauths, BIN(~BIT_AND(~ROUND(gauths))) as unsetgauths FROM wctemplates WHERE id IN($ids)");
 		if(mysql_num_rows($res) == 1) {
-			$tpl = &WCTemplates::load((int) $ids);
+			$tpl = self::load((int) $ids);
 			assert($tpl != null);
 			$tpl->id = 0;
 			$result = array(wcfClone($tpl), wcfClone($tpl));
@@ -277,7 +277,7 @@ class WCTemplates {
 	}
 
 	function &get_all_tpls($type) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query('SELECT id, name FROM wctemplates WHERE type="'.$type.'" ORDER BY name');
 		$result = array();
 		if(mysql_num_rows($res) > 0)

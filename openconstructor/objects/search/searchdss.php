@@ -26,7 +26,7 @@
 	require_once(LIBDIR.'/objmanager._wc');
 	require_once(LIBDIR.'/dsmanager._wc');
 	
-	$obj = &ObjManager::load(@$_GET['id']);
+	$obj = ObjManager::load(@$_GET['id']);
 	assert($obj != null);
 	$_dsm=new DSManager();
 	$ds = $_dsm->getAllIndexed();

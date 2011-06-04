@@ -33,9 +33,9 @@
 	if(!$multiple) {
 		$doc = $ds->getDocument($_GET['id']);
 		assert($doc != null);
-		$owner = &User::load($doc->sRes->owner);
+		$owner = User::load($doc->sRes->owner);
 	} else
-		$owner = &User::load($ds->getDocOwner($_GET['id']));
+		$owner = User::load($ds->getDocOwner($_GET['id']));
 ?>
 <html>
 <head>

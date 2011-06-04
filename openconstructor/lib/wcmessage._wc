@@ -171,7 +171,7 @@ class WCMessage {
 	function &_getSmarty() {
 		if(is_object($this->smarty))
 			return $this->smarty;
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		return $ctx->_smarty;
 	}
 	

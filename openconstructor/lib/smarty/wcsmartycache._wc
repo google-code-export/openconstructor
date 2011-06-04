@@ -38,7 +38,7 @@ class WCSmartyCache {
 		foreach($ids as $id)
 			$this->smarty->clear_cache(null, 'p'.$id);
 		if($updateObj) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$res = $db->query('SELECT id FROM objects WHERE obj_type IN ("htmltexthl", "htmltexthlintro", "misccrumbs") AND cache_by_wc > 0');
 			for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++) {
 				$r = mysql_fetch_row($res);
@@ -61,7 +61,7 @@ class WCSmartyCache {
 		if(is_array($objIds))
 			$objIds = implode(',', $objIds);
 		if($objIds) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$res = $db->query('SELECT page_id FROM siteobjects WHERE obj_id IN ('.$objIds.') GROUP BY page_id');
 			for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++) {
 				$r = mysql_fetch_row($res);
@@ -73,7 +73,7 @@ class WCSmartyCache {
 	function tpl_updated($ids, $clear_cache=true, $clear_compiled=true) {
 		if(is_array($ids))
 			$ids=implode(',',$ids);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query('SELECT id, tpl FROM objects WHERE tpl IN ('.$ids.')');
 		$obj = $o = array();
 		if(mysql_num_rows($res) > 0)
@@ -96,7 +96,7 @@ class WCSmartyCache {
 	function pagetpl_updated($ids, $clearCompiled = true, $clearCache = true) {
 		if(is_array($ids))
 			$ids = implode(',', $ids);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query('SELECT id, tpl FROM sitepages WHERE tpl IN ('.$ids.') AND caching > 0');
 		for($i = 0, $p = array(), $l = mysql_num_rows($res); $i < $l; $i++) {
 			$r = mysql_fetch_row($res);
@@ -115,7 +115,7 @@ class WCSmartyCache {
 	
 	function record_updated($ds_type, $ds_id, $ids){
 		settype($ids, 'array');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query('SELECT id, tpl, obj_type, cache_by_wc AS cbw FROM objects WHERE ds_type="'.$ds_type.'"');
 		$objects=array();
 		if(mysql_num_rows($res)>0)

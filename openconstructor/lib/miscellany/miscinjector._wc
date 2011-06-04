@@ -56,7 +56,7 @@ class MiscInjector extends WCObject {
 	}
 	
 	function performInjections() {
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		for($i = 0, $l = sizeof($this->jobs); $i < $l; $i++) {
 			$job = &$this->jobs[$i];
 			$type = $job[0] % 10;

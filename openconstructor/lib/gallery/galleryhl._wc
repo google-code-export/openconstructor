@@ -65,7 +65,7 @@ class GalleryHL extends WCObject {
 		if(!$ds_ids) return $result;
 		
 		$offset=$page*$this->pageSize;
-		$search = &WCObject::getSearchQuery($this->keywordKey, 'ds');
+		$search = parent::getSearchQuery($this->keywordKey, 'ds');
 		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT ds.id, ds.real_id as rid, ds.header, ds.content, ds.img_intro as image, ds.img_type as type '.
@@ -99,7 +99,7 @@ class GalleryHL extends WCObject {
 	
 	// ! Этот метод использует класс + GalleryPager
 	function getDsId() {
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		return $this->dynamic_ds ? (int) $ctx->getParam($this->ds_id) : $this->ds_id;
 	}
 	

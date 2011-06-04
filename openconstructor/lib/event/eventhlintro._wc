@@ -76,7 +76,7 @@ class EventHLIntro extends WCObject {
 			$gmtOffset = -date('Z') + WC_TIMEZONE;
 			$where .= ' AND end_date >= ' . (time() + $gmtOffset);
 		}
-		$search = &WCObject::getSearchQuery($this->keywordKey, 'd');
+		$search = parent::getSearchQuery($this->keywordKey, 'd');
 		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT d.id, d.real_id as rid, d.header, d.intro, d.date, d.end_date, d.place, d.img_intro as image'.

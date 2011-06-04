@@ -103,7 +103,7 @@ class HybridHL extends WCObject {
 	}
 
 	function &getDocuments($recurse = 3) {
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		$nodeId = addslashes($ctx->getParam($this->nodeId));
 		if(isset($this->documents[$nodeId][$this->ids]))
 			return $this->documents[$nodeId][$this->ids];
@@ -111,7 +111,7 @@ class HybridHL extends WCObject {
 		$agent = $this->getAgent();
 		if(!$agent)
 			return $result;
-		$searchQuery = &WCObject::getSearchQuery($this->keywordKey, 'd');
+		$searchQuery = parent::getSearchQuery($this->keywordKey, 'd');
 		$query = $this->_getQuery($nodeId, $searchQuery);
 		$db = $this->ctx->_getDB();
 		$res = $db->query($query);
@@ -292,7 +292,7 @@ class HybridHL extends WCObject {
 
 	function &getAgent() {
 		if($this->_agent === null)
-			if(!($this->_agent = &HybridAgent::getInstance($this->dsIdKey && ($dsId = $this->ctx->getParam($this->dsIdKey)) ? $dsId : $this->ds_id, $this->ds_id, $this->onlySub)))
+			if(!($this->_agent = HybridAgent::getInstance($this->dsIdKey && ($dsId = $this->ctx->getParam($this->dsIdKey)) ? $dsId : $this->ds_id, $this->ds_id, $this->onlySub)))
 				$this->_agent = false;
 		return $this->_agent;
 	}

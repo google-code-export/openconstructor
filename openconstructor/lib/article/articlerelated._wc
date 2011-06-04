@@ -47,7 +47,7 @@ class ArticleRelated extends WCObject {
 	
 	function getCacheId() {
 		$cacheId = null;
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		if($master = $ctx->getObject((int) $this->master)) {
 			$articleId = $master->getDocId();
 			$cacheId = $this->obj_id.'|'.$articleId;
@@ -57,7 +57,7 @@ class ArticleRelated extends WCObject {
 	
 	function fetchData(&$smarty) {
 		$result = false;
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		$master = $ctx->getObject((int) $this->master);
 		if(!$master) return $result;
 		$article_id = $master->getDocId();
@@ -73,7 +73,7 @@ class ArticleRelated extends WCObject {
 		
 		if(mysql_num_rows($res) > 0) {
 			$fet = array();
-			$ctx = &Context::getInstance();
+			$ctx = Context::getInstance();
 			$href = $ctx->getPatternFor('.', $this->articleid);
 			
 			while($row = mysql_fetch_assoc($res)) {

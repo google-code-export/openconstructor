@@ -81,11 +81,11 @@ class FileHL extends WCObject {
 	}
 
 	function &getDocuments() {
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		$cacheId = $this->getCacheId();
 		if(is_array($this->documents[$cacheId])) return $this->documents[$cacheId];
 		$result = null;
-		$searchQuery = &WCObject::getSearchQuery($this->keywordKey, 'd');
+		$searchQuery = parent::getSearchQuery($this->keywordKey, 'd');
 		$query = $this->_getQuery($searchQuery);
 		$db = $this->ctx->_getDB();
 		$res = $db->query($query);

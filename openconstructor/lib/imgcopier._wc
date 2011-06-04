@@ -71,7 +71,7 @@ class ImgCopier {
 							$this->ratio = $this->ratio * $this->maxY / $height;
 					}
 					$this->filename = $filename;
-					$this->img = ImgCopier::_createImage($type, $filename);
+					$this->img = self::_createImage($type, $filename);
 					return $this->img ? true : false;
 				}
 		}
@@ -89,7 +89,7 @@ class ImgCopier {
 			$height = intval($this->height * $ratio);
 			$img = imagecreatetruecolor($width, $height);
 			imagecopyresampled($img, $this->img, 0, 0, 0, 0, $width, $height, $this->width, $this->height);
-			$result = ImgCopier::_createImageFile($this->type, $img, $filename);
+			$result = self::_createImageFile($this->type, $img, $filename);
 			imagedestroy($img);
 		}
 		return $result;

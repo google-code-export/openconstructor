@@ -42,7 +42,7 @@ class DSTextPool extends WCDataSource {
 		assert(trim($header) != '');
 		if($this->isFull()) return false;
 		$html = $this->cleanHTML($html);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'INSERT INTO '.$this->DSTable.
 				' (ds_id, published, header, html, date, wcsowner)'.
@@ -68,7 +68,7 @@ class DSTextPool extends WCDataSource {
 		WCS::assertValue(WCS::decide($this, 'removedoc') || WCS::ownerAllowed($this->getSDoc(), 'removedoc'), $this, 'removedoc');
 		$this->filterDocs($ids);
 		if(sizeof($ids)) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$ids = implode(',', $ids);
 			$db->query(
 				'DELETE FROM '.$this->DSTable.
@@ -89,7 +89,7 @@ class DSTextPool extends WCDataSource {
 		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
 		$html = $this->cleanHTML($html);
 		$ids = $this->getAliases($id, true);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'UPDATE '.$this->DSTable.
 			' SET header="'.addslashes($header).'", html="'.addslashes($html).'", date="'.time().'"'.
@@ -106,7 +106,7 @@ class DSTextPool extends WCDataSource {
 		if(!@$id) return false;
 		$res=$this->get_record($id, true);
 		if($res==NULL) return false;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'INSERT INTO '.$this->DSTable.
 				' (real_id, ds_id, published, header, html, date, wcsowner)'.
@@ -119,7 +119,7 @@ class DSTextPool extends WCDataSource {
 	function &getIndexableDocs($id = null) {
 		$result = array();
 		$cond = ($id != null ? "id IN ($id) AND " : '')."ds_id = {$this->ds_id}";
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT id, header, html as content, html as intro FROM {$this->DSTable} WHERE $cond AND published");
 		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++)
 			$result[$i] = mysql_fetch_assoc($res);

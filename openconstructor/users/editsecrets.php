@@ -25,7 +25,7 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/users._wc');
 	require_once(LIBDIR.'/security/user._wc');
 	
-	$user = &User::load(@$_GET['id']);
+	$user = User::load(@$_GET['id']);
 	assert($user != null);
 	WCS::request($user, 'edit.pwd');
 	loadClass('userfactory', '/security/userfactory._wc');

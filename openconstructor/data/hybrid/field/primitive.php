@@ -29,7 +29,7 @@
 	require_once(LIBDIR.'/hybrid/fields/fieldfactory._wc');
 	$field = FieldFactory::getField($_GET['id']);
 	assert(is_object($field) && $field->family == 'primitive');
-	$ds = &DSManager::load($field->ds_id);
+	$ds = DSManager::load($field->ds_id);
 ?>
 <html>
 <head>

@@ -32,7 +32,7 @@
 		$offset = $page * $size;
 		$lkeyword = addslashes(str_replace('%', '%%', $keyword));
 		$skeyword = addslashes($keyword);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			'SELECT f.name, f.filename, d.name as dsname'.
 			' FROM datasources d, dsfile f'.

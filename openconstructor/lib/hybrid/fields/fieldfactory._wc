@@ -30,15 +30,15 @@ class FieldFactory {
 	function createField(&$record, &$field) {
 		assert($record->ds_id > 0 && $field->id == null && $field->getMysqlType() != null && trim($field->header) != '');
 		WCS::assert($record->ds, 'editds');
-		$field->key = FieldFactory::getFullKey($field->key);
+		$field->key = self::getFullKey($field->key);
 		$field->setDS($record->ds_id);
-		if(FieldFactory::fieldExists($field->key, $record->ds_id) || !FieldFactory::alterTableAddField($field))
+		if(self::fieldExists($field->key, $record->ds_id) || !self::alterTableAddField($field))
 			return false;
 		if($field->create()) {
 			$record->fields[$field->key] = $field;
 			return $field->id;
 		}
-		FieldFactory::alterTableDropField($field);
+		self::alterTableDropField($field);
 		return false;
 	}
 	
@@ -50,14 +50,14 @@ class FieldFactory {
 		switch ($old->family) {
 			case 'primitive':
 				if($old->length != $new->length)
-					FieldFactory::alterTableUpdateField($new);
+					self::alterTableUpdateField($new);
 			break;
 			case 'tree':
 				if($old->isArray)
 					$new->isArray = true;
 			case 'enum':
 				if($old->isArray != $new->isArray)
-					FieldFactory::alterTableUpdateField($new);
+					self::alterTableUpdateField($new);
 			break;
 		}
 		$new->update();
@@ -67,14 +67,14 @@ class FieldFactory {
 		foreach($keys as $key)
 			if(isset($record->fields[$key]) && $record->fields[$key]->ds_id == $record->ds_id && WCS::decide($record->ds, 'editds')) {
 				$record->fields[$key]->remove();
-				FieldFactory::alterTableDropField($record->fields[$key]);
+				self::alterTableDropField($record->fields[$key]);
 				unset($record->fields[$key]);
 			}
 	}
 	
 	function &getField($id) {
 		assert(intval($id) > 0);
-		$result = FieldFactory::getFields($j = array($id));
+		$result = self::getFields($j = array($id));
 		if(!sizeof($result))
 			$result[0] = null;
 		return $result[0];
@@ -84,7 +84,7 @@ class FieldFactory {
 		settype($dsId, 'int');
 		assert($dsId > 0);
 		$result = array();
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query('
 			SELECT dsf.* 
 			FROM hybriddatasources dsh0, hybriddatasources dsh, dshfields dsf
@@ -94,7 +94,7 @@ class FieldFactory {
 		');
 		if(mysql_num_rows($res) > 0)
 			while($r = mysql_fetch_assoc($res))
-				$result[] = FieldFactory::getFieldFromArray($r); 
+				$result[] = self::getFieldFromArray($r); 
 		mysql_free_result($res);
 		return $result;
 	}
@@ -102,7 +102,7 @@ class FieldFactory {
 	function &getFields(&$ids) {
 		assert(sizeof($ids) > 0);
 		$result = array();
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			"SELECT dshfields.* FROM dshfields, hybriddatasources".
 			" WHERE id IN (".implode(',',$ids).") AND dshfields.ds_id = hybriddatasources.ds_id".
@@ -110,32 +110,32 @@ class FieldFactory {
 		);
 		if(mysql_num_rows($res) > 0)
 			while($r = mysql_fetch_assoc($res))
-				$result[] = FieldFactory::getFieldFromArray($r);
+				$result[] = self::getFieldFromArray($r);
 		mysql_free_result($res);
 		return $result;
 	}
 	
 	function enumUpdated(&$enum) {
 		assert($enum != null);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT dshfields.* FROM dshfields, hybriddatasources WHERE enum_id = {$enum->id}");
 		if(mysql_num_rows($res) > 0)
 			while($r = mysql_fetch_assoc($res)) {
-				$f = FieldFactory::getFieldFromArray($r);
-				FieldFactory::alterTableUpdateField($f);
+				$f = self::getFieldFromArray($r);
+				self::alterTableUpdateField($f);
 			}
 		mysql_free_result($res);
 	}
 	
 	function treeRemoved($treeId) {
 		assert($treeId > 0);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT dshfields.* FROM dshfields, hybriddatasources WHERE tree = $treeId");
 		if(mysql_num_rows($res) > 0)
 			while($r = mysql_fetch_assoc($res)) {
-				$f = FieldFactory::getFieldFromArray($r);
+				$f = self::getFieldFromArray($r);
 				$f->remove();
-				FieldFactory::alterTableDropField($f);
+				self::alterTableDropField($f);
 			}
 		mysql_free_result($res);
 	}
@@ -199,7 +199,7 @@ class FieldFactory {
 	}
 	
 	function fieldExists($key, $ds_id) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			"SELECT id FROM dshfields, hybriddatasources t1, hybriddatasources t2".
 			" WHERE t1.ds_id=$ds_id AND INSTR(t2.ds_key, t1.ds_key) = 1 AND dshfields.ds_id = t2.ds_id AND dshfields.name = '$key'".
@@ -211,7 +211,7 @@ class FieldFactory {
 	}
 	
 	function alterTableAddField(&$field) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			"ALTER TABLE `$field->ds_table`".
 			" ADD `$field->key` " . $field->getMysqlType()
@@ -220,14 +220,14 @@ class FieldFactory {
 	}
 	
 	function alterTableDropField(&$field) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			"ALTER TABLE `$field->ds_table` DROP `$field->key`"
 		);
 	}
 	
 	function alterTableUpdateField(&$field) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			"ALTER TABLE `$field->ds_table` CHANGE `$field->key`".
 			" `$field->key` ".$field->getMysqlType()

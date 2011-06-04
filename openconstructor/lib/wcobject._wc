@@ -116,18 +116,18 @@ class WCObject {
 	}
 
 	function run($params = array()) {
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		$this->exec($ctx->_smarty, $params);
 	}
 
 	function &getSearchQuery($keywordKey, $docsTable) {
 		$result = array('from' => null, 'where' => null, 'order' => null);
 		if($keywordKey) {
-			$ctx = &Context::getInstance();
+			$ctx = Context::getInstance();
 			$keyword = $ctx->getParam($keywordKey);
 			if($keyword) {
 				loadClass('searcher', '/search/searcher._wc');
-				$part = &Searcher::getQueryPart($keyword, $docsTable);
+				$part = Searcher::getQueryPart($keyword, $docsTable);
 				$result['from'] = ' JOIN '.$part['from'];
 				$result['where'] = ' AND '.$part['clause'];
 				$result['order'] = &$part['order'];

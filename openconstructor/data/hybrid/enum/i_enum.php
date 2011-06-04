@@ -24,7 +24,7 @@
 	WCS::requireAuthentication();
 	require_once(LIBDIR.'/enum/wcenumfactory._wc');
 	
-	$ef = &WCEnumFactory::getInstance();
+	$ef = WCEnumFactory::getInstance();
 switch(@$_POST['action'])
 {
 	case 'create_enum':

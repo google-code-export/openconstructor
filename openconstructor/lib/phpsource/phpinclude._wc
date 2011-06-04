@@ -84,7 +84,7 @@ class PHPInclude extends WCObject {
 	
 	function exec(&$smarty, $params = array()) {
 		if($this->block != 'PRE')
-			WCObject::exec($smarty, $params);
+			parent::exec($smarty, $params);
 	}
 	
 	function run() {

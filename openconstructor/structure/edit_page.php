@@ -26,12 +26,12 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/structure._wc');
 	require_once(LIBDIR.'/site/pagereader._wc');
 
-	$pr = &PageReader::getInstance();
+	$pr = PageReader::getInstance();
 	$page = $pr->getPage(@$_GET['node']);
 	assert($page != null);
 	$super = $pr->superDecide($page->id, 'managesub');
 	require_once(LIBDIR.'/security/groupfactory._wc');
-	$gf = &GroupFactory::getInstance();
+	$gf = GroupFactory::getInstance();
 	require_once(LIBDIR.'/templates/wctemplates._wc');
 	$tpls = new WCTemplates();
 	$tpl = null;
