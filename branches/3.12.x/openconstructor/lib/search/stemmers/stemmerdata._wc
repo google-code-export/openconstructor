@@ -243,7 +243,7 @@ class StemmerData {
 			        array(O, S, T, SOFT)
     	);
 		
-		$this->charset = StemmerData::_getUtf8Charset();
+		$this->charset = self::_getUtf8Charset();
 	}
 	
 	function _getUtf8Charset() {

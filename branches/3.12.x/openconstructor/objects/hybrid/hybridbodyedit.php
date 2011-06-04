@@ -27,7 +27,7 @@
 	require_once(LIBDIR.'/hybrid/fields/fieldfactory._wc');
 	require_once(LIBDIR.'/dsmanager._wc');
 	
-	$obj = &ObjManager::load(@$_GET['id']);
+	$obj = ObjManager::load(@$_GET['id']);
 	assert($obj != null);
 	$_dsm = new DSManager();
 	$ds = $_dsm->getAll($obj->ds_type);

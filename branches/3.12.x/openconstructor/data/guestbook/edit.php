@@ -39,7 +39,7 @@
 		}
 	} else {
 		loadClass('user', '/security/user._wc');
-		$user = &User::load(Authentication::getOriginalUserId());
+		$user = User::load(Authentication::getOriginalUserId());
 		$_doc = array('author'=>$user->name,'email'=>$user->email,'real_id'=>NULL);
 	}
 	$m = array();

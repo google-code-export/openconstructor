@@ -97,7 +97,7 @@
 	function sendOutput(&$output, $sendLength = false) {
 		$length = strlen($output);
 		if(!headers_sent()) {
-			$ctx = &Context::getInstance();
+			$ctx = Context::getInstance();
 			header('Content-Type: '.$ctx->page->getContentTypeHeader());
 			if($ctx->page->_cacheGz) {
 				header('Content-Encoding: gzip');
@@ -128,7 +128,7 @@
 
 	function _getAuthenticationPage() {
 		loadClass('context', '/context._wc');
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		if(is_object($ctx->map)) {
 			$prefix = $ctx->page->getParent(1, true);
 			$prefix = $prefix && strlen($prefix) == 4 ? $prefix : '/';
@@ -164,7 +164,7 @@
 			echo $header.str_repeat('.', $dots > 0 ? $dots : 0).
 				sprintf("% 5.01f%%  [ %01.03f sec ]\n", $p, $time);
 		}
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		$db = $ctx->_getDB();
 		echo sprintf("Date: %s GMT\n", gmdate('D, j M Y H:i:s'));
 		echo sprintf("SQL queries used: %d\n", $db->getQueryCount());
@@ -180,7 +180,7 @@
 
 	function &wcfStripTags($html, $allowedTags) {
 		require_once(LIBDIR.'/htmlcleaner._wc');
-		$cleaner = &HtmlCleaner::getInstance($allowedTags);
+		$cleaner = HtmlCleaner::getInstance($allowedTags);
 		$result = $cleaner->clean($html);
 		return $result;
 	}

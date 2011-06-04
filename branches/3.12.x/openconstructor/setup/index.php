@@ -28,7 +28,7 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/classes._wc');
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/setup._wc');
 	
-	$db = &WCDB::bo();
+	$db = WCDB::bo();
 	
 	$res=$db->query('SELECT VERSION(), USER(), DATABASE()');
 	list($dbversion,$dbuser,$dbname)=mysql_fetch_row($res);
@@ -62,7 +62,7 @@
 	mysql_free_result($res);
 	
 	require_once(LIBDIR.'/wcftp._wc');
-	$ftp = & WCFTP::getNew();
+	$ftp = WCFTP::getNew();
 	$ftpErrors = null;
 	if($ftp->open(8)) { // timeout 8 seconds
 		$isFtpValid = $ftp->isHostValid();
@@ -170,7 +170,7 @@
 			<tr>
 				<td class=value>allow_call_time_pass_reference</td>
 				<td class=value><?=($v = ini_get('allow_call_time_pass_reference')) ? 'On' : 'Off'?></td>
-				<td class=param><?=$v ? H_SETUP_OK_I : H_SETUP_ENABLE_W?></td>
+				<td class=param><?=!$v ? H_SETUP_OK_I : H_SETUP_DISABLE_W?></td>
 			</tr>
 			<tr>
 				<td colspan=3><hr></td>

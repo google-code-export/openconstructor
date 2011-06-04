@@ -30,8 +30,8 @@
 	assert($ds != null);
 	require_once(LIBDIR.'/security/groupfactory._wc');
 	require_once(LIBDIR.'/security/user._wc');
-	$owner = &User::load($ds->sRes->owner);
-	$ownerGroup = &GroupFactory::getGroup($ds->sRes->group);
+	$owner = User::load($ds->sRes->owner);
+	$ownerGroup = GroupFactory::getGroup($ds->sRes->group);
 ?>
 <html>
 <head>

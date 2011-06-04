@@ -31,7 +31,7 @@ switch(@$_POST['action'])
 	case 'create_text':
 		assert(trim(@$_POST['header']) != '');
 		if(@$_POST['hybridid'] > 0) {
-			$ownerDs = &WCDataSource::loadByDoc($_POST['hybridid']);
+			$ownerDs = WCDataSource::loadByDoc($_POST['hybridid']);
 			$ownerDoc = $ownerDs->getDocument($_POST['hybridid']);
 			WCS::assertValue(WCS::decide($ownerDoc, 'editdoc') || WCS::decide($ownerDs, 'editdoc'), $ownerDoc, 'editdoc');
 			WCS::runAs(WCS_ROOT_ID);

@@ -53,7 +53,7 @@ class HybridPager extends WCObject {
 	}
 	
 	function onPageLoad() {
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		$docList = $ctx->getObject($this->slave);
 		if($docList && !isset($docList->originalOffset)) {
 			$docList->originalOffset = $docList->listOffset;
@@ -67,7 +67,7 @@ class HybridPager extends WCObject {
 	
 	function fetchData(&$smarty) {
 		$result = false;
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		$docList = $ctx->getObject($this->slave);
 		if($docList) {
 			$docList->getDocuments();

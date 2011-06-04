@@ -30,16 +30,16 @@
 	require_once(LIBDIR.'/security/user._wc');
 	$multiple = strspn($_GET['id'], '0123456789') < strlen($_GET['id']);
 	if(!$multiple) {
-		$obj = &ObjManager::load($_GET['id']);
+		$obj = ObjManager::load($_GET['id']);
 		assert($obj != null);
-		$owner = &User::load($obj->sRes->owner);
-		$ownerGroup = &GroupFactory::getGroup($obj->sRes->group);
+		$owner = User::load($obj->sRes->owner);
+		$ownerGroup = GroupFactory::getGroup($obj->sRes->group);
 	} else {
-		$obj = &ObjManager::getAggregateObject($_GET['id']);
+		$obj = ObjManager::getAggregateObject($_GET['id']);
 		if($obj[0]->sRes->owner == $obj[1]->sRes->owner)
-			$owner = &User::load($obj[0]->sRes->owner);
+			$owner = User::load($obj[0]->sRes->owner);
 		if($obj[0]->sRes->group == $obj[1]->sRes->group)
-			$ownerGroup = &GroupFactory::getGroup($obj[0]->sRes->group);
+			$ownerGroup = GroupFactory::getGroup($obj[0]->sRes->group);
 	}
 ?>
 <html>

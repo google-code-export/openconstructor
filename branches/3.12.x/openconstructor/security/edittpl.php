@@ -30,16 +30,16 @@
 	require_once(LIBDIR.'/security/user._wc');
 	$multiple = strspn($_GET['id'], '0123456789') < strlen($_GET['id']);
 	if(!$multiple) {
-		$tpl = &WCTemplates::load($_GET['id']);
+		$tpl = WCTemplates::load($_GET['id']);
 		assert($tpl != null);
-		$owner = &User::load($tpl->sRes->owner);
-		$ownerGroup = &GroupFactory::getGroup($tpl->sRes->group);
+		$owner = User::load($tpl->sRes->owner);
+		$ownerGroup = GroupFactory::getGroup($tpl->sRes->group);
 	} else {
-		$tpl = &WCTemplates::getAggregateTemplate($_GET['id']);
+		$tpl = WCTemplates::getAggregateTemplate($_GET['id']);
 		if($tpl[0]->sRes->owner == $tpl[1]->sRes->owner)
-			$owner = &User::load($tpl[0]->sRes->owner);
+			$owner = User::load($tpl[0]->sRes->owner);
 		if($tpl[0]->sRes->group == $tpl[1]->sRes->group)
-			$ownerGroup = &GroupFactory::getGroup($tpl[0]->sRes->group);
+			$ownerGroup = GroupFactory::getGroup($tpl[0]->sRes->group);
 	}
 ?>
 <html>

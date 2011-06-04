@@ -48,7 +48,7 @@ class SearchDSs extends WCObject {
 	
 	function getCacheId() {
 		$cacheId = null;
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		$keyword = sprintf('%x', crc32(Searcher::getStemmedText($ctx->getParam($this->keywordKey))));
 		$cacheId = $this->obj_id.'|'.$keyword.'|o-'.$this->listOffset;
 		return $cacheId;
@@ -57,7 +57,7 @@ class SearchDSs extends WCObject {
 	function fetchData(&$smarty) {
 		$result = false;
 		$searchResults = $this->performSearch();
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		$keyword = $ctx->getParam($this->keywordKey);
 		$smarty->assign('keyword', escapeTags($keyword));
 		$smarty->assign('found', (int) @$this->availableDocsCount);
@@ -73,7 +73,7 @@ class SearchDSs extends WCObject {
 	function &performSearch() {
 		if(is_array($this->results))
 			return $this->results;
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		$keyword = $ctx->getParam($this->keywordKey);
 		$stemmedKeyword = Searcher::getStemmedText($keyword);
 		settype($this->listOffset, 'int');

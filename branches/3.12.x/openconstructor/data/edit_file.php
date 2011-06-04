@@ -108,7 +108,7 @@ function dsb(){
 			<td><select size="10" name="groups[]" multiple>
 			<?php
 				require_once(LIBDIR.'/security/groupfactory._wc');
-				$groups = &GroupFactory::getAllGroups();
+				$groups = GroupFactory::getAllGroups();
 				foreach($groups as $id => $title)
 					echo "<option value='$id'".(array_search($id, $_ds->groups) !== false ? ' selected': '').'>'.$title.'</option>';
 			?>

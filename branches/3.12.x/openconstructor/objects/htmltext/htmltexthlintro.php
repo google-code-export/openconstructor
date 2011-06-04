@@ -25,11 +25,11 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/objects._wc');
 	require_once(LIBDIR.'/objmanager._wc');
 	
-	$obj = &ObjManager::load(@$_GET['id']);
+	$obj = ObjManager::load(@$_GET['id']);
 	assert($obj != null);
 	require_once(LIBDIR.'/site/pagereader._wc');
 	require_once(LIBDIR.'/dsmanager._wc');
-	$pr = &PageReader::getInstance();
+	$pr = PageReader::getInstance();
 	$_dsm=new DSManager();
 	$ds = $_dsm->getAll($obj->ds_type);
 ?>

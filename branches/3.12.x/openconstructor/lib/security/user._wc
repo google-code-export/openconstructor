@@ -47,16 +47,16 @@ class User {
 
 	function &loadByUID($uid) {
 		$clause = 'u.autologin = "'.addslashes($uid).'"';
-		return User::loadByClause($clause);
+		return self::loadByClause($clause);
 	}
 
 	function &load($id, $fromCache = true) {
 		static $cache;
 		$result = null;
 		if(!$fromCache || !isset($cache[$id])) {
-			if(intval($id) > 0 || User::isLoginValid($id)) {
+			if(intval($id) > 0 || self::isLoginValid($id)) {
 				$clause = intval($id) > 0 ? 'u.id = '.intval($id) : 'u.login = "'.addslashes(strtolower($id)).'"';
-				$result = &User::loadByClause($clause);
+				$result = self::loadByClause($clause);
 				if($result != null) {
 					$cache[$result->id] = &$result;
 					$cache[$result->login] = &$result;
@@ -69,7 +69,7 @@ class User {
 
 	function &loadByClause($clause) {
 		$result = null;
-		$db = &WCDB::fo();
+		$db = WCDB::fo();
 		$res = $db->query(
 			"SELECT u.id, u.login, u.group_id, u.autologin, u.email, u.name, u.active, u.builtin, u.profile, g.profile as profile_type, u.expiry, BIN(ROUND(u.oauths)) as oauths, BIN(ROUND(u.gauths)) as gauths, GROUP_CONCAT(m.group_id) as membership
 				FROM wcsusers u, wcsmembership m, wcsgroups g
@@ -78,7 +78,7 @@ class User {
 		);
 		if(mysql_num_rows($res) > 0) {
 			$r = mysql_fetch_assoc($res);
-			$result = &User::fromArray($r);
+			$result = self::fromArray($r);
 		}
 		mysql_free_result($res);
 		return $result;
@@ -103,7 +103,7 @@ class User {
 	function getWCSAuthorities($userId) {
 		$auths = '0';
 		if($userId != WCS_ROOT_ID) {
-			$db = &WCDB::fo();
+			$db = WCDB::fo();
 			$res = $db->query("SELECT BIN(ROUND(g.auths)) as auths FROM wcsmembership m, wcsgroups g WHERE m.user_id = {$userId} AND g.id = m.group_id");
 			while($r = mysql_fetch_row($res))
 				$auths = wcs_or($auths, $r[0]);

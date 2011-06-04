@@ -47,7 +47,7 @@ class DSRating extends WCDataSource {
 		WCS::assert($this, 'createdoc');
 		settype($hDocId, 'int');
 		assert($hDocId > 0);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query("INSERT INTO {$this->DSTable} (ds_id, hdoc, date, wcsowner) SELECT {$this->ds_id} AS ds_id, dsh.id, ".time()." AS date, dsh.wcsowner FROM dshybrid dsh WHERE dsh.id = $hDocId");
 		if($db->affectedRows() > 0) {
 			$result = $db->lastInsertId();
@@ -84,7 +84,7 @@ class DSRating extends WCDataSource {
 		if($rec['rating'] != $rating) {
 			$newRating = $rating == $this->minRating ? $this->minRating + DSR_DEVIATION : ($rating == $this->maxRating ? $this->maxRating - DSR_DEVIATION : $rating);
 			if($userId = $this->_getFakeUserFor($doc->id)) {
-				$db = &WCDB::bo();
+				$db = WCDB::bo();
 				$res = $db->query("SELECT SUM(rating), SUM(votes) FROM dsratinglog WHERE id = {$doc->id} AND active GROUP BY id");
 				$r = mysql_fetch_row($res);
 				mysql_free_result($res);
@@ -110,7 +110,7 @@ class DSRating extends WCDataSource {
 		$this->filterDocs($ids);
 		if(sizeof($ids)) {
 			$_ids = implode(',', $ids);
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			if($r = $this->_getHybridDocColumn())
 				$db->query("UPDATE dshybrid_{$r[0]} h, dsrating d SET h.{$r[1]} = NULL WHERE d.id IN ($_ids) AND h.id = d.hdoc");
 			$db->query("DELETE FROM {$this->DSTable} WHERE id IN($_ids)");
@@ -125,7 +125,7 @@ class DSRating extends WCDataSource {
 		assert($doc->id > 0);
 		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
 		if(sizeof($userIds) > 0) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query(sprintf(
 				"DELETE l.* FROM {$this->DSTable} d, dsratinglog l WHERE d.ds_id = %d AND d.id = %d AND l.id = d.id AND l.user_id IN (%s)"
 				, $this->ds_id, $ratingId, implode(',', $userIds)
@@ -143,7 +143,7 @@ class DSRating extends WCDataSource {
 		assert($doc->id > 0);
 		WCS::assertValue(WCS::decide($doc, 'publishdoc') || WCS::decide($this, 'publishdoc'), $doc, 'publishdoc');
 		if(sizeof($userIds) > 0) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query(sprintf(
 				"UPDATE {$this->DSTable} d, dsratinglog l SET l.active = %d WHERE d.ds_id = %d AND d.id = %d AND l.id = d.id AND l.user_id IN (%s)"
 				, $state ? 1 : 0, $this->ds_id, $ratingId, implode(',', $userIds)
@@ -172,7 +172,7 @@ class DSRating extends WCDataSource {
 		settype($userId, 'int');
 		assert(!empty($clause) && $userId > 0);
 		$comment = $this->cleanHTML($comment);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(sprintf(
 			"INSERT INTO dsratinglog (id, user_id, active, rating, comment, date) SELECT id, $userId, 1, %d, '%s' AS comment, %d FROM {$this->DSTable} d WHERE $clause"
 			, $this->getValidRating($rating), addslashes($comment), time()
@@ -191,7 +191,7 @@ class DSRating extends WCDataSource {
 	
 	function _recalculateRating($clause) {
 		assert(empty($clause) == false);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT d.id, d.hdoc, SUM(l.votes) AS raters, SUM(l.rating) AS rating FROM {$this->DSTable} d LEFT JOIN dsratinglog l ON (l.id = d.id AND l.active > 0) WHERE  d.ds_id = {$this->ds_id} AND $clause GROUP BY d.id");
 		if(mysql_num_rows($res) > 0) {
 			$hDocs = array();
@@ -204,7 +204,7 @@ class DSRating extends WCDataSource {
 				$hDocs[] = $r['hdoc'];
 			}
 			if($col = $this->_getHybridDocColumn()) {
-				$smc = &WCDataSource::_getSmartyCache();
+				$smc = parent::_getSmartyCache();
 				$smc->record_updated('hybrid', $col[0], $hDocs);
 			}
 		}
@@ -217,7 +217,7 @@ class DSRating extends WCDataSource {
 	
 	function _getHybridDocColumn() {
 		if(!isset($this->_hdColumn)) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$res = $db->query("SELECT ds_id, name FROM dshfields WHERE fromds = {$this->ds_id} AND family='rating' LIMIT 1");
 			$this->_hdColumn = mysql_fetch_row($res);
 			mysql_free_result($res);
@@ -228,7 +228,7 @@ class DSRating extends WCDataSource {
 	function _getFakeUserFor($id) {
 		$result = null;
 		if($this->fakeRaters > 0) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$res = $db->query("SELECT m.user_id FROM wcsmembership m LEFT JOIN dsratinglog l ON (l.id = $id AND l.user_id = m.user_id) WHERE m.group_id = {$this->fakeRaters} AND l.user_id IS NULL LIMIT 1");
 			if($r = mysql_fetch_row($res))
 				$result = $r[0];
@@ -243,14 +243,14 @@ class DSRating extends WCDataSource {
 		$result = null;
 		assert($this->fakeRaters > 0 && DSR_FAKE_LOGIN_PREFIX);
 		require_once(LIBDIR.'/security/userfactory._wc');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(sprintf(
 				'SELECT SUBSTRING(login, %1$d + 1) FROM wcsusers WHERE LEFT(login, %1$d) = "%2$s" ORDER BY login DESC'
 				, strlen(DSR_FAKE_LOGIN_PREFIX), addslashes(DSR_FAKE_LOGIN_PREFIX)
 			));
 		$last = intval($r = mysql_fetch_row($res) ? $r[0] : 0);
 		$user = new User(null, null); $user->active = false;
-		$uf = &UserFactory::getInstance();
+		$uf = UserFactory::getInstance();
 		$user->pwd = $uf->generatePwd(8);
 		WCS::runAs(WCS_ROOT_ID);
 		for($i = $last + 1; !$result && ($i <= $last + 5); $i++) {
@@ -267,7 +267,7 @@ class DSRating extends WCDataSource {
 	function &get_record($id) {
 		settype($id, 'int');
 		$result = null;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT d.*, h.header FROM {$this->DSTable} d, dshybrid h WHERE d.id = $id AND h.id = d.hdoc LIMIT 1");
 		if($r = mysql_fetch_assoc($res)) {
 			$result = $r;
@@ -292,7 +292,7 @@ class DSRating extends WCDataSource {
 	function getVote($ratingId, $userId) {
 		settype($ratingId, 'int');
 		settype($userId, 'int');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT l.*, u.login, u.name FROM dsratinglog l LEFT JOIN wcsusers u ON (l.user_id = u.id) WHERE l.id = $ratingId AND l.user_id = $userId");
 		$result = mysql_fetch_assoc($res);
 		mysql_free_result($res);
@@ -329,7 +329,7 @@ class DSRating extends WCDataSource {
 			"UPDATE dsrating d, dsratinglog l SET l.comment = '%s' %s WHERE d.id = {$doc->id} AND d.ds_id = {$this->ds_id} AND l.id = d.id AND l.user_id = {$vote['user_id']}"
 			, addslashes($comment), $extra
 		);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query($query);
 		$result = $db->errorCode() == 0;
 		if($result && $dirty)
@@ -348,7 +348,7 @@ class DSRating extends WCDataSource {
 				if($min < $max && ($min != $this->minRating || $max != $this->maxRating)) {
 					$m = ($max - $min) / ($this->maxRating - $this->minRating);
 					$o = $min - $this->minRating * ($max - $min) / ($this->maxRating - $this->minRating);
-					$db = &WCDB::bo();
+					$db = WCDB::bo();
 					$db->query("UPDATE {$this->DSTable} d, dsratinglog l SET l.rating = ((l.rating / l.votes) * $m + $o) * l.votes WHERE d.ds_id = {$this->ds_id} AND l.id = d.id");
 					$this->minRating = (int) $min;
 					$this->maxRating = (int) $max;
@@ -357,7 +357,7 @@ class DSRating extends WCDataSource {
 			}
 			unset($this->_newBounds);
 		}
-		return WCDataSource::save();
+		return parent::save();
 	}
 	
 	function setIndexable() {assert(true === false);}

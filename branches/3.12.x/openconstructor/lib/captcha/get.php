@@ -43,7 +43,7 @@
 				readfile($file);
 			} else {
 				require_once('captcha._wc');
-				$png = &Captcha::generate($word, $width, $height, $fsize, isset($_GET['truetype']));
+				$png = Captcha::generate($word, $width, $height, $fsize, isset($_GET['truetype']));
 				echo $png;
 				umask(0);
 				if(WC_CAPTCHA_CACHE && ($f = fopen($file, 'wb'))) {

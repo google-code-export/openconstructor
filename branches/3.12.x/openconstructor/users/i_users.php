@@ -27,7 +27,7 @@ switch(@$_POST['action'])
 {
 	case 'edit_group':
 		require_once(LIBDIR.'/security/groupfactory._wc');
-		$gf = &GroupFactory::getInstance();
+		$gf = GroupFactory::getInstance();
 		$group = $gf->getGroup(@$_POST['group_id']);
 		assert($group->id > 0);
 		$group->title = @$_POST['name'];
@@ -45,7 +45,7 @@ switch(@$_POST['action'])
 	
 	case 'add_group':
 		require_once(LIBDIR.'/security/groupfactory._wc');
-		$gf = &GroupFactory::getInstance();
+		$gf = GroupFactory::getInstance();
 		$group = new Group(@$_POST['key'], @$_POST['name']);
 		$gf->createGroup($group);
 		if($group->id)
@@ -54,7 +54,7 @@ switch(@$_POST['action'])
 	
 	case 'remove_group':
 		require_once(LIBDIR.'/security/groupfactory._wc');
-		$gf = &GroupFactory::getInstance();
+		$gf = GroupFactory::getInstance();
 		$gf->removeGroup(@$_POST['group_id']);
 //		header('Location: http://'.$_host.WCHOME.'/users/');
 		die('<meta http-equiv="Refresh" content="0; URL=http://'.$_host.WCHOME.'/users/">');
@@ -81,9 +81,9 @@ switch(@$_POST['action'])
 	
 	case 'edit_user':
 		require_once(LIBDIR.'/security/userfactory._wc');
-		$user = &User::load(@$_POST['login']);
+		$user = User::load(@$_POST['login']);
 		assert($user != null);
-		$uf = &UserFactory::getInstance();
+		$uf = UserFactory::getInstance();
 		$user->name = @$_POST['name'];
 		$user->email = @$_POST['email'];
 		$user->active = !isset($_POST['isDisabled']);
@@ -95,7 +95,7 @@ switch(@$_POST['action'])
 		if($uf->updateUser($user)) {
 			$uf->setUserMembership($user, (array) @$_POST['membership']);
 			if($user->id == Authentication::getOriginalUserId()) {
-				$a = &Authentication::create($user);
+				$a = Authentication::create($user);
 				$a->fetchProfile();
 				$a->exportToSession();
 			}
@@ -107,7 +107,7 @@ switch(@$_POST['action'])
 		require_once(LIBDIR.'/security/userfactory._wc');
 		$user = new User(@$_POST['login'], @$_POST['name']);
 		$user->pwd = @$_POST['password1'];
-		$uf = &UserFactory::getInstance();
+		$uf = UserFactory::getInstance();
 		$uf->createUser(@$_POST['group_id'], $user);
 		if($user->id)
 			echo '<script>try{window.opener.location.href=window.opener.location.href;}catch(RuntimeException){}window.location.href="edituser.php?id='.$user->id.'";</script>Success';
@@ -115,7 +115,7 @@ switch(@$_POST['action'])
 
 	case 'remove_member':
 		require_once(LIBDIR.'/security/groupfactory._wc');
-		$group = &GroupFactory::getGroup($_POST['group_id']);
+		$group = GroupFactory::getGroup($_POST['group_id']);
 		assert($group != null);
 		$group->removeMember(@$_POST['ids']);
 		die('<meta http-equiv="Refresh" content="0; URL='.$_SERVER['HTTP_REFERER'].'">');
@@ -123,7 +123,7 @@ switch(@$_POST['action'])
 
 	case 'add_member':
 		require_once(LIBDIR.'/security/groupfactory._wc');
-		$group = &GroupFactory::getGroup($_POST['group_id']);
+		$group = GroupFactory::getGroup($_POST['group_id']);
 		assert($group != null);
 		$group->addMember(@$_POST['ids']);
 		die('<meta http-equiv="Refresh" content="0; URL='.$_SERVER['HTTP_REFERER'].'">');
@@ -131,7 +131,7 @@ switch(@$_POST['action'])
 
 	case 'edit_secrets':
 		require_once(LIBDIR.'/security/userfactory._wc');
-		$user = &User::load(@$_POST['id']);
+		$user = User::load(@$_POST['id']);
 		assert($user != null);
 		UserFactory::updateSecrets($user->id, @$_POST['pwd'], @$_POST['secretQ'], @$_POST['secretA']);
 		header('Location: '.$_SERVER['HTTP_REFERER']);

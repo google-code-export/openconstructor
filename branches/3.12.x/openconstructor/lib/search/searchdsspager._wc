@@ -47,7 +47,7 @@ class SearchDSsPager extends WCObject {
 	}
 	
 	function onPageLoad() {
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		$searchResults = $ctx->getObject($this->slave);
 		if($searchResults) {
 			$searchResults->originalOffset = $searchResults->listOffset;
@@ -61,7 +61,7 @@ class SearchDSsPager extends WCObject {
 	
 	function fetchData(&$smarty) {
 		$result = false;
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		$searchResults = $ctx->getObject($this->slave);
 		if($searchResults) {
 			$searchResults->performSearch();

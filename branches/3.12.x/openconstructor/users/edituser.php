@@ -26,10 +26,10 @@
 	require_once(LIBDIR.'/security/user._wc');
 	require_once(LIBDIR.'/security/groupfactory._wc');
 	
-	$user = &User::load(@$_GET['id']);
+	$user = User::load(@$_GET['id']);
 	assert($user != null);
 	WCS::_request(WCS::decide($user, 'edit') || System::decide('users'));
-	$group = &GroupFactory::getGroup($user->groupId);
+	$group = GroupFactory::getGroup($user->groupId);
 ?>
 <html>
 <head>
@@ -134,7 +134,7 @@ function checkForm() {
 			<td valign="top"><?=USR_MEMBERSHIP?>:</td>
 			<td><select size="10" id="membership" name="membership[]" multiple onchange="for(var i = 0, j = 0; i < this.options.length; i++) if(this.options[i].selected && this.options[i].getAttribute('old') == 'yes') j++; f.groupId.disabled = !(j == <?=sizeof($user->membership)?>);">
 			<?php
-				$groups = &GroupFactory::getAllGroups();
+				$groups = GroupFactory::getAllGroups();
 				foreach($groups as $id => $title)
 					echo "<option value='$id'".(array_search($id, $user->membership) !== false ? ' selected old="yes"': '').'>'.$title.'</option>';
 			?>

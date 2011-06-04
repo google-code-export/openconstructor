@@ -34,11 +34,11 @@
 		require_once(LIBDIR.'/context._wc');
 		require_once(LIBDIR.'/hybrid/view/hybridagent._wc');
 		require_once(LIBDIR.'/hybrid/view/hybridbodyedit._wc');
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		$smarty = new WCSmarty();
 //		$smarty->compile_check = true;
 		$obj = new HybridBodyEdit();
-		$obj->ctx = &Context::getInstance();
+		$obj->ctx = Context::getInstance();
 		$obj->ctx->_smarty = &$smarty;
 		$obj->docId = 'id';
 		$obj->dsIdKey = 'ds_id';
@@ -288,7 +288,7 @@
 			<legend>Trees and Enums</legend>
 			<table cellpadding="3">
 			<?php
-				$ef = &WCEnumFactory::getInstance();
+				$ef = WCEnumFactory::getInstance();
 				if(sizeof($rec->struct['enum']))
 					foreach($rec->struct['enum'] as $j)
 						foreach($j as $type=>$key) {

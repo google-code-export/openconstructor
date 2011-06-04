@@ -33,17 +33,17 @@ class System {
 	}
 	
 	function request($act) {
-		$sys = &System::getInstance();
+		$sys = self::getInstance();
 		WCS::request($sys, $act);
 	}
 	
 	function assert($act) {
-		$sys = &System::getInstance();
+		$sys = self::getInstance();
 		WCS::assert($sys, $act);
 	}
 	
 	function decide($act) {
-		$sys = &System::getInstance();
+		$sys = self::getInstance();
 		return WCS::decide($sys, $act);
 	}
 	
@@ -113,7 +113,7 @@ class System {
 		
 		$res->compile();
 
-		$auth = &Authentication::getInstance();
+		$auth = Authentication::getInstance();
 		$ownerAuths = str_repeat('1', $res->length);
 		$res->setAuthorities($ownerAuths, $auth->auths);
 		$instance->sRes = &$res;

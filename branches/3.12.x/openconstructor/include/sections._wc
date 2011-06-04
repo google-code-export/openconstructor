@@ -37,7 +37,7 @@ function &getTabs() {
 		'catalog' => array('catalog', CATALOG),
 		'users' => array('users', USERS)
 	);
-	$sys = &System::getInstance();
+	$sys = System::getInstance();
 	foreach($sections as $uri=>$v)
 		if(WCS::decide($sys, $v[0]))
 			$result[$uri] = $v[1];
@@ -148,7 +148,7 @@ function set_xslt_vars($vars)
 function getTreesFor($id) {
 	$trees = array();
 	$id = (int) $id;
-	$db = &WCDB::bo();
+	$db = WCDB::bo();
 	$res = $db->query(
 		"SELECT name, tree".
 		" FROM dshfields, hybriddatasources".

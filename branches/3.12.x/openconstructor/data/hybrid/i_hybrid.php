@@ -151,7 +151,7 @@ switch(@$_POST['action'])
 		require_once(LIBDIR.'/hybrid/dshybrid._wc');
 		assert(isset($_POST['header']) && trim($_POST['header']) !='' && @$_POST['ds_id'] > 0);
 		if(@$_POST['hybridid'] > 0) {
-			$ownerDs = &WCDataSource::loadByDoc($_POST['hybridid']);
+			$ownerDs = WCDataSource::loadByDoc($_POST['hybridid']);
 			$ownerDoc = $ownerDs->getDocument($_POST['hybridid']);
 			WCS::assertValue(WCS::decide($ownerDoc, 'editdoc') || WCS::decide($ownerDs, 'editdoc'), $ownerDoc, 'editdoc');
 			WCS::runAs(WCS_ROOT_ID);

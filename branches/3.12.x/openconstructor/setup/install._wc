@@ -68,7 +68,7 @@
 		} else {
 			require_once(LIBDIR.'/wcftp._wc');
 			$port = (int) @$params['ftpport'];
-			$ftp = & WCFTP::getNew($params['ftphost'], $port, $params['ftplogin'], $params['ftppwd'], isset($params['ftpsiteroot_auto']) ? '.' : $params['ftpsiteroot']);
+			$ftp = WCFTP::getNew($params['ftphost'], $port, $params['ftplogin'], $params['ftppwd'], isset($params['ftpsiteroot_auto']) ? '.' : $params['ftpsiteroot']);
 			$ftp->setTmpDir(@$params['tmpDir']);
 			if($ftp->open(8)) { // timeout 8 seconds
 				if(isset($params['ftpsiteroot_auto']))

@@ -59,12 +59,12 @@ class DSHybrid extends WCDataSource {
 
 	function save() {
 		unset($this->record,  $this->readSQL, $this->indexedDocQuery, $this->events);
-		return WCDataSource::save();
+		return parent::save();
 	}
 
 	function remove() {
 		WCS::assert($this, 'removeds');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query('SELECT id FROM dshybrid WHERE ds_id = '.$this->ds_id);
 		if(mysql_num_rows($res)>0) {
 			$ids = array();
@@ -96,7 +96,7 @@ class DSHybrid extends WCDataSource {
 		$record->initializeDocument($doc);
 		$query = $record->getSQL($doc);
 		$success = true;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		foreach($query as $q)
 			$success = $db->query($q) && $success;
 		if($success) {
@@ -129,7 +129,7 @@ class DSHybrid extends WCDataSource {
 		$query = $record->getSQL($doc);
 
 		$result = true;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		foreach($query as $q)
 			$result = $db->query($q) && $result;
 
@@ -186,7 +186,7 @@ class DSHybrid extends WCDataSource {
 				if($fields) $fields = ', '.$fields;
 				$this->readSQL = "SELECT dshybrid.id as id, ds_id, published, header, wcsowner $fields FROM $tables WHERE dshybrid.id=%d AND $where LIMIT 1";
 			}
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$res = $db->query(sprintf($this->readSQL, $id));
 			if(mysql_num_rows($res) > 0) {
 				$r = mysql_fetch_assoc($res);
@@ -212,7 +212,7 @@ class DSHybrid extends WCDataSource {
 
 	function createEmptyDocument($header, $ownerId) {
 		assert(trim($header) != '');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			sprintf("INSERT INTO dshybrid (ds_id, header, date, wcsowner) VALUES ($this->ds_id, '%s', '%s', %d)", addslashes($header), time(), $ownerId)
 		);
@@ -234,7 +234,7 @@ class DSHybrid extends WCDataSource {
 
 	function removeEmptyDocuments($ids) {
 		$ids = implode(',',$ids);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query("DELETE FROM dshybrid WHERE id IN ($ids)");
 		$parents = explode(',',$this->path);
 		unset($parents[0]);
@@ -292,7 +292,7 @@ class DSHybrid extends WCDataSource {
 		$agrs = array_fill(0, $fieldsLength + 1, null);
 		$args[0] = &$indexedDoc;
 		$intro = &$this->docIntro;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(sprintf($this->indexedDocQuery, $id === null ? '' : "AND dshybrid.id IN ($id)"));
 		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++) {
 			$r = mysql_fetch_assoc($res);

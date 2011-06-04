@@ -122,7 +122,7 @@ class ObjManager {
 		if(--$page<0) $page=0;
 		if(!$pageSize)
 			$pageSize = $this->pageSize;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			'SELECT o.id, o.name, o.description, o.date, COUNT(s.page_id) AS used'.
 			' FROM objects o LEFT JOIN siteobjects s ON (o.id = s.obj_id)'.
@@ -148,7 +148,7 @@ class ObjManager {
 
 	function &get_all_objects() {
 		$result = array();
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			'SELECT id, ds_type, obj_type, name, description FROM objects ORDER BY ds_type, obj_type, name'
 		);
@@ -169,12 +169,12 @@ class ObjManager {
 		assert(!$obj->obj_id > 0);
 		if(!$obj->caching)
 			$obj->cached_by_WC = true;
-		$auth = &Authentication::getInstance();
-		ObjManager::loadAuths($obj, 0, 0, constant('WCS_WCOBJECT_MASK'), null);
+		$auth = Authentication::getInstance();
+		self::loadAuths($obj, 0, 0, constant('WCS_WCOBJECT_MASK'), null);
 		$oAuths = $obj->sRes->getOwnerAuths();
 		$gAuths = $obj->sRes->getGroupAuths();
 		unset($obj->sRes);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			sprintf(
 				'INSERT INTO objects (ds_id, ds_type, obj_type, cache_by_wc, wcsowner, wcsgroup, oauths, gauths, name, description, date, code) '.
@@ -185,13 +185,13 @@ class ObjManager {
 			)
 		);
 		$id = (int) $db->lastInsertId();
-		$obj = &ObjManager::load($id);
+		$obj = self::load($id);
 		return $id;
 	}
 
 	function save(&$obj) {
 		assert($obj->obj_id > 0 && trim($obj->name) != '');
-		$old = &ObjManager::load($obj->obj_id);
+		$old = self::load($obj->obj_id);
 		WCS::assert($old, 'editobj');
 		if(!WCS::decide($old, 'editobj.tpl')) {
 			$obj->tpl = $old->tpl;	$obj->caching = $old->caching;	$obj->cache_lifetime = $old->cache_lifetime;	$obj->cached_by_WC = $old->cached_by_WC;
@@ -202,49 +202,49 @@ class ObjManager {
 				$obj->$ds[$i] = @$old->$ds[$i];
 		$clone = wcfClone($obj);
 		unset($clone->sRes);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'UPDATE objects '.
 			"SET ds_id='$obj->ds_id', tpl='$obj->tpl', cache_by_wc=".intval($obj->cached_by_WC).", name='".addslashes($obj->name)."', description='".addslashes($obj->description)."', date='".time()."', code='".addslashes(serialize($clone))."' ".
 			'WHERE id='.$obj->obj_id
 		);
 		if($obj != $old)
-			ObjManager::_republishPages(ObjManager::_getUsingPages('o.id = '.$obj->obj_id));
+			self::_republishPages(self::_getUsingPages('o.id = '.$obj->obj_id));
 		if($obj->cached_by_WC) {
 			loadClass('wcsmartycache', '/smarty/wcsmartycache._wc');
-			$smc = &WCSmartyCache::getInstance();
+			$smc = WCSmartyCache::getInstance();
 			$smc->object_updated($obj->ds_type, $obj->obj_id);
 		}
 	}
 
 	function remove($ids) {
 		assert($ids > 0 && strspn($ids, ',0123456789') == strlen($ids));
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT ds_type FROM objects WHERE id IN($ids) LIMIT 1");
 		list($ds_type) = mysql_fetch_row($res);
 		mysql_free_result($res);
 
 		$sCheck = WCS::getAuthCheckQuery('remove', 'o');
-		$pages = ObjManager::_getUsingPages("o.id IN({$ids}) AND {$sCheck}");
+		$pages = self::_getUsingPages("o.id IN({$ids}) AND {$sCheck}");
 		$db->query("DELETE s.* FROM objects o, siteobjects s WHERE o.id IN($ids) AND $sCheck AND o.id = s.obj_id");
 		$db->query("DELETE o.* FROM objects o WHERE o.id IN($ids) AND $sCheck");
-		ObjManager::_republishPages($pages);
+		self::_republishPages($pages);
 
 		loadClass('wcsmartycache', '/smarty/wcsmartycache._wc');
-		$smc = &WCSmartyCache::getInstance();
+		$smc = WCSmartyCache::getInstance();
 		$smc->object_updated($ds_type, $ids);
 	}
 
 	function &load($objId) {
 		$result = null;
 		settype($objId, 'int');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT id, ds_type, obj_type, tpl, wcsowner, wcsgroup, BIN(ROUND(oauths)) as oauths, BIN(ROUND(gauths)) as gauths, code FROM objects WHERE id = $objId");
 		if(mysql_num_rows($res) == 1) {
 			$r = mysql_fetch_assoc($res);
 			require_once($r['ds_type'].($r['ds_type'] == 'hybrid' ? '/view/' : '/').$r['obj_type'].'._wc');
-			$result = &WCObject::_loadFrom($r);
-			ObjManager::loadAuths($result, $r['wcsowner'], $r['wcsgroup'], $r['oauths'], $r['gauths']);
+			$result = WCObject::_loadFrom($r);
+			self::loadAuths($result, $r['wcsowner'], $r['wcsgroup'], $r['oauths'], $r['gauths']);
 		}
 		mysql_free_result($res);
 		return $result;
@@ -261,7 +261,7 @@ class ObjManager {
 		$querySet .= sprintf(', oauths = CONV("%s", 2, 10), gauths = CONV("%s", 2, 10)', $obj->sRes->getOwnerAuths(), $obj->sRes->getGroupAuths());
 		if($querySet) {
 			$querySet = substr($querySet, 1);
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query("UPDATE objects SET $querySet WHERE id = {$obj->obj_id} AND ".WCS::getAuthCheckQuery('editobj.chmod'));
 		}
 	}
@@ -274,7 +274,7 @@ class ObjManager {
 			$querySet .= "wcsowner = {$set->owner}, ";
 		if($set->group > 0 && $userId == WCS_ROOT_ID)
 			$querySet .= "wcsgroup = {$set->group}, ";
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			sprintf("UPDATE objects SET $querySet oauths = (ROUND(oauths) | CONV('%s', 2, 10)) & CONV('%s', 2, 10), gauths = (ROUND(gauths) | CONV('%s', 2, 10)) & CONV('%s', 2, 10) WHERE id IN ($ids) AND %s"
 				, $set->getOwnerAuths(), $unset->getOwnerAuths(), $set->getGroupAuths(), $unset->getGroupAuths(), WCS::getAuthCheckQuery('editobj.chmod')
@@ -285,10 +285,10 @@ class ObjManager {
 	function &getAggregateObject(&$ids) {
 		assert($ids > 0 && strspn($ids, ',0123456789') == strlen($ids));
 		$result = null;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT BIN(BIT_AND(ROUND(oauths))) as setoauths, BIN(BIT_AND(ROUND(gauths))) as setgauths, BIN(~BIT_AND(~ROUND(oauths))) as unsetoauths, BIN(~BIT_AND(~ROUND(gauths))) as unsetgauths FROM objects WHERE id IN($ids)");
 		if(mysql_num_rows($res) == 1) {
-			$obj = &ObjManager::load((int) $ids);
+			$obj = self::load((int) $ids);
 			assert($obj != null);
 			$obj->obj_id = 0;
 			$result = array(wcfClone($obj), wcfClone($obj));
@@ -346,7 +346,7 @@ class ObjManager {
 	function _getUsingPages($objIdsCheck) {
 		assert(strpos($objIdsCheck, ';') === false);
 		$result = array();
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT s.page_id FROM objects o, siteobjects s, sitepages p WHERE {$objIdsCheck} AND s.obj_id = o.id AND p.id = s.page_id AND p.published AND s.observer GROUP BY s.page_id");
 		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++)
 			list($result[]) = mysql_fetch_row($res);
@@ -357,7 +357,7 @@ class ObjManager {
 	function _republishPages($pageIds) {
 		if(sizeof($pageIds) > 0) {
 			require_once(LIBDIR.'/site/pagefactory._wc');
-			$pf = &PageFactory::getInstance();
+			$pf = PageFactory::getInstance();
 			WCS::runAs(WCS_ROOT_ID);
 			foreach($pageIds as $id)
 				$pf->publishPage($id);

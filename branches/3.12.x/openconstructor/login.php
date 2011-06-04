@@ -22,7 +22,7 @@
  */
 require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
 require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/main._wc');
-$auth = &Authentication::getInstance();
+$auth = Authentication::getInstance();
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>

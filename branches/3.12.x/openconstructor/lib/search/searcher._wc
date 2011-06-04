@@ -41,7 +41,7 @@ class Searcher {
 		$result = array();
 		
 		loadClass('stopwords', '/search/stopwords._wc');
-		$stopw = &Stopwords::getInstance();
+		$stopw = Stopwords::getInstance();
 		
 		$query = $this->getStemmedText($query);
 		$query = addslashes($query);
@@ -50,7 +50,7 @@ class Searcher {
 			$sorting = "ORDER BY ind.date DESC";
 		} else
 			$sorting = "";
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT document_id, ds_id
 							FROM `index`
 							WHERE MATCH(header, content) AGAINST('$query')
@@ -70,7 +70,7 @@ class Searcher {
 	 */
 	function &getQueryPart($keyword, $table_docs) {
 		$result = array();
-		$keyword = addslashes(Searcher::getStemmedText($keyword));
+		$keyword = addslashes(self::getStemmedText($keyword));
 		
 		$result['from'] = "`index` i";
 		$result['clause'] = "MATCH(i.header, i.content) AGAINST('$keyword') AND $table_docs.ds_id = i.ds_id AND $table_docs.id = i.document_id";
@@ -101,8 +101,8 @@ class Searcher {
 		
 		loadClass('russianstemmer', '/search/stemmers/russianstemmer._wc');
 		loadClass('englishstemmer', '/search/stemmers/englishstemmer._wc');
-		$rustemmer = &RussianStemmer::getInstance();
-		$enstemmer = &EnglishStemmer::getInstance();
+		$rustemmer = RussianStemmer::getInstance();
+		$enstemmer = EnglishStemmer::getInstance();
 		
 		while($cur = $tkn->next()) {
 			$type = $tkn->getType($cur);
@@ -113,7 +113,7 @@ class Searcher {
 					break;		
 				case TOKEN_WORD_RU:
 					$stem = $rustemmer->stem($cur);
-					Searcher::_padWord($stem, 'ь');
+					self::_padWord($stem, 'ь');
 					$result .= ($result ? ' ' : '') . $stem;
 					break;
 				default:

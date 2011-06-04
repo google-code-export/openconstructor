@@ -32,16 +32,16 @@ class UserFactory {
 	function createUser($groupId, &$user) {
 		assert($groupId > 0 && $user->login && !$user->id && $user->name);
 		loadClass('groupfactory', '/security/groupfactory._wc');
-		$group = &GroupFactory::getGroup($groupId);
+		$group = GroupFactory::getGroup($groupId);
 		WCS::assert($group, 'createuser');
-		assert(UserFactory::isLoginValid($user->login));
-		if(!UserFactory::isLoginAvailable($user->login))
+		assert(self::isLoginValid($user->login));
+		if(!self::isLoginAvailable($user->login))
 			return false;
 		$user->loadAuths(0, 0, $group->umask, null);
 		$pwd = wcs_pwd_hash($user->pwd);
-		$user->autologinId = UserFactory::getAutologinId($user->login, $user->pwd);
+		$user->autologinId = self::getAutologinId($user->login, $user->pwd);
 		$user->profileId = 0;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'INSERT INTO wcsusers (login, pwd, group_id, autologin, email, name, active, oauths, gauths)'.
 			sprintf(' VALUES ("%s", "%s", %d, "%s", "%s", "%s", %d, CONV("%s", 2, 10), CONV("%s", 2, 10))',
@@ -50,14 +50,14 @@ class UserFactory {
 		);
 		$id = $db->lastInsertId();
 		if($id) {
-			$everyone = &GroupFactory::getGroupByName('everyone');
+			$everyone = GroupFactory::getGroupByName('everyone');
 			WCS::runAs(WCS_ROOT_ID);
 			$group->addMember($id);
 			$everyone->addMember($id);
 			WCS::stopRunAs();
 			$user->id = (int) $id;
 			if($group->profileType > 0) {
-				UserFactory::createUserProfile($user, $group->profileType);
+				self::createUserProfile($user, $group->profileType);
 				$db->query("UPDATE wcsusers SET profile = {$user->profileId} WHERE id = {$user->id}");
 			}
 		}
@@ -72,7 +72,7 @@ class UserFactory {
 		} else
 			$ids = (int) $userId;
 		$sCheck = '('.WCS::getAuthCheckQuery('removeuser', 'g').' OR '.WCS::getAuthCheckQuery('remove', 'u', 'id', 'group_id').')';
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT u.id FROM wcsusers u, wcsgroups g WHERE u.id IN ($ids) AND u.builtin = 0 AND u.group_id = g.id AND $sCheck");
 		$ids = array();
 		if(mysql_num_rows($res) > 0)
@@ -81,7 +81,7 @@ class UserFactory {
 		mysql_free_result($res);
 		if(!sizeof($ids)) return;
 		$ids = implode(',', $ids);
-		UserFactory::removeUserProfiles($ids);
+		self::removeUserProfiles($ids);
 		$db->query(
 			'DELETE wcsmembership.* FROM wcsmembership, wcsusers WHERE wcsusers.id IN ('.$ids.') AND wcsusers.id = wcsmembership.user_id'
 		);
@@ -90,42 +90,42 @@ class UserFactory {
 
 	function updateUser(&$user) {
 		assert($user->id > 0);
-		$old = &User::load($user->id, false);
+		$old = User::load($user->id, false);
 		loadClass('groupfactory', '/security/groupfactory._wc');
-		$group = &GroupFactory::getGroup($old->groupId);
+		$group = GroupFactory::getGroup($old->groupId);
 		$groupOwners = WCS::decide($group, 'edituser');
 		WCS::assertValue($groupOwners || WCS::decide($old, 'edit'), $user, 'edit');
 		$user->profileId = $old->profileId;
 		$querySet = '';
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		if(!$old->profileId && $group->profileType > 0) {
-			UserFactory::createUserProfile($old, $group->profileType);
+			self::createUserProfile($old, $group->profileType);
 			$db->query("UPDATE wcsusers SET profile = {$old->profileId} WHERE id = {$old->id}");
 		}
 
 		if($old->pwd !== $user->pwd && ($groupOwners || WCS::decide($old, 'edit.pwd'))) {
 			$querySet .= sprintf(', pwd = "%s"', addslashes(wcs_pwd_hash($user->pwd)));
-			$querySet .= sprintf(', autologin = "%s"', addslashes(UserFactory::getAutologinId($user->login, $user->pwd)));
+			$querySet .= sprintf(', autologin = "%s"', addslashes(self::getAutologinId($user->login, $user->pwd)));
 		}
 		if($old->expiry != $user->expiry && $user->expiry >= 0 && ($groupOwners || WCS::decide($old, 'edit.expiry')))
 			$querySet .= sprintf(', expiry = %d', $user->expiry);
 		if($old->active != $user->active && ($groupOwners || WCS::decide($old, 'edit.status'))) {
 			if($old->profileId > 0)
-				UserFactory::setProfilesState(array($old->profileId), $user->active);
+				self::setProfilesState(array($old->profileId), $user->active);
 			$querySet .= sprintf(', active = %d', $user->active ? 1 : 0);
 		}
 		if($old->email != $user->email && ($groupOwners || WCS::decide($old, 'edit.email')))
 			$querySet .= sprintf(', email = "%s"', addslashes($user->email));
 		if($old->groupId != $user->groupId && ($groupOwners || WCS::decide($old, 'edit.group')))
 			if(array_search($user->groupId, $old->membership) !== false) {
-				$newGroup = &GroupFactory::getGroup($user->groupId);
+				$newGroup = GroupFactory::getGroup($user->groupId);
 				assert($newGroup != null);
 				if($old->profileId > 0) {
 					if(!$newGroup->profileType) {
-						UserFactory::removeProfiles(array($old->profileId));
+						self::removeProfiles(array($old->profileId));
 						$querySet .= ', profile = 0';
 					} elseif($newGroup->profileType != $group->profileType)
-						UserFactory::castProfiles(array($old->profileId), $group->profileType, $newGroup->profileType);
+						self::castProfiles(array($old->profileId), $group->profileType, $newGroup->profileType);
 				}
 				$querySet .= sprintf(', group_id = %d', $user->groupId);
 			}
@@ -142,13 +142,13 @@ class UserFactory {
 		$add = array_diff($membership, $user->membership);
 		foreach($remove as $id)
 			if($id != WCS_EVERYONE_ID) {
-				$group = &GroupFactory::getGroup($id);
+				$group = GroupFactory::getGroup($id);
 				if(WCS::decide($group, 'removemember'))
 					$group->removeMember($user->id);
 			}
 		foreach($add as $id)
 			if($id != WCS_EVERYONE_ID) {
-				$group = &GroupFactory::getGroup($id);
+				$group = GroupFactory::getGroup($id);
 				if(WCS::decide($group, 'addmember'))
 					$group->addMember($user->id);
 			}
@@ -163,7 +163,7 @@ class UserFactory {
 		} else
 			$ids = (int) $userId;
 		$sCheck = '('.WCS::getAuthCheckQuery('edituser', 'g').' OR '.WCS::getAuthCheckQuery('edit.status', 'u', 'id', 'group_id').')';
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT u.id FROM wcsusers u, wcsgroups g WHERE u.id IN ($ids)  AND u.group_id = g.id AND $sCheck");
 		$ids = array();
 		if(mysql_num_rows($res) > 0)
@@ -173,17 +173,17 @@ class UserFactory {
 		if(!sizeof($ids)) return;
 		$ids = implode(',', $ids);
 		$db->query('UPDATE wcsusers SET active = '.$state.' WHERE id IN ('.$ids.') AND active != '.$state.' AND id != '.Authentication::getOriginalUserId());
-		UserFactory::setProfilesState(UserFactory::getProfileIds($ids), $state);
+		self::setProfilesState(self::getProfileIds($ids), $state);
 	}
 
 	function changePwd($userId, $oldPwd, $newPwd) {
-		return UserFactory::checkUserPwd($userId, $oldPwd)
-			? UserFactory::updatePwd($userId, $newPwd)
+		return self::checkUserPwd($userId, $oldPwd)
+			? self::updatePwd($userId, $newPwd)
 			: false;
 	}
 
 	function checkUserPwd($userId, $pwd) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(sprintf(
 			"SELECT id FROM wcsusers WHERE id = %d AND pwd = '%s'"
 			, $userId, addslashes(wcs_pwd_hash($pwd))
@@ -194,13 +194,13 @@ class UserFactory {
 	}
 
 	function updatePwd($userId, $newPwd) {
-		$user = &User::load($userId, false);
+		$user = User::load($userId, false);
 		WCS::assert($user, 'edit.pwd');
 		if($user->pwd !== $newPwd) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query(sprintf(
 				"UPDATE wcsusers SET pwd = '%s', autologin = '%s' WHERE id = {$user->id}"
-				, addslashes(wcs_pwd_hash($newPwd)), addslashes(UserFactory::getAutologinId($user->login, $newPwd))
+				, addslashes(wcs_pwd_hash($newPwd)), addslashes(self::getAutologinId($user->login, $newPwd))
 			));
 			return $db->affectedRows() == 1;
 		}
@@ -210,10 +210,10 @@ class UserFactory {
 	function updateSecrets($userId, $pwd, $secretQ, $secretA) {
 		$secretQ = trim($secretQ); $secretA = trim($secretA);
 		assert($secretQ != '' && $secretA != '');
-		$user = &User::load($userId, false);
+		$user = User::load($userId, false);
 		WCS::assert($user, 'edit.pwd');
 		if($user->id == Authentication::getOriginalUserId()) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query(sprintf(
 				"UPDATE wcsusers SET secretquest = '%s', secretans = '%s' WHERE id = {$user->id} AND pwd = '%s'"
 				, addslashes($secretQ), addslashes($secretA), addslashes(wcs_pwd_hash($pwd))
@@ -225,7 +225,7 @@ class UserFactory {
 		settype($userId, 'int');
 		assert($userId > 0);
 		$result = null;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT secretquest FROM wcsusers WHERE id = $userId");
 		if($r = mysql_fetch_row($res))
 			$result = $r[0];
@@ -234,7 +234,7 @@ class UserFactory {
 	}
 
 	function isSecretAnswerValid($userId, $secretA) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(sprintf(
 			"SELECT id FROM wcsusers WHERE id = %d AND LENGTH(TRIM(secretquest)) > 0 AND secretans = '%s'"
 			, $userId, addslashes(trim($secretA))
@@ -245,14 +245,14 @@ class UserFactory {
 	}
 
 	function regenerateUserPwd($userId, $secretA, $pwdLength = 8) {
-		$user = &User::load($userId);
+		$user = User::load($userId);
 		assert($user->id > 0);
 		$result = false;
-		if(UserFactory::isSecretAnswerValid($user->id, $secretA)) {
-			$result = UserFactory::generatePwd($pwdLength);
+		if(self::isSecretAnswerValid($user->id, $secretA)) {
+			$result = self::generatePwd($pwdLength);
 			$user->pwd = $result;
 			WCS::runAs(WCS_ROOT_ID);
-			UserFactory::updateUser($user);
+			self::updateUser($user);
 			WCS::stopRunAs();
 		}
 		return $result;
@@ -280,21 +280,21 @@ class UserFactory {
 	function updateAuths(&$user) {
 		assert($user->id > 0);
 		loadClass('groupfactory', '/security/groupfactory._wc');
-		$group = &GroupFactory::getGroup($user->groupId);
+		$group = GroupFactory::getGroup($user->groupId);
 		$groupOwners = WCS::decide($group, 'edituser');
 		$querySet = '';
 		$sCheck = $groupOwners ? '' : 'AND '.WCS::getAuthCheckQuery('edit.chmod');
 		$querySet .= sprintf(', oauths = CONV("%s", 2, 10), gauths = CONV("%s", 2, 10)', $user->sRes->getOwnerAuths(), $user->sRes->getGroupAuths());
 		if($querySet) {
 			$querySet = substr($querySet, 1);
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query("UPDATE wcsusers SET $querySet WHERE id = {$user->id} $sCheck");
 		}
 	}
 
 	function updateUsersAuths(&$ids, &$set, &$unset) {
 		assert(!empty($ids) && strspn($ids, ',0123456789') == strlen($ids));
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			sprintf("UPDATE wcsusers, wcsgroups SET wcsusers.oauths = (ROUND(wcsusers.oauths) | CONV('%s', 2, 10)) & CONV('%s', 2, 10), wcsusers.gauths = (ROUND(wcsusers.gauths) | CONV('%s', 2, 10)) & CONV('%s', 2, 10) WHERE wcsusers.id IN ($ids) AND wcsusers.group_id = wcsgroups.id AND (%s OR %s)"
 				, $set->getOwnerAuths(), $unset->getOwnerAuths(), $set->getGroupAuths(), $unset->getGroupAuths(), WCS::getAuthCheckQuery('edituser', 'wcsgroups'), WCS::getAuthCheckQuery('edit.chmod', 'wcsusers', 'id', 'group_id')
@@ -305,10 +305,10 @@ class UserFactory {
 	function &getAggregateUser(&$ids) {
 		assert(strspn($ids, ',0123456789') == strlen($ids));
 		$result = null;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT BIN(BIT_AND(ROUND(oauths))) as setoauths, BIN(BIT_AND(ROUND(gauths))) as setgauths, BIN(~BIT_AND(~ROUND(oauths))) as unsetoauths, BIN(~BIT_AND(~ROUND(gauths))) as unsetgauths FROM wcsusers WHERE id IN($ids)");
 		if(mysql_num_rows($res) == 1) {
-			$user = &User::load(WCS_ROOT_ID);
+			$user = User::load(WCS_ROOT_ID);
 			$user->id = $user->groupId = 0;
 			$result = array(wcfClone($user), wcfClone($user));
 //			unset($result[1]->sRes);
@@ -325,7 +325,7 @@ class UserFactory {
 		assert($user->id > 0 && $type > 0);
 		$user->profileId = 0;
 		loadClass('dsmanager', '/dsmanager._wc');
-		$ds = &DSManager::load($type);
+		$ds = DSManager::load($type);
 		if($ds != null) {
 			$doc = $ds->getEmptyDocument();
 			$doc->header = $user->login;
@@ -339,13 +339,13 @@ class UserFactory {
 	}
 
 	function removeUserProfiles($ids) {
-		UserFactory::removeProfiles(UserFactory::getProfileIds($ids));
+		self::removeProfiles(self::getProfileIds($ids));
 	}
 
 	function castProfiles($ids, $oldType, $newType) {
 		assert($oldType > 0 && $newType > 0);
 		if(sizeof($ids)) {
-			$dsf = &UserFactory::_getHybridFactory();
+			$dsf = self::_getHybridFactory();
 			WCS::runAs(WCS_ROOT_ID);
 			$dsf->castDocuments($ids, $oldType, $newType);
 			WCS::stopRunAs();
@@ -354,7 +354,7 @@ class UserFactory {
 
 	function removeProfiles($ids) {
 		if(sizeof($ids)) {
-			$dsf = &UserFactory::_getHybridFactory();
+			$dsf = self::_getHybridFactory();
 			WCS::runAs(WCS_ROOT_ID);
 			$dsf->removeDocuments($ids);
 			WCS::stopRunAs();
@@ -363,7 +363,7 @@ class UserFactory {
 
 	function setProfilesState($ids,  $state) {
 		if(sizeof($ids)) {
-			$dsf = &UserFactory::_getHybridFactory();
+			$dsf = self::_getHybridFactory();
 			WCS::runAs(WCS_ROOT_ID);
 			if($state)
 				$dsf->publishDocuments($ids);
@@ -377,7 +377,7 @@ class UserFactory {
 		$result = array();
 		if($userIds) {
 			assert(strspn($userIds, ',0123456789') == strlen($userIds));
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$res = $db->query("SELECT profile FROM wcsusers WHERE id IN ($userIds) AND profile > 0");
 			for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++)
 				list($result[$i]) = mysql_fetch_row($res);
@@ -402,7 +402,7 @@ class UserFactory {
 	}
 
 	function isLoginAvailable($login) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(sprintf('SELECT id FROM wcsusers WHERE login = "%s"', addslashes($login)));
 		$available = mysql_num_rows($res) == 0;
 		mysql_free_result($res);

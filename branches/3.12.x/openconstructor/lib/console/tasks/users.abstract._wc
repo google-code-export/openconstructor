@@ -73,7 +73,7 @@ class AbstractConsoleTask_Users extends ConsoleTask {
 	function &_getUserFactory() {
 		if(!is_object($this->_uf)) {
 			require_once(LIBDIR.'/security/userfactory._wc');
-			$this->_uf = &UserFactory::getInstance();
+			$this->_uf = UserFactory::getInstance();
 		}
 		return $this->_uf;
 	}

@@ -25,14 +25,14 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/security._wc');
 	require_once(LIBDIR.'/site/pagereader._wc');
 	
-	$pr = &PageReader::getInstance();
+	$pr = PageReader::getInstance();
 	$page = $pr->getPage(@$_GET['id']);
 	assert($page != null);
 	$super = $pr->superDecide($page->id, 'managesub');
 	require_once(LIBDIR.'/security/groupfactory._wc');
 	require_once(LIBDIR.'/security/user._wc');
-	$owner = &User::load($page->sRes->owner);
-	$ownerGroup = &GroupFactory::getGroup($page->sRes->group);
+	$owner = User::load($page->sRes->owner);
+	$ownerGroup = GroupFactory::getGroup($page->sRes->group);
 ?>
 <html>
 <head>

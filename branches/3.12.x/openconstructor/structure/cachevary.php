@@ -25,7 +25,7 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/structure._wc');
 	require_once(LIBDIR.'/site/pagereader._wc');
 	
-	$pr = &PageReader::getInstance();
+	$pr = PageReader::getInstance();
 	$page = $pr->getPage(@$_GET['id']);
 	assert($page != null);
 	require_once(LIBDIR.'/site/cachevarysuggest._wc');
@@ -34,7 +34,7 @@
 	$vary = array();
 	foreach($objIds as $id)
 		if($page->objects[$id]['block']) {
-			$obj = &ObjManager::load($id);
+			$obj = ObjManager::load($id);
 			$vary = array_merge($vary, CacheVarySuggest::suggest($obj));
 		}
 	asort($vary);

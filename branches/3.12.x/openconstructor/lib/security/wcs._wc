@@ -30,36 +30,36 @@ class WCS {
 	}
 	
 	function requireAuthentication(&$res = null) {
-		$auth = &Authentication::getInstance();
-		if(WCS::privileged($auth))
+		$auth = Authentication::getInstance();
+		if(self::privileged($auth))
 			return;
 		if($res === null)
-			$res = &System::getInstance();
-		if(WCS::inGroup($res, $auth->membership))
+			$res = System::getInstance();
+		if(self::inGroup($res, $auth->membership))
 			return;
-		WCS::request($res, ',.,');
+		self::request($res, ',.,');
 	}
 	
 	function request(&$res, $act = '') {
-		WCS::_request(WCS::_decide($res, $act), @$res->authenticationPage);
+		self::_request(self::_decide($res, $act), @$res->authenticationPage);
 	}
 	
 	function assert(&$res, $act = '') {
-		$decision = WCS::_decide($res, $act);
-		WCS::_assert($decision == true, $res->sRes->name, $act);
+		$decision = self::_decide($res, $act);
+		self::_assert($decision == true, $res->sRes->name, $act);
 	}
 	
 	function assertValue($value, &$res, $act = '') {
-		WCS::_assert($value, $res->sRes->name, $act);
+		self::_assert($value, $res->sRes->name, $act);
 	}
 	
 	function decide(&$res, $act = '') {
-		return WCS::_decide($res, $act);
+		return self::_decide($res, $act);
 	}
 	
 	function runAs($userId) {
 		loadClass('user', '/security/user._wc');
-		$user = &User::load($userId);
+		$user = User::load($userId);
 		Authentication::runAs($user);
 	}
 	
@@ -73,18 +73,18 @@ class WCS {
 	
 	function userAllowed(&$res, $act, &$auth = null) {
 		if($auth == null)
-			$auth = &Authentication::getInstance();
-		if(WCS::privileged($auth))
+			$auth = Authentication::getInstance();
+		if(self::privileged($auth))
 			return isset($res->sRes->map[$act]);
 		return $auth->userId == $res->sRes->owner && (!$act || $res->sRes->decision($act, $res->sRes->authorities[0]));
 	}
 	
 	function groupAllowed(&$res, $act, &$auth = null) {
 		if($auth == null)
-			$auth = &Authentication::getInstance();
-		if(WCS::privileged($auth))
+			$auth = Authentication::getInstance();
+		if(self::privileged($auth))
 			return isset($res->sRes->map[$act]);
-		return WCS::inGroup($res, $auth->membership) && (!$act || $res->sRes->decision($act, $res->sRes->authorities[1]));
+		return self::inGroup($res, $auth->membership) && (!$act || $res->sRes->decision($act, $res->sRes->authorities[1]));
 	}
 	
 	function inGroup(&$res, &$membership) {
@@ -95,8 +95,8 @@ class WCS {
 	}
 	
 	function getAuthCheckQuery($act, $prefix = '', $ownerField = 'wcsowner', $groupField = 'wcsgroup') {
-		$auth = &Authentication::getInstance();
-		if(WCS::privileged($auth))
+		$auth = Authentication::getInstance();
+		if(self::privileged($auth))
 			return 1;
 		$group = implode(',', $auth->membership);
 		if($prefix) $prefix .= '.';
@@ -105,8 +105,8 @@ class WCS {
 	}
 	
 	function getOwnerCheckQuery($prefix = '') {
-		$auth = &Authentication::getInstance();
-		if(WCS::privileged($auth))
+		$auth = Authentication::getInstance();
+		if(self::privileged($auth))
 			return 1;
 		if($prefix) $prefix .= '.';
 		$query = "({$prefix}wcsowner = {$auth->userId})";
@@ -121,11 +121,11 @@ class WCS {
 		if($true == true)
 			return;
 		if($loginPage === false) {
-			$sys = &System::getInstance();
+			$sys = System::getInstance();
 			$loginPage = $sys->authenticationPage;
 		}
 		if(headers_sent() || !$loginPage)
-			WCS::_assert(true == false);
+			self::_assert(true == false);
 		sendRedirect('http://'.$_SERVER['HTTP_HOST'].$loginPage.(Authentication::getOriginalUserId() > 0 ? '?authlack&' : '?').'next='.urlencode($_SERVER['REQUEST_URI']), 302);
 		die();
 	}
@@ -133,8 +133,8 @@ class WCS {
 	function _decide(&$res, &$act) {
 		if(!@isset($res->sRes))
 			return false;
-		$auth = &Authentication::getInstance();
-		return WCS::userAllowed($res, $act, $auth) || WCS::groupAllowed($res, $act, $auth);
+		$auth = Authentication::getInstance();
+		return self::userAllowed($res, $act, $auth) || self::groupAllowed($res, $act, $auth);
 	}
 	
 	function _assert($true, $resName = null, $act = null) {

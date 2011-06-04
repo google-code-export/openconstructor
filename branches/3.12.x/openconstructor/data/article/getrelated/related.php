@@ -26,7 +26,7 @@
 	
 	$related=-1;
 	if(@$_GET['related']) $related=$_GET['related'];
-	$db = &WCDB::bo();
+	$db = WCDB::bo();
 	$res = $db->query(
 		'SELECT id, ds_id, header, intro'.
 		' FROM dsarticle'.

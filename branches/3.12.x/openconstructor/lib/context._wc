@@ -131,7 +131,7 @@ class Context {
 		elseif(isset($_GET[$name]))
 			$result = &$_GET[$name];
 		if($index !== null)
-			$result = &Context::getArrayElement($result, $index);
+			$result = self::getArrayElement($result, $index);
 		return $result;
 	}
 
@@ -162,7 +162,7 @@ class Context {
 
 	function &_getDB() {
 		if($this->_db === null)
-			$this->_db = &WCDB::fo();
+			$this->_db = WCDB::fo();
 
 		return $this->_db;
 	}
@@ -181,7 +181,7 @@ class Context {
 
 	function &getHybridAgent($dsId) {
 		require_once(LIBDIR.'/hybrid/view/hybridagent._wc');
-		$result = &HybridAgent::getInstance($dsId);
+		$result = HybridAgent::getInstance($dsId);
 		return $result;
 	}
 

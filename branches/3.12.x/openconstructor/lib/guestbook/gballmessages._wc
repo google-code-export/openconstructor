@@ -52,7 +52,7 @@ class GBAllMessages extends WCObject {
 		if($this->tpl && $this->defaultGB) {
 			$ids = explode(',', $this->getDsId());
 			foreach($ids as $id)
-				GBAllMessages::_addDisplayed($id);
+				self::_addDisplayed($id);
 		}
 	}
 	
@@ -114,7 +114,7 @@ class GBAllMessages extends WCObject {
 	}
 	
 	function &getDisplayedDs() {
-		$result = GBAllMessages::_addDisplayed(null, true);
+		$result = self::_addDisplayed(null, true);
 		return $result;
 	}
 	

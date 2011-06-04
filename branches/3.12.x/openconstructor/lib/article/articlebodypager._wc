@@ -45,7 +45,7 @@ class ArticleBodyPager extends WCObject {
 	
 	function getCacheId() {
 		$cacheId = null;
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		if($master = $ctx->getObject((int) $this->master)) {
 			$articleId = $master->getDocId();
 			$pageNum = @$_GET[$master->pid];
@@ -57,7 +57,7 @@ class ArticleBodyPager extends WCObject {
 	
 	function fetchData(&$smarty) {
 		$result = false;
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		$master = $ctx->getObject((int) $this->master);
 		if(!$master) return;
 		$article_id = $master->getDocId();

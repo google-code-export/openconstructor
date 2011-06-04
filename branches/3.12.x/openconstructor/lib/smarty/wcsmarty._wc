@@ -134,7 +134,7 @@ function smarty_func_href($params, &$smarty) {
 
 function smarty_outputfilter_gzip($output, &$smarty) {
 	$result = null;
-	$ctx = &Context::getInstance();
+	$ctx = Context::getInstance();
 	if(headers_sent()) {
 		$ctx->page->_cacheGz = false;
 		$result = &$output;

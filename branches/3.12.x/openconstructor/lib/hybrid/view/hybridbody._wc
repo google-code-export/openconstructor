@@ -94,7 +94,7 @@ class HybridBody extends WCObject {
 			} elseif(is_object($agent)) {
 				$result = array();
 				$nodes = $pma = array(); $enums = '';
-				$ctx = &Context::getInstance();
+				$ctx = Context::getInstance();
 				$props = $agent->_getQueryProps($this->docFields, array(), $this->docFilter);
 				settype($this->idField, 'int');
 				if($this->idField && isset($agent->dsFields[$this->idField]))
@@ -221,7 +221,7 @@ class HybridBody extends WCObject {
 	
 	function &getAgent() {
 		if($this->_agent === null)
-			if(!($this->_agent = &HybridAgent::getInstance($this->dsIdKey && ($dsId = $this->ctx->getParam($this->dsIdKey)) ? $dsId : $this->ds_id, $this->ds_id, $this->onlySub)))
+			if(!($this->_agent = HybridAgent::getInstance($this->dsIdKey && ($dsId = $this->ctx->getParam($this->dsIdKey)) ? $dsId : $this->ds_id, $this->ds_id, $this->onlySub)))
 				$this->_agent = false;
 		return $this->_agent;
 	}

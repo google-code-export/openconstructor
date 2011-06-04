@@ -72,7 +72,7 @@ function prepare() {
 			<td><?=H_DSH_FIELD_TYPE?>:</td>
 			<td>
 			<?php
-				$ef = &WCEnumFactory::getInstance();
+				$ef = WCEnumFactory::getInstance();
 				$types = $ef->getAllEnums();
 				if(!array_key_exists($field->enumId, $types)) {
 					echo '<span style="color: red;">The enumeration was deleted.</span>';

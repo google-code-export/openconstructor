@@ -60,7 +60,7 @@ class DSFile extends WCDataSource {
 				
 			if($result === true){
 				$this->filePath = '/'.$this->filePath.'/';
-				return WCDataSource::create($name, $description, $internal);
+				return parent::create($name, $description, $internal);
 		}
 		}
 		return $result;
@@ -96,7 +96,7 @@ class DSFile extends WCDataSource {
 		$r=$this->createFile($file,$fname,$type);
 		if($r === true){
 			$time = time();
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query(
 				'INSERT INTO '.$this->DSTable.
 					' (ds_id, name, description, basename, filename, type, size, created, date, wcsowner)'.
@@ -150,7 +150,7 @@ class DSFile extends WCDataSource {
 			return;
 		
 		$ids = implode(',', $ids);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			'SELECT id, filename'.
 			' FROM '.$this->DSTable.
@@ -184,7 +184,7 @@ class DSFile extends WCDataSource {
 		assert($doc->id > 0);
 		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
 		
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			'SELECT filename'.
 			' FROM '.$this->DSTable.
@@ -240,7 +240,7 @@ class DSFile extends WCDataSource {
 	}
 	
 	function &get_record($id) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			'SELECT *'.
 			' FROM '.$this->DSTable.
@@ -254,7 +254,7 @@ class DSFile extends WCDataSource {
 	function &getIndexableDocs($id = null) {
 		$result = array();
 		$cond = ($id != null ? "id IN ($id) AND " : '')."ds_id = {$this->ds_id}";
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT id, name as header, description as content, description as intro FROM {$this->DSTable} WHERE $cond");
 		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++)
 			$result[$i] = mysql_fetch_assoc($res);
@@ -263,7 +263,7 @@ class DSFile extends WCDataSource {
 	}
 	
 	function remove() {
-		WCDataSource::remove();
+		parent::remove();
 		$this->init_ftp();
 		$this->ftp->open();
 		$this->ftp->rdEntire(substr(FILES.$this->filePath, 0, -1));
@@ -310,7 +310,7 @@ class DSFile extends WCDataSource {
 		
 		if($this->ftp->move($file,FILES.$this->filePath.$fname)){
 			$time = time();
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query(
 				'INSERT INTO '.$this->DSTable.
 					' (ds_id, name, description, basename, filename, type, size, created, date, wcsowner)'.

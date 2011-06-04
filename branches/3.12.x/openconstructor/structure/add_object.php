@@ -26,7 +26,7 @@
 	require_once(LIBDIR.'/site/pagereader._wc');
 	require_once(LIBDIR.'/objmanager._wc');
 	
-	$pr = &PageReader::getInstance();
+	$pr = PageReader::getInstance();
 	$to = $pr->getPage(@$_GET['node']);
 	assert($to != null);
 	$super = $pr->superDecide($to->id, 'managesub');

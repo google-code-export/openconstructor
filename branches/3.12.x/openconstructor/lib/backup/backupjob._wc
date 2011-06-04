@@ -61,7 +61,7 @@ class BackupJob {
 		$this->_ftp->close();
 
 		$this->_zipName = wcfTmpFilename('ocm_backup_');
-		$this->_zip = & ZipFile::newWriter($this->_zipName);
+		$this->_zip = ZipFile::newWriter($this->_zipName);
 		$this->_zip->setOnAddEntry(array(&$this, '_onZip'));
 
 		$this->_backupRes();
@@ -161,13 +161,13 @@ class BackupJob {
 	}
 
 	function _lockTables() {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$tables = DBSetup::getWCTables();
 		$db->query('LOCK TABLES `'.implode('` READ, `',$tables).'` READ');
 	}
 
 	function _unlockTables() {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query('UNLOCK TABLES');
 	}
 

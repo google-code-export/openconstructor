@@ -38,7 +38,7 @@ class DocumentField extends HybridField {
 	}
 	
 	function create() {
-		HybridField::create();
+		parent::create();
 		if(!$this->id)
 			return false;
 		if($this->isOwn && $this->type != 'hybrid'){
@@ -56,7 +56,7 @@ class DocumentField extends HybridField {
 	}
 	
 	function update() {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			sprintf("UPDATE $this->table SET header='%1\$s', isreq='%2\$d', isown='%3\$d', fromds='%4\$d' WHERE id=$this->id"
 			, addslashes($this->header), intval($this->isRequired), intval($this->isOwn),intval($this->fromDS))
@@ -70,7 +70,7 @@ class DocumentField extends HybridField {
 			if($this->type != 'hybrid')
 				$ds->remove();
 			else {
-				$db = &WCDB::bo();
+				$db = WCDB::bo();
 				$res = $db->query("SELECT {$this->key} FROM {$this->ds_table} WHERE {$this->key} > 0");
 				if(mysql_num_rows($res) > 0) {
 					while($r = mysql_fetch_row($res))
@@ -86,7 +86,7 @@ class DocumentField extends HybridField {
 		}
 		else
 			$ds->decreaseLock();
-		HybridField::remove();
+		parent::remove();
 	}
 	
 	function onUpdateDocument(&$old, &$new) {
@@ -140,7 +140,7 @@ class DocumentField extends HybridField {
 	
 	function &getDS() {
 		if(!is_object($this->ds))
-			$this->ds = &FieldUtils::loadDS($this->type, $this->fromDS);
+			$this->ds = FieldUtils::loadDS($this->type, $this->fromDS);
 		return $this->ds;
 	}
 }

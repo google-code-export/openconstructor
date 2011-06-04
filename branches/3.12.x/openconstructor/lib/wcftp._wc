@@ -143,7 +143,7 @@ class WCFTP {
 			return false;
 		}
 		$file=$this->_normalize($file);
-		$tmp = WCFTP::_newTmpFilename();
+		$tmp = self::_newTmpFilename();
 		$fp = fopen($tmp,$mode);
 		fwrite($fp,$content);
 		fclose($fp);
@@ -412,11 +412,11 @@ class WCFTP {
 
 	function performGC() {
 		$con = null;
-		WCFTP::_gc(false, true, $con);
+		self::_gc(false, true, $con);
 	}
 
 	function _addToGC(&$con) {
-		WCFTP::_gc(true, false, $con);
+		self::_gc(true, false, $con);
 	}
 
 	function _gc($register, $gc, &$res) {
@@ -440,7 +440,7 @@ class WCFTP {
 		if($host) {
 			$result = new WCFTP(false, false);
 			$result->configure($host, $username, $pwd, $siteroot, $port);
-			WCFTP::_addToGC($result);
+			self::_addToGC($result);
 		} else
 			$result = new WCFTP();
 		return $result;

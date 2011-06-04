@@ -54,7 +54,7 @@ class FilePager extends WCObject {
 	}
 
 	function onPageLoad() {
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		$docList = $ctx->getObject($this->slave);
 		if($docList) {
 			$docList->originalOffset = $docList->listOffset;
@@ -68,7 +68,7 @@ class FilePager extends WCObject {
 	
 	function fetchData(&$smarty) {
 		$result = false;
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		$docList = $ctx->getObject($this->slave);
 		if($docList) {
 			$docList->getDocuments();

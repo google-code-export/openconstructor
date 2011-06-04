@@ -35,13 +35,13 @@ class EnumField extends HybridField {
 	}
 	
 	function create() {
-		if(HybridField::create())
+		if(parent::create())
 			$this->update();
 		return $this->id;
 	}
 	
 	function update() {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			sprintf("UPDATE $this->table SET header='%1\$s', enum_id='%2\$d', isarray='%3\$d', isreq='%4\$d' ".
 					"WHERE id=$this->id", addslashes($this->header), intval($this->enumId), intval($this->isArray), intval($this->isRequired))
@@ -77,7 +77,7 @@ class EnumField extends HybridField {
 
 	function getMysqlType() {
 		loadClass('wcenumfactory', '/enum/wcenumfactory._wc');
-		$ef = &WCEnumFactory::getInstance();
+		$ef = WCEnumFactory::getInstance();
 		$ids = array();
 		$enum = $ef->load($this->enumId);
 		if($enum != null) {

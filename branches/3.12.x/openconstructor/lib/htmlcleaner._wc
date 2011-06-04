@@ -55,14 +55,14 @@ class HtmlCleaner {
 		$tagName = strtolower($tag[2]);
 		if($tag[1]) {
 			$result = '';
-			if(!HtmlCleaner::isSingleTag($tagName) && ($l = $this->_isIn($tagName)))
+			if(!self::isSingleTag($tagName) && ($l = $this->_isIn($tagName)))
 				for($i = $l; $i > 0; $i--)
 					if($this->_rules->matchTag($tagName = $this->_goUpper())) 
 						$result .= "</$tagName>";
 		} elseif(!$tag[4]) {
 			$result = htmlspecialchars($tag[0], ENT_COMPAT, 'UTF-8');
 		} else {
-			$single = HtmlCleaner::isSingleTag($tagName);
+			$single = self::isSingleTag($tagName);
 			if($this->_rules->matchTag($tagName)) {
 				$attrs = '';
 				$m = array();
@@ -106,8 +106,8 @@ class HtmlCleaner {
 		static $nnb; // Not nestable block tags
 		if($nnb == null)
 			$nnb = array_flip(array('p'));
-		return HtmlCleaner::isInlineTag($child)
-			|| (!isset($nnb[$parent]) && !HtmlCleaner::isInlineTag($parent));
+		return self::isInlineTag($child)
+			|| (!isset($nnb[$parent]) && !self::isInlineTag($parent));
 	}
 	
 	function isInlineTag($tagName) {

@@ -43,7 +43,7 @@ class RestoreJob {
 	function RestoreJob($folder, $id) {
 		$this->_id = $id;
 		$this->_folder = $folder.'/'.$id;
-		$this->_ftp = &WCFTP::getNew();
+		$this->_ftp = WCFTP::getNew();
 		$this->_compileIgnores();
 	}
 
@@ -53,7 +53,7 @@ class RestoreJob {
 		$versions = new PatchHistory();
 		$version = $this->_getMetaVersion();
 		if ($versions->isRestorable($version, WC_VERSION)) {
-			$this->_zip = &ZipFile::newReader($this->_folder.'/backup.zip');
+			$this->_zip = ZipFile::newReader($this->_folder.'/backup.zip');
 
 			$this->_closeSite();
 			$this->_removePages();
@@ -174,7 +174,7 @@ class RestoreJob {
 	}
 
 	function _restoreDB() {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$ht = DBSetup::getDSHybridTables();
 		foreach($ht as $t)
 			$db->query("DROP TABLE `$t`");
@@ -192,7 +192,7 @@ class RestoreJob {
 	
 	function _applyPatches(&$patchIds) {
 		if (sizeof($patchIds)) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$p = new Patcher($this->_ftp, $db);
 			if (!$p->applyAll($patchIds)) {
 				echo '<p>Failed to apply patches</p>';
@@ -216,12 +216,12 @@ class RestoreJob {
 
 	function _createIndex() {
 		require_once(LIBDIR.'/dsmanager._wc');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query('SELECT ds_id FROM datasources WHERE indexed');
 		WCS::runAs(WCS_ROOT_ID);
 		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++) {
 			list($id) = mysql_fetch_row($res);
-			$ds = & DSManager::load($id);
+			$ds = DSManager::load($id);
 			if($ds != null && $ds->isIndexable) {
 				$ds->setIndexable(false);
 				$ds->setIndexable(true);
@@ -234,7 +234,7 @@ class RestoreJob {
 	function &_getPageFactory() {
 		if(!is_object($this->_pf)) {
 			require_once(LIBDIR.'/site/pagefactory._wc');
-			$this->_pf = &PageFactory::getInstance();
+			$this->_pf = PageFactory::getInstance();
 			$this->_pf->setFtp($this->_ftp);
 		}
 		return $this->_pf;
