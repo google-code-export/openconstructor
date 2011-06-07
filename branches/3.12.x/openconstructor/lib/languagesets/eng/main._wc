@@ -63,6 +63,7 @@
 	define('H_AUTHORIZE','Authorization');
 	@define('USR_LOGIN','Login');
 	@define('USR_PASSWORD','Password');
+	@define('USR_OPENID_LOGIN','OpenID');
 	define('BTN_AUTHORIZE','Enter');
 	@define('BTN_CANCEL','Cancel');
 	define('INSTALLER_FIRST_LOGON_I','Open Constructor was successfully installed.<br>Please log in as Administrator using username <b>root</b> and empty password and change administrator’s password');

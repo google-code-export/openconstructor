@@ -97,6 +97,21 @@ $auth = Authentication::getInstance();
 						</table>
 					</form>
 				</div>
+				<div style="padding:25px 0px 0px;margin:0px;">
+					<form method="get" action="i_openid.php" style="margin:0; padding:0;">
+						<input type="hidden" name="action" value="verify" />
+						<table cellpadding="0" cellspacing="0" border="0" style="font-size:200%;font-family:verdana,tahoma,sans-serif;">
+							<tr class="loginpwd">
+								<td><?=USR_OPENID_LOGIN?>:</td>
+								<td>&nbsp;&nbsp;<input type="text" name="identifier" style="font-size:75%" class="blueborder"></td>
+							</tr>
+							<tr>
+								<td>&nbsp;</td>
+								<td>&nbsp;&nbsp;<input type="submit" value="<?=BTN_AUTHORIZE?>" style="font-family:sans-serif; font-size:70%; padding:0 5px"></td>
+							</tr>
+						</table>
+					</form>
+				</div>
 				<?php include(LIBDIR.'/languagesets/'.LANGUAGE.'/login_info.html');?>
 				<script type="text/javascript">
 					if(!isIE)

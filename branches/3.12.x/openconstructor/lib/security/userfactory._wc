@@ -60,10 +60,36 @@ class UserFactory {
 				self::createUserProfile($user, $group->profileType);
 				$db->query("UPDATE wcsusers SET profile = {$user->profileId} WHERE id = {$user->id}");
 			}
+			
+			if(!empty($user->openids) && is_array($user->openids)) {
+				foreach($user->openids as $openid) {
+					UserFactory::addOpenid($user, $openid);
+				}
+			}
 		}
 		return true;
 	}
-
+	
+	function addOpenid($user, $openid) {
+		$db = WCDB::bo();
+		$db->query(
+			'INSERT INTO wcsopenid (openid, user_id)'.
+			sprintf(' VALUES ("%s", %d)',
+				addslashes($openid), $user->id
+			)
+		);
+	}
+	
+	function removeOpenid($user, $openid) {
+		$db = WCDB::bo();
+		$db->query(
+			'DELETE FROM wcsopenid'.
+			sprintf(' WHERE openid = "%s" AND user_id = %d',
+				addslashes($openid), $user->id
+			)
+		);
+	}
+	
 	function removeUser($userId) {
 		if(is_array($userId)) {
 			foreach($userId as $id)
@@ -85,6 +111,7 @@ class UserFactory {
 		$db->query(
 			'DELETE wcsmembership.* FROM wcsmembership, wcsusers WHERE wcsusers.id IN ('.$ids.') AND wcsusers.id = wcsmembership.user_id'
 		);
+		$db->query("DELETE FROM wcsopenid WHERE user_id IN ($ids)");
 		$db->query("DELETE FROM wcsusers WHERE id IN ($ids)");
 	}
 

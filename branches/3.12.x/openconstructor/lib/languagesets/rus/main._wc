@@ -65,6 +65,7 @@
 	define('H_AUTHORIZE','Вход в систему');
 	@define('USR_LOGIN','Логин');
 	@define('USR_PASSWORD','Пароль');
+	@define('USR_OPENID_LOGIN','OpenID');
 	define('USR_REMEMBER_ME','Запомнить меня на этом компьютере');
 	define('BTN_AUTHORIZE','Войти');
 	@define('BTN_CANCEL','Отмена');

@@ -27,6 +27,7 @@ class Authentication {
 	var $userId, $groupId, $membership;
 	var $profile, $profileId;
 	var $userLogin, $userName, $userEmail;
+	var $activeOpenid;
 	var $_wciEditor;
 	var $auths;
 	private static $sessions;
@@ -43,7 +44,7 @@ class Authentication {
 		$this->_wciEditor = null;
 	}
 	
-	function &create(&$user) {
+	function &create(&$user, $openid = null) {
 		$result = new Authentication();
 		$result->userId = $user->id;
 		$result->groupId = $user->groupId;
@@ -51,6 +52,7 @@ class Authentication {
 		$result->userLogin = $user->login;
 		$result->userName = $user->name;
 		$result->userEmail = $user->email;
+		$result->activeOpenid = $openid;
 		$result->profileId = (int) $user->profileId;
 		$result->auths = User::getWCSAuthorities($user->id);
 		return $result;
@@ -83,6 +85,7 @@ class Authentication {
 			$result->userLogin = @$_SESSION['wcsUserLogin'];
 			$result->userName = @$_SESSION['wcsUserName'];
 			$result->userEmail = @$_SESSION['wcsUserEmail'];
+			$result->activeOpenid = @$_SESSION['wcsActiveOpenid'];
 			$result->auths = @$_SESSION['wcsAuths'];
 			$result->profileId = (int) @$_SESSION['wcsProfileId'];
 			$result->_wciEditor = @$_SESSION['wciEditor'] ? true : false;
@@ -114,6 +117,7 @@ class Authentication {
 		$_SESSION['wcsUserLogin'] = $this->userLogin;
 		$_SESSION['wcsUserName'] = $this->userName;
 		$_SESSION['wcsUserEmail'] = $this->userEmail;
+		$_SESSION['wcsActiveOpenid'] = $this->activeOpenid;
 		$_SESSION['wcsAuths'] = $this->auths;
 		$_SESSION['wcsImprint'] = $this->getImprint();
 		$_SESSION['wcsProfileId'] = $this->profileId;
@@ -123,6 +127,8 @@ class Authentication {
 			$expires  = time() + 3600 * 24 * 90;
 			setcookie('wcsUserLogin', $this->userLogin, $expires, '/');
 			setcookie('wcsUserName', $this->userName, $expires, '/');
+			if ($this->activeOpenid)
+				setcookie('wcsActiveOpenid', $this->activeOpenid, $expires, '/');
 		}
 		self::_authentication($this, 0);
 	}
@@ -142,6 +148,7 @@ class Authentication {
 		if(!headers_sent()) {
 			setcookie('wcsUserLogin', '', time() - 3600 * 24, '/');
 			setcookie('wcsUserName', '', time() - 3600 * 24, '/');
+			setcookie('wcsActiveOpenid', '', time() - 3600 * 24, '/');
 		}
 	}
 	
@@ -164,6 +171,7 @@ class Authentication {
 		unset($_SESSION['wcsImprint']);
 		unset($_SESSION['wcsUserId'], $_SESSION['wcsGroupId'], $_SESSION['wcsMembership']);
 		unset($_SESSION['wcsUserLogin'], $_SESSION['wcsUserName'], $_SESSION['wcsUserEmail']);
+		unset($_SESSION['wcsActiveOpenid']);
 		unset($_SESSION['wcsAuths']);
 		unset($_SESSION['wcsProfileId'], $_SESSION['wcsProfile']);
 		unset($_SESSION['wciEditor']);
