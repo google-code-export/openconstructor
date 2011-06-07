@@ -63,7 +63,7 @@ class UserFactory {
 			
 			if(!empty($user->openids) && is_array($user->openids)) {
 				foreach($user->openids as $openid) {
-					UserFactory::addOpenid($user, $openid);
+					self::addOpenid($user, $openid);
 				}
 			}
 		}

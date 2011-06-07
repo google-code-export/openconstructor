@@ -118,7 +118,7 @@ class User {
 		$result->email = $user['email'];
 		$result->expiry = $user['expiry'];
 		$result->membership = explode(',', $user['membership']);
-		$result->openids = User::loadOpenids($user['id']);
+		$result->openids = self::loadOpenids($user['id']);
 		$result->loadAuths($result->id, $result->groupId, $user['oauths'], $user['gauths']);
 		return $result;
 	}
