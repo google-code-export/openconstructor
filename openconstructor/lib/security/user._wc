@@ -27,7 +27,7 @@ define('WCS_HASH_LEVEL', 5);
 
 class User {
 	var $id, $groupId, $login, $name, $builtIn;
-	var $membership;
+	var $membership, $openids;
 	var $email, $ip, $active, $autologinId, $expiry;
 	var $profile, $profileId, $profileType;
 	var $sRes;
@@ -38,13 +38,18 @@ class User {
 		$this->login = strtolower($login);
 		$this->name = $name;
 		$this->membership = array();
+		$this->openids = array();
 		$this->pwd = null;
 	}
 
 	function isLoginValid($login) {
 		return preg_match('~^[A-Za-z][A-Za-z0-9_]{0,31}$~', $login);
 	}
-
+	// TODO Написать валидацию
+	function isOpenidValid($openid) {
+		return !empty($openid);
+	}
+	
 	function &loadByUID($uid) {
 		$clause = 'u.autologin = "'.addslashes($uid).'"';
 		return self::loadByClause($clause);
@@ -84,6 +89,23 @@ class User {
 		return $result;
 	}
 
+	function &loadOpenids($userId) {
+		$result = array();
+		$db = WCDB::fo();
+		$res = $db->query(
+			"SELECT id, openid
+				FROM wcsopenid
+				WHERE user_id = $userId"
+		);
+		if(mysql_num_rows($res) > 0) {
+			while($r = mysql_fetch_assoc($res)) {
+				$result[] = $r['openid'];
+			}
+		}
+		mysql_free_result($res);
+		return $result;
+	}
+	
 	function &fromArray(&$user) {
 		$result = new User($user['login'], $user['name']);
 		$result->id = (int) $user['id'];
@@ -96,6 +118,7 @@ class User {
 		$result->email = $user['email'];
 		$result->expiry = $user['expiry'];
 		$result->membership = explode(',', $user['membership']);
+		$result->openids = User::loadOpenids($user['id']);
 		$result->loadAuths($result->id, $result->groupId, $user['oauths'], $user['gauths']);
 		return $result;
 	}

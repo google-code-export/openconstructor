@@ -44,6 +44,23 @@ class Authenticator {
 		return $result;
 	}
 
+	function &openidAuthenticate($openid) {
+		$result = null;
+		if(User::isOpenidValid($openid)) {
+			$db = WCDB::fo();
+			$res = $db->query(sprintf(
+				'SELECT u.id FROM wcsopenid o, wcsusers u WHERE o.openid = "%s" AND u.id = o.user_id AND u.active AND (u.expiry = 0 OR u.expiry > %d)'
+				, addslashes(strtolower($openid)), time()
+			));
+			if(mysql_num_rows($res) == 1) {
+				list($id) = mysql_fetch_row($res);
+				$result = self::create($id, $openid);
+			}
+			mysql_free_result($res);
+		}
+		return $result;
+	}
+	
 	function &restore($autologinId) {
 		$result = null;
 		$db = WCDB::bo();
@@ -59,14 +76,17 @@ class Authenticator {
 		return $result;
 	}
 
-	function &create($userId) {
+	function &create($userId, $openid = null) {
 		assert($userId > 0);
 		$result = null;
 		$user = User::load($userId);
 		if($user != null) {
 			$db = WCDB::bo();
 			$db->query('UPDATE wcsusers SET lastlogin = '.time().' WHERE id = '.intval($userId));
-			$result = Authentication::create($user);
+			if ($openid != null)
+				$result = Authentication::create($user, $openid);
+			else
+				$result = Authentication::create($user);
 		}
 		return $result;
 	}

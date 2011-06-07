@@ -192,7 +192,27 @@ function checkForm() {
 	</fieldset><br>
 	<?php endif;?>
 	<div align="right"><input type="submit" value="<?=BTN_SAVE?>" name="save"> <input type="button" value="<?=BTN_CANCEL?>" onclick="window.close()"></div>
-</form><br><br>
+</form>
+<fieldset><legend><?=USR_OPENID_LOGIN?></legend>
+	<table cellspacing="3">
+		<tr>
+			<td>
+			<?php 
+				foreach ($user->openids as $openid) {
+					echo "<p><b>$openid</b> <a href='i_openid.php?action=remove&user_id=$user->id&openid=$openid'>Удалить</a></p>";
+				}
+			?>
+				<form method="get" action="i_openid.php" style="margin:0; padding:0;">
+					<input type="hidden" name="action" value="add" />
+					<input type="hidden" name="user_id" value="<?=$user->id?>" />
+					<input type="text" name="identifier" lass="blueborder">
+					<input type="submit" value="Добавить" />
+				</form>
+			</td>
+		</tr>
+	</table>
+</fieldset>
+<br><br>
 <script>dsb();</script>
 </body>
 </html>

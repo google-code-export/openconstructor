@@ -27,10 +27,11 @@ class SiteAuthentication {
 	var $userId, $userLogin, $groupId;
 	var $profile, $profileId, $_profileLoader;
 	var $userName, $userEmail;
+	var $activeOpenid;
 	var $_wciEditor;
 	
 	function SiteAuthentication() {
-		$this->userId = $this->userLogin = $this->userName = $this->userEmail = $this->groupId = $this->profileId = null;
+		$this->userId = $this->userLogin = $this->userName = $this->userEmail = $this->activeOpenid = $this->groupId = $this->profileId = null;
 		$this->profile = array();
 		$this->_wciEditor = false;
 	}
@@ -65,6 +66,7 @@ class SiteAuthentication {
 		$this->userLogin = $auth->userLogin;
 		$this->userName = $auth->userName;
 		$this->userEmail = $auth->userEmail;
+		$this->activeOpenid = $auth->activeOpenid;
 		$this->groupId = $auth->groupId;
 		$this->profileId = $auth->profileId;
 		$this->profile = (array) $auth->profile;
@@ -78,6 +80,7 @@ class SiteAuthentication {
 			$result->userLogin = @$_SESSION['wcsUserLogin'];
 			$result->userName = @$_SESSION['wcsUserName'];
 			$result->userEmail = @$_SESSION['wcsUserEmail'];
+			$result->activeOpenid = @$_SESSION['wcsActiveOpenid'];
 			$result->groupId = @$_SESSION['wcsGroupId'];
 			$result->profileId = (int) @$_SESSION['wcsProfileId'];
 			$result->profile = (array) @$_SESSION['wcsProfile'];
