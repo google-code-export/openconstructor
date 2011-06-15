@@ -48,7 +48,7 @@ class WCSmarty extends Smarty {
 		$this->security = true;
 		$this->secure_dir = array(ROOT.WC_SMARTY_TEMPLATES, LIBDIR.'/tpl');
 		$this->security_settings = array(
-			'IF_FUNCS' => array('count', 'isset', 'sizeof', 'is_array'),
+			'IF_FUNCS' => array('count', 'isset', 'sizeof', 'is_array', 'in_array'),
 			'INCLUDE_ANY' => false,
 			'PHP_TAGS' => false,
 			'MODIFIER_FUNCS' => array('sprintf', 'count', 'sizeof', 'join', 'explode', 'substr'),
