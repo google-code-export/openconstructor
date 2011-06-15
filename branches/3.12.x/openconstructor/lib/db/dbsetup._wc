@@ -42,7 +42,7 @@ class DBSetup {
 			'index', 'strongtags',
 			'objects',
 			'siteobjects', 'sitepages', 'sitetree',
-			'wcsgroups', 'wcsmembership', 'wcsusers',
+			'wcsgroups', 'wcsmembership', 'wcsusers', 'wcsopenid', 
 			'wctemplates', 'wctemplate_blocks'
 		);
 		
