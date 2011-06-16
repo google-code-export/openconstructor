@@ -1,0 +1,123 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: system._wc,v 1.9 2007/02/27 11:23:21 sanjar Exp $
+ */
+require_once('resource._wc');
+
+class System {
+	var $sRes;
+	var $authenticationPage;
+	
+	function System() {
+		$this->authenticationPage = WCHOME.'/login.php';
+	}
+	
+	function request($act) {
+		$sys = self::getInstance();
+		WCS::request($sys, $act);
+	}
+	
+	function assert($act) {
+		$sys = self::getInstance();
+		WCS::assert($sys, $act);
+	}
+	
+	function decide($act) {
+		$sys = self::getInstance();
+		return WCS::decide($sys, $act);
+	}
+	
+	function &getInstance() {
+		assert(defined('WCS_ROOT_ID') && defined('WCS_USERGROUP'));
+		static $instance;
+		if(is_object($instance))
+			return $instance;
+		$instance = new System();
+		$res = new WCSResource('Open Constructor', WCS_ROOT_ID, WCS_USERGROUP);
+		
+		$res->addAction('sitemap');
+		$res->addAction('data');
+		$res->addAction('objects');
+		$res->addAction('tpls');
+		$res->addAction('catalog');
+		$res->addAction('users');
+		$res->addAction('inlineedit');
+		
+		$res->addAction('data.dshtmltext');
+		$res->addAction('data.dspublication');
+		$res->addAction('data.dsevent');
+		$res->addAction('data.dsgallery');
+		$res->addAction('data.dsarticle');
+		$res->addAction('data.dstextpool');
+		$res->addAction('data.dsguestbook');
+		$res->addAction('data.dsphpsource');
+		$res->addAction('data.dsfile');
+		$res->addAction('data.dshybrid');
+		$res->addAction('data.dsrating');
+		$res->addAction('data.enum');
+		
+		$res->addAction('objects.dshtmltext');
+		$res->addAction('objects.dspublication');
+		$res->addAction('objects.dsevent');
+		$res->addAction('objects.dsgallery');
+		$res->addAction('objects.dsarticle');
+		$res->addAction('objects.dstextpool');
+		$res->addAction('objects.dsguestbook');
+		$res->addAction('objects.dsphpsource');
+		$res->addAction('objects.dsfile');
+		$res->addAction('objects.dshybrid');
+		$res->addAction('objects.dsrating');
+		$res->addAction('objects.dsmiscellany');
+		$res->addAction('objects.dsusers');
+		$res->addAction('objects.dssearch');
+		
+		$res->addAction('tpls.dshtmltext');
+		$res->addAction('tpls.dspublication');
+		$res->addAction('tpls.dsevent');
+		$res->addAction('tpls.dsgallery');
+		$res->addAction('tpls.dsarticle');
+		$res->addAction('tpls.dstextpool');
+		$res->addAction('tpls.dsguestbook');
+		$res->addAction('tpls.dsphpsource');
+		$res->addAction('tpls.dsfile');
+		$res->addAction('tpls.dshybrid');
+		$res->addAction('tpls.dsmiscellany');
+		$res->addAction('tpls.dsrating');
+		$res->addAction('tpls.dssearch');
+		$res->addAction('tpls.dssite');
+		
+		$res->addAction('catalog.tree');
+		$res->addAction('catalog.filter');
+		
+		$res->addAction('users.manage');
+		
+		$res->compile();
+
+		$auth = Authentication::getInstance();
+		$ownerAuths = str_repeat('1', $res->length);
+		$res->setAuthorities($ownerAuths, $auth->auths);
+		$instance->sRes = &$res;
+		return $instance;
+	}
+}
+?>

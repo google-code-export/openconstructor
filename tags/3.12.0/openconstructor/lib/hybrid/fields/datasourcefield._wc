@@ -1,0 +1,101 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ *
+ * All rights reserved.
+ *
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ *
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ *
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @author Sanjar Akhmedov
+ *
+ * $Id: datasourcefield._wc,v 1.4 2007/02/27 11:23:18 sanjar Exp $
+ */
+require_once('fieldutils._wc');
+
+class DatasourceField extends HybridField {
+	var $fromDS;
+
+	function DatasourceField($key, $header, $type, $fromDS) {
+		assert($type != 'phpsource' && $type != 'hybrid' && $type != 'rating');
+		$this->HybridField($key, $header, 'datasource', $type, true);
+		$this->fromDS = intval($fromDS);
+	}
+
+	function create() {
+		if(parent::create())
+			$this->update();
+		$ds = FieldUtils::loadDS($this->type, $this->fromDS);
+		$ds->increaseLock();
+		return $this->id;
+	}
+
+	function update() {
+		$db = WCDB::bo();
+		$db->query(
+			sprintf("UPDATE $this->table SET header='%s', isreq='%d', fromds='%d' ".// fromds=$this->fromDS
+					"WHERE id=$this->id", addslashes($this->header), intval($this->isRequired), intval($this->fromDS))
+		);
+	}
+
+	function remove() {
+		$db = WCDB::bo();
+		$res = $db->query("SELECT $this->key as id FROM $this->ds_table WHERE $this->key > 0");
+		if(mysql_num_rows($res) > 0) {
+			WCS::runAs(WCS_ROOT_ID);
+			while($r = mysql_fetch_assoc($res)) {
+				$ds = FieldUtils::loadDS($this->type, $r['id']);
+				$ds->remove();
+			}
+			WCS::stopRunAs();
+		}
+		mysql_free_result($res);
+		$ds = FieldUtils::loadDS($this->type, $this->fromDS);
+		$ds->decreaseLock();
+		parent::remove();
+	}
+
+	function onCreateDocument(&$doc) {
+		$id = FieldUtils::createInternalDS($doc->header, $this->type, $this->fromDS, $doc->sRes->owner);
+		$doc->fields[$this->key] = $id;
+	}
+
+	function onUpdateDocument(&$old, &$new) {
+		if(!$old->fields[$this->key])
+			$this->onCreateDocument($old);
+		$new->fields[$this->key] = $old->fields[$this->key];
+	}
+
+	function onRemoveDocument(&$doc) {
+		$ds = FieldUtils::loadDS($this->type, $doc->fields[$this->key]);
+		if(@$ds->ds_id) {
+			WCS::runAs(WCS_ROOT_ID);
+			$ds->remove();
+			WCS::stopRunAs();
+		}
+	}
+
+	function convertToPlain(&$doc) {
+		$doc->fields[$this->key] = null;
+	}
+
+	function getMysqlType() {
+		switch($this->type) {
+			case 'htmltext': case 'publication': case 'event': case 'gallery': case 'article': case 'textpool': case 'guestbook': case 'file':
+				return 'INT(11) UNSIGNED';
+		}
+		return null;
+	}
+}
+?>

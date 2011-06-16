@@ -1,0 +1,146 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: arrayfield._wc,v 1.4 2007/02/27 11:23:18 sanjar Exp $
+ */
+require_once('fieldutils._wc');
+
+class ArrayField extends HybridField {
+	var $isOwn;
+	var $fromDS;
+	var $ds;
+	
+	function ArrayField($key, $header, $type, $required, $isOwn, $fromDS) {
+		assert($type != 'phpsource' && $type != 'htmltext' && $type != 'rating');
+		$this->HybridField($key, $header, 'array', $type, $required);
+		$this->isOwn = $isOwn ? 1 : 0;
+		$this->fromDS = intval($fromDS);
+		$this->ds = null;
+	}
+	
+	function create() {
+		parent::create();
+		if(!$this->id)
+			return false;
+		if($this->isOwn && $this->type != 'hybrid'){
+			$this->fromDS = FieldUtils::createInternalDS($this->header, $this->type, $this->fromDS);
+			if(!$this->fromDS){
+				$this->remove();
+				return false;
+			}
+		} else {
+			$ds = $this->getDS();
+			$ds->increaseLock();
+		}
+		$this->update();
+		return $this->id;
+	}
+	
+	function update() {
+		$db = WCDB::bo();
+		$db->query(
+			sprintf("UPDATE $this->table SET header='%1\$s', isreq='%2\$d', isown='%3\$d', fromds='%4\$d' ".
+					"WHERE id=$this->id", addslashes($this->header), intval($this->isRequired), intval($this->isOwn), intval($this->fromDS))
+		);
+	}
+	
+	function remove() {
+		$ds = $this->getDS(); 
+		if($this->isOwn) {
+			WCS::runAs(WCS_ROOT_ID);
+			if($this->type != 'hybrid')
+				$ds->remove();
+			else {
+				$db = WCDB::bo();
+				$res = $db->query("SELECT {$this->key} FROM {$this->ds_table} WHERE {$this->key} != ''");
+				if(mysql_num_rows($res) > 0) {
+					$doc = array();
+					while($r = mysql_fetch_row($res))
+						if($r[0])
+							$doc[] = $r[0];
+					$doc = explode(',', implode(',', $doc));
+					loadClass('dshybridfactory', '/hybrid/dshybridfactory._wc');
+					$dsf = new DSHybridFactory();
+					$dsf->removeDocuments($doc);
+				}
+				mysql_free_result($res);
+				$ds->decreaseLock(); 
+			}
+			WCS::stopRunAs();
+		}
+		else
+			$ds->decreaseLock();
+		parent::remove();
+	}
+	
+	function onUpdateDocument(&$old, &$new) {
+		if($this->isOwn) {
+			$o = empty($old->fields[$this->key]) ? array() : explode(',', $old->fields[$this->key]);
+			$n = empty($new->fields[$this->key]) ? array() : explode(',', $new->fields[$this->key]);
+			$diff = array_diff($o, $n);
+			if(sizeof($diff) > 0){
+				$ds = $this->getDS();
+				WCS::runAs(WCS_ROOT_ID); 
+				$ds->delete(implode(',', $diff));
+				WCS::stopRunAs();
+			}
+		}
+	}
+	
+	function onRemoveDocument(&$doc) {
+		if($this->isOwn && $doc->fields[$this->key]){
+			$ds = $this->getDS();
+			WCS::runAs(WCS_ROOT_ID);
+			$ds->delete($doc->fields[$this->key]);
+			WCS::stopRunAs();
+		}
+	}
+	
+	function fetchValue(&$doc) {
+		$ids = $doc->fields[$this->key] ? explode(',', $doc->fields[$this->key]) : array();
+		$doc->fields[$this->key] = FieldUtils::getDocumentHeaders($this->type, $this->fromDS, $ids);
+	}
+	
+	function convertToPlain(&$doc) {
+		if(is_array($doc->fields[$this->key]))
+			$doc->fields[$this->key] = implode(', ', $doc->fields[$this->key]);
+	}
+	
+	function getMysqlType() {
+		switch($this->type) {
+			case 'publication': case 'event': case 'gallery': case 'article': case 'textpool': case 'guestbook': case 'file': case 'hybrid':
+				return 'VARCHAR(255)';
+		}
+		return null;
+	}
+	
+	function isValid($value) {
+		return strlen($value) == strspn($value, '0123456789,');
+	}
+	
+	function &getDS() {
+		if(!is_object($this->ds))
+			$this->ds = FieldUtils::loadDS($this->type, $this->fromDS);
+		return $this->ds;
+	}
+}
+?>

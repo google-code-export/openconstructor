@@ -1,0 +1,71 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ *
+ * All rights reserved.
+ *
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ *
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ *
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @author Sanjar Akhmedov
+ *
+ * $Id: tree._wc,v 1.3 2007/02/27 11:23:21 sanjar Exp $
+ */
+require_once('node._wc');
+
+class Tree {
+	var $node;
+	var $root;
+
+	function Tree(&$rootNode) {
+		$this->node[$rootNode->id] = &$rootNode;
+		$this->root = &$rootNode;
+	}
+
+	function addNode(&$node) {
+		$this->node[$node->id] = &$node;
+		$this->node[$node->parent]->registerNode($node);
+		$node->parent = &$this->node[$node->parent];
+	}
+
+	function export($exportStrategy) {
+		$result = null;
+		$exportStrategy->setTree($this);
+		if($this->root)
+			$result = $this->root->export($exportStrategy);
+		return $result;
+	}
+
+	function exists($nodeId) {
+		return isset($this->node[$nodeId]);
+	}
+
+	function contains($parentId, $nodeId) {
+		return (@$this->node[$nodeId]->index > @$this->node[$parentId]->index)
+			&& (@$this->node[$parentId]->next == 0 || @$this->node[$nodeId]->index < @$this->node[$parentId]->next);
+	}
+
+	function &getSubTree($nodeId) {
+		$result = null;
+		if($this->exists($nodeId)) {
+			$result = new Tree($this->node[$nodeId]);
+			$nodes = array_keys($this->node);
+			for($i = 0; $i < sizeof($nodes); $i++)
+				if($this->contains($nodeId, $nodes[$i]))
+					$result->node[$nodes[$i]] = &$this->node[$nodes[$i]];
+		}
+		return $result;
+	}
+}
+?>

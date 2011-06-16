@@ -1,0 +1,245 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Выводит гибридный документ.
+ * 
+ * Объект вывода ВК.
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: hybridbody._wc,v 1.33 2007/02/27 11:23:24 sanjar Exp $
+ */
+require_once('hybridagent._wc');
+
+class HybridBody extends WCObject {
+	var $dsIdKey, $idField, $onlySub;
+	var $docId, $docFields, $docFilter;
+	var $browseUri, $nodeId;
+	var $no404;
+	var $_pma; // fetch primitives as arrays
+	var $_agent;
+
+	function HybridBody() {
+		$this->DSTable='dshybrid';
+		$this->ds_type='hybrid';
+		$this->obj_type='hybridbody';
+		$this->docId = 'item';
+		$this->idField = null;
+		$this->dsIdKey = '';
+		$this->onlySub = false;
+		$this->docFields = array();
+		$this->docOrder = array();
+		$this->no404 = false;
+		$this->caching = 0;
+		$this->cached_by_WC = true;
+	}
+	
+	function getCacheId() {
+		$agent = $this->getAgent();
+		return is_object($agent) ? $this->obj_id.'|'.intval($this->getDocId()).'|'.$agent->dsId : null;
+	}
+	
+	function onPageLoad() {
+		if(!$this->no404 && !is_object($agent = $this->getAgent()))
+			$this->ctx->throw404();
+		$this->getDocument();
+	}
+	
+	function changeCrumbs(&$crumbs) {
+		$agent = $this->getAgent();
+		if(is_object($agent)) {
+			$doc = $this->getDocument();
+			$crumbs->set($this->docId, (string) @$doc['header']);
+			$agent->_changeDsCrumbs($crumbs, $this->dsIdKey);
+		}
+	}
+	
+	function fetchData(&$smarty) {
+		$result = false;
+		$doc = $this->getDocument();
+		if(sizeof($doc)) {
+			$smarty->assign('header', $this->header);
+			$smarty->assign_by_ref('agent', $this->getAgent());
+			$smarty->assign_by_ref('doc', $doc);
+			$result = array('header', 'doc');
+		} elseif(!$this->no404)
+			$this->ctx->throw404();
+		return $result;
+	}
+	
+	function &getDocument($docId = null) {
+		$result = null;
+		$id = $docId === null ? $this->getDocId() : $docId;
+		if($id) {
+			$agent = $this->getAgent();
+			if(isset($this->document[$id])) {
+				$result = &$this->document[$id];
+			} elseif(is_object($agent)) {
+				$result = array();
+				$nodes = $pma = array(); $enums = '';
+				$ctx = Context::getInstance();
+				$props = $agent->_getQueryProps($this->docFields, array(), $this->docFilter);
+				settype($this->idField, 'int');
+				if($this->idField && isset($agent->dsFields[$this->idField]))
+					$idf = 'f_'.$agent->dsFields[$this->idField]['name'];
+				else
+					$idf = 'ds.id';
+				$stateCheck = '(d.published'.($ctx->auth->userId > 0 ? " OR d.wcsowner = {$ctx->auth->userId}" : '').')';
+				$db = $this->ctx->_getDB();
+				$res = $db->query('
+					SELECT '.$props['fields'].', d.published
+					FROM '.$props['tables'].'
+					WHERE '.$idf.' = "'.addslashes($id).'" AND '.$props['where'].' AND '.$stateCheck.'
+					'.($props['group'] ? ' GROUP BY d.id' : '').'
+					LIMIT 1'
+				);
+				if(mysql_num_rows($res) == 1) {
+					$r = mysql_fetch_assoc($res);
+					$result['id'] = (int) $r['id'];
+					$result['_id'] = (int) $r['id'];
+					$result['_type'] = $agent->dsKey;
+					$result['_published'] = $r['published'] > 0;
+					$result['header'] = escapeTags($r['header']);
+					if($docId === null) {
+						$ctx->setParam('.'.$this->docId.'._id', $result['_id']);
+						$ctx->setParam('.'.$this->docId.'._type', $result['_type']);
+						$ctx->setParam('.'.$this->docId.'._header', $result['header']);
+						$ctx->setParam('.'.$this->docId.'._published', $result['_published']);
+					}
+					foreach($r as $k => $v) {
+						if(!isset($agent->dsFields[$k])) continue;
+						$f = &$agent->dsFields[$k];
+						switch($f['type']) {
+							case DSF_PRIMITIVE:
+								if($this->_pma && (($p = strpos($f['name'], '_')) !== false)) {
+									$top = substr($f['name'], 0, $p);
+									$var = '$result[\''.str_replace('_', '\'][\'', $f['name']).'\']';
+									if(eval("if(!isset($var) && (!isset(\$result['$top']) || is_array(\$result['$top']))) {@$var = \$v; return true;}")) {
+										$pma[$top] = 1;
+										break;
+									}
+								}
+								$result[$f['name']] = $v;
+								if($docId === null)
+									$ctx->setParam('.'.$this->docId.'.'.$f['name'], $v);
+							break;
+							case DSF_DOCUMENT:
+								$result[$f['name']] = array('id' => $v, 'header' => htmlspecialchars($r[$k.'header'], ENT_COMPAT, 'UTF-8'));
+								if($docId === null)
+									$ctx->setParam('.'.$this->docId.'.'.$f['name'], $result[$f['name']]);
+							break;
+							case DSF_FILE:
+							case DSF_ARRAY:
+								$result[$f['name']] = $v;
+								if($docId === null)
+									$ctx->setParam('.'.$this->docId.'.'.$f['name'], $v);
+							break;
+							case DSF_DATASOURCE:
+								$result[$f['name']] = array('id' => $v, 'docs' => $r[$k.'docs']);
+								if($docId === null)
+									$ctx->setParam('.'.$this->docId.'.'.$f['name'], $result[$f['name']]);
+							break;
+							case DSF_RATING:
+								$result[$f['name']] = array('id' => $v, 'value' => $r[$k.'value'], 'votes' => $r[$k.'votes'], 'voted' => $r[$k.'voted'] > 0, 'vote' => (int) $r[$k.'vote']);
+								if($docId === null)
+									$ctx->setParam('.'.$this->docId.'.'.$f['name'], $result[$f['name']]);
+							break;
+							case DSF_TREE:
+								if($v) {
+									$result[$f['name']] = explode(',', $v);
+									$nodes = array_merge($nodes, $result[$f['name']]);
+									$treekeys[$k] = $f['name'];
+								} else
+									$result[$f['name']] = array();
+								if($docId === null)
+									$ctx->setParam('.'.$this->docId.'.'.$f['name'], $result[$f['name']]);
+							break;
+							case DSF_ENUM:
+								$result[$f['name']] = explode(',', $v);
+								$enums .= $v ? ','.$v : '';
+								$enumkeys[] = (int) $k;
+								if($docId === null)
+									$ctx->setParam('.'.$this->docId.'.'.$f['name'], $result[$f['name']]);
+							break;
+						}
+					}
+					// регистрируем массивы-примитивы как параметры ctx
+					if($docId === null)
+						foreach($pma as $top => $j)
+							$ctx->setParam('.'.$this->docId.'.'.$top, $result[$top]);
+					// Фетчим заголовки и ссылки узлов полей типа Tree
+					if(sizeof($nodes)) {
+						$nodes = $agent->getNodes($nodes);
+						foreach($treekeys as $ni => $key)
+							if($agent->dsFields[$ni]['isarray'])
+								for($i = 0, $l = sizeof($result[$key]); $i < $l; $i++)
+									$result[$key][$i] = array('header' => $nodes[$result[$key][$i]]['header'], 'id' => $nodes[$result[$key][$i]]['id'], 'key' => $nodes[$result[$key][$i]]['key']);
+							elseif(sizeof($result[$key]))
+								$result[$key] = array('header' => $nodes[$result[$key][0]]['header'], 'id' => $nodes[$result[$key][0]]['id'], 'key' => $nodes[$result[$key][0]]['key']);
+					}
+					// Фетчим заголовки и значения полей типа Enum
+					$enums = array_values(array_unique(explode(',', $enums)));
+					if(sizeof($enums) > 1) {
+						$enums = $agent->getEnumValues($enums);
+						for($i = 0, $l = sizeof($enumkeys); $i < $l; $i++) {
+							$fn = $agent->dsFields[$enumkeys[$i]]['name'];
+							if(!@$agent->dsFields[$enumkeys[$i]]['isarray'])
+								$result[$fn] = array('id' => $result[$fn][0], 'value' => $enums[$result[$fn][0]]['value'], 'header' => $enums[$result[$fn][0]]['header']);
+							else
+								for($j = 0, $lj = sizeof($result[$fn]); $j < $lj; $j++)
+									$result[$fn][$j] = array('id' => $result[$fn][$j], 'value' => $enums[$result[$fn][$j]]['value'], 'header' => $enums[$result[$fn][$j]]['header']);
+						}
+					}
+				}
+				mysql_free_result($res);
+				$this->document[$id] = &$result;
+			}
+		}
+		return $result;
+	}
+	
+	function getDocId() {
+		return $this->ctx->getParam($this->docId);
+	}
+	
+	function &getAgent() {
+		if($this->_agent === null)
+			if(!($this->_agent = HybridAgent::getInstance($this->dsIdKey && ($dsId = $this->ctx->getParam($this->dsIdKey)) ? $dsId : $this->ds_id, $this->ds_id, $this->onlySub)))
+				$this->_agent = false;
+		return $this->_agent;
+	}
+	
+	function _inlineEditGetDocId() {
+		$doc = $this->getDocument();
+		return sizeof($doc) ? $doc['_id'] : null;
+	}
+		
+	function _inlineEditGetDsId() {
+		$agent = $this->getAgent();
+		return $agent->dsId;
+	}
+		
+	function &_getDSFields() {
+		static $result;
+		if(!is_array($result)) $result = array('ds_id', 'dsIdKey');
+		return $result;
+	}
+}
+?>

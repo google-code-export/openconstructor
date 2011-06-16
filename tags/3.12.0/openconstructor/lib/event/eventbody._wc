@@ -1,0 +1,135 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Вывод события(Календарь событий).
+ * 
+ * Объект вывода.
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: eventbody._wc,v 1.14 2007/02/27 11:23:18 sanjar Exp $
+ */
+
+class EventBody extends WCObject {
+	var $eventid;
+	var $dateFormat;
+	var $doc_id;
+	var $no404;
+	
+	function EventBody() {
+		$this->DSTable='dsevent';
+		$this->ds_type='event';
+		$this->obj_type='eventbody';
+		$this->eventid='event_id';
+		$this->dateFormat='[j.m.Y]';
+		$this->no404=false;
+		$this->caching=2;
+		$this->cached_by_WC=true;
+	}
+	
+	function getCacheId() {
+		return $this->obj_id.'|'.$this->getDocId(); 
+	}
+	
+	function onPageLoad() {
+		self::_addDisplayed($this->getDocId());
+	}
+	
+	function fetchData(&$smarty) {
+		$result = false;
+		$event = $this->getDocument();
+		if(sizeof($event) > 0) {
+			$smarty->assign('header', $this->header);
+			$smarty->assign_by_ref('event', $event);
+			$result = array('header', 'event');
+		} elseif(!$this->no404)
+			$this->ctx->throw404();
+		return $result;
+	}
+	
+	function &getDocument() {
+		if(!isset($this->doc)) {
+			$this->doc = array();
+			$id = $this->getDocId();
+			if($id > 0) {
+				$dsIdCheck = $this->ds_id ? 'AND ds_id IN ('.$this->ds_id.')' : '';
+				$db = $this->ctx->_getDB();
+				$res = $db->query(
+					'SELECT real_id as id,  header, content, date, end_date, place, img_main as image'.
+					' FROM '.$this->DSTable.
+					' WHERE id='.$id.' AND published!=0 '.$dsIdCheck.
+					' LIMIT 1'
+				);
+				if(mysql_num_rows($res) > 0) {
+					$r = mysql_fetch_assoc($res);
+					$this->doc['id'] = $r['id'];
+					$this->doc['header'] = escapeTags($r['header']);
+					$this->doc['begin'] = wcfFormatTime($this->dateFormat, $r['date']);
+					$this->doc['end'] = wcfFormatTime($this->dateFormat, $r['end_date']);
+					$this->doc['image'] = $r['image'];
+					$this->doc['place'] = $r['place'];
+					$this->doc['content'] = $r['content'];
+				}
+				mysql_free_result($res);
+			}
+		}
+		return $this->doc;
+	}
+	
+	function changeCrumbs(&$crumbs) {
+		if($this->isCached()) {
+			$header = '';
+			$id = (int) $this->getDocId();
+			if($id > 0) {
+				$dsIdCheck = $this->ds_id ? 'AND ds_id IN ('.$this->ds_id.')' : '';
+				$db = $this->ctx->_getDB();
+				$res = $db->query(
+					'SELECT header FROM '.$this->DSTable.' WHERE id='.$id.' AND published!=0 '.$dsIdCheck.' LIMIT 1'
+				);
+				if($r = mysql_num_row($res))
+					$header = escapeTags($r[0]);
+				mysql_free_result($res);
+			}
+		} else {
+			$event = $this->getDocument();
+			$header = @$event['header'];
+		}
+		$crumbs->set($this->ctx->page->uri, $header);
+	}
+	
+	function getDocId() {
+		if(!$this->doc_id) {
+			$this->doc_id = (int) $this->ctx->getParam($this->eventid);
+		}
+		return $this->doc_id;
+	}
+	
+	function &getDisplayedDocs() {
+		$result = self::_addDisplayed(null, true);
+		return $result;
+	}
+	
+	function _addDisplayed($id, $return = false) {
+		static $displayed;
+		if($id) $displayed[(int) $id] = true;
+		if($return)	return $displayed;
+	}
+}
+?>

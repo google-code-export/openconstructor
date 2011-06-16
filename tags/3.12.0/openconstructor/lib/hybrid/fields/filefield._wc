@@ -1,0 +1,220 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ *
+ * All rights reserved.
+ *
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ *
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ *
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * Класс представляющий гибридные поля типа "Файл"
+ *
+ * @author Sanjar Akhmedov
+ */
+
+class FileField extends HybridField {
+	var $maxSize, $types;
+	var $minX, $minY, $maxX, $maxY;
+	var $folder;
+	var $ftp, $ic;
+
+	function FileField($key, $header, $types, $required) {
+		$this->HybridField($key, $header, 'file', 'file', $required);
+		$this->setTypes($types);
+		$this->folder = null;
+		$this->maxSize = 64 * 1024; // 64 KB
+		$this->minX = $this->minY = $this->maxX = $this->maxY = 0;
+		$this->ftp = null;
+	}
+
+	function create() {
+		parent::create();
+		if($this->id) {
+			if($this->createFolder()) {
+				$this->update();
+				return $this->id;
+			}
+			$this->removeFolder();
+		}
+		return false;
+	}
+
+	function update() {
+		$db = WCDB::bo();
+		$db->query(sprintf(
+			"UPDATE $this->table SET header='%s', isreq='%d', max='%d', types='%s', img_bounds='%s' WHERE id=$this->id"
+			, addslashes($this->header), intval($this->isRequired), intval($this->maxSize), addslashes(implode(',', $this->types)), $this->getImgBounds())
+		);
+	}
+
+	function remove() {
+		$this->removeFolder();
+		parent::remove();
+	}
+
+	function setDS($ds_id) {
+		parent::setDS($ds_id);
+		if($this->ds_id)
+			$this->folder = '/hyb/'.$this->ds_id.'/'.substr($this->key, 2);
+	}
+
+	function onCreateDocument(&$doc) {
+		$this->onUpdateDocument($doc, $doc);
+	}
+
+	function onUpdateDocument(&$old, &$new) {
+		if($new->fields[$this->key]) {
+			list($value['name'], $value['type'], $value['size'], $isImg) = self::getFileDetails($new->fields[$this->key]);
+			if($this->isValid($value, false) && $isImg && $this->maxX > 0 && $this->maxY > 0) {
+				$tmp = wcfTmpFilename();
+				$ic = $this->_getImgCopier();
+				if(!$ic->setSource($value['name']))
+					return;
+				$ic->copy($tmp);
+				$ic->destroy();
+				list($value['name'], $value['size']) = array($tmp, (int) @filesize($tmp));
+			}
+			if($this->isValid($value)) {
+				$this->onRemoveDocument($old);
+				$filename = FILES.$this->folder.'/'.$new->id.'.'.$value['type'];
+				$ftp = $this->getFtp();
+				$ftp->open();
+				$ftp->copy_local_file($value['name'], $filename);
+				$ftp->close();
+				if($ftp->success())
+					$new->fields[$this->key] = $filename;
+				else {
+					$new->fields[$this->key] = '';
+					echo $ftp->get_message(true);
+				}
+				if(isset($tmp))
+					unlink($tmp);
+				return;
+			}
+			if($new->fields[$this->key] == -1)
+				$this->onRemoveDocument($old);
+		}
+		$new->fields[$this->key] = $old->fields[$this->key];
+	}
+
+	function onRemoveDocument(&$doc) {
+		if($doc->fields[$this->key]) {
+			@unlink(ROOT.$doc->fields[$this->key]);
+			$doc->fields[$this->key] = '';
+		}
+	}
+
+	function isValid($value, $checkSize = true) {
+		if(is_array($value) && $value['name'] && $value['type'] && (!$checkSize || $value['size'] <= $this->maxSize) && @file_exists($value['name'])) {
+			for($i = 0, $l = sizeof($this->types); $i < $l; $i++)
+				if($value['type'] == $this->types[$i])
+					return true;
+			return $l > 0 ? false : $value['type'] == '';
+		}
+		return is_string($value);
+	}
+
+	function getMysqlType() {
+		return 'VARCHAR (64)';
+	}
+
+	function &getFtp() {
+		if(!is_object($this->ftp)) {
+			loadClass('wcftp', '/wcftp._wc');
+			$this->ftp = WCFTP::getNew();
+		}
+		return $this->ftp;
+	}
+
+	function setTypes($types) {
+		static $disallowed;
+		if(!is_array($disallowed))
+			$disallowed = explode(',', CONF_DSFILE_DISALLOW_TYPES);
+		$this->types = array();
+		$length = sizeof($disallowed);
+		$types = explode(',', $types);
+		for($j = 0, $l = sizeof($types); $j < $l; $j++) {
+			$type = trim($types[$j]);
+			if(!$type || !preg_match('~^[A-Za-z0-9_\\-]+$~', $type)) continue;
+			$this->types[sizeof($this->types)] = $type;
+			for($i = 0; $i < $length; $i++)
+				if((($disallowed[$i]{0} == '/') && preg_match($disallowed[$i], $type)) || $disallowed[$i] == $type) {
+					unset($this->types[sizeof($this->types) - 1]);
+					break;
+				}
+		}
+		unset($types);
+	}
+
+	function setImgBounds($bounds) {
+		$bounds = strtolower(str_replace(' ', '', $bounds));
+		$r = sscanf($bounds, '%dx%d-%dx%d');
+		if($r[0] > 1 && $r[1] > 1 && $r[2] >= $r[0] && $r[3] >= $r[1])
+			list($this->minX, $this->minY, $this->maxX, $this->maxY) = $r;
+	}
+
+	function getImgBounds() {
+		return sprintf('%dx%d - %dx%d', $this->minX, $this->minY, $this->maxX, $this->maxY);
+	}
+
+	function createFolder() {
+		$folder = $this->folder;
+		if(!empty($folder) && $this->ds_id && !@file_exists(ROOT.FILES.$folder)) {
+			$ftp = $this->getFtp();
+			$ftp->open();
+			$ftp->md(FILES.$folder);
+			$ftp->close();
+			if($ftp->success())
+				return true;
+			echo $ftp->get_message(true);
+		}
+		return false;
+	}
+
+	function removeFolder() {
+		$folder = $this->folder;
+		if(!empty($folder) && @file_exists(ROOT.FILES.$folder)) {
+			$ftp = $this->getFtp();
+			$ftp->open();
+			$ftp->rdEntire(FILES.$folder);
+			$ftp->close();
+			if($ftp->success())
+				return true;
+			echo $ftp->get_message(true);
+		}
+		return !@file_exists(ROOT.FILES.$folder);
+	}
+
+	function &getFileDetails(&$file) {
+		$result = array(null, null, null, null);
+		if(!is_array($file)) {
+			$result = array($file, utf8_strtolower((string) @utf8_substr($file, utf8_strrpos($file, '.') + 1)), (int) @filesize($file));
+		} elseif(isset($file['name']) && isset($file['tmp_name']) && isset($file['error']) && isset($file['size'])) {
+			if($file['error'] == UPLOAD_ERR_OK)
+				$result = array($file['tmp_name'], utf8_strtolower((string) @utf8_substr($file['name'], utf8_strrpos($file['name'], '.') + 1)), $file['size']);
+		}
+		$result[3] = $result[1] == 'png' || $result[1] == 'jpg' || $result[1] == 'jpeg' || $result[1] == 'gif';
+		return $result;
+	}
+
+	function &_getImgCopier() {
+		if(!is_object($this->ic)) {
+			require_once(LIBDIR.'/imgcopier._wc');
+			$this->ic = new ImgCopier();
+			$this->ic->setRequirement($this->minX, $this->minY, $this->maxX, $this->maxY);
+		}
+		return $this->ic;
+	}
+}
+?>

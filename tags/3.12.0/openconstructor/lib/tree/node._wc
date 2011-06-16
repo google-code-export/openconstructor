@@ -1,0 +1,69 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: node._wc,v 1.3 2007/02/27 11:23:21 sanjar Exp $
+ */
+class Node {
+	var $id, $key;
+	var $index, $next;
+	var $parent, $node;
+	var $header;
+	var $sRes;
+
+	function Node($id, $index, $parent, $next, $key, $header) {
+		$this->id = $id;
+		$this->index = $index;
+		$this->parent = $parent;
+		$this->next = $next;
+		$this->key = $key;
+		$this->header = $header;
+		$this->node = array();
+		$this->sRes = null;
+	}
+	
+	function registerNode(&$node) {
+		$this->node[$node->id] = &$node;
+	}
+	
+	function getFullKey($separator = '/') {
+		if($this->parent)
+			return $this->parent->getFullKey($separator) . $this->key . $separator;
+		else
+			return $separator;
+	}
+	
+	function export(&$exportStrategy) {
+		return $exportStrategy->exportNode($this);
+	}
+	
+	function size() {
+		if(!sizeof($this->node))
+			return 0;
+		if($this->next > 0)
+			return $this->next - $this->index - 1;
+		$nodes = array_keys($this->node);
+		for($i = 0, $size = $count = sizeof($nodes); $i < $count; $i++)
+			$size += $this->node[$nodes[$i]]->size();
+		return $size;
+	}
+}
+?>

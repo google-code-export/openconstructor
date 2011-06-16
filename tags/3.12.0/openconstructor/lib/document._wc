@@ -1,0 +1,64 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Пока класс работает просто как wrapper для WCSResource($sRes)
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: document._wc,v 1.4 2007/02/27 11:23:18 sanjar Exp $
+ */
+
+class Document {
+	var $id, $ds_id;
+	var $isPublished;
+	var $header;
+	var $fields;
+	var $sRes;
+	
+	function Document() {
+		$this->fields = array();
+		$this->sRes = null;
+	}
+	
+	function readValues(&$arr) {
+		$this->id = (int) @$arr['id'];
+		$this->ds_id = (int) @$arr['ds_id'];
+		$this->isPublished = @$arr['published'] ? true : false;
+		$this->header = @$arr['header'];
+		foreach($this->fields as $k => $v)
+			if(isset($arr[$k]))
+				$this->fields[$k] = is_array($arr[$k]) ? implode(',', $arr[$k]) : $arr[$k];
+	}
+	
+	function getField($fieldName) {
+		return $this->fields[$fieldName];
+	}
+	
+	function loadAuths($owner, $ownerAuths) {
+		$this->sRes = new WCSResource($this->header, (int) $owner, 0);
+		
+		$this->sRes->addAction('editdoc');
+		$this->sRes->addAction('publishdoc');
+		$this->sRes->addAction('removedoc');
+		
+		$this->sRes->setAuthorities($ownerAuths, '0');
+	}
+}
+?>

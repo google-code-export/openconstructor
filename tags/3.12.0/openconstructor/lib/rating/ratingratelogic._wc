@@ -1,0 +1,150 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Объект для оценивания гибридных документов.
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: ratingratelogic._wc,v 1.9 2007/02/27 11:23:26 sanjar Exp $
+ */
+
+class RatingRateLogic extends WCObject {
+	var $notifyEmail, $mailSubject;
+	var $ignoreAuths;
+	var $idKey, $ratingKey, $commentKey;
+	var $cId, $cVal, $closeSess;
+	
+	function RatingRateLogic() {
+		$this->DSTable = 'dsrating';
+		$this->ds_type = 'rating';
+		$this->obj_type = 'ratingratelogic';
+		$this->notifyEmail = null;
+		$this->ignoreAuths = true;
+		$this->idKey = 'f_docId';
+		$this->ratingKey = 'f_rating';
+		$this->commentKey = '';
+		$this->cId = 'cid';
+		$this->cVal = 'f_cid';
+		$this->closeSess = true;
+	}
+	
+	function onPageLoad() {
+		$this->success = false;
+	}
+	
+	function exec(&$smarty, $params = array()) {
+		$rating = (int) @$_POST[$this->ratingKey];
+		$docId = (int) @$_POST[$this->idKey];
+		$comment = $this->commentKey ? trim(@$_POST[$this->commentKey]) : null;
+		if($docId > 0 && $this->ctx->auth->userId > 0) {
+			$correct = true;
+			// captcha
+			if($this->cId) {
+				$word = (string) @$_SESSION['_cid'][(string) @$_GET[$this->cId]];
+				$correct = false;
+				$value = strtolower((string) @$_POST[$this->cVal]);
+				if($word && $value && ($word == $value))
+					$correct = true;
+				$query[$this->cVal] = $correct ? 1 : 0;
+				if($word) {
+					unset($_SESSION['_cid'][(string) @$_GET[$this->cId]]);
+					if(!sizeof((array) @$_SESSION['_cid']))
+						unset($_SESSION['_cid']);
+				}
+				if($this->closeSess && isset($_SESSION) && !sizeof($_SESSION)) {
+					@session_unset();
+					@session_destroy();
+				}
+			}
+			if(!$correct){
+				if(isset($_SERVER['HTTP_REFERER']) && !headers_sent()) {
+					//sending back
+					$referer = parse_url($_SERVER['HTTP_REFERER']);
+					parse_str(@$referer['query'], $query = array());
+					$referer = $referer['scheme'].'://'.$referer['host'].$referer['path'];
+					$query['error'] = 'true';
+					$query[$this->ratingKey] = $rating;
+					if($this->commentKey)
+						$query[$this->commentKey] = $comment;
+					foreach($query as $k => $v)
+						$query[$k] = $k.'='.urlencode($v);
+					header('Location: '.$referer.'?'.implode('&',$query));
+				}
+				die();
+			} else {
+				$this->_rateDocument($docId, $rating, $comment);
+			}
+		} else
+			$this->ctx->throw404();
+	}
+	
+	function _rateDocument($docId, $rating, $comment) {
+		settype($this->ctx->auth->userId, 'int');
+		assert($this->ctx->auth->userId > 0);
+		require_once(LIBDIR.'/dsmanager._wc');
+		$dsm = new DSManager();
+		if($ds = $dsm->load($this->ds_id)) {
+			loadClass('wcs', '/security/wcs._wc');
+			$db = $this->ctx->_getDB();
+			$res = $db->query("SELECT id FROM dsrating WHERE ds_id = {$ds->ds_id} AND hdoc = ".intval($docId));
+			if(mysql_num_rows($res) == 0) {
+				WCS::runAs(WCS_ROOT_ID);
+				$ratingId = $ds->add($docId);
+				WCS::stopRunAs();
+			} else
+				list($ratingId) = mysql_fetch_row($res);
+			mysql_free_result($res);
+			assert($ratingId > 0);
+			WCS::runAs($this->ignoreAuths ? WCS_ROOT_ID : $this->ctx->auth->userId);
+			$this->success = $ds->rateRating($ratingId, $this->ctx->auth->userId, $rating, $comment);
+			if($this->success) {
+				$rec = $ds->get_record($ratingId);
+				$this->_notify($rec, $ds, $this->ctx->auth->userId, $rating, $comment);
+			}
+			WCS::stopRunAs();
+		} else
+			$ctx->throw404();
+	}
+
+	function _notify(&$doc, &$ds, $userId, $rating, $comment) {
+		if(empty($this->notifyEmail))
+			return;
+		require_once(LIBDIR.'/wcmessage._wc');
+		$content = array(
+			'ratingHref' => "http://{$GLOBALS['_host']}{$GLOBALS['_wchome']}/data/guestbook/edit.php?ds_id={$ds->ds_id}&id={$doc['id']}",
+			'voteHref' => "http://{$GLOBALS['_host']}{$GLOBALS['_wchome']}/data/guestbook/editvote.php?ds_id={$ds->ds_id}&rid={$doc['id']}&id={$userId}",
+			'dsName' => $ds->name,
+			'dsHref' => "http://{$GLOBALS['_host']}{$GLOBALS['_wchome']}/data/?node={$ds->ds_id}",
+			'doc' => array('header' => $doc['header'], 'rating' => $doc['rating'], 'votes' => $doc['raters'], 'date' => $doc['date']),
+			'userRating' => $rating,
+			'userComment' => $comment
+		);
+		$msg = new WCMessage();
+		$msg->setTemplate(($this->tpl ? $this->tpl : 'file:'.LIBDIR.'/tpl/'.$this->obj_type).'.tpl');
+		$msg->setContentType('text/html');
+		$msg->setContent($content);
+		$msg->setSubject($this->mailSubject);
+		$msg->setFrom('info@'.$_SERVER['HTTP_HOST']);
+		$msg->addRecipient($this->notifyEmail);
+		$msg->send();
+		return;
+	}
+}
+?>

@@ -1,0 +1,225 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: authentication._wc,v 1.13 2007/02/27 11:23:21 sanjar Exp $
+ */
+
+class Authentication {
+	var $userId, $groupId, $membership;
+	var $profile, $profileId;
+	var $userLogin, $userName, $userEmail;
+	var $activeOpenid;
+	var $_wciEditor;
+	var $auths;
+	private static $sessions;
+	private static $instances;
+	private static $lastInst = -1;
+	
+	function Authentication() {
+		$this->userId = 0;
+		$this->groupId = 0;
+		$this->membership = array(0);
+		$this->auths = 0;
+		$this->profile = array();
+		$this->profileId = 0;
+		$this->_wciEditor = null;
+	}
+	
+	function &create(&$user, $openid = null) {
+		$result = new Authentication();
+		$result->userId = $user->id;
+		$result->groupId = $user->groupId;
+		$result->membership = $user->membership;
+		$result->userLogin = $user->login;
+		$result->userName = $user->name;
+		$result->userEmail = $user->email;
+		$result->activeOpenid = $openid;
+		$result->profileId = (int) $user->profileId;
+		$result->auths = User::getWCSAuthorities($user->id);
+		return $result;
+	}
+	
+	function fetchProfile() {
+		if($this->profileId > 0) {
+			loadClass('authenticator', '/security/authenticator._wc');
+			$this->profile = Authenticator::loadProfile($this->profileId);
+		}
+	}
+	
+	function getUserId() {
+		$auth = self::_authentication();
+		return $auth->userId;
+	}
+	
+	function getOriginalUserId() {
+		$auth = self::getInstanceAt(0);
+		return $auth->userId;
+	}
+	
+	function &importFromSession() {
+		$result = null;
+		if(@$_SESSION['wcsUserId']) {
+			$result = self::_authentication();
+			$result->userId = @$_SESSION['wcsUserId'];
+			$result->groupId = @$_SESSION['wcsGroupId'];
+			$result->membership = @$_SESSION['wcsMembership'];
+			$result->userLogin = @$_SESSION['wcsUserLogin'];
+			$result->userName = @$_SESSION['wcsUserName'];
+			$result->userEmail = @$_SESSION['wcsUserEmail'];
+			$result->activeOpenid = @$_SESSION['wcsActiveOpenid'];
+			$result->auths = @$_SESSION['wcsAuths'];
+			$result->profileId = (int) @$_SESSION['wcsProfileId'];
+			$result->_wciEditor = @$_SESSION['wciEditor'] ? true : false;
+			WCS::_assert(@$_SESSION['wcsImprint'] === $result->getImprint());
+			$result->profile = (array) @$_SESSION['wcsProfile'];
+		} elseif(@$_COOKIE['wcsUID']) {
+			loadClass('authenticator', '/security/authenticator._wc');
+			$result = Authenticator::restore($_COOKIE['wcsUID']);
+			if(is_object($result)) {
+				self::_authentication($result, 0);
+				$result->exportToSession();
+				if(class_exists('Context')) {
+					require_once(LIBDIR.'/security/siteauthentication._wc');
+					$ctx = Context::getInstance();
+					$ctx->_fireEvent('onRestoreAuth', array('auth' => SiteAuthentication::createFrom($result)));
+				}
+			}
+		}
+		return $result;
+	}
+	
+	function exportToSession() {
+		if(!session_id())
+			session_start();
+		$this->isWciEditor();
+		$_SESSION['wcsUserId'] = $this->userId;
+		$_SESSION['wcsGroupId'] = $this->groupId;
+		$_SESSION['wcsMembership'] = $this->membership;
+		$_SESSION['wcsUserLogin'] = $this->userLogin;
+		$_SESSION['wcsUserName'] = $this->userName;
+		$_SESSION['wcsUserEmail'] = $this->userEmail;
+		$_SESSION['wcsActiveOpenid'] = $this->activeOpenid;
+		$_SESSION['wcsAuths'] = $this->auths;
+		$_SESSION['wcsImprint'] = $this->getImprint();
+		$_SESSION['wcsProfileId'] = $this->profileId;
+		$_SESSION['wcsProfile'] = $this->profile;
+		$_SESSION['wciEditor'] = $this->isWciEditor() ? 1 : 0;
+		if(!headers_sent()) {
+			$expires  = time() + 3600 * 24 * 90;
+			setcookie('wcsUserLogin', $this->userLogin, $expires, '/');
+			setcookie('wcsUserName', $this->userName, $expires, '/');
+			if ($this->activeOpenid)
+				setcookie('wcsActiveOpenid', $this->activeOpenid, $expires, '/');
+		}
+		self::_authentication($this, 0);
+	}
+	
+	function exportUID($days = 90) {
+		$user = User::load(self::getOriginalUserId());
+		if($user != null && !headers_sent())
+			setcookie('wcsUID', $user->autologinId, time() + intval($days) * 24 * 3600, '/');
+	}
+	
+	function destroyUID() {
+		if(!headers_sent())
+			setcookie('wcsUID', '', time() - 3600 * 24, '/');
+	}
+	
+	function destroyHistory() {
+		if(!headers_sent()) {
+			setcookie('wcsUserLogin', '', time() - 3600 * 24, '/');
+			setcookie('wcsUserName', '', time() - 3600 * 24, '/');
+			setcookie('wcsActiveOpenid', '', time() - 3600 * 24, '/');
+		}
+	}
+	
+	function getImprint() {
+		$result = sprintf("{$this->userId}/{$this->groupId}/%s/%d/%s", implode(':', $this->membership), $this->_wciEditor ? 1 : 0, session_id());
+		$result = sprintf('%x', crc32(str_repeat($result, 2)));
+		return $result;
+	}
+	
+	function isWciEditor() {
+		if($this->_wciEditor === null) {
+			require_once('system._wc');
+			require_once('wcs._wc');
+			$this->_wciEditor = WCS::groupAllowed(System::getInstance(), 'inlineedit', $this) ? true : false;
+		}
+		return $this->_wciEditor;
+	}
+	
+	function destroy() {
+		unset($_SESSION['wcsImprint']);
+		unset($_SESSION['wcsUserId'], $_SESSION['wcsGroupId'], $_SESSION['wcsMembership']);
+		unset($_SESSION['wcsUserLogin'], $_SESSION['wcsUserName'], $_SESSION['wcsUserEmail']);
+		unset($_SESSION['wcsActiveOpenid']);
+		unset($_SESSION['wcsAuths']);
+		unset($_SESSION['wcsProfileId'], $_SESSION['wcsProfile']);
+		unset($_SESSION['wciEditor']);
+		self::destroyUID();
+		$auth = new Authentication();
+		self::_authentication($auth, 0);
+	}
+	
+	function runAs(&$user) {
+		if(!isset(self::$sessions[$user->id]))
+			self::$sessions[$user->id] = self::create($user);
+		self::_authentication(self::$sessions[$user->id]);
+	}
+	
+	function stopRunAs() {
+		if(self::$lastInst > 0)
+			unset(self::$instances[self::$lastInst--]);
+		return self::$instances[self::$lastInst];		
+	}
+	
+	function &getOriginal() {
+		return self::getInstanceAt(0);
+	}
+	
+	function &getInstance() {
+		return self::_authentication();
+	}
+	
+	function &_authentication(&$auth = null, $index = null) {
+		// TODO: продокументировать пока все помню
+		if($auth === null) {
+			if(isset(self::$instances[self::$lastInst]))
+				return self::$instances[self::$lastInst];
+			$auth = new Authentication();
+		}
+		if(is_object($auth)) {
+			if($index === null)
+				self::$instances[++self::$lastInst] = &$auth;
+			elseif($index >= 0 && $index <= self::$lastInst)
+				self::$instances[$index] = &$auth;
+		}
+		return self::$instances[self::$lastInst];
+	}
+
+	function &getInstanceAt($index) {
+		if($index >= 0 && $index <= self::$lastInst)
+			return self::$instances[$index];
+		return self::$instances[self::$lastInst];
+	}
+}
+?>

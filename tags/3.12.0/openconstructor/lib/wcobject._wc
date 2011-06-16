@@ -1,0 +1,182 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ *
+ * All rights reserved.
+ *
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ *
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ *
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @author Sanjar Akhmedov
+ * @since 2003-07-12
+ *
+ * $Id: wcobject._wc,v 1.19 2007/05/01 15:01:36 sanjar Exp $
+ */
+
+class WCObject {
+	var $obj_id, $ds_id, $ds_type, $obj_type, $name, $description;
+	var $DSTable;
+	var $tpl, $tpl_args, $caching, $cache_lifetime, $cached_by_WC;
+	var $sRes;
+	// var $ctx, $crumbs, $block; Эти поля создаются в runtime
+
+
+	function &_loadFrom(&$row) {
+		$result = @unserialize($row['code']);
+		$result->obj_id = (int) @$row['id'];
+		$result->tpl = (int) @$row['tpl'];
+		return $result;
+	}
+
+	function exec(&$smarty, $params = array()) {
+		if(!$this->tpl) {
+			$this->tpl = 'file:'.LIBDIR.'/tpl/'.$this->obj_type;
+			$this->caching = 0;
+			$smarty->compile_check = true;
+		}
+		$start = _getperiod();
+		$name = str_replace('--', '- ', $this->name);
+		$allowComments = isset($params['comment']) ? (bool) $params['comment'] : true;
+		if(!($this->block == 'PRE' || $this->block == 'POST')) {
+			if($allowComments && $this->ctx->page->isCommentable()) {
+				$tab = str_repeat("\t", sizeof($smarty->_object_stack));
+				echo "<!--\n\n$tab{WCO:$name}\n\n-->";
+			}
+			if(WCI_ENABLED && $this->ctx->page->contentType == 'text/html') {
+				$blockId = sprintf('obj.%x', crc32(rand().microtime()));
+				echo "<div id='$blockId' blockId='$this->block'".
+					" objName='".htmlspecialchars($name, ENT_QUOTES, 'UTF-8')."' objId='$this->obj_id' objType='$this->obj_type' objTpl='$this->tpl'".
+					" objDsType='$this->ds_type' objDsId='".$this->_inlineEditGetDsId()."' objDocId='".$this->_inlineEditGetDocId()."'>"
+				;
+			}
+		}
+		$oldcaching = $smarty->caching;
+		$oldlifetime = $smarty->cache_lifetime;
+		$source = 'D/'; // Dynamically calculated
+		if(WC_BLOCK_CACHING && $this->caching) {
+			$smarty->caching = $this->caching;
+			$smarty->cache_lifetime = $this->cache_lifetime;
+			$cacheId = $this->getCacheId();
+			if(!$smarty->is_cached($this->tpl.'.tpl', $cacheId)) {
+				$fetched = $this->fetchData($smarty);
+				if($fetched) {
+					if(isset($this->tpl_args)) {
+						$tpl_params = array();
+						parse_str($this->tpl_args, $tpl_params);
+						$params = array_merge($params, $tpl_params);
+					}
+					$smarty->assign_by_ref('args', $params);
+					$smarty->display($this->tpl.'.tpl', $cacheId);
+					$smarty->clear_assign('args');
+					$smarty->clear_assign($fetched);
+					$source = 'DC/'; // Dynamically calculated and cached
+				}
+			} else {
+				$smarty->display($this->tpl.'.tpl', $cacheId);
+				$source = 'C/'; // from Cache
+			}
+		} else {
+			$smarty->caching = 0;
+			$fetched = $this->fetchData($smarty);
+			if($fetched) {
+				if(isset($this->tpl_args)) {
+					$tpl_params = array();
+					parse_str($this->tpl_args, $tpl_params);
+					$params = array_merge($params, $tpl_params);
+				}
+				$smarty->assign_by_ref('args', $params);
+				$smarty->display($this->tpl.'.tpl');
+				$smarty->clear_assign('args');
+				$smarty->clear_assign($fetched);
+			}
+		}
+		if($this->ctx->page->status != 404) {
+			$smarty->caching = $oldcaching;
+			$smarty->cache_lifetime = $oldlifetime;
+		}
+		if(!($this->block == 'PRE' || $this->block == 'POST')) {
+			if(WCI_ENABLED && $this->ctx->page->contentType == 'text/html')
+				echo "</div><script>try{registerWCIBlock(document.getElementById('$blockId'), ".(@$_COOKIE['wciVisible'] ? 1 : 0).", '$source', '".(isset($cacheId) ? $cacheId : '')."', '".gmdate('z:H:i:s', $this->cache_lifetime)."');}catch(e){}</script>";
+			if($allowComments && $this->ctx->page->isCommentable())
+				echo "<!--\n\n$tab{/WCO:$name}\n\n-->";
+		}
+		_register_phase('- '.$source.$name.' ['.$this->obj_type.']', $start);
+		$smarty->compile_check = false;
+	}
+
+	function run($params = array()) {
+		$ctx = Context::getInstance();
+		$this->exec($ctx->_smarty, $params);
+	}
+
+	function &getSearchQuery($keywordKey, $docsTable) {
+		$result = array('from' => null, 'where' => null, 'order' => null);
+		if($keywordKey) {
+			$ctx = Context::getInstance();
+			$keyword = $ctx->getParam($keywordKey);
+			if($keyword) {
+				loadClass('searcher', '/search/searcher._wc');
+				$part = Searcher::getQueryPart($keyword, $docsTable);
+				$result['from'] = ' JOIN '.$part['from'];
+				$result['where'] = ' AND '.$part['clause'];
+				$result['order'] = &$part['order'];
+			}
+		}
+		return $result;
+	}
+
+	function isCached() {
+		if(!isset($this->_isCached))
+			$this->_isCached = WC_BLOCK_CACHING && $this->caching && $this->ctx->_smarty->is_cached($this->tpl.'.tpl', $this->getCacheId());
+		return $this->_isCached;
+	}
+
+	function getCacheId() {}
+	function init() {}
+	function onPageLoad() {} // вызывается при загрузке объекта на страницу
+	function changeCrumbs(&$crumbs) {}
+
+	// TODO: кажется этот метод нигде не используется... выяснить и удалить
+	// rustam.akhmedov: Правильно, не используется
+	function &cache($key, $value = null) {
+		global $__cache;
+		$result = null;
+		if($value === null) {
+			if(isset($__cache[$this->ds_type][$key]))
+				return $__cache[$this->ds_type][$key];
+			else
+				return $result;
+		}
+		@$__cache[$this->ds_type][$key] = &$value;
+	}
+
+	function &_getDSFields() {
+		static $result;
+		if(!is_array($result)) $result = array('ds_id');
+		return $result;
+	}
+
+	function _inlineEditGetDocId() {
+		return method_exists($this, 'getDocId') ? $this->getDocId() : null;
+	}
+
+	function _inlineEditGetDsId() {
+		if(method_exists($this, 'getDsId'))
+			return $this->getDsId();
+		if($this->ds_id > 0 && is_numeric($this->ds_id))
+			return $this->ds_id;
+		return null;
+	}
+}
+?>

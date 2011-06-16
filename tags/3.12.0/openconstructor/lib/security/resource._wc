@@ -1,0 +1,147 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Класс представляющий безопасный ресурс (secure resource).
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: resource._wc,v 1.5 2007/02/27 11:23:21 sanjar Exp $
+ */
+
+class WCSResource {
+	var $name;
+	var $owner, $group, $authorities;
+	var $map, $length, $actions;
+
+	function WCSResource($name, $owner, $group) {
+		$this->name = &$name;
+		$this->owner = (int) $owner;
+		if(is_array($group))
+			$this->group = &$group;
+		else
+			$this->group = strpos($group, ',') === false ? (int) $group : explode(',', $group);
+		$this->length = 0;
+		$this->actions = array(null);
+	}
+	
+	function addAction($act) {
+		$this->actions[] = $act;
+	}
+	
+	function compile() {
+		if($this->length)
+			return;
+		$length = sizeof($this->actions);
+		sort($this->actions);
+		for($i = 0, $map = array(); $i < $length; $i++)
+			if(($pos = strrpos($this->actions[$i], '.')) !== false) {
+				$parent = substr($this->actions[$i], 0, $pos);
+				$map[$this->actions[$i]] = $map[$parent] * ($length + 1) + $i;
+			} else
+				$map[$this->actions[$i]] = $i;
+		$this->length = $length;
+		$this->map = &$map;
+		unset($this->actions[0]);
+		$auths = str_repeat('0', $this->length);
+		$this->setAuthorities($auths, $auths);
+	}
+	
+	function setAuthorities($ownerAuths, $groupAuths = null) {
+		if(!$this->length)
+			$this->compile();
+		if($groupAuths !== null) {
+			$this->authorities[0] = '0'.str_pad(strrev($ownerAuths), $this->length, '0');
+			$this->authorities[1] = '0'.str_pad(strrev($groupAuths), $this->length, '0');
+		} else {
+			$this->authorities[0] = $this->authorities[1] = str_pad('0', $this->length + 1, '0');
+			$auths = explode(':', $ownerAuths);
+			for($i = 0, $li = sizeof($auths); $i < $li; $i++) {
+				$bits = explode(',', $auths[$i]);
+				for($j = 0, $lj = sizeof($bits); $j < $lj; $j++)
+					$this->_setBit($this->authorities[$i], $bits[$j], true);
+			}
+		}
+	}
+	
+	function setOwnerBit($act, $value) {
+		if(isset($this->map[$act]))
+			$this->_setBit($this->authorities[0], $act, $value);
+	}
+	
+	function setGroupBit($act, $value) {
+		if(isset($this->map[$act]))
+			$this->_setBit($this->authorities[1], $act, $value);
+	}
+	
+	function _setBit(&$auth, &$act, $value) {
+		$bit = $this->map[$act];
+		$auth{$bit % ($this->length + 1)} = $value ? '1' : '0';
+		while($value && $bit > $this->length) {
+			$bit = intval($bit / ($this->length + 1));
+			$auth{$bit % ($this->length + 1)} = $value ? '1' : '0';
+		}
+	}
+	
+	function decision(&$act, &$authorities) {
+		$bit = @$this->map[$act];
+		$allow = isset($this->map[$act]) && ($authorities{$bit % ($this->length + 1)} == '1');
+		while($allow && $bit > $this->length) {
+			$bit = intval($bit / ($this->length + 1));
+			$allow = $allow && ($authorities{$bit % ($this->length + 1)} == '1');
+		}
+		return $allow;
+	}
+	
+	function setOwner($userId) {
+		$this->owner = (int) $userId;
+	}
+	
+	function setGroup($groupId) {
+		if(is_array($groupId))
+			$this->group = &$groupId;
+		else
+			$this->group = (int) $groupId;
+	}
+	
+	function getOwnerAuths() {
+		return strrev(substr($this->authorities[0], 1));
+	}
+	
+	function getGroupAuths() {
+		return strrev(substr($this->authorities[1], 1));
+	}
+	
+	function getOwnerBit($act) {
+		return $this->decision($act, $this->authorities[0]);
+	}
+	
+	function getGroupBit($act) {
+		return $this->decision($act, $this->authorities[1]);
+	}
+	
+	function &copy() {
+		$result = new WCSResource($this->name, $this->owner, $this->group);
+		foreach($this->actions as $act)
+			$result->addAction($act);
+		$result->setAuthorities($this->getOwnerAuths(), $this->getGroupAuths());
+		return $result;
+	}
+}
+?>

@@ -1,0 +1,130 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Листалка для списка файлов.
+ * 
+ * Объект вывода.
+ * 
+ * @author Rustam Akhmedov
+ * 
+ * $Id$
+ */
+
+class FilePager extends WCObject {
+	var $header;
+	var $slave;
+	var $pagerSize, $pageNumberKey, $listSizeKey;
+	
+	function FilePager() {
+		$this->DSTable = 'dsfile';
+		$this->ds_type = 'file';
+		$this->obj_type = 'filepager';
+		$this->slave = 0;
+		$this->pagerSize = 10;
+		$this->pageNumberKey = 'page';
+		$this->listSizeKey = 'by';
+		$this->caching = 0;
+		$this->cached_by_WC = true;
+	}
+	
+	function getCacheId() {
+		$cacheId = null;
+		if($docList = $this->ctx->getObject($this->slave)) {
+			$cacheId = $docList->getCacheId();
+			$cacheId = $this->obj_id.substr($cacheId, strpos($cacheId, '|'));
+		}
+		return $cacheId;
+	}
+
+	function onPageLoad() {
+		$ctx = Context::getInstance();
+		$docList = $ctx->getObject($this->slave);
+		if($docList) {
+			$docList->originalOffset = $docList->listOffset;
+			$pageNum = (int) $ctx->getParam($this->pageNumberKey); $pageNum += (int) !$pageNum;
+			$listSize = (int) $ctx->getParam($this->listSizeKey);
+			if($listSize > 0)
+				$docList->listSize = $listSize;
+			$docList->listOffset += ($pageNum - 1) * $docList->listSize;
+		}
+	}
+	
+	function fetchData(&$smarty) {
+		$result = false;
+		$ctx = Context::getInstance();
+		$docList = $ctx->getObject($this->slave);
+		if($docList) {
+			$docList->getDocuments();
+			$listSize = $docList->listSize;
+			$pageNum = (int) $ctx->getParam($this->pageNumberKey); $pageNum += (int) !$pageNum;
+			$docsCount = (int) $docList->availableDocsCount - $docList->originalOffset;
+			$pagesCount = intval($docsCount / $listSize) + intval(($docsCount % $listSize) && 1);
+			if($pagesCount < 2) {
+				$smarty->assign('pages', array());
+				return array('pages');
+			}
+			
+			$first = $pageNum - intval($this->pagerSize / 2) - intval(!($this->pagerSize % 2));
+			if($first < 1) $first = 1;
+			$last = $first + $this->pagerSize - 1;
+			if($last > $pagesCount) {
+				$first -= $last - $pagesCount;
+				$last = $pagesCount;
+			}
+			if($first < 1) $first = 1;
+			
+			$href = $_SERVER['QUERY_STRING'];
+			if($href) {	
+				$href = '?'.preg_replace('/(&?)'.$this->pageNumberKey.'=(.(?!&))*.(&|$)/', '\\1', $href);
+				$href .= (strrpos($href, '&') + 1 < strlen($href) ? '&' : '').$this->pageNumberKey.'=';
+			} else
+				$href='?'.$this->pageNumberKey.'=';
+			
+			$firstPage = $prevPage = null;
+			if($pageNum > 1) {
+				$firstPage = $href.'1'; $prevPage = $href.($pageNum - 1);
+			}
+			$lastPage = $nextPage = null;
+			if($pageNum < $pagesCount) {
+				$lastPage = $href.$pagesCount; $nextPage = $href.($pageNum + 1);
+			}
+			for($i = $first, $pages = array(); $i <= $last; $i++)
+				$pages[$i] = $i != $pageNum ? $href.$i : null;
+			
+			$smarty->assign('first', $firstPage);
+			$smarty->assign('prev', $prevPage);
+			$smarty->assign('next', $nextPage);
+			$smarty->assign('last', $lastPage);
+			$smarty->assign_by_ref('pages', $pages);
+			$smarty->assign('by', $listSize);
+			$smarty->assign('docs', $docsCount);
+			
+			$result = array('first', 'prev', 'pages', 'next', 'last', 'by', 'docs');
+		}
+		return $result;
+	}
+	
+	function &_getDSFields() {
+		static $result;
+		if(!is_array($result)) $result = array('slave');
+		return $result;
+	}
+}
+?>

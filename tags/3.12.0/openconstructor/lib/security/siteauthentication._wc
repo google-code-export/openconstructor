@@ -1,0 +1,101 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: siteauthentication._wc,v 1.10 2007/02/27 11:23:21 sanjar Exp $
+ */
+
+class SiteAuthentication {
+	var $userId, $userLogin, $groupId;
+	var $profile, $profileId, $_profileLoader;
+	var $userName, $userEmail;
+	var $activeOpenid;
+	var $_wciEditor;
+	
+	function SiteAuthentication() {
+		$this->userId = $this->userLogin = $this->userName = $this->userEmail = $this->activeOpenid = $this->groupId = $this->profileId = null;
+		$this->profile = array();
+		$this->_wciEditor = false;
+	}
+	
+	function isWciEditor() {
+		return $this->_wciEditor;
+	}
+	
+	function _loadProfile($loaderId, $dynamic = false) {
+		$this->_profileLoader = (int) $loaderId;
+		if($this->_profileLoader > 0 && $this->profileId > 0 && ($dynamic || !sizeof($this->profile))) {
+			$ctx = Context::getInstance();
+			$ctx->_attachEventListener('onLoadObjects', array(&$this, '_profileLoaderObserver'));
+		}
+	}
+	
+	function _profileLoaderObserver() {
+		if($this->profileId > 0 && $this->_profileLoader > 0) {
+			$ctx = Context::getInstance();
+			if($obj = $ctx->page->_getObject($this->_profileLoader, true)) {
+				$this->profile = (array) $obj->getDocument($this->profileId);
+				@$_SESSION['wcsProfile'] = $this->profile;
+				$ctx->_fireEventArgs('onLoadProfile', $args = array('profile' => &$this->profile));
+				$ctx->setParam('.profile', $this->profile);
+				unset($obj, $args);
+			}
+		}
+	}
+	
+	function _copy(&$auth) {
+		$this->userId = $auth->userId;
+		$this->userLogin = $auth->userLogin;
+		$this->userName = $auth->userName;
+		$this->userEmail = $auth->userEmail;
+		$this->activeOpenid = $auth->activeOpenid;
+		$this->groupId = $auth->groupId;
+		$this->profileId = $auth->profileId;
+		$this->profile = (array) $auth->profile;
+		$this->_wciEditor = $auth->isWciEditor();
+	}
+	
+	function &createFromSession() {
+		$result = new SiteAuthentication();
+		if(@$_SESSION['wcsUserId']) {
+			$result->userId = @$_SESSION['wcsUserId'];
+			$result->userLogin = @$_SESSION['wcsUserLogin'];
+			$result->userName = @$_SESSION['wcsUserName'];
+			$result->userEmail = @$_SESSION['wcsUserEmail'];
+			$result->activeOpenid = @$_SESSION['wcsActiveOpenid'];
+			$result->groupId = @$_SESSION['wcsGroupId'];
+			$result->profileId = (int) @$_SESSION['wcsProfileId'];
+			$result->profile = (array) @$_SESSION['wcsProfile'];
+			$result->_wciEditor = @$_SESSION['wciEditor'] ? true : false;
+		}
+		return $result;
+	}
+	
+	function &createFrom(&$auth) {
+		if(is_object($auth)) {
+			$result = new SiteAuthentication();
+			$result->_copy($auth);
+		} else
+			$result = null;
+		return $result;
+	}
+}
+?>

@@ -1,0 +1,146 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Выводит календарь событий.
+ * 
+ * Объект вывода.
+ * 
+ * @author Rustam Akhmedov
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: eventcalendar._wc,v 1.14 2007/02/27 11:23:18 sanjar Exp $
+ */
+
+class EventCalendar extends WCObject {
+	var $header;
+	var $srvuri, $eventid, $monthid;
+	var $month, $months, $year;
+	var $dateFormat, $moWeek;
+	
+	function EventCalendar() {
+		$this->DSTable='dsevent';
+		$this->ds_type='event';
+		$this->obj_type='eventcalendar';
+		$this->srvuri='event/';
+		$this->eventid='event_id';
+		$this->monthid='month';
+		$this->dateFormat='[j.m.Y]';
+		$this->moWeek = true;
+		// TODO: improve
+		$this->months=explode(',','Январь,Февраль,Март,Апрель,Май,Июнь,Июль,Август,Сентябрь,Октябрь,Ноябрь,Декабрь');
+		$now = getdate();
+		$this->year = $now['year'];
+		$this->caching=2;
+		$this->cached_by_WC=true;
+	}
+	
+	function getCacheId() {
+		return $this->obj_id.'|m'.$this->getMonth();
+	}
+	
+	function fetchData(&$smarty) {
+		$result = false;
+		$m = $this->getMonth();
+		$y = intval($this->year)?intval($this->year):date('Y');
+		
+		$db = $this->ctx->_getDB();
+		$res = $db->query(
+			'SELECT id, real_id as rid, header, place, img_intro as image, date, end_date'.
+			' FROM '.$this->DSTable.
+			' WHERE ds_id IN ('.$this->ds_id.') AND YEAR(FROM_UNIXTIME(date))='.$y.
+			(!$m?'':' AND MONTH(FROM_UNIXTIME(date))='.$m).
+			' ORDER BY date ASC'
+		);
+		if(mysql_num_rows($res) > 0) {
+			$fet=array();
+			$href = $this->srvuri.'?'.$this->eventid.'=';
+			$date = '';
+			while($row=mysql_fetch_assoc($res)) {
+				if(isset($fet[$row['rid']])) continue;
+				$fet[$row['rid']] = true;
+				$event[$row['id']]['header']=escapeTags($row['header']);
+				$event[$row['id']]['href']=$href.$row['id'];
+				$event[$row['id']]['place']=$row['place'];
+				$event[$row['id']]['image']=$row['image'];
+				$event[$row['id']]['begin']=wcfFormatTime($this->dateFormat, $row['date']);
+				$event[$row['id']]['end']=wcfFormatTime($this->dateFormat, $row['end_date']);
+				$event[$row['id']]['time']=$row['date'];//
+				$date = $row['date'];
+			}
+			$m--;
+			$event = $this->get_calendar($event,$date,$m);
+		} else {
+			$m--;
+			$event = $this->get_calendar(array(),mktime(0, 0, 0, $m+1, 1, $this->year),$m);
+		}
+		mysql_free_result($res);
+		$smarty->assign('header', $this->header);
+		$smarty->assign_by_ref('events', $event);
+		$smarty->assign_by_ref('year', $this->year);
+		$smarty->assign_by_ref('month', $this->months);
+		$smarty->assign_by_ref('cur',$m);
+		$result = array('header', 'events', 'year', 'month', 'cur');
+		return $result;
+	}
+	
+	function getMonth() {
+		if(!$this->month) {
+			$m = (int) $this->ctx->getParam($this->monthid);
+			$this->month = $m > 0 && $m < 13 ? $m : date('n');
+		}
+		return $this->month;
+	}
+
+	function changeCrumbs(&$crumbs) {
+		$header = escapeTags($this->months[$this->getMonth() - 1]);
+		$crumbs->set($this->ctx->page->uri, $header);
+	}
+
+	function get_calendar($events, $date, $month){
+		$year = date('Y', $date);
+
+		$offset = date('w', mktime(0, 0, 0, $month + 1, 1, $year));
+		$offset = $this->moWeek===false ? $offset : $offset - 1;
+		$offset = $offset == 0 ? 6 : $offset - 1;
+		$days = date('j', mktime(0, 0, 0, $month + 2, 1, $year) - 1);
+		
+		for($i = 0, $cells = array(), $o = 0; $i < 6; $i++)
+			for($j = 0, $cells[$i] = array(); $j < 7; $j++) {
+				$day = $o > $offset ? $o - $offset : null;
+				$cells[$i][$j] = array(
+					'day' => $day <= $days ? $day : null,
+					'events' => array()
+				);
+				$o++;
+			}
+		
+		foreach($events as $k => $e) {
+			list($r, $c) = $this->_getOffset($e['time'], $offset);
+			$cells[$r][$c]['events'][$k] = &$events[$k];
+		}
+		return $cells;
+	}
+	
+	function _getOffset($date, $offset) {
+		$day = date('j', $date);
+		return array( (int) (($offset+$day) / 7), ($offset+$day) % 7);
+	}
+}
+?>

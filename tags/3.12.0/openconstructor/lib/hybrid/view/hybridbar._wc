@@ -1,0 +1,61 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Выводит "Ad hoc side bar"ов гибридных документов.
+ * 
+ * Объект вывода ВК.
+ * 
+ * @author Rustam Akhmedov
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: hybridbar._wc,v 1.26 2007/02/27 11:23:24 sanjar Exp $
+ */
+require_once('hybridhl._wc');
+
+class HybridBar extends HybridHL {
+
+	function HybridBar() {
+		$this->HybridHL();
+		$this->obj_type = 'hybridbar';
+		$this->no404 = true;
+	}
+	
+	function getCacheId() {
+		$cacheId = $this->obj_id.'|'.$this->agent->dsId.'|'.sprintf('%x', crc32($this->ids));
+		return $cacheId;
+	}
+	
+	function onPageLoad() {
+		parent::onPageLoad();
+		if(!$this->ids)
+			$this->ids = -1;
+	}
+	
+	function _inlineEditGetDocId() {
+		return $this->ids > 0 && is_numeric($this->ids) ? $this->ids : null;
+	}
+	
+	function &_getDSFields() {
+		static $result;
+		if(!is_array($result)) $result = array('ds_id', 'dsIdKey', 'ids');
+		return $result;
+	}
+}
+?>

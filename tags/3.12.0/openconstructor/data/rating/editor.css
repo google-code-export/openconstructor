@@ -1,0 +1,38 @@
+#avgRating {
+	padding: 10px 10px 5px;
+}
+#avgRating DIV {
+	margin-bottom: 5px;
+}
+.detRating {
+	font-size: 90%;
+	padding: 10px;
+}
+.detRating DIV {
+	margin-bottom: 3px;
+}
+TR#ratings TD {
+	background: #fff;
+	border: solid 1px #999;
+	border-width: 1px 0 0;
+}
+#setRating {
+	border: solid 1px #ccc;
+	background: #eee;
+	}
+#setRating TD {
+	background: transparent !important;
+	border: none !important;
+}
+TD#tdToolbar {
+	background: #ebebeb url(../../i/metallic/tool/tool_bg_mini.gif) top left repeat-x;
+	height: 38px;
+	padding: 0 10px;
+}
+TD#rightPanel {
+	background: #ebebeb;
+}
+FIELDSET.inUse LEGEND {
+	color: #c30;
+	font-weight: bold;
+}

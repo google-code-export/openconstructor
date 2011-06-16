@@ -1,0 +1,98 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Аутентификация пользователя. Объект вывода.
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: usersauthorize._wc,v 1.12 2007/02/27 11:23:26 sanjar Exp $
+ */
+
+require_once(LIBDIR.'/security/authenticator._wc');
+
+class UsersAuthorize extends WCObject {
+	
+	var $loginID, $passwordID;
+	var $allowAutoLogin, $autoLoginID;
+	var $defaultNextPage, $nextPageKey, $loginPageKey;
+	var	$homes;
+	
+	function UsersAuthorize() {
+		$this->DSTable = null;
+		$this->ds_type = 'users';
+		$this->obj_type = 'usersauthorize';
+		$this->loginID = 'login';
+		$this->passwordID = 'password';
+		$this->defaultNextPage = '';
+		$this->nextPageKey = '';
+		$this->loginPageKey = '';
+		$this->allowAutoLogin = 0;
+		$this->autoLoginID = 'remember_me';
+	}
+	
+	function exec() {
+		if($this->ctx->auth->userId > 0) {
+			Authentication::destroy();
+			$this->ctx->_fireEvent('onCloseAuth');
+			$this->ctx->_setAuthentication(Authentication::getInstance());
+		}
+		
+		$auth = Authenticator::authenticate(@$_POST[$this->loginID],@$_POST[$this->passwordID]);
+		
+		if(is_object($auth)) {
+			global $_host;
+			if(isset($_POST[$this->nextPageKey]) && trim($_POST[$this->nextPageKey]))
+				$next = $_POST[$this->nextPageKey];
+			else
+				$next = isset($this->homes[$auth->groupId]) ? $this->homes[$auth->groupId] : ($this->defaultNextPage ? $this->defaultNextPage : '/');
+			if(!@session_id())
+				session_start();
+			$auth->exportToSession();
+			if($this->allowAutoLogin && isset($_POST[$this->autoLoginID])) {
+				$auth->exportUID((int) $this->allowAutoLogin);
+			}
+			$args = array('auth' => SiteAuthentication::createFrom($auth), 'nextPage' => &$next);
+			$this->ctx->_fireEventArgs('onCreateAuth', $args);
+			if(strpos($next, $GLOBALS['_wchome']) === 0)
+				echo '<pre>Opening <script>page="'.addslashes('http://'.$_host.$next).'"; document.write(page); location.href = page; </script>';
+			else
+				header('Location: http://'.$_host.$next);
+		} else {
+			Authentication::destroyHistory();
+			if(isset($_SESSION) && !sizeof($_SESSION)) {
+				session_unset();
+				session_destroy();
+			}
+			$next = @$_POST[$this->nextPageKey] ? $_POST[$this->nextPageKey] : ($this->defaultNextPage ? $this->defaultNextPage : '/');
+			if($this->loginPageKey && @$_POST[$this->loginPageKey]) {
+				$href = sprintf($this->ctx->getPlainPattern($_POST[$this->loginPageKey], $p = array('failed', 'next')), 1, urlencode($next));
+			} else {
+				$ref = parse_url($_SERVER['HTTP_REFERER']);
+				$url = $ref['path'].'?'.$ref['query'];
+				$href = sprintf($this->ctx->getPlainPattern($url, $p = array('failed', 'next')), 1, urlencode($next));
+			}
+			$args = array('auth' => new SiteAuthentication(), 'nextPage' => &$href);
+			$this->ctx->_fireEventArgs('onCreateAuth', $args);
+			header('Location: http://'.$GLOBALS['_host'].$href);
+		}
+		die();
+	}
+}	
+?>

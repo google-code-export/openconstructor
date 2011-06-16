@@ -1,0 +1,131 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Листалка для статьи. Выводит список страниц статьи.
+ * 
+ * Объект вывода.
+ * 
+ * @author Rustam Akhmedov
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: articlebodypager._wc,v 1.5 2007/02/27 11:23:21 sanjar Exp $
+ */
+
+class ArticleBodyPager extends WCObject {
+	var $pagesTable;
+	var $header;
+	var $master;
+	
+	function ArticleBodyPager() {
+		$this->DSTable='dsarticle';
+		$this->ds_type='article';
+		$this->obj_type='articlebodypager';
+		$this->pagesTable='dsarticlepages';
+		$this->master=NULL;
+		$this->caching=2;
+		$this->cached_by_WC=true;
+	}
+	
+	function getCacheId() {
+		$cacheId = null;
+		$ctx = Context::getInstance();
+		if($master = $ctx->getObject((int) $this->master)) {
+			$articleId = $master->getDocId();
+			$pageNum = @$_GET[$master->pid];
+			$pageNum = $pageNum == 'all' ? $pageNum : ((int) $pageNum ? $pageNum : 1);
+			$cacheId = $this->obj_id.'|'.$articleId.'|'.$pageNum;
+		}
+		return $cacheId;
+	}
+	
+	function fetchData(&$smarty) {
+		$result = false;
+		$ctx = Context::getInstance();
+		$master = $ctx->getObject((int) $this->master);
+		if(!$master) return;
+		$article_id = $master->getDocId();
+		$p_id = @$_GET[$master->pid];
+		$p_id = $p_id == 'all' ? $p_id : ((int) $p_id ? $p_id : 1);
+		if(!$article_id || ($p_id != 'all' && $p_id < 1)) return $result;
+				
+		$db = $this->ctx->_getDB();
+		$res = $db->query(
+			'SELECT p.p_id, p.page, p.header '.
+			"FROM {$this->DSTable} d, {$this->pagesTable} p ".
+			'WHERE d.id='.$article_id.' AND d.published AND d.id = p.id '.
+			'ORDER BY p.page'
+		);
+		$article = array('p_id'=>array(), 'page'=>array(), 'header'=>array());
+		$current = 1;
+		if($p_id == 'all') $current = 0;
+		if(mysql_num_rows($res) > 1) {
+			while($row=mysql_fetch_assoc($res)) {
+				if($row['page']==$p_id) $current=intval($row['page']);
+				$article['p_id'][]=$row['p_id'];
+				$article['page'][]=$row['page'];
+				$article['header'][]=$row['header'];
+			}
+			$pages=count($article['page']);
+			//pagerSize is 20
+			$first=$current-intval(20/2)-!(20%2)*1;
+			if($first<1) $first=1;
+			$last=$first+20-1;
+			if($last>$pages) {$first-=$last-$pages;$last=$pages;}
+			if($first<1) $first=1;
+	
+			$get = array();
+			parse_str($_SERVER['QUERY_STRING'], $get);
+			unset($get[$master->pid]);
+			if($withId = isset($get[$master->articleid]))
+				unset($get[$master->articleid]);
+			$ref = '?';
+			foreach($get as $k=>$v)
+				$ref .= $k.'='.$v.'&';
+			if($withId)
+				$ref .= $master->articleid.'='.$article_id.'&';
+			$ref .= $master->pid.'=';
+	
+			$pall = $p_id > 0 ? $ref.'all' : null;
+			$pprev=$current>1?$ref.$article['page'][$current-2]:null;
+			$pnext=$current<$pages?$ref.$article['page'][$current]:null;
+			
+			$ppages=array();
+			for($i=1;$i<=$pages;$i++) {
+				$ppages[$i - 1]['header']= escapeTags($article['header'][$i-1]);
+				$ppages[$i - 1]['href']= $i != $current ? $ref.$article['page'][$i-1] : null;
+			}
+			
+			$smarty->assign_by_ref('all', $pall);
+			$smarty->assign_by_ref('prev', $pprev);
+			$smarty->assign_by_ref('pages', $ppages);
+			$smarty->assign_by_ref('next', $pnext);
+			$result = array('all', 'prev', 'pages', 'next');
+		}
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &_getDSFields() {
+		static $result;
+		if(!is_array($result)) $result = array('master');
+		return $result;
+	}
+}
+?>

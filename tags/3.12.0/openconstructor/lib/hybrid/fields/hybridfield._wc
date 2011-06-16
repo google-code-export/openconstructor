@@ -1,0 +1,101 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: hybridfield._wc,v 1.3 2007/02/27 11:23:19 sanjar Exp $
+ */
+class HybridField {
+	var $id, $key, $header;
+	var $ds_id, $ds_table;
+	var $family, $type;
+	var $isRequired;
+	
+	function HybridField($key, $header, $family, $type, $required) {
+		$this->id = null;
+		$this->key = $key;
+		$this->header = $header;
+		$this->ds_id = null;
+		$this->ds_table = null;
+		$this->table = 'dshfields';
+		$this->family = $family;
+		$this->type = strtolower($type);
+		$this->isRequired = $required ? 1 : 0;
+	}
+	
+	function setDS($ds_id) {
+		$this->ds_id = intval($ds_id);
+		$this->ds_table = 'dshybrid_' . $this->ds_id;
+	}
+	
+	function create() {
+		$db = WCDB::bo();
+		$db->query(
+			"INSERT INTO $this->table (ds_id, name, family, type, header, isreq)".
+			"VALUES ($this->ds_id, '$this->key', '$this->family', '$this->type', '" . addslashes($this->header) . "', $this->isRequired)"
+		);
+		$this->id = $db->errorCode() == 0 ? $db->lastInsertId() : null;
+		return $this->id;
+	}
+	
+	function remove() {
+		$db = WCDB::bo();
+		$db->query(
+			"DELETE FROM $this->table WHERE id = $this->id"
+		);
+		$this->id = null;
+	}
+	
+	function getSQL(&$doc) {
+		if($this->isValid($doc->fields[$this->key]))
+			return sprintf("$this->key='%s'",addslashes($doc->fields[$this->key]));
+		return null;
+	}
+	
+	function onCreateDocument(&$doc) {
+		if(!isset($doc->fields[$this->key]))
+			$doc->fields[$this->key] = '';
+	}
+	
+	function getMysqlType() {
+		return null;
+	}
+	
+	function isValid(&$value) {
+		return true ? true : $value;
+	}
+	
+	function onUpdateDocument(&$old, &$new) {
+		false ? $old || $new : null ;
+	}
+	
+	function onRemoveDocument(&$doc) {
+		false ? $doc : null ;
+	}
+	
+	function fetchValue(&$doc) {
+		false ? $doc : null ;
+	}
+	
+	function convertToPlain(&$doc) {
+		false ? $doc : null ;
+	}
+}
+?>

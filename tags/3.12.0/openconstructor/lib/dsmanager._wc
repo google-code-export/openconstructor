@@ -1,0 +1,155 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: dsmanager._wc,v 1.7 2007/03/05 12:47:34 sanjar Exp $
+ */
+class DSManager {
+	var $first;
+	var $types;
+	
+	function DSManager() {
+		$this->first = null;
+		$this->types=array(
+			'htmltext'=>DS_HTMLTEXT,
+			'publication'=>DS_PUBLICATION,
+			'event'=>DS_EVENT,
+			'gallery'=>DS_GALLERY,
+			'article'=>DS_ARTICLE,
+			'textpool'=>DS_TEXTPOOL,
+			'guestbook'=>DS_GUESTBOOK,
+			'file'=>DS_FILE,
+			'phpsource'=>DS_PHPSOURCE,
+			'hybrid'=>DS_HYBRID,
+			'rating'=>DS_RATING
+		);
+	}
+	
+	function &getTree() {
+		$result = array();
+		$dsh = array();
+		$db = WCDB::bo();
+		$res = $db->query(
+			'SELECT ds.ds_id as id, ds_type as type, parent, name'.
+			' FROM datasources ds LEFT JOIN hybriddatasources hds ON (ds.ds_id = hds.ds_id)'.
+			' WHERE internal = 0'.
+			' ORDER BY ds_type, ds_key, name'
+		);
+		if(mysql_num_rows($res) > 0)
+			while($r = mysql_fetch_assoc($res)) {
+				if(!$this->first) $this->first = (int) $r['id'];
+				$typeHeader = &$this->types[$r['type']];
+				if($r['type'] == 'hybrid') {
+					if($r['parent'] == 0) {
+						$result[$r['type']][$typeHeader][(int) $r['id']] = $r['name'];
+						$dsh[(int) $r['id']] = &$result[$r['type']][$typeHeader][(int) $r['id']];
+					} else {
+						if(is_array($dsh[(int) $r['parent']]))
+							$dsh[(int) $r['parent']][(int) $r['id']] = $r['name'];
+						else {
+							$name = $dsh[(int) $r['parent']];
+							$dsh[(int) $r['parent']] = array($name => array((int) $r['id'] => $r['name']));
+							$dsh[(int) $r['parent']] = &$dsh[(int) $r['parent']][$name];
+						}
+						$dsh[(int) $r['id']] = &$dsh[(int) $r['parent']][(int) $r['id']];
+					}
+				} else
+					$result[$r['type']][$typeHeader][(int) $r['id']] = $r['name'];
+				
+			}
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &getAll($type) {
+		$result = array();
+		$db = WCDB::bo();
+		$res = $db->query(
+			'SELECT ds.ds_id AS id, name, description, internal, parent, ds_key, path'.
+			' FROM datasources ds LEFT JOIN hybriddatasources hds ON (ds.ds_id = hds.ds_id)'.
+			' WHERE ds.ds_type = "'.addslashes($type).'" AND internal = 0'.
+			' ORDER BY ds_key, name'
+		);
+		if(mysql_num_rows($res) > 0)
+			while($r = mysql_fetch_assoc($res))
+				$result[(int) $r['id']] = $r;
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function exists($id) {
+		$id = (int) $id;
+		$db = WCDB::bo();
+		$res = $db->query('SELECT ds_id FROM datasources WHERE ds_id = '.intval($id).' LIMIT 1');
+		$exists = mysql_num_rows($res) == 1;
+		mysql_free_result($res);
+		return $exists;
+	}
+	
+	function getInfo($id) {
+		$db = WCDB::bo();
+		$res = $db->query(
+			'SELECT ds.ds_id AS id, ds_type AS type, name, description, internal, parent, ds_key, path'.
+			' FROM datasources ds LEFT JOIN hybriddatasources hds ON (ds.ds_id = hds.ds_id)'.
+			' WHERE ds.ds_id = '.intval($id).
+			' LIMIT 1'
+		);
+		if(mysql_num_rows($res) == 1)
+			$result = mysql_fetch_assoc($res);
+		else
+			$result = null;
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &load($dsId) {
+		$result = null;
+		settype($dsId, 'int');
+		$db = WCDB::bo();
+		$res = $db->query("SELECT ds_type FROM datasources WHERE ds_id = $dsId");
+		if(mysql_num_rows($res) > 0) {
+			list($dsType) = mysql_fetch_row($res);
+			$class = 'ds'.$dsType;
+			require_once('wcdatasource._wc');
+			require_once($dsType.'/'.$class.'._wc');
+			$result = WCDataSource::_load($dsId);
+		}
+		mysql_free_result($res);
+		return $result;
+	}
+
+	function &getAllIndexed() {
+		$result = array();
+		$db = WCDB::bo();
+		$res = $db->query(
+			'SELECT ds_id AS id, ds_type as type, name, description'.
+			' FROM datasources'.
+			' WHERE internal = 0 AND indexed != 0'.
+			' ORDER BY name'
+		);
+		if(mysql_num_rows($res) > 0)
+			while($r = mysql_fetch_assoc($res))
+				$result[(int) $r['id']] = $r;
+		mysql_free_result($res);
+		return $result;
+	}
+}
+?>

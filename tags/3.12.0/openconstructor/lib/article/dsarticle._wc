@@ -1,0 +1,408 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Список событий с интро.
+ * 
+ * Объект вывода.
+ * 
+ * @author Rustam Akhmedov
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: dsarticle._wc,v 1.18 2007/02/27 11:23:21 sanjar Exp $
+ */
+
+class DSArticle extends WCDataSource
+{
+	var $allowedTags;
+	var $introSize;
+	var $imagepath;
+	var $images;
+	var $stripHTML;
+	var $autoPublish;
+	var $pagesTable; // Таблица БД для страниц статьи
+	
+	function DSArticle()
+	{
+		$this->ds_type='article';
+		$this->DSTable='dsarticle';
+		$this->pagesTable='dsarticlepages';
+		$this->allowedTags='<a href,target><strong><b><em><i><u><p align><br><ul><ol><li><h3><h4><nobr><** id,name,class,style,title>';
+		$this->size=0;
+		$this->introSize=600;
+		$this->imagepath='/article/';
+		$this->images=NULL;
+		$this->stripHTML=true;
+		$this->autoPublish=true;
+		$this->isIndexable=false;
+	}
+	
+	function add($header, $content, $date, $related, $intro) {
+		WCS::assert($this, 'createdoc');
+		if(empty($header)) return false;
+		if(count($header)<=0&&count($header)!=count($intro)) return false;
+		if($this->isFull()) return false;
+		for($i=0;$i<count($content);$i++)
+			$content[$i] = $this->cleanHTML($content[$i]);
+		settype($date, 'int');
+		$db = WCDB::bo();
+		$db->query(
+			'INSERT INTO '.$this->DSTable.
+			' (ds_id, published, header, intro, related, date, wcsowner)'.
+			' VALUES'.
+			' ('.$this->ds_id.', '.intval($this->autoPublish).', "'.addslashes($header[0]).'", "'.addslashes($intro).'", "'.$related.'", "'.$date.'", '.Authentication::getOriginalUserId().')'
+		);
+		$id = $db->lastInsertId();
+		if($id > 0) {
+			$db->query(
+				'UPDATE '.$this->DSTable.
+				' SET real_id='.$id.
+				' WHERE id='.$id
+			);
+			$this->update_pages($id, $header, $content);
+			
+			$this->updateSize();
+			if($this->autoPublish) {
+				$this->addToIndex($id, $header, $content, $intro);
+				$this->evictDocCache();
+			}
+		}
+		
+		return $id;
+	}
+
+	function update($id, $header, $content, $date, $related, $intro) {
+		assert($header != '');
+		$rec = $this->get_record($id);
+		assert($rec['id'] == $rec['real_id']);
+		$doc = $this->wrapDocument($rec);
+		assert($doc->id > 0);
+		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
+		if(count($header)<=0&&count($header)!=count($intro)) return false;
+		for($i=0;$i<count($content);$i++)
+			$content[$i] = $this->cleanHTML($content[$i]);
+		$ids = $this->getAliases($id, true);
+		settype($date, 'int');
+		$db = WCDB::bo();
+		$db->query(
+			'UPDATE '.$this->DSTable.
+			' SET header="'.addslashes($header[0]).'", intro="'.addslashes($intro).'", related="'.$related.'", date="'.$date.'"'.
+			' WHERE id IN('.implode(',',$ids).')'
+		);
+		
+		$this->updateIndex($id, $header, $content, $intro);
+		
+		$this->update_pages($id, $header, $content);
+		$this->evictDocCache($ids);
+		return true;
+	}
+	
+	function update_pages($id, $header, $content) {
+		$db = WCDB::bo();
+		$res = $db->query(
+			'SELECT p_id FROM '.$this->pagesTable.
+			' WHERE id='.$id
+		);
+		for($i=1;$i<count($content);$i++)
+		{
+//				if(empty($intro[$i])) $intro[$i]=$this->create_intro($content[$i], 100);
+			if($row = mysql_fetch_assoc($res)) {
+				$db->query(
+					'UPDATE '.$this->pagesTable.
+					' SET page='.$i.', header="'.addslashes($header[$i]).'", content="'.addslashes($content[$i]).'"'.
+					' WHERE p_id='.intval($row["p_id"]).' AND id='.$id
+				);					
+			} else {
+				$db->query(
+					'INSERT INTO '.$this->pagesTable.
+					' (id, page, header, content)'.
+					' VALUES'.
+					' ('.$id.', '.$i.', "'.addslashes($header[$i]).'", "'.addslashes($content[$i]).'")'
+				);
+			}
+		}
+		if($row=mysql_fetch_assoc($res))
+		{
+			//unset(pages);
+			$pages=$row["p_id"];
+			while($row=mysql_fetch_assoc($res)){$pages.=','.$row["p_id"];}
+			$db->query(
+				'DELETE FROM '.$this->pagesTable.
+				' WHERE p_id IN('.$pages.') AND id='.$id
+			);				
+		}
+		mysql_free_result($res);
+	}
+	
+	function delete($ids) {
+		WCS::assertValue(WCS::decide($this, 'removedoc') || WCS::ownerAllowed($this->getSDoc(), 'removedoc'), $this, 'removedoc');
+		$this->filterDocs($ids);
+		if(!sizeof($ids))
+			return;
+		$db = WCDB::bo();
+		
+		$_ids = implode(',', $ids);
+		
+		$db->query(
+			'DELETE FROM '.$this->DSTable.
+			' WHERE id IN('.$_ids.') OR real_id IN('.$_ids.')'
+		);
+		$db->query(
+			'DELETE FROM '.$this->pagesTable.
+			' WHERE id IN('.$_ids.')'
+		);
+		
+		foreach($ids as $id) {
+			@unlink($_SERVER['DOCUMENT_ROOT'].FILES.$this->imagepath.intval($id).'.jpg');
+			@unlink($_SERVER['DOCUMENT_ROOT'].FILES.$this->imagepath.intval($id).'.gif');
+		}
+		
+		$this->updateSize();
+		
+		$this->removeFromIndex($ids);
+		
+		$this->evictDocCache($ids);
+	}
+	
+	function set_images($xmin, $ymin, $xmax, $ymax, $intro)
+	{
+		$xmin=intval($xmin);$ymin=intval($ymin);$xmax=intval($xmax);$ymax=intval($ymax);
+		if($xmin>$xmax||$ymin>$ymax||$xmin<50||$ymin<50) return false;
+//			$intro=intval($intro);
+		if(!$intro)
+		{
+			$this->images=NULL;
+			return false;
+		}
+		
+		$this->images['xmin']=$xmin;
+		$this->images['ymin']=$ymin;
+		$this->images['xmax']=$xmax;
+		$this->images['ymax']=$ymax;
+		$this->images['intro']=true;
+
+//			if($this->images['intro']<10) $this->images['intro']=10;
+//			if($this->images['intro']>100) $this->images['intro']=100;
+	}
+	
+	function update_images($id, $image)
+	{
+		if(!$image) return false;
+		$imgsize=@getimagesize($image);
+		$result=true;
+		if(is_array($imgsize))
+		{//Проверка типов
+			if($imgsize[2]>2) return false;
+			if(@$this->images['intro'])
+				$result=$result&&$this->update_image($id,$image,$imgsize[2]==2?'jpg':'gif',$imgsize[0],$imgsize[1],100);
+			return $result;
+		}
+		$db = WCDB::bo();
+		$res = $db->query('SELECT img_type FROM '.$this->DSTable.' WHERE id='.$id);
+		$r=mysql_fetch_assoc($res);
+		mysql_free_result($res);
+		if(@$this->images['main']&&is_array($imgsize)||@$imgsize[2]<=2)
+		{
+			if(!$r['img_type']) $r['img_type']=$imgsize[2]==2?'jpg':'gif';
+			if($r['img_type']==($imgsize[2]==2?'jpg':'gif'))
+				$result=$result&&$this->update_image($id,$image,$r['img_type'],$imgsize[0],$imgsize[1],100);
+		}
+		
+		return $result;
+	}
+	
+	function update_image($id, $image, $imgtype, $width, $height, $ratio)
+	{
+		$owidth=$width;$oheight=$height;
+		$re=false;
+
+//			if($ratio==100)
+//				$type='img_main';
+//			else
+//				$type='img_intro';
+
+		$xmax=intval($this->images['xmax']*$ratio/100);
+		$ymax=intval($this->images['ymax']*$ratio/100);
+		$xmin=intval($this->images['xmin']*$ratio/100);
+		$ymin=intval($this->images['ymin']*$ratio/100);
+
+		if($width>$xmax||$height>$ymax)
+		{
+			$re=true;
+			$w=$ymax*$width/$height;
+			$h=$xmax*$height/$width;
+			if($w>$xmax)
+			{
+				$width=$xmax;
+				$height=$h;
+			}
+			else
+			{
+				$height=$ymax;
+				$width=$w;
+			}
+		}
+		
+		if($width<$xmin||$height<$ymin)
+		{
+			echo 'Invalid Width/Height Ratio';
+			return false;
+		}
+
+		@unlink($_SERVER['DOCUMENT_ROOT'].FILES.$this->imagepath.$id.($ratio==100?'':'_').'.jpg');
+		@unlink($_SERVER['DOCUMENT_ROOT'].FILES.$this->imagepath.$id.($ratio==100?'':'_').'.gif');
+
+		if($re)
+		{
+			$img_gd=$imgtype=='jpg'?imagecreatefromjpeg($image):imagecreatefromgif($image);
+			$tmp=@imagecreatetruecolor(intval($width),intval($height));
+			if($tmp)
+				imagecopyresampled($tmp,$img_gd,0,0,0,0,$width,$height,$owidth,$oheight);
+			else
+			{
+				$tmp=imagecreate(intval($width),intval($height));
+				imagecopyresized($tmp,$img_gd,0,0,0,0,$width,$height,$owidth,$oheight);
+			}
+			$result=$imgtype=='jpg'?imagejpeg($tmp,$_SERVER['DOCUMENT_ROOT'].FILES.$this->imagepath.$id.($ratio==100?'':'_').'.'.$imgtype)
+				:imagegif($tmp,$_SERVER['DOCUMENT_ROOT'].FILES.$this->imagepath.$id.($ratio==100?'':'_').'.'.$imgtype);
+			unset($img_gd,$tmp);
+		}
+		else
+			copy($image,$_SERVER['DOCUMENT_ROOT'].FILES.$this->imagepath.$id.($ratio==100?'':'_').'.'.$imgtype);
+		$img='IMG SRC="'.FILES.$this->imagepath.$id.($ratio==100?'':'_').'.'.$imgtype.'" BORDER="0" WIDTH="'.intval($width).'" HEIGHT="'.intval($height).'"';
+		$img='"'.addslashes($img).'"';
+		
+		$db = WCDB::bo();
+		$db->query(
+			'UPDATE '.$this->DSTable.
+			' SET img_main='.$img.', img_type="'.$imgtype.'" WHERE real_id='.$id
+		);
+
+		return true;
+		
+	}
+	
+	function &get_record($id, $alias = false) {
+		//for checking what kind of data is being asked
+		$clause='';
+		if(!$alias) $clause=' d.ds_id='.$this->ds_id.' AND ';
+		
+		$result = array();
+		$db = WCDB::bo();
+		$res = $db->query(
+			'SELECT d.*, d0.ds_id as realDsId '.
+			' FROM '.$this->DSTable.' d, '.$this->DSTable.' d0'.
+			' WHERE '.$clause.'d.id='.$id.' AND d.real_id = d0.id LIMIT 1'
+		);
+		$result['page']=array();
+		$result['header']=array();
+		$result['content']=array();
+
+		$r=mysql_fetch_assoc($res);
+		{//for whole article properties
+			$result['id']=$r['id'];
+			$result['realDsId']=$r['realDsId'];
+			$result['real_id']=$r['real_id'];
+			$result['published']=$r['published'];
+			$result['date']=$r['date'];
+			$result['img_main']=$r['img_main'];
+			$result['img_type']=$r['img_type'];
+			$result['related']=$r['related'];
+			$result['wcsowner'] = $r['wcsowner'];
+			$result['header'][]=$r['header'];
+			$result['intro']=$r['intro'];
+			$result['content'][]='';
+			$result['page'][]='';
+		}
+		mysql_free_result($res);
+		
+		$res = $db->query(
+			'SELECT * '.
+			'FROM '.$this->pagesTable.' '.
+			'WHERE id='.$result['real_id'].' '.
+			'ORDER BY page'
+		);
+		
+		while($r=mysql_fetch_assoc($res))
+		{//for each page properties of article
+			$result['header'][]=$r['header'];
+//				$result['intro'][]=$r['intro'];
+			$result['content'][]=$r['content'];
+			$result['page'][]=$r['page'];
+		}
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function create_alias($id){
+//			WCS::assert($this, 'createdoc');
+		if(!@$id) return false;
+		$res = $this->get_record($id, true);
+		if($res == NULL) return false;
+		$db = WCDB::bo();
+		$db->query(
+			'INSERT INTO '.$this->DSTable.
+				' (real_id, ds_id, published, header, intro, related, date, img_main, img_type, wcsowner)'.//
+			'VALUES'.
+				' ('.$id.', '.$this->ds_id.', '.intval($this->autoPublish).', "'.addslashes($res['header'][0]).'", "'.addslashes($res['intro']).'", "'.addslashes($res['related']).'", "'.$res['date'].'", "'.addslashes($res['img_main']).'", "'.$res['img_type'].'", '.Authentication::getOriginalUserId().')'//
+		);
+	}
+	
+	function evictDocCache($ids = array()) {
+		settype($ids, 'array');
+		$rIds = array();
+		$db = WCDB::bo();
+		foreach($ids as $id) {
+			$res = $db->query(
+				'SELECT id FROM '.$this->DSTable.' WHERE ds_id='.$this->ds_id.' AND published>0 AND FIND_IN_SET("'.$id.'",related)>0'
+			);
+			if(mysql_num_rows($res) > 0)
+				while($r=mysql_fetch_assoc($res))
+					$rIds[] = (int) $r['id'];
+			mysql_free_result($res);
+		}
+		if(sizeof($rIds))
+			$ids = array_unique(array_merge($ids, $rIds));
+		parent::evictDocCache($ids);
+	}
+	
+	function &getIndexableDocs($id = null) {
+		$result = array();
+		$cond = ($id != null ? "d.id IN ($id) AND " : '')."d.ds_id = {$this->ds_id}";
+		$db = WCDB::bo();
+		$res = $db->query(
+			"SELECT d.id, d.header, CONCAT_WS(' ', GROUP_CONCAT(p.header SEPARATOR ' '), GROUP_CONCAT(p.content SEPARATOR ' ')) as content, d.intro".
+			" FROM {$this->DSTable} d, {$this->pagesTable} p".
+			" WHERE $cond AND p.id = d.id AND d.published".
+			" GROUP BY d.id"
+		);
+		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++)
+			$result[$i] = mysql_fetch_assoc($res);
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &getCopiableProps() {
+		static $result;
+		if(!is_array($result))
+			$result = array('allowedTags', 'introSize', 'images', 'stripHTML', 'autoPublish');
+		return $result;
+	}
+}
+?>

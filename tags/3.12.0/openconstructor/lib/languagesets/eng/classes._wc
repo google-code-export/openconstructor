@@ -1,0 +1,123 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: classes._wc,v 1.11 2007/02/27 11:23:19 sanjar Exp $
+ */
+	error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
+	
+	//----------------------------
+	//Классы
+	//----------------------------
+	
+	define('WC','Open Constructor');
+	
+	//Разделы данных
+	
+	define('DS_HTMLTEXT','HTML text');
+	define('DS_PUBLICATION','Publications');
+	define('DS_EVENT','Events Calendar');
+	define('DS_GALLERY','Picture Gallery');
+	define('DS_TEXTPOOL','Text Pool');
+	define('DS_GUESTBOOK','Guest Book');
+	define('DS_PHPSOURCE','PHP source');
+	define('DS_FILE','Files');
+	define('DS_ARTICLE','Articles');
+	define('DS_MISCELLANY','Miscellaneous');
+	define('DS_USERS','Users');
+	
+	
+	//Объекты вывода
+	
+	define('OBJ_HTMLTEXT_BODY','HTML text');
+	define('OBJ_HTMLTEXT_HL','List of pages');
+	define('OBJ_HTMLTEXT_HL_INTRO','List of pages with intro');
+	
+	define('OBJ_PUBLICATION_HL','Publications List');
+	define('OBJ_PUBLICATION_HL_INTRO','Publications List with Intro');
+	define('OBJ_PUBLICATION_MAIN_INTRO','Main publication, Intro');
+	define('OBJ_PUBLICATION_BODY','Publication');
+	define('OBJ_PUBLICATION_PAGER','Pagination');
+	define('OBJ_PUBLICATION_LIST','Publications Alphabetically');
+	define('OBJ_PUBLICATION_LIST_INTRO','Publications Alphabetically with Intro');
+	
+	define('OBJ_EVENT_CALENDAR','Events Calendar');
+	define('OBJ_EVENT_HL','List of Events');
+	define('OBJ_EVENT_BODY','Event');
+	
+	define('OBJ_GALLERY_HL','Pictures List');
+	define('OBJ_GALLERY_PAGER','Pagination for a Gallery');
+	define('OBJ_GALLERY_IMAGE','Picture for a Gallery');
+	define('OBJ_GALLERY_IMG_PAGER','Pagination for a Picture');
+	
+	define('OBJ_ARTICLE_BODY','Article');
+	define('OBJ_ARTICLE_BODY_PAGER','Pagination for an Article');
+	define('OBJ_ARTICLE_HL','Articles List');
+	define('OBJ_ARTICLE_HL_INTRO','Articles List with Intro');
+	define('OBJ_ARTICLE_PAGER','Pagination');
+	define('OBJ_ARTICLE_RELATED','Related Articles');
+	
+	define('OBJ_TEXT_RANDOM','Random Text');
+	
+	define('OBJ_GB_ALL_MESSAGES','Messages List');
+	define('OBJ_GB_ADDMSG_LOGIC','Add Messages Handler');
+	define('OBJ_GB_LIST','Guest Books List');
+	
+	define('OBJ_PHP_INCLUDE','Source Inclusion');
+	
+	define('OBJ_MISC_CRUMBS','Bread Crumbs');
+	define('OBJ_MISC_SENDMAIL','Sending Letters');
+	
+	define('OBJ_FILE_HL','Files List');
+	
+	define('OBJ_USERS_AUTHENTICATE','Authentication');
+	
+	define('H_SITE','Site');
+	define('H_PAGE','Page');
+	
+	define('DS_HYBRID','Hybrid data');
+	define('DS_SEARCH','Search');
+	define('OBJ_EVENT_HL_INTRO','List of events with intro');
+	define('OBJ_EVENT_PAGER','Pager');
+	define('OBJ_GB_MSG_BODY','Message');
+	define('OBJ_GB_MSG_HL','List of messages');
+	define('OBJ_GB_PAGER','Pager');
+	define('OBJ_MISC_INJECTOR','Objects injection');
+	define('OBJ_FILE_PAGER','Pager');
+	define('OBJ_HYBRID_TREE','Structure');
+	define('OBJ_HYBRID_HL','List of documents');
+	define('OBJ_HYBRID_BAR','List of documents by ID');
+	define('OBJ_HYBRID_PAGER','Pager');
+	define('OBJ_HYBRID_BODY','Hybrid document');
+	define('OBJ_HYBRID_BODY_EDIT','Hybrid document editor');
+	define('OBJ_SEARCH_DSS','Search within sections');
+	define('OBJ_SEARCH_DSS_PAGER','Search results pager');
+	define('OBJ_USERS_LOGOUT','Authentication annulment');
+	define('H_IMPORT_TABLES','Page templates');
+
+	define('OBJ_MISC_FETCHTPL','Template inclusion');
+
+	define('DS_RATING','Rating Log');
+	define('OBJ_RATING_RATE','Rate Document');
+	define('OBJ_RATING_RATELOGIC','Document Rating Handler');
+	
+	define('OBJ_PHP_CALLBACK','Callback');
+	
+	error_reporting($_oldLevel);
+?>

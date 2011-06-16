@@ -1,0 +1,301 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * @since 2005-09-05
+ * 
+ * $Id: miscsendmail._wc,v 1.21 2007/02/27 11:23:20 sanjar Exp $
+ */
+
+require_once(LIBDIR.'/wcmessage._wc');
+require_once(LIBDIR.'/func/getmimetype._wc');
+
+define('FSRC_CTX', 0);
+define('FSRC_GET', 1);
+define('FSRC_POST', 2);
+define('FSRC_COOKIE', 3);
+define('FSRC_SESSION', 4);
+define('FSRC_FILES', 5);
+define('FSRC_FILESYS', 6);
+
+define('FTYPE_TXT', 10);
+define('FTYPE_HTML', 20);
+define('FTYPE_FILE', 30);
+define('FTYPE_FILES', 40);
+
+class MiscSendMail extends WCObject {
+	
+	var $msg, $attachments, $isHtml;
+	var $fields, $files;
+	var $cId, $captcha, $closeSess;
+	var $allowedTags;
+	var $errors;
+	var $from, $to, $subject, $cc, $bcc;
+
+	function MiscSendMail() {
+		$this->DSTable = null;
+		$this->ds_type = 'miscellany';
+		$this->obj_type = 'miscsendmail';
+		$this->caching = 0;
+		$this->cached_by_WC = true;
+		$this->fields = array(); // array(src + type, name, validator, errorText)
+		$this->files = array(); // array(type, name, ext, size[bytes], isReq, errorText)
+		$this->cId = $this->captcha = null;
+		$this->closeSess = true;
+		$this->isHtml = true;
+		$this->allowedTags = '<b><i><u><p>';
+	}
+	
+	function onPageLoad() {
+		$this->msg = array();
+		$this->invalid = array();
+		$this->attachments = array();
+		$this->errors = array();
+		$this->success = false;
+		if($this->cId) {
+			$word = (string) @$_SESSION['_cid'][(string) @$_GET[$this->cId]];
+			for($i = 0, $l = sizeof($this->fields); $i < $l; $i++)
+				if($this->fields[$i][1] == $this->captcha) {
+					$this->fields[$i][2] = '/^'.preg_quote(!empty($word) ? $word : microtime()."\n\n".rand(), '/').'$/ui';
+					break;
+				}
+			if($word) {
+				unset($_SESSION['_cid'][(string) @$_GET[$this->cId]]);
+				if(!sizeof((array) @$_SESSION['_cid']))
+					unset($_SESSION['_cid']);
+			}
+			if($this->closeSess && isset($_SESSION) && !sizeof($_SESSION)) {
+				@session_unset();
+				@session_destroy();
+			}
+		}
+	}
+	
+	function getCacheId() {
+		return null;
+	}
+	
+	function exec(&$smarty, $params = array()) {
+		if(!($this->from && $this->to && $this->subject && $this->tpl))
+			return;
+		$this->fetchMsg();
+		if(sizeof($this->errors)) {
+			$this->handleErrors($smarty);
+		} else {
+			$this->success = $this->sendMsg();
+		}
+	}
+	
+	function sendMsg() {
+		$from = str_replace("\n", ' ', $this->proccessPattern($this->from));
+		$to = str_replace("\n", ' ', $this->proccessPattern($this->to));
+		$subject = str_replace("\n", ' ', $this->proccessPattern($this->subject));
+		if(!($from && $to && $subject))
+			return false;
+		$cc = str_replace("\n", ' ', $this->proccessPattern($this->cc));
+		$bcc = str_replace("\n", ' ', $this->proccessPattern($this->bcc));
+		$msg = new WCMessage();
+		$msg->setTemplate($this->tpl.'.tpl');
+		$msg->setContentType($this->isHtml ? 'text/html' : 'text/plain');
+		$msg->setContent($this->msg);
+		$msg->setSubject($subject);
+		$msg->setFrom($from);
+		$msg->setReplyTo($from);
+		$msg->addRecipient($to);
+		if($cc)
+			$msg->addCc($cc);
+		if($bcc)
+			$msg->addBcc($bcc);
+		if(sizeof($this->attachments))
+			for($i = 0, $l = sizeof($this->attachments); $i < $l; $i++) {
+				$f = &$this->attachments[$i];
+				if(strpos($f['filename'], $_SERVER['DOCUMENT_ROOT']) === 0)
+					$msg->attachFile($f['filename'], $f['name'], $f['type'], $_SERVER['HTTP_HOST'].utf8_substr($f['filename'], strlen($_SERVER['DOCUMENT_ROOT'])));
+				else
+					$msg->attachFile($f['filename'], $f['name'], $f['type']);
+			}
+		return $msg->send();
+	}
+	
+	function fetchMsg() {
+		$this->fetchFields();
+		$this->fetchFiles();
+	}
+	
+	function fetchFields() {
+		for($i = 0, $l = sizeof($this->fields); $i < $l; $i++) {
+			$f = &$this->fields[$i];
+			$value = $this->_getFieldValue($f);
+			if($f[2]) { // validator exists
+				if(preg_match($f[2], $value))
+					$this->msg[$f[1]] = $value;
+				else {
+					$this->invalid[$f[1]] = $value;
+					$this->errors[$f[1]] = $f[3] ? $f[3] : 1;
+				}
+			} else
+				$this->msg[$f[1]] = $value;
+			unset($f);
+		}
+	}
+	
+	function _getFieldValue(&$f) {
+		$value = null;
+		$src = $f[0] % 10;
+		switch($src) {
+			case FSRC_CTX:	$value = $this->ctx->getParam($f[1]);	break;
+			case FSRC_GET:	$value = @$_GET[$f[1]];	break;
+			case FSRC_POST:	$value = @$_POST[$f[1]];	break;
+			case FSRC_COOKIE:	$value = @$_COOKIE[$f[1]];	break;
+			case FSRC_SESSION:	$value = @$_SESSION[$f[1]];	break;
+		}
+		if($this->isHtml)
+			switch($type = $f[0] - $src) {
+				case FTYPE_HTML:	$value = wcfStripTags($value, $this->allowedTags);	break;
+				case FTYPE_TXT:		$value = htmlspecialchars($value, ENT_COMPAT, 'UTF-8');
+			}
+		return $value;
+	}
+	
+	function fetchFiles() {
+		for($i = 0, $l = sizeof($this->files); $i < $l; $i++) {
+			$f = &$this->files[$i];
+			$src = $f[0] % 10;
+			switch($src) {
+				case FSRC_FILES:
+					switch($f[0] - $src) {
+						case FTYPE_FILE:
+							$this->handleFile($f);
+						break;
+						case FTYPE_FILES:
+							$this->handleFiles($f);
+						break;
+					}
+				break;
+				case FSRC_FILESYS:
+					$this->handleFsFile($f);
+				break;
+			}
+			unset($f);
+		}
+	}
+	
+	function handleErrors(&$smarty) {
+		if(!headers_sent()) {
+			if(isset($_SERVER['HTTP_REFERER'])) {
+				$referer = parse_url($_SERVER['HTTP_REFERER']);
+				$url = "{$referer['scheme']}://{$referer['host']}{$referer['path']}";
+				$params = $query = array();
+				parse_str((string) @$referer['query'], $params);
+				unset($params['failed']);
+				$params = array_merge($params, $this->invalid, $this->msg);
+				foreach($this->errors as $k => $v)
+					$params["failed[$k]"] = $v;
+				foreach($params as $k => $v)
+					$query[] = "$k=".urlencode($v);
+				$url = $url.'?'.implode('&', $query);
+				sendRedirect($url, 302); // Moved Temporarily
+			} else
+				setHTTPStatus(400); // Bad request
+			die();
+		}
+	}
+	
+	function proccessPattern($pattern) {
+		$fields = array();
+		$found = preg_match_all('/(?<!\\{)\\{([A-Za-z_\\.][A-Za-z0-9_\\.]*)\\}(?!\\})/u', $pattern, $fields);
+		if($found) {
+			$fields = array_unique($fields[1]);
+			foreach($fields as $i => $f) {
+				$patterns[] = '/(?<!\\{)\\{'.preg_quote($f).'\\}(?!\\})/u';
+				$reps[] = @$this->msg[$f];
+			}
+			$pattern = preg_replace($patterns, $reps, $pattern);
+		}
+		return $pattern;
+	}
+	
+	function handleFsFile($f) {
+		$filename = $_SERVER['DOCUMENT_ROOT'].$f[1];
+		$basename = basename($f[1]);
+		if($this->isFileOk($filename, null, null, null, null)) {
+			$this->attachments[] = array('filename' => $filename, 'name' => $basename, 'type' => wcfGetMimeType($filename), 'size' => filesize($filename));
+		}
+	}
+	
+	function handleFile($f) {
+		$file = isset($_FILES[$f[1]]) ? $this->getFile($_FILES[$f[1]], $f[2], $f[3]) : null;
+		if($file != null)
+			$this->attachments[] = $file;
+		elseif($f[4] || (isset($_FILES[$f[1]]) && $_FILES[$f[1]]['error'] != UPLOAD_ERR_NO_FILE))
+			$this->errors[$f[1]] = $f[5] ? $f[5] : 1;
+	}
+	
+	function handleFiles($f) {
+		if(isset($_FILES[$f[1]]) && is_array($_FILES[$f[1]]) && is_array($_FILES[$f[1]]['tmp_name'])) {
+			$l = &$_FILES[$f[1]];
+			foreach($l['tmp_name'] as $k => $j) {
+				$v = array('name' => $l['name'][$k], 'type' => $l['type'][$k], 'tmp_name' => $l['tmp_name'][$k], 'error' => $l['error'][$k], 'size' => $l['size'][$k]);
+				if(($file = $this->getFile($v, $f[2], $f[3])) != null)
+					$this->attachments[] = $file;
+			}
+		}
+	}
+	
+	function getFile(&$file, $ext, $size) {
+		$result = null;
+		if(is_array($file) && $file['error'] == UPLOAD_ERR_OK)
+			if($this->isFileOk($file['tmp_name'], $file['name'], $file['size'], $ext, $size))
+				$result = array('filename' => $file['tmp_name'], 'name' => $file['name'], 'type' => $file['type'], 'size' => $file['size']);
+		return $result;
+	}
+	
+	function isFileOk($file, $name, $size, $reqExt, $reqSize) {
+		$result = false;
+		if(@file_exists($file)
+			&& strpos($file, $_SERVER['DOCUMENT_ROOT'].WCHOME.'/') !== 0
+			&& strpos($file, $_SERVER['DOCUMENT_ROOT'].FILES.'/') !== 0
+			) {
+			if($reqExt) {
+				$extIsOk = false;
+				$exts = explode(',', $reqExt);
+				foreach($exts as $e)
+					if(utf8_substr($name, - utf8_strlen($e)) == $e) {
+						$extIsOk = true;
+						break;
+					}
+			} else
+				$extIsOk = true;
+			if($extIsOk) {
+				$sizeIsOk = true;
+				if($reqSize) {
+					list($min, $max) = explode('-', str_replace(' ', '', $reqSize));
+					if($min)
+						$sizeIsOk = $sizeIsOk && ($size >= $min);
+					if($max)
+						$sizeIsOk = $sizeIsOk && ($size <= $max);
+				}
+			}
+			$result = $extIsOk && $sizeIsOk;
+		}
+		return $result;
+	}
+}
+?>

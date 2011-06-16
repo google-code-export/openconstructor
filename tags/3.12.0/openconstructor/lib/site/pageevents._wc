@@ -1,0 +1,63 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: pageevents._wc,v 1.4 2007/03/10 20:31:18 sanjar Exp $
+ */
+define('PE_PRIORITY_LOW', 0);
+define('PE_PRIORITY_NORMAL', 1);
+define('PE_PRIORITY_HIGH', 2);
+
+class PageEvents {
+	var $_events = array();
+	
+	function PageEvents() {
+	}
+	
+	function attachEventListener($event, $callback, $priority = PE_PRIORITY_NORMAL) {
+		if(is_callable($callback)) {
+			settype($priority, 'int');
+			$this->_events[$event][$priority][] = $callback;
+		}
+	}
+	
+	function fireEvent($event, $args = array()) {
+		if(isset($this->_events[$event]))
+			$this->_notifyObservers($event, $args);
+	}
+	
+	function fireEventArgs($event, &$args) {
+		if(isset($this->_events[$event]))
+			$this->_notifyObservers($event, $args);
+	}
+	
+	function _notifyObservers($event, &$args) {
+		$args['_propagate'] = true;
+		$args['_event'] = $event;
+		for($pr = PE_PRIORITY_HIGH; $args['_propagate'] && $pr >= PE_PRIORITY_LOW; $pr--)
+			if(isset($this->_events[$event][$pr])) {
+				$cb = &$this->_events[$event][$pr];
+				for($i = 0, $l = sizeof($cb); $args['_propagate'] && $i < $l; $i++)
+					call_user_func_array($cb[$i], array(&$args));
+			}
+	}
+}
+?>

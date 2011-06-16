@@ -1,0 +1,123 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: pagecrumbs._wc,v 1.4 2007/02/27 11:23:21 sanjar Exp $
+ */
+
+class Crumbs {
+	var $_part, $routed, $_router;
+	var $_path;
+	var $_page, $_map;
+	
+	function Crumbs(&$page, &$map, &$router) {
+		$this->_page = &$page;
+		$this->_map = &$map;
+		if(is_object($router)) {
+			$this->routed = true;
+			$this->_router = array();
+		}
+		$this->_addParts($router);
+	}
+	
+	function set($key, $title) {
+		if(strlen($key) > 0) {
+			if($key{0} == '/') {
+				if(isset($this->_part[$key])) {
+					if(is_array($this->_part[$key]))
+						$this->_part[$key][$this->_map->uri[$key]['name']] = $title;
+					else
+						$this->_part[$key] = $title;
+				}
+			} else {
+				if(($p = strpos($key, '.')) > 0) {
+					$folder = substr($key, 0, $p);
+					$param = (string) @substr($key, $p + 1);
+				} else
+					$folder = $param = $key;
+				if(isset($this->_router[$folder])) {
+					if(!is_array($this->_router[$folder])) {
+						$old = $this->_router[$folder];
+						$this->_router[$folder] = array($folder => $old);
+					}
+					$this->_router[$folder][$param] = $title;
+					if(!isset($this->_router["$folder.$param"])) {
+						$this->_router["$folder.$param"] = &$this->_router[$folder][$param];
+						ksort($this->_router[$folder]);
+					}
+				}
+			}
+		}
+	}
+	
+	function &get($key = null, $s = ' | ') {
+		$result = null;
+		if($key !== null) {
+			if(isset($this->_part[$key])) {
+				$result = $this->_part[$key];
+			} elseif(isset($this->_router[$key]))
+				$result = $this->_router[$key];
+			if(is_array($result))
+				$result = implode($s, array_diff($result, array(null)));
+		} else
+			$result = $this->getFull($s);
+		return $result;
+	}
+	
+	function &getPart($uri) {
+		$result = null;
+		if(isset($this->_part[$uri]))
+			$result = $this->_part[$uri];
+		return $result;
+	}
+	
+	function &getFull($s = ' | ') {
+		$result = null;
+		foreach($this->_path as $uri)
+			$parts[] = $this->get($uri, $s);
+		$result = implode($s, array_diff($parts, array(null)));
+		return $result;
+	}
+	
+	function _addParts(&$router) {
+		$path = $this->_page->getPath();
+		$routed = false;
+		for($i = 0, $l = sizeof($path); $i < $l; $i++) {
+			$p = &$this->_map->id[$path[$i]];
+			$this->_part[$p['uri']] = $p['title'];
+			if($this->routed && $p['uri'] == $router->uri)
+				$routed = true;
+			if($routed)
+				$this->_router[$p['name']] = &$this->_part[$p['uri']];
+			$this->_path[] = $p['uri'];
+		}
+	}
+	
+	function &getInstance() {
+		static $instance;
+		if(!is_object($instance)) {
+			$ctx = Context::getInstance();
+			$instance = new Crumbs($ctx->page, $ctx->map, $ctx->router);
+		}
+		return $instance;
+	}
+}
+?>

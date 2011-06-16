@@ -1,0 +1,100 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: cachevarysuggest._wc,v 1.3 2007/02/27 11:23:21 sanjar Exp $
+ */
+
+class CacheVarySuggest {
+	function CacheVarySuggest() {
+		
+	}
+	
+	function suggest(&$obj) {
+		$result = array();
+		$lib = self::getLibrary();
+		if(isset($lib[$obj->obj_type])) {
+			$result = self::suggestByFields($obj, $lib[$obj->obj_type]);
+			$result = array_merge($result, self::extraSuggest($obj));
+		}
+		return $result;
+	}
+	
+	function &suggestByFields(&$obj, $fields) {
+		static $src;
+		if(!isset($src))
+			$src = array('x' => 'ctx', 'g' => 'get', 'r' => 'route');
+		$result = array();
+		$fields = explode(',', $fields);
+		foreach($fields as $f) {
+			$name = substr($f, 2);
+			if(isset($obj->$name) && !empty($obj->$name))
+				$result[] = '{'.$src[$f{0}].'.'.$obj->$name.'}';
+		}
+		return $result;
+	}
+	
+	function &extraSuggest(&$obj) {
+		$result = array();
+		switch($obj->obj_type) {
+			case 'galleryimage':
+				if($obj->dynamic_ds && $obj->ds_id)
+					$result[] = '{ctx.'.$obj->ds_id.'}';
+			break;
+		}
+		return $result;
+	}
+	
+	function &getLibrary() {
+		static $lib;
+		if(!isset($lib)) {
+			$lib = array(
+				'articlebody' => 'x.articleid,g.pid',
+				'articlehl' => 'g.pid',
+				'articlehlintro' => 'g.pid',
+				'eventbody' => 'x.eventid',
+				'eventcalendar' => 'x.monthid',
+				'eventhl' => 'g.pid',
+				'eventhlintro' => 'g.pid',
+				'filehl' => 'x.pid',
+				'galleryhl' => 'x.pid',
+				'galleryimage' => 'x.imageid',
+				'gballmessages' => 'x.gbid',
+				'gbmsgbody' => 'x.messageid',
+				'gbmsghl' => 'g.pid',
+				'hybridbar' => 'r.dsIdKey',
+				'hybridbody' => 'r.dsIdKey,r.docId',
+				'hybridhl' => 'r.dsIdKey',
+				'hybridpager' => 'x.pageNumberKey,x.listSizeKey',
+				'hybridtree' => 'r.dsIdKey,r.nodeId',
+				'publicationbody' => 'x.publicationid',
+				'publicationhl' => 'g.pid',
+				'publicationhlintro' => 'g.pid',
+				'publicationlist' => 'g.pid',
+				'publicationlistintro' => 'g.pid',
+				'searchdss' => 'x.keywordKey',
+				'searchdsspager' => 'x.pageNumberKey,x.listSizeKey'
+			);
+		}
+		return $lib;
+	}
+}
+?>
