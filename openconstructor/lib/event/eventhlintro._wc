@@ -60,7 +60,7 @@ class EventHLIntro extends WCObject {
 		if(!$this->ids) {
 			$page = (int)@$_GET[$this->pid];
 			if(--$page < 0) $page = 0;
-			$displayed = &$this->getDisplayedDocs();
+			$displayed = $this->getDisplayedDocs();
 			$cacheId = $this->obj_id.'|p'.$page.'-c'.implode(':', array_keys($displayed));
 		}
 		return $cacheId;
@@ -76,8 +76,8 @@ class EventHLIntro extends WCObject {
 			$gmtOffset = -date('Z') + WC_TIMEZONE;
 			$where .= ' AND end_date >= ' . (time() + $gmtOffset);
 		}
-		$search = &WCObject::getSearchQuery($this->keywordKey, 'd');
-		$db = &$this->ctx->_getDB();
+		$search = parent::getSearchQuery($this->keywordKey, 'd');
+		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT d.id, d.real_id as rid, d.header, d.intro, d.date, d.end_date, d.place, d.img_intro as image'.
 			' FROM '.$this->DSTable.' d'.$search['from'].
@@ -89,7 +89,7 @@ class EventHLIntro extends WCObject {
 		);
 		if(mysql_num_rows($res) > 0) {
 			$fet=array();
-			$displayed = &$this->getDisplayedDocs();
+			$displayed = $this->getDisplayedDocs();
 			settype($this->cutIntro, 'int');
 			$href = $this->srvuri.'?'.$this->eventid.'=';
 			while($row = mysql_fetch_assoc($res))

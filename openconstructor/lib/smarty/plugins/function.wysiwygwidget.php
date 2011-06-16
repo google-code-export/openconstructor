@@ -28,7 +28,7 @@ function smarty_function_wysiwygwidget($params, &$smarty) {
         $smarty->trigger_error("wysiwygwidget: missing 'field' parameter");
         return;
     }
-	$doc = &$smarty->get_template_vars('doc');
+	$doc = $smarty->get_template_vars('doc');
     if(!array_key_exists(@substr($params['field'], 2), $doc)) {
         $smarty->trigger_error("wysiwygwidget: field '{$params['field']}' doesn't exists");
         return;

@@ -54,7 +54,7 @@ class HybridBar extends HybridHL {
 	
 	function &_getDSFields() {
 		static $result;
-		if(!is_array(&$result)) $result = array('ds_id', 'dsIdKey', 'ids');
+		if(!is_array($result)) $result = array('ds_id', 'dsIdKey', 'ids');
 		return $result;
 	}
 }

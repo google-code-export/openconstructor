@@ -790,6 +790,21 @@ INSERT INTO `wcsmembership` (`group_id`, `user_id`) VALUES
 -- --------------------------------------------------------
 
 -- 
+-- Table structure for table `wcsopenid`
+-- 
+
+DROP TABLE IF EXISTS `wcsopenid`;
+CREATE TABLE `wcsopenid` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `openid` varchar(128) NOT NULL,
+  `user_id` int(10) unsigned default NULL,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `openid` (`openid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+-- --------------------------------------------------------
+
+-- 
 -- Table structure for table `wcsusers`
 -- 
 

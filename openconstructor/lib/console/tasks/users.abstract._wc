@@ -56,7 +56,7 @@ class AbstractConsoleTask_Users extends ConsoleTask {
 		if(sizeof($filter)) {
 			$this->runner->info('Searching for users matching given criteria...');
 			$query = sprintf('SELECT u.id FROM %s WHERE %s', implode(',', array_keys($tables)), implode(' AND ', $filter));
-			$db = &$this->getDB();
+			$db = $this->getDB();
 			$res = $db->query($query);
 			while($r = mysql_fetch_row($res))
 				$result[] = (int) $r[0];
@@ -73,7 +73,7 @@ class AbstractConsoleTask_Users extends ConsoleTask {
 	function &_getUserFactory() {
 		if(!is_object($this->_uf)) {
 			require_once(LIBDIR.'/security/userfactory._wc');
-			$this->_uf = &UserFactory::getInstance();
+			$this->_uf = UserFactory::getInstance();
 		}
 		return $this->_uf;
 	}

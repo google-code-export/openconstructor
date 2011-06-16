@@ -44,7 +44,7 @@ class GalleryImgPager extends WCObject {
 	}
 	
 	function getCacheId() {
-		$master = &$this->ctx->getObject($this->master);
+		$master = $this->ctx->getObject($this->master);
 		return is_object($master)
 			? $this->obj_id.'|ds'.intval($master->getDsId()).'-o'.intval(@$_GET[$master->imageid])
 			: null;
@@ -53,7 +53,7 @@ class GalleryImgPager extends WCObject {
 	function fetchData(&$smarty) {
 		$result = false;
 		settype($this->master, 'int');
-		$master = &$this->ctx->getObject($this->master);
+		$master = $this->ctx->getObject($this->master);
 		if(!is_object($master))
 			return $result;
 		$current = intval(@$_GET[$master->imageid]) + !intval(@$_GET[$master->imageid]);
@@ -70,7 +70,7 @@ class GalleryImgPager extends WCObject {
 				'FROM '.$this->DSTable.' '.
 				'WHERE ds_id IN ('.$ds_id.') AND published!=0';
 		}
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query($query);
 		$items = mysql_result($res,0,'items');
 		mysql_free_result($res);
@@ -120,7 +120,7 @@ class GalleryImgPager extends WCObject {
 	
 	function &_getDSFields() {
 		static $result;
-		if(!is_array(&$result)) $result = array('master');
+		if(!is_array($result)) $result = array('master');
 		return $result;
 	}
 }

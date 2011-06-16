@@ -28,7 +28,7 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/setup._wc');
 	
 	require_once(LIBDIR.'/db/dbsetup._wc');
-	$db = &WCDB::bo();
+	$db = WCDB::bo();
 ?>
 <html>
 <head>

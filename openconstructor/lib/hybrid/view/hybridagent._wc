@@ -60,7 +60,7 @@ class HybridAgent {
 		if($this->dsFields === null) {
 			$this->dsFields = array();
 			$this->dsTrees = array();
-			$db = &$this->ctx->_getDB();
+			$db = $this->ctx->_getDB();
 			$res = $db->query(
 				'SELECT dsf.id, dsf.ds_id, dsf.name, UCASE(dsf.family) AS family, dsf.type, dsf.header, dsf.fromds, dsf.tree, dsf.isarray'.
 				' FROM hybriddatasources hds, dshfields dsf'.
@@ -99,14 +99,14 @@ class HybridAgent {
 
 	function &getNodes($nodeIds) {
 		$result = array();
-		$nodes = &HybridAgent::_getNodesCache();
+		$nodes = self::_getNodesCache();
 		settype($nodeIds, 'array');
 		$key = (int) $nodeIds[0] > 0 ? 'id' : 'name';
 		for($i = 0, $ids = array(), $l = sizeof($nodeIds); $i < $l; $i++)
 			if(!isset($nodes[$nodeIds[$i]])) $ids[] = $nodeIds[$i];
 		if(sizeof($ids)) {
 			$values = $key == 'id' ? implode(',', $ids) : '\''.implode('\',\'', $ids).'\'';
-			$db = &$this->ctx->_getDB();
+			$db = $this->ctx->_getDB();
 			$res = $db->query("SELECT t.id, t.name, t1.header FROM	catalognode t, catalogtree t1 WHERE	t.{$key} IN ({$values}) AND t.id = t1.id");
 			if(mysql_num_rows($res) > 0)
 				while($r = mysql_fetch_assoc($res)) {
@@ -123,12 +123,12 @@ class HybridAgent {
 
 	function &getEnumValues($valueIds) {
 		$result = array();
-		$values = &HybridAgent::_getEnumValuesCache();
+		$values = self::_getEnumValuesCache();
 		settype($valueIds, 'array');
 		for($i = 0, $ids = array(), $l = sizeof($valueIds); $i < $l; $i++)
 			if($valueIds[$i] && !isset($values[$valueIds[$i]])) $ids[] = $valueIds[$i];
 		if(sizeof($ids)) {
-			$db = &$this->ctx->_getDB();
+			$db = $this->ctx->_getDB();
 			$res = $db->query('SELECT id, value, header FROM enumvalues WHERE id IN ('.implode(',', $ids).')');
 			if(mysql_num_rows($res) > 0)
 				while($r = mysql_fetch_assoc($res)) {
@@ -145,14 +145,14 @@ class HybridAgent {
 	function &getAllEnumValues($fieldName, $dsId = null) {
 		static $cache;
 		$result = null;
-		$fn = &$this->getFieldNames();
+		$fn = $this->getFieldNames();
 		if($dsId == null)
 			$dsId = $this->dsId;
 		if(isset($cache[$dsId][$fieldName])) {
 			$result = &$cache[$dsId][$fieldName];
 		} else {
 			$result = array();
-			$dsf = &$this->getFields();
+			$dsf = $this->getFields();
 			if($dsId != $this->dsId && $dsId != $this->dsKey) {
 				$query = sprintf(
 					'SELECT v.id, v.value, v.header FROM %s dshfields f, enumvalues v WHERE %s f.ds_id = %s AND f.family = "enum" AND f.name = "f_%s" AND v.enum_id = f.type'
@@ -160,7 +160,7 @@ class HybridAgent {
 				);
 			} else
 				$query = 'SELECT id, value, header FROM enumvalues WHERE enum_id = '.intval($dsf[$fn[$fieldName]]['enum_id']);
-			$db = &$this->ctx->_getDB();
+			$db = $this->ctx->_getDB();
 			$res = $db->query($query);
 			while($r = mysql_fetch_row($res))
 				$result[$r[0]] = array('value' => $r[1], 'header' => $r[2]);
@@ -180,8 +180,8 @@ class HybridAgent {
 			'order' => ''
 		);
 		$t = array($this->dsId => true);
-		$dsf = &$this->getFields();
-		$sf = &$this->_getSystemFields();
+		$dsf = $this->getFields();
+		$sf = $this->_getSystemFields();
 		$rRanges = $dss = $dds = array();
 		$dr = false;
 		for($i = 0, $l = sizeof($fields); $i < $l; $i++) {
@@ -283,7 +283,7 @@ class HybridAgent {
 		$i += $j;
 
 		if(sizeof($filter)) {
-			$fn = &$this->getFieldNames();
+			$fn = $this->getFieldNames();
 			for($j = 0, $l = sizeof($filter); $j < $l; $j++) {
 				$cond = &$filter[$j];
 				$type = abs($cond[0]) % 10;
@@ -346,13 +346,13 @@ class HybridAgent {
 		if(!isset($datasources[$dsId])) {
 			require_once(LIBDIR.'/dsmanager._wc');
 			$dsm = new DSManager();
-			$ds = &$dsm->load($dsId);
+			$ds = $dsm->load($dsId);
 			$datasources[$dsId] = & $ds;
 		}
 		return $datasources[$dsId];
 	}
 
-	function &_parseRatingRange($range, $salt = '') {
+	function _parseRatingRange($range, $salt = '') {
 		require_once(LIBDIR.'/func/parseratingrange._wc');
 		return wcfParseRatingRange($range, $salt);
 	}
@@ -362,8 +362,8 @@ class HybridAgent {
 		if(!isset($instance[$dsId])) {
 			$dsKey = null;
 			if(intval($dsId) > 0) $dsId = (int) $dsId; else	$dsKey = $dsId;
-			$ctx = &Context::getInstance();
-			$db = &$ctx->_getDB();
+			$ctx = Context::getInstance();
+			$db = $ctx->_getDB();
 			$res = $db->query(
 				'SELECT hds.ds_id, hds.ds_key, hds.path, ds.name'.
 				' FROM '.($dsKey == null ? 'hybriddatasources hds0, ' : '').'hybriddatasources hds, datasources ds'.
@@ -384,7 +384,7 @@ class HybridAgent {
 				}
 				while($r = mysql_fetch_row($res))
 					$path[(int) $r[0]] = $r[1];
-				$instance[$dsId] = new HybridAgent($dsId, $dsKey, &$path, $dsName);
+				$instance[$dsId] = new HybridAgent($dsId, $dsKey, $path, $dsName);
 				$instance[$dsId]->ctx = &$ctx;
 				$instance[$dsKey] = &$instance[$dsId];
 			} else
@@ -413,7 +413,7 @@ class HybridAgent {
 			$this->nodeCrumbs[$key] = true;
 			$nodeId = addslashes($this->ctx->getParam($key));
 			if($nodeId && strpos($nodeId, ',') === false) {
-				$node = &$this->getNodes($nodeId);
+				$node = $this->getNodes($nodeId);
 				if(sizeof($node) == 1) {
 					$crumbs->set($key, addslashes($node[$nodeId]['header']));
 				}

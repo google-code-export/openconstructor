@@ -22,7 +22,7 @@
  */
 function get_headline($table, $ds_id, $fields, $pagesize, $page = 1, $searchclause = '') {
 	$result = array(0, array());
-	$db = &WCDB::bo();
+	$db = WCDB::bo();
 	$page = intval($page);
 	if(--$page < 0)
 		$page = 0;
@@ -69,7 +69,7 @@ function &get_hybrid_headline($ds_id, $fetchSub, $fetchDS, $pagesize, $page = 1,
 
 function &get_filtered_headline($ds_id, $nodeId, &$tree, $fetchSub, $fetchDS, $pagesize, $page = 1, $searchclause = '') {
 	$result = array(0, array());
-	$db = &WCDB::bo();
+	$db = WCDB::bo();
 	$page=intval($page);
 	if(--$page<0) $page=0;
 	if($nodeId != -1) {
@@ -138,7 +138,7 @@ function get_index_clause($subj){
 	$clause = '';
 	if($subj) {
 		loadClass('searcher', '/search/searcher._wc');
-		$searcher = &Searcher::getInstance();
+		$searcher = Searcher::getInstance();
 		$clause  = $searcher->getQueryPart($subj, 'd');
 	}
 	return $clause;

@@ -62,18 +62,18 @@ class HybridHL extends WCObject {
 	}
 
 	function getCacheId() {
-		$agent = &$this->getAgent();
+		$agent = $this->getAgent();
 		$nodeId = str_replace(array('/', '\\'), array('', ''), $this->ctx->getParam($this->nodeId));
 		return $this->obj_id.'|'.$agent->dsId.'|'.$nodeId.'-o'.$this->listOffset.'-'.$this->listSize;
 	}
 
 	function onPageLoad() {
-		if(!$this->no404 && !is_object($agent = &$this->getAgent()))
+		if(!$this->no404 && !is_object($agent = $this->getAgent()))
 			$this->ctx->throw404();
 	}
 
 	function changeCrumbs(&$crumbs) {
-		$agent = &$this->getAgent();
+		$agent = $this->getAgent();
 		if(is_object($agent)) {
 			$agent->_changeDsCrumbs($crumbs, $this->dsIdKey);
 			$agent->_changeNodeCrumbs($crumbs, $this->nodeId);
@@ -82,7 +82,7 @@ class HybridHL extends WCObject {
 
 	function fetchData(&$smarty) {
 		$result = false;
-		$docs = &$this->getDocuments();
+		$docs = $this->getDocuments();
 		if(is_array($docs)) {
 			if(sizeof($docs)) {
 				$smarty->assign('header', $this->header);
@@ -103,17 +103,17 @@ class HybridHL extends WCObject {
 	}
 
 	function &getDocuments($recurse = 3) {
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		$nodeId = addslashes($ctx->getParam($this->nodeId));
 		if(isset($this->documents[$nodeId][$this->ids]))
 			return $this->documents[$nodeId][$this->ids];
 		$result = null;
-		$agent = &$this->getAgent();
+		$agent = $this->getAgent();
 		if(!$agent)
 			return $result;
-		$searchQuery = &WCObject::getSearchQuery($this->keywordKey, 'd');
-		$query = &$this->_getQuery($nodeId, $searchQuery);
-		$db = &$this->ctx->_getDB();
+		$searchQuery = parent::getSearchQuery($this->keywordKey, 'd');
+		$query = $this->_getQuery($nodeId, $searchQuery);
+		$db = $this->ctx->_getDB();
 		$res = $db->query($query);
 		$this->countAvailableDocs();
 		if(mysql_num_rows($res) > 0) {
@@ -129,7 +129,7 @@ class HybridHL extends WCObject {
 			$params = array_fill(0, sizeof($paramNames) + 1, null);
 			$params[0] = $href;
 			$paramNames = &$paramValues;
-			$dsf = &$agent->getFields();
+			$dsf = $agent->getFields();
 			$fields = array();
 			for($i = 0, $l = sizeof($this->docFields); $i < $l; $i++)
 				if($dsf[$this->docFields[$i]['id']]) $fields[] = $this->docFields[$i];
@@ -204,7 +204,7 @@ class HybridHL extends WCObject {
 				unset($doc);
 			}
 			if(sizeof($nodes)) {
-				$nodes = &$agent->getNodes(&$nodes);
+				$nodes = $agent->getNodes($nodes);
 				foreach($treekeys as $key => $j)
 					foreach($docIds as $id) {
 						$n = &$nodes[$result[$id][$key]];
@@ -214,7 +214,7 @@ class HybridHL extends WCObject {
 			}
 			$enums = array_values(array_unique(explode(',', $enums)));
 			if(sizeof($enums) > 1) {
-				$enums = &$agent->getEnumValues($enums);
+				$enums = $agent->getEnumValues($enums);
 				foreach($docIds as $id) {
 					$doc = &$result[$id];
 					foreach($enumkeys as $fid => $efn)
@@ -228,9 +228,9 @@ class HybridHL extends WCObject {
 			}
 			if(sizeof($arrays) > 0) {
 				foreach($arrays as $objId => $v) {
-					if(($obj = &$ctx->getObject((int) $objId)) != null) {
+					if(($obj = $ctx->getObject((int) $objId)) != null) {
 						$obj->ids = implode(',', $v);
-						if(($sub = &$obj->getDocuments(--$recurse)) != null) {
+						if(($sub = $obj->getDocuments($recurse - 1)) != null) {
 							$ids = array_keys($sub);
 							foreach($v as $fname => $j)
 								foreach($docIds as $id) {
@@ -270,7 +270,7 @@ class HybridHL extends WCObject {
 						$v = &$result[$id][$paramNames[$j]];
 						$params[$j + 1] = is_array($v) ? urlencode(current($v)) : urlencode($v);
 					}
-				$result[$id]['href'] = call_user_func_array('sprintf', &$params);
+				$result[$id]['href'] = call_user_func_array('sprintf', $params);
 			}
 		} elseif($searchQuery['where'] && $this->availableDocsCount <= (int) @$this->originalOffset)
 			$result = array();
@@ -283,7 +283,7 @@ class HybridHL extends WCObject {
 
 	function countAvailableDocs() {
 		if(!isset($this->availableDocsCount)) {
-			$db = &$this->ctx->_getDB();
+			$db = $this->ctx->_getDB();
 			$res = $db->query('SELECT FOUND_ROWS()');
 			list($this->availableDocsCount) = mysql_fetch_row($res);
 			mysql_free_result($res);
@@ -292,13 +292,13 @@ class HybridHL extends WCObject {
 
 	function &getAgent() {
 		if($this->_agent === null)
-			if(!($this->_agent = &HybridAgent::getInstance($this->dsIdKey && ($dsId = $this->ctx->getParam($this->dsIdKey)) ? $dsId : $this->ds_id, $this->ds_id, $this->onlySub)))
+			if(!($this->_agent = HybridAgent::getInstance($this->dsIdKey && ($dsId = $this->ctx->getParam($this->dsIdKey)) ? $dsId : $this->ds_id, $this->ds_id, $this->onlySub)))
 				$this->_agent = false;
 		return $this->_agent;
 	}
 
 	function setDocOrder($order) {
-		if($order && ($agent = &$this->getAgent())) {
+		if($order && ($agent = $this->getAgent())) {
 			require_once(LIBDIR.'/func/parsedocorder._wc');
 			$this->docOrder = wcfParseDocOrder($order, $agent);
 		}
@@ -306,8 +306,8 @@ class HybridHL extends WCObject {
 
 	function &_getQuery($nodeId, &$searchQuery) {
 		$result = null;
-		$agent = &$this->getAgent();
-		$props = $agent->_getQueryProps($this->docFields, &$this->docOrder, &$this->docFilter);
+		$agent = $this->getAgent();
+		$props = $agent->_getQueryProps($this->docFields, $this->docOrder, $this->docFilter);
 		if($this->sortByRand) {
 			$props['order'] = 'RAND()';
 		} elseif ($searchQuery['order'] && $this->sortByRank)
@@ -361,13 +361,13 @@ class HybridHL extends WCObject {
 	}
 
 	function _inlineEditGetDsId() {
-		$agent = &$this->getAgent();
+		$agent = $this->getAgent();
 		return is_object($agent) ? $agent->dsId : null;
 	}
 
 	function &_getDSFields() {
 		static $result;
-		if(!is_array(&$result)) $result = array('ds_id', 'dsIdKey');
+		if(!is_array($result)) $result = array('ds_id', 'dsIdKey');
 		return $result;
 	}
 }

@@ -33,8 +33,8 @@ class BackupManager {
 	
 	function create($id = null) {
 		if($id == null)
-			$id = BackupManager::newId();
-		$ftp = &WCFTP::getNew();
+			$id = self::newId();
+		$ftp = WCFTP::getNew();
 		$this->_createBackup($id, $ftp);
 	}
 	
@@ -88,7 +88,7 @@ class BackupManager {
 		if(sizeof($ids)) {
 			$result = false;
 			rsort($ids);
-			$ftp = &WCFTP::getNew();
+			$ftp = WCFTP::getNew();
 			$ftp->open();
 			$dl = strlen($_SERVER['DOCUMENT_ROOT']);
 			for($i = intval($size), $l = sizeof($ids); $i < $l; $i++)

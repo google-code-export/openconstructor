@@ -52,7 +52,7 @@ class Document {
 	}
 	
 	function loadAuths($owner, $ownerAuths) {
-		$this->sRes = & new WCSResource($this->header, (int) $owner, 0);
+		$this->sRes = new WCSResource($this->header, (int) $owner, 0);
 		
 		$this->sRes->addAction('editdoc');
 		$this->sRes->addAction('publishdoc');

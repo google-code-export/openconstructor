@@ -35,15 +35,15 @@ class Tree {
 
 	function addNode(&$node) {
 		$this->node[$node->id] = &$node;
-		$this->node[$node->parent]->registerNode(&$node);
+		$this->node[$node->parent]->registerNode($node);
 		$node->parent = &$this->node[$node->parent];
 	}
 
 	function export($exportStrategy) {
 		$result = null;
-		$exportStrategy->setTree(&$this);
+		$exportStrategy->setTree($this);
 		if($this->root)
-			$result = $this->root->export(&$exportStrategy);
+			$result = $this->root->export($exportStrategy);
 		return $result;
 	}
 
@@ -59,7 +59,7 @@ class Tree {
 	function &getSubTree($nodeId) {
 		$result = null;
 		if($this->exists($nodeId)) {
-			$result = & new Tree($this->node[$nodeId]);
+			$result = new Tree($this->node[$nodeId]);
 			$nodes = array_keys($this->node);
 			for($i = 0; $i < sizeof($nodes); $i++)
 				if($this->contains($nodeId, $nodes[$i]))

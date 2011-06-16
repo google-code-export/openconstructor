@@ -27,36 +27,194 @@
 	
 	require_once(LIBDIR.'/dsmanager._wc');
 	$dsm = new DSManager();
-	assert($_ds = &$dsm->load($_GET['ds_id']));
+	assert($_ds = $dsm->load($_GET['ds_id']));
 	WCS::request($_ds, 'editds');
-	
-	require_once(LIBDIR.'/smarty/ocmsmartybackend._wc');
-	$smartybackend = & new OcmSmartyBackend();
-	$smartybackend->caching = false;
-	
 	//userfriendly names
 	$uf['ds_name']=DS_NAME;
 	$uf['description']=DS_DESCRIPTION;
 	//default values
-	$ds_name=htmlspecialchars($_ds->name, ENT_COMPAT, 'UTF-8');
+	$ds_name=$_ds->name;
 	$description=$_ds->description;
 	//read values that have not been saved
 	read_fail_header();
-	
-	$reportResult = report_results(SAVE_DS_FAILED_W,SAVE_DS_SUCCESS_I);
-	$isValid['ds_name'] = is_valid('ds_name');
-	$isValid['description'] = is_valid('description');
-	$dis = WCS::decide($_ds, 'editds') ? 'false' : 'true';
-	$disPublish = WCS::decide($_ds, 'publishdoc') ? 'false' : 'true';
-	
-	$smartybackend->assign("uf", $uf);
-	$smartybackend->assign("ds_name", $ds_name);
-	$smartybackend->assign("description", $description);
-	$smartybackend->assign("ds_id", $ds_id);
-	$smartybackend->assign("ds", $_ds);
-	$smartybackend->assign("dis", $dis);
-	$smartybackend->assign("disPublish", $disPublish);
-	$smartybackend->assign("reportResult", $reportResult);
-	$smartybackend->assign("isValid", $isValid);
-	$smartybackend->display('data/edit_publication.tpl');
 ?>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title><?=WC.' | '.EDIT_DS_PUBLICATION.' | '.$_ds->name?></title>
+<link href="../<?=SKIN?>.css" type=text/css rel=stylesheet>
+<script language="JavaScript" type="text/JavaScript">
+var re=new RegExp('[^\\s]','gi');
+function dsb(){
+	if(!f.ds_name.value.match(re)||<?=WCS::decide($_ds, 'editds')?'false':'true'?>)
+		f.save.disabled=true; else f.save.disabled=false;
+}
+function updateintro(){
+	f.ixmin.value=parseInt(f.xmin.value*f.intro.value/100);
+	f.ixmax.value=parseInt(f.xmax.value*f.intro.value/100);
+	f.iymin.value=parseInt(f.ymin.value*f.intro.value/100);
+	f.iymax.value=parseInt(f.ymax.value*f.intro.value/100);
+}
+function updateintro_(){
+	f.g_ixmin.value=parseInt(f.g_xmin.value*f.g_intro.value/100);
+	f.g_ixmax.value=parseInt(f.g_xmax.value*f.g_intro.value/100);
+	f.g_iymin.value=parseInt(f.g_ymin.value*f.g_intro.value/100);
+	f.g_iymax.value=parseInt(f.g_ymax.value*f.g_intro.value/100);
+}
+function stripHTMLToggle(value) {
+	f.allowedTags.disabled = !value;
+	f.encodeemail.disabled = !value;
+}
+function wxyopen(uri,x,y){window.open(uri,'',"resizable=yes, scrollbars=yes, status=yes, height="+y+", width="+x);}
+</script>
+</head>
+<body style="border-style:groove;padding:0 20 20">
+<br>
+<h3><?=EDIT_DS_PUBLICATION?></h3>
+<?php
+	report_results(SAVE_DS_FAILED_W,SAVE_DS_SUCCESS_I);
+?>
+<form name="f" method="POST" action="i_data.php">
+	<input type="hidden" name="action" value="edit_dspublication">
+	<input type="hidden" name="ds_id" value="<?=$_ds->ds_id?>">
+	<fieldset style="padding:10"><legend><?=DS_GENERAL_PROPS?></legend>
+		<div class="property"<?=is_valid('ds_name')?>>
+			<span><?=$uf['ds_name']?>:</span>
+			<input type="text" name="ds_name" value="<?=htmlspecialchars($ds_name, ENT_COMPAT, 'UTF-8')?>" size="64" maxlength="64" onpropertychange="dsb()">
+		</div>
+		<div class="property"<?=is_valid('description')?>>
+			<span><?=$uf['description']?>:</span>
+			<textarea cols="51" rows="5" name="description"><?=$description?></textarea>
+		</div>
+	</fieldset><br>
+	<fieldset style="padding:10"><legend><?=DS_PROPS?></legend>
+	<table style="margin:5 0" cellspacing="3">
+		<tr>
+			<td><?=DS_SIZE?>:</td>
+			<td><input type="text" name="dssize" size="5" maxlength="4" value="<?=$_ds->size?>"> <?=DS_RECORDS?></td>
+		</tr>
+		<tr>
+			<td><?=DS_INTROSIZE?>:</td>
+			<td><input type="text" name="introsize" size="5" maxlength="4" value="<?=$_ds->introSize?>"> <?=DS_CHARS?></td>
+		</tr>
+		<tr>
+			<td colspan="2"><input type="checkbox" name="autoPublish" value="true"<?=@$_ds->autoPublish?' CHECKED':''?> <?=WCS::decide($_ds, 'publishdoc')?'':'DISABLED'?>> <?=DS_ALLOW_AUTOPUBLISHING?></td>
+		</tr>
+	</table>
+		<fieldset style="padding:10"><legend><?=DS_CLEAN_HTML?></legend>
+		<table style="margin:5 0" cellspacing="3">
+			<tr>
+				<td colspan="2"><input type="checkbox" name="stripHTML" value="true"<?=@$_ds->stripHTML?' CHECKED':''?> onclick="stripHTMLToggle(this.checked)"> <?=DS_ENABLE_CLEAN_HTML?></td>
+			</tr>
+			<tr>
+				<td colspan=2><?=DS_ALLOWED_TAGS?>:</td>
+			</tr>
+			<tr>
+				<td colspan=2><textarea cols="52" rows="4" name="allowedTags"<?=@$_ds->stripHTML?'':'DISABLED'?>><?=$_ds->allowedTags?></textarea></td>
+			</tr>
+			<tr>
+				<td colspan="2"><input type="checkbox" name="encodeemail" value="true"<?=@$_ds->encodeemail?' CHECKED':''?><?=@$_ds->stripHTML?'':' DISABLED'?>> <?=DS_ENABLE_EMAIL_ENCODING?></td>
+			</tr>
+		</table>
+		</fieldset><br>
+		<fieldset style="padding:10"><legend><?=DS_SEARCH?></legend>
+		<table style="margin:5 0" cellspacing="3">
+			<tr>
+				<td nowrap><input type="checkbox" name="isindexable"<?=@$_ds->isIndexable?'checked':''?>> <?=IS_INDEXABLE?></td>
+			</tr>
+		</table>
+		</fieldset><br>
+	</fieldset><br>
+	<fieldset style="padding:10"><legend><?=DS_GRAPH_PROPS?></legend>
+		<fieldset style="padding:10"><legend><?=DS_GRAPH_BOUNDS?></legend>
+		<table style="margin:5 0" cellspacing="3">
+			<tr>
+				<td><?=DS_GRAPH_MIN_RECT?>:</td>
+				<td nowrap valign="top"><?=DS_GRAPH_WIDTH?> <input type="text" name="xmin" size="4" maxlength="4" value="<?=$_ds->images['xmin']?>">&nbsp;&nbsp;<?=DS_GRAPH_HEIGHT?> <input type="text" name="ymin" size="4" maxlength="4" value="<?=$_ds->images['ymin']?>"></td>
+			</tr>
+			<tr>
+				<td><?=DS_GRAPH_MAX_RECT?>:</td>
+				<td nowrap><?=DS_GRAPH_WIDTH?> <input type="text" name="xmax" size="4" maxlength="4" value="<?=$_ds->images['xmax']?>">&nbsp;&nbsp;<?=DS_GRAPH_HEIGHT?> <input type="text" name="ymax" size="4" maxlength="4" value="<?=$_ds->images['ymax']?>"></td>
+			</tr>
+		</table>
+		</fieldset><br>
+		<fieldset style="padding:10"><legend><?=DS_GRAPH_IMAGES?></legend>
+		<table style="margin:5 0" cellspacing="3" width="100%">
+			<tr>
+				<td nowrap><input type="checkbox" name="img_main" <?=@$_ds->images['main']?'checked':''?> disabled> <?=DS_GRAPH_IMAGEMAIN?></td><td></td>
+			</tr>
+			<tr>
+				<td colspan="2"><hr size="1"></td>
+			</tr>
+			<tr>
+				<td nowrap valign="top"><input type="checkbox" name="img_intro" <?=@$_ds->images['intro']?'checked':''?> disabled> <?=DS_GRAPH_IMAGEINTRO?></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>&nbsp;&nbsp;&nbsp;&nbsp;<?=DS_GRAPH_IMAGEINTRO_SIZE?>:</td>
+				<td width="100%"><input type="text" name="intro" size="4" maxlength="3" value="<?=@$_ds->images['intro']?>" <?=@$_ds->images['intro']?'':'disabled'?> onpropertychange="updateintro()"><?=DS_GRAPH_PERCENT_10_100?></td>
+			</tr>
+			<tr>
+				<td NOWRAP>&nbsp;&nbsp;&nbsp;&nbsp;<?=DS_GRAPH_MIN_RECT?>:</td>
+				<td nowrap valign="top"><?=DS_GRAPH_WIDTH?> <input type="text" name="ixmin" size="4" disabled>&nbsp;&nbsp;<?=DS_GRAPH_HEIGHT?> <input type="text" name="iymin" size="4" disabled></td>
+			</tr>
+			<tr>
+				<td NOWRAP>&nbsp;&nbsp;&nbsp;&nbsp;<?=DS_GRAPH_MAX_RECT?>:</td>
+				<td nowrap><?=DS_GRAPH_WIDTH?> <input type="text" name="ixmax" size="4" disabled>&nbsp;&nbsp;<?=DS_GRAPH_HEIGHT?> <input type="text" name="iymax" size="4" disabled></td>
+			</tr>
+		</table>
+		</fieldset><br>
+	</fieldset><br>
+	<fieldset style="padding:10"><legend><?=DS_ATTACHED_GALLERY?></legend>
+		<br><input type="checkbox" disabled <?=@$_ds->attachGallery?'Checked':''?>> <?=DS_AUTO_ATTACH_GALLERY?>
+<?php if(@$_ds->attachGallery) {?>
+		<fieldset style="padding:10;" id="ag"><legend><?=DS_PROPS?></legend>
+			<fieldset style="padding:10"><legend><?=DS_GRAPH_BOUNDS?></legend>
+			<table style="margin:5 0" cellspacing="3">
+				<tr>
+					<td><?=DS_GRAPH_MIN_RECT?>:</td>
+					<td nowrap valign="top"><?=DS_GRAPH_WIDTH?> <input type="text" name="g_xmin" size="4" maxlength="4" value="<?=$_ds->attachGallery['xmin']?>">&nbsp;&nbsp;<?=DS_GRAPH_HEIGHT?> <input type="text" name="g_ymin" size="4" maxlength="4" value="<?=$_ds->attachGallery['ymin']?>"></td>
+				</tr>
+				<tr>
+					<td><?=DS_GRAPH_MAX_RECT?>:</td>
+					<td nowrap><?=DS_GRAPH_WIDTH?> <input type="text" name="g_xmax" size="4" maxlength="4" value="<?=$_ds->attachGallery['xmax']?>">&nbsp;&nbsp;<?=DS_GRAPH_HEIGHT?> <input type="text" name="g_ymax" size="4" maxlength="4" value="<?=$_ds->attachGallery['ymax']?>"></td>
+				</tr>
+			</table>
+			</fieldset><br>
+			<fieldset style="padding:10"><legend><?=DS_GRAPH_IMAGES?></legend>
+			<table style="margin:5 0" cellspacing="3" width="100%">
+				<tr>
+					<td nowrap><input type="checkbox" name="g_img_main" <?=@$_ds->attachGallery['main']?'checked':''?> disabled> <?=DS_GRAPH_IMAGEMAIN?></td><td></td>
+				</tr>
+				<tr>
+					<td colspan="2"><hr size="1"></td>
+				</tr>
+				<tr>
+					<td nowrap valign="top"><input type="checkbox" name="g_img_intro" <?=@$_ds->attachGallery['intro']?'checked':''?> disabled> <?=DS_GRAPH_IMAGEINTRO?></td>
+					<td></td>
+				</tr>
+				<tr>
+					<td>&nbsp;&nbsp;&nbsp;&nbsp;<?=DS_GRAPH_IMAGEINTRO_SIZE?>:</td>
+					<td width="100%"><input type="text" name="g_intro" size="4" maxlength="3" value="<?=@$_ds->attachGallery['intro']?>" <?=@$_ds->attachGallery['intro']?'':'disabled'?> onpropertychange="updateintro_()"><?=DS_GRAPH_PERCENT_10_100?></td>
+				</tr>
+				<tr>
+					<td NOWRAP>&nbsp;&nbsp;&nbsp;&nbsp;<?=DS_GRAPH_MIN_RECT?>:</td>
+					<td nowrap valign="top"><?=DS_GRAPH_WIDTH?> <input type="text" name="g_ixmin" size="4" disabled>&nbsp;&nbsp;<?=DS_GRAPH_HEIGHT?> <input type="text" name="g_iymin" size="4" disabled></td>
+				</tr>
+				<tr>
+					<td NOWRAP>&nbsp;&nbsp;&nbsp;&nbsp;<?=DS_GRAPH_MAX_RECT?>:</td>
+					<td nowrap><?=DS_GRAPH_WIDTH?> <input type="text" name="g_ixmax" size="4" disabled>&nbsp;&nbsp;<?=DS_GRAPH_HEIGHT?> <input type="text" name="g_iymax" size="4" disabled></td>
+				</tr>
+			</table>
+			</fieldset><br>
+		</fieldset><br>
+<script>updateintro_()</script>
+<?php } ?>
+	</fieldset><br>
+	<div align="right"><input type="submit" value="<?=BTN_SAVE_CHANGES_DS?>" name="save"> <input type="button" value="<?=BTN_CANCEL?>" onclick="window.close()"></div>
+	<br><br><br>
+<script>updateintro()</script>
+</form>
+<script>dsb();</script>
+</body>
+</html>

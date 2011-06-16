@@ -47,8 +47,8 @@ class ArticleRelated extends WCObject {
 	
 	function getCacheId() {
 		$cacheId = null;
-		$ctx = &Context::getInstance();
-		if($master = &$ctx->getObject((int) $this->master)) {
+		$ctx = Context::getInstance();
+		if($master = $ctx->getObject((int) $this->master)) {
 			$articleId = $master->getDocId();
 			$cacheId = $this->obj_id.'|'.$articleId;
 		}
@@ -57,13 +57,13 @@ class ArticleRelated extends WCObject {
 	
 	function fetchData(&$smarty) {
 		$result = false;
-		$ctx = &Context::getInstance();
-		$master = &$ctx->getObject((int) $this->master);
+		$ctx = Context::getInstance();
+		$master = $ctx->getObject((int) $this->master);
 		if(!$master) return $result;
 		$article_id = $master->getDocId();
 		if(!$article_id) return $result;
 		
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT t2.id, t2.real_id as rid, t2.header, t2.date'.
 			' FROM '.$this->DSTable.' t1, '.$this->DSTable.' t2'.
@@ -73,7 +73,7 @@ class ArticleRelated extends WCObject {
 		
 		if(mysql_num_rows($res) > 0) {
 			$fet = array();
-			$ctx = &Context::getInstance();
+			$ctx = Context::getInstance();
 			$href = $ctx->getPatternFor('.', $this->articleid);
 			
 			while($row = mysql_fetch_assoc($res)) {
@@ -93,7 +93,7 @@ class ArticleRelated extends WCObject {
 	
 	function &_getDSFields() {
 		static $result;
-		if(!is_array(&$result)) $result = array('master');
+		if(!is_array($result)) $result = array('master');
 		return $result;
 	}
 }

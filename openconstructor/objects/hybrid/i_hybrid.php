@@ -26,7 +26,7 @@
 	require_once(LIBDIR.'/objmanager._wc');
 
 	if (isset($_POST['action'])) {
-		$obj = &ObjManager::load(@$_POST['obj_id']);
+		$obj = ObjManager::load(@$_POST['obj_id']);
 		assert($obj != null);
 		$obj->name=@$_POST['name'];
 		$obj->description=@$_POST['description'];
@@ -49,7 +49,6 @@
 			break;
 
 			case 'edit_hybridhl':
-			case 'edit_hybridbar':
 				require_once(LIBDIR.'/hybrid/fields/fieldfactory._wc');
 				$obj->header=@$_POST['header'];
 				$obj->ds_id = (int) $_POST['ds_id'];

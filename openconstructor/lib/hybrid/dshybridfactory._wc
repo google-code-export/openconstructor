@@ -64,35 +64,35 @@ class DSHybridFactory {
 			return;
 		require_once(LIBDIR.'/dsmanager._wc');
 		$dsm = new DSManager();
-		$ds = &$dsm->load($id);
+		$ds = $dsm->load($id);
 		WCS::assert($ds, 'removeds');
 		WCS::runAs(WCS_ROOT_ID);
 		foreach($ids as $id) {
-			$ds = &$dsm->load($id);
+			$ds = $dsm->load($id);
 			$ds->remove();
 			$this->removeTable($id);
 			$this->removeFolder($id);
 		}
 		WCS::stopRunAs();
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			"DELETE FROM $this->table WHERE ds_id IN(" . implode(',', $ids) . ")"
 		);
 	}
 
-	function removeDocuments($docids) {
+	function removeDocuments(&$docids) {
 		require_once(LIBDIR.'/dsmanager._wc');
 		$dsm = new DSManager();
 		$ids = implode(',', $docids);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT id, ds_id FROM dshybrid WHERE id IN($ids) ORDER BY ds_id DESC");
 		if(mysql_num_rows($res) > 0){
 			$type = array();
 			while($r = mysql_fetch_assoc($res))
 				$type[(int) $r['ds_id']][] = (int) $r['id'];
 			foreach($type as $id=>$docs) {
-				$ds = &$dsm->load($id);
-				$ds->removeOwnDocuments(&$docs);
+				$ds = $dsm->load($id);
+				$ds->removeOwnDocuments($docs);
 			}
 			unset($ds, $type);
 		}
@@ -100,16 +100,16 @@ class DSHybridFactory {
 	}
 
 	function publishDocuments(&$ids) {
-		$this->setPublished(&$ids,1);
+		$this->setPublished($ids,1);
 	}
 
 	function unpublishDocuments(&$ids) {
-		$this->setPublished(&$ids,0);
+		$this->setPublished($ids,0);
 	}
 
 	function setPublished(&$ids, $value) {
 		if(sizeof($ids) > 0) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$res = $db->query(
 				'SELECT dsh.id, dsh.ds_id FROM dshybrid dsh, datasources dss'.
 				' WHERE dsh.id IN('.implode(',', $ids).') AND dsh.ds_id = dss.ds_id AND ('.
@@ -128,18 +128,18 @@ class DSHybridFactory {
 				$dsm = new DSManager();
 				loadClass('wcsmartycache', '/smarty/wcsmartycache._wc');
 				$dsIds = array_keys($docs);
-				$smc = &WCSmartyCache::getInstance();
+				$smc = WCSmartyCache::getInstance();
 				WCS::runAs(WCS_ROOT_ID);
 				foreach($dsIds as $dsId) {
-					$ds = &$dsm->load($dsId);
+					$ds = $dsm->load($dsId);
 					assert($ds->ds_id > 0);
 					$_ids = implode(',', $docs[$dsId]);
 					if($value)
-						$ds->addToIndex(&$_ids);
+						$ds->addToIndex($_ids);
 					else
-						$ds->removeFromIndex(&$_ids);
+						$ds->removeFromIndex($_ids);
 					$db->query("UPDATE dshybrid SET published = $value WHERE ds_id = $dsId AND id IN ($_ids)");
-					$ds->evictDocCache(&$_ids);
+					$ds->evictDocCache($_ids);
 					unset($ds);
 				}
 				WCS::stopRunAs();
@@ -153,14 +153,14 @@ class DSHybridFactory {
 		if(sizeof($ids) > 0) {
 			require_once(LIBDIR.'/dsmanager._wc');
 			$dsm = new DSManager();
-			assert($from = &$dsm->load($fromId) && $to = &$dsm->load($toId));
+			assert($from = $dsm->load($fromId) && $to = $dsm->load($toId));
 			WCS::assert($to, 'createdoc');
 			$ids = implode(',', $ids);
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$res = $db->query("SELECT id FROM dshybrid WHERE ds_id = {$from->ds_id} AND id IN ($ids)");
 			if(($l = mysql_num_rows($res)) > 0) {
 				$add = $remove = array();
-				$fromRec = &$from->getRecord(); $toRec = &$to->getRecord();
+				$fromRec = $from->getRecord(); $toRec = $to->getRecord();
 				$path1 = explode(',', $from->path); $path2 = explode(',', $to->path);
 				$removeDs = array_diff($path1, $path2);
 				$addDs = array_diff($path2, $path1);
@@ -177,7 +177,7 @@ class DSHybridFactory {
 
 				for($i = 0; $i < $l; $i++) {
 					list($docId) = mysql_fetch_row($res);
-					$doc = &$from->getDocument($docId);
+					$doc = $from->getDocument($docId);
 					if(WCS::decide($doc, 'removedoc')) {
 						for($r = 0; $r < $lr; $r++)
 							$remove[$r]->onRemoveDocument($doc);
@@ -214,7 +214,7 @@ class DSHybridFactory {
 					}
 					if(sizeof($ids)) {
 						foreach($ids as $id) {
-							$doc = &$to->getDocument($id);
+							$doc = $to->getDocument($id);
 							for($a = 0; $a < $la; $a++)
 								$add[$a]->onCreateDocument($doc);
 							$query = $toRec->getSQL($doc);
@@ -225,7 +225,7 @@ class DSHybridFactory {
 						$from->updateSize();
 						$from->evictDocCache($ids);
 						$to->updateSize();
-						$to->evictDocCache(&$ids);
+						$to->evictDocCache($ids);
 					}
 				}
 			}
@@ -235,7 +235,7 @@ class DSHybridFactory {
 
 	function &getChildren($ds_id) {
 		settype($ds_id, 'int');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			"SELECT t2.ds_id AS id FROM $this->table t1, $this->table t2 WHERE t1.ds_id=$ds_id AND INSTR(t2.ds_key, t1.ds_key) = 1 ORDER BY t2.ds_key DESC"
 		);
@@ -251,7 +251,7 @@ class DSHybridFactory {
 		$key = $this->validateKey($key);
 		if(!$parent)
 			return $key;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			"SELECT ds_key, path FROM $this->table WHERE ds_id=$parent"
 		);
@@ -266,7 +266,7 @@ class DSHybridFactory {
 	}
 
 	function exists($key) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT ds_id FROM $this->table WHERE ds_key = '$key'");
 		$exists = mysql_num_rows($res) > 0;
 		mysql_free_result($res);
@@ -275,7 +275,7 @@ class DSHybridFactory {
 
 	function createTable($id) {
 		$name = $this->prefix . $id;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'CREATE TABLE `'.$name.'` ('.
 			' `id` int(11) unsigned NOT NULL default "0",'.
@@ -287,14 +287,14 @@ class DSHybridFactory {
 
 	function removeTable($id) {
 		$name = $this->prefix . $id;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query("DROP TABLE `$name`");
 	}
 
 	function createFolder($folder) {
 		settype($folder, 'int');
 		if($folder > 0 && !@file_exists(ROOT.FILES.'/hyb/'.$folder)) {
-			$ftp = &$this->getFtp();
+			$ftp = $this->getFtp();
 			$ftp->open();
 			$ftp->md(FILES.'/hyb/'.$folder);
 			$ftp->close();
@@ -308,7 +308,7 @@ class DSHybridFactory {
 	function removeFolder($folder) {
 		settype($folder, 'int');
 		if($folder > 0 && @file_exists(ROOT.FILES.'/hyb/'.$folder)) {
-			$ftp = &$this->getFtp();
+			$ftp = $this->getFtp();
 			$ftp->open();
 			$ftp->rdEntire(FILES.'/hyb/'.$folder);
 			$ftp->close();
@@ -320,7 +320,7 @@ class DSHybridFactory {
 	}
 
 	function updateStruct(&$ds) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		if($ds->parent) {
 			$res = $db->query("SELECT path FROM $this->table WHERE ds_id=$ds->parent");
 			$r = mysql_fetch_assoc($res);
@@ -346,7 +346,7 @@ class DSHybridFactory {
 	}
 
 	function &getFtp() {
-		if(!is_object(&$this->ftp)) {
+		if(!is_object($this->ftp)) {
 			loadClass('wcftp', '/wcftp._wc');
 			$this->ftp = WCFTP::getNew();
 		}

@@ -78,7 +78,7 @@ class Page {
 		assert($this->id > 0);
 		if($reload || $this->objects == null) {
 			$this->objects = array();
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$res = $db->query("SELECT o.id, o.obj_type as type, o.name, a.block, a.rule, a.observer, a.crumbs FROM siteobjects a, objects o WHERE a.page_id = $this->id AND a.obj_id = o.id ORDER BY a.block, o.name");
 			if(mysql_num_rows($res) > 0) {
 				while($r = mysql_fetch_assoc($res))
@@ -123,7 +123,7 @@ class Page {
 	
 	function compileTitle() {
 		$fields = array();
-		$result = Page::_escapeSingleQuotes($this->title);
+		$result = self::_escapeSingleQuotes($this->title);
 		$found = preg_match_all(
 			'/(?<!\{)\{('.
 				'((\$|\:)[A-Za-z0-9_\-\.\/]+)'. // {$abc}, {:abc}
@@ -159,13 +159,13 @@ class Page {
 							$part = $this->getParentUri(intval($part));
 				}
 				if($param !== null)
-					$reps[] = sprintf('\'.$x->getParam(\'%s\').\'', Page::_escapeSingleQuotes($param));
+					$reps[] = sprintf('\'.$x->getParam(\'%s\').\'', self::_escapeSingleQuotes($param));
 				elseif($part == '*')
-					$reps[] = sprintf('\'.$c->getFull(%s).\'', $sep === null ? '' : '\''.Page::_escapeSingleQuotes($sep).'\'');
+					$reps[] = sprintf('\'.$c->getFull(%s).\'', $sep === null ? '' : '\''.self::_escapeSingleQuotes($sep).'\'');
 				elseif(!$part || ($part{0} == '/' && strpos($this->uri, $part) !== 0))
 					$reps[] = "\{$f}";
 				else
-					$reps[] = sprintf('\'.$c->get(\'%s\'%s).\'', Page::_escapeSingleQuotes($part), $sep === null ? '' : ',\''.Page::_escapeSingleQuotes($sep).'\'');
+					$reps[] = sprintf('\'.$c->get(\'%s\'%s).\'', self::_escapeSingleQuotes($part), $sep === null ? '' : ',\''.self::_escapeSingleQuotes($sep).'\'');
 			}
 			$result = preg_replace($patterns, $reps, $result);
 		}
@@ -173,7 +173,7 @@ class Page {
 	}
 	
 	function getParentUri($level = -1) {
-		$p = &$this->getPath();
+		$p = $this->getPath();
 		return $level < 0 ? @$p[sizeof($p) + $level - 1] : @$p[$level];
 	}
 	
@@ -187,7 +187,7 @@ class Page {
 	}
 	
 	function loadAuths($owner, $group, $ownerAuths, $groupAuths) {
-		$this->sRes = & new WCSResource("{$this->header} [uri = {$this->uri}]", (int) $owner, (int) $group);
+		$this->sRes = new WCSResource("{$this->header} [uri = {$this->uri}]", (int) $owner, (int) $group);
 		
 		$this->sRes->addAction('editpage');
 		$this->sRes->addAction('editpage.caching');

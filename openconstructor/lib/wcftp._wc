@@ -143,7 +143,7 @@ class WCFTP {
 			return false;
 		}
 		$file=$this->_normalize($file);
-		$tmp = WCFTP::_newTmpFilename();
+		$tmp = self::_newTmpFilename();
 		$fp = fopen($tmp,$mode);
 		fwrite($fp,$content);
 		fclose($fp);
@@ -190,6 +190,17 @@ class WCFTP {
 		return true;
 	}
 
+	/**
+	 * Copy local dir via ftp.
+	 * 
+	 * <code>
+	 * $ftp->copy_local_dir('/doc_root/some/dir', '/dest/'); // creates /dest/dir
+	 * </code>
+	 * 
+	 * @param string $from local dir
+	 * @param string $to remote dest dir
+	 * @return boolean if copy was successfull
+	 */
 	function copy_local_dir($from, $to) {
 		if(!$this->_con){
 			$this->message[] = 'Offline: Cannot copy dir ['.$from.']';
@@ -202,18 +213,19 @@ class WCFTP {
 		ksort($all, SORT_STRING);
 		$result = true;
 		foreach($all as $f => $isdir) {
-			$rel = substr($f, $offset);
+			$t = $to.'/'.substr($f, $offset);
 			if($isdir) {
-				$r = @ftp_mkdir($this->_con, $rel);
+				$r = ftp_mkdir($this->_con, $t);
 			} else {
 				$mode = $this->_define_mode($f);
-				$r = @ftp_put($this->_con, $to.'/'.$rel, $f, $mode);
+				$r = ftp_put($this->_con, $t, $f, $mode);
 			}
 			if(!$r)
-				$this->message[]='...cannot copy '.$f;
+				$this->message[] = "...cannot copy '$f' to '$t'";
 			$result = $result && $r;
 		}
-		return true;
+		$this->apply_result($result);
+		return $result;
 	}
 
 	function rdEntire($dir){
@@ -400,11 +412,11 @@ class WCFTP {
 
 	function performGC() {
 		$con = null;
-		WCFTP::_gc(false, true, $con);
+		self::_gc(false, true, $con);
 	}
 
 	function _addToGC(&$con) {
-		WCFTP::_gc(true, false, $con);
+		self::_gc(true, false, $con);
 	}
 
 	function _gc($register, $gc, &$res) {
@@ -426,11 +438,11 @@ class WCFTP {
 			register_shutdown_function(array('WCFTP', 'performGC'));
 		}
 		if($host) {
-			$result = & new WCFTP(false, false);
+			$result = new WCFTP(false, false);
 			$result->configure($host, $username, $pwd, $siteroot, $port);
-			WCFTP::_addToGC($result);
+			self::_addToGC($result);
 		} else
-			$result = & new WCFTP();
+			$result = new WCFTP();
 		return $result;
 	}
 }

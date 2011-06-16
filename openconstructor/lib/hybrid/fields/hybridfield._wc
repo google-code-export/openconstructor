@@ -46,7 +46,7 @@ class HybridField {
 	}
 	
 	function create() {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			"INSERT INTO $this->table (ds_id, name, family, type, header, isreq)".
 			"VALUES ($this->ds_id, '$this->key', '$this->family', '$this->type', '" . addslashes($this->header) . "', $this->isRequired)"
@@ -56,7 +56,7 @@ class HybridField {
 	}
 	
 	function remove() {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			"DELETE FROM $this->table WHERE id = $this->id"
 		);

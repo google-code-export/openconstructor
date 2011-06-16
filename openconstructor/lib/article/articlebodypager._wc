@@ -45,8 +45,8 @@ class ArticleBodyPager extends WCObject {
 	
 	function getCacheId() {
 		$cacheId = null;
-		$ctx = &Context::getInstance();
-		if($master = &$ctx->getObject((int) $this->master)) {
+		$ctx = Context::getInstance();
+		if($master = $ctx->getObject((int) $this->master)) {
 			$articleId = $master->getDocId();
 			$pageNum = @$_GET[$master->pid];
 			$pageNum = $pageNum == 'all' ? $pageNum : ((int) $pageNum ? $pageNum : 1);
@@ -57,15 +57,15 @@ class ArticleBodyPager extends WCObject {
 	
 	function fetchData(&$smarty) {
 		$result = false;
-		$ctx = &Context::getInstance();
-		$master = &$ctx->getObject((int) $this->master);
+		$ctx = Context::getInstance();
+		$master = $ctx->getObject((int) $this->master);
 		if(!$master) return;
 		$article_id = $master->getDocId();
 		$p_id = @$_GET[$master->pid];
 		$p_id = $p_id == 'all' ? $p_id : ((int) $p_id ? $p_id : 1);
 		if(!$article_id || ($p_id != 'all' && $p_id < 1)) return $result;
 				
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT p.p_id, p.page, p.header '.
 			"FROM {$this->DSTable} d, {$this->pagesTable} p ".
@@ -124,7 +124,7 @@ class ArticleBodyPager extends WCObject {
 	
 	function &_getDSFields() {
 		static $result;
-		if(!is_array(&$result)) $result = array('master');
+		if(!is_array($result)) $result = array('master');
 		return $result;
 	}
 }

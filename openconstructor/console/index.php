@@ -24,7 +24,7 @@
 	require_once(LIBDIR.'/router._wc');
 	$router = new Router('/console/', 'console', @$_SERVER['PATH_INFO']);
 	require_once(LIBDIR.'/context._wc');
-	$ctx = &Context::getInstance();
+	$ctx = Context::getInstance();
 	$ctx->router = &$router;
 	header('Content-Type: text/plain; charset=utf-8');
 	
@@ -41,7 +41,7 @@
 	
 	function exitConsole() {
 		echo "\nExiting";
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		if($ctx->getParam('console.verbose'))
 			ob_end_flush();
 		else

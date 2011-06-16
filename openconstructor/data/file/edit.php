@@ -27,7 +27,7 @@
 	if(!isset($_GET['ds_id'])||!isset($_GET['id'])) die();
 	require_once(LIBDIR.'/dsmanager._wc');
 	$dsm = new DSManager();
-	$_ds = &$dsm->load($_GET['ds_id']);
+	$_ds = $dsm->load($_GET['ds_id']);
 //	require_once($_SERVER['DOCUMENT_ROOT'].WCHOME.'/include/toolbar._wc');
 	//userfriendly names
 	$uf['name']=F_FILE_HEADER;

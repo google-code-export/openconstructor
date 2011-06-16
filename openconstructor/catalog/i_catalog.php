@@ -65,18 +65,6 @@ switch(@$_POST['action'])
 		die('<meta http-equiv="Refresh" content="0; URL=/openconstructor/catalog/index.php/trees/"/>');
 	break;
 	
-	case 'view_detail':
-		foreach((array) @$_COOKIE['vd'] as $key => $val){
-			if(!array_key_exists($key, (array) @$_POST['vdetail']))
-				setcookie('vd['.$key.']', '', time() - 3600, WCHOME.'/catalog/');
-		}
-		foreach($_POST['vdetail'] as $key => $val)
-			setcookie('vd['.$key.']', $key, 0, WCHOME.'/catalog/');
-		setcookie('pagesize', $_POST['pagesize'], 0, WCHOME.'/catalog/');
-		setcookie('vd[_touched]', '_touched', 0, WCHOME.'/catalog/');
-		header('Location: '.$_SERVER['HTTP_REFERER']);
-	break;
-	
 	default:
 		die('<meta http-equiv="Refresh" content="0; URL='.$_SERVER['HTTP_REFERER'].'">');
 	break;

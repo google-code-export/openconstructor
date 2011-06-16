@@ -34,7 +34,7 @@ class HybridDocument {
 		$this->record = $record;
 		$this->ds_id = $record->ds_id;
 		$this->fields = array('id' => &$this->id, 'header' => &$this->header);
-		$this->fieldNames = array_keys(&$this->record->fields);
+		$this->fieldNames = array_keys($this->record->fields);
 		$this->reset(); 
 	}
 	
@@ -76,7 +76,7 @@ class HybridDocument {
 	}
 	
 	function loadAuths($owner, $ownerAuths) {
-		$this->sRes = & new WCSResource($this->header, (int) $owner, 0);
+		$this->sRes = new WCSResource($this->header, (int) $owner, 0);
 		
 		$this->sRes->addAction('editdoc');
 		$this->sRes->addAction('publishdoc');

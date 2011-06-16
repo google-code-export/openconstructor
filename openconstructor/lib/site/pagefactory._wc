@@ -1,25 +1,25 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * @author Sanjar Akhmedov
- * 
+ *
  * $Id: pagefactory._wc,v 1.25 2007/03/05 12:36:17 sanjar Exp $
  */
 require_once('pagereader._wc');
@@ -29,34 +29,36 @@ class PageFactory {
 	var $fsHelper, $treeHelper, $compiler, $smc;
 	var $treeTable, $pagesTable, $objTable;
 	var $tree;
-	
+
 	function PageFactory() {
-		$this->reader = & new PageReader();
+		$this->reader = new PageReader();
 		$this->treeTable = $this->reader->treeTable;
 		$this->pagesTable = $this->reader->pagesTable;
 		$this->objTable = $this->reader->objTable;
 	}
-	
-	function createPage($parentId, $name, $header) {
+
+	function createPage($parentId, $name, $header, $sampleId = null) {
 		$result = false;
-		
+
 		assert(Page::isNameValid($name) && !empty($header));
 		$name = strtolower($name);
-		$parent = &$this->reader->getPage($parentId);
+		$parent = $this->reader->getPage($parentId);
 		assert($parent != null);
-		
+		$sample = $this->reader->getPage($sampleId === null ? $parentId : $sampleId);
+		assert($sample != null);
+
 		$super = $this->reader->superDecide($parent->id, 'managesub');
 		WCS::assertValue($super || WCS::decide($parent, 'managesub'), $parent, 'managesub');
-		
-		$tree = &$this->_getTreeHelper();
+
+		$tree = $this->_getTreeHelper();
 		if(!$tree->exists($parent->id, $name)) {
-			$fs = &$this->_getFsHelper();
+			$fs = $this->_getFsHelper();
 			if($fs->createPage($parent->uri, $name)) {
 				$result = $tree->addNode($parent->id, $name, $header);
 				if($result > 0) {
-					$db = &WCDB::bo();
-					$page = & new Page($name, $header);
-					$auth = &Authentication::getOriginal();
+					$db = WCDB::bo();
+					$page = new Page($name, $header);
+					$auth = Authentication::getOriginal();
 					$page->loadAuths($auth->userId, $auth->groupId, constant('WCS_PAGE_MASK'), null);
 					$db->query(sprintf(
 						"UPDATE {$this->treeTable} SET wcsowner = {$page->sRes->owner}, wcsgroup = {$page->sRes->group}".
@@ -65,13 +67,13 @@ class PageFactory {
 					));
 					$db->query(
 						"INSERT INTO {$this->pagesTable} (id, tpl, addtitle, robots, title, ctitle, css, users, profilesinherit, profilesload, profilesdynamic)".
-						" SELECT $result as id, tpl, addtitle, robots, title, ctitle, css, users, IF({$parent->index} > 0, profilesinherit, 1), profilesload, profilesdynamic".
-						" FROM sitepages WHERE id = {$parent->id}"
+						" SELECT $result as id, tpl, addtitle, robots, title, ctitle, css, users, IF({$sample->index} > 0, profilesinherit, 1), profilesload, profilesdynamic".
+						" FROM sitepages WHERE id = {$sample->id}"
 					);
 					$db->query(
 						"INSERT INTO {$this->objTable} (page_id, obj_id, rule, observer, crumbs, block)".
 						" SELECT $result as id, obj_id, rule, observer, crumbs, block".
-						" FROM siteobjects WHERE page_id = {$parent->id}"
+						" FROM siteobjects WHERE page_id = {$sample->id}"
 					);
 				} else {
 					echo "<br/> - PageFactory: Cannot insert record to table<br/>";
@@ -85,39 +87,40 @@ class PageFactory {
 		}
 		return $result;
 	}
-	
+
 	function removePage($pageId) {
 		$result = false;
 		assert($pageId > 0);
-		$page = &$this->reader->getPage($pageId);
+		$page = $this->reader->getPage($pageId);
 		assert($page != null && $page->index > 0);
-		
+
 		$super = $this->reader->superDecide($page->id, 'managesub');
 		WCS::assertValue($super || WCS::decide($page, 'removepage'), $page, 'removepage');
-		
-		$fs = &$this->_getFsHelper();
+
+		$fs = $this->_getFsHelper();
 		if($fs->removePage($page->uri)) {
-			$tree = &$this->_getTreeHelper();
+			$tree = $this->_getTreeHelper();
 			if($tree->removeNode($page->id)) {
-				$db = &WCDB::bo();
+				$db = WCDB::bo();
 				$res = $db->query("SELECT p.id FROM {$this->pagesTable} p LEFT JOIN {$this->treeTable} t ON(p.id = t.id) WHERE t.id IS NULL");
 				for($i = 0, $ids = array(), $l = mysql_num_rows($res); $i < $l; $i++)
 					list($ids[]) = mysql_fetch_row($res);
 				mysql_free_result($res);
-				$smc = &$this->_getSmartyCache();
+				$smc = $this->_getSmartyCache();
 				$smc->page_updated($ids);
-				
+
 				$db->query("UPDATE {$this->pagesTable} SET linkto = 0 WHERE linkto IN(".implode(',', $ids).")");
-				
+
 				$db->query("DELETE o.* FROM {$this->objTable} o LEFT JOIN {$this->treeTable} t ON(o.page_id = t.id) WHERE t.id IS NULL");
 				$db->query("DELETE p.* FROM {$this->pagesTable} p LEFT JOIN {$this->treeTable} t ON(p.id = t.id) WHERE t.id IS NULL");
-				if($db->errorCode() == 0)
+				if($db->errorCode() == 0){
+					$this->_clearTree();
 					$result = true;
-				else {
+				} else {
 					echo "<br/> - PageFactory: Cannot delete records from pages and objects tables<br/>";
 				}
 				$this->_updateSitemap();
-				
+
 				require_once(LIBDIR.'/wcdatasource._wc');
 				require_once(LIBDIR.'/htmltext/dshtmltext._wc');
 				DSHTMLText::pageRemoved($page->id);
@@ -129,17 +132,17 @@ class PageFactory {
 		}
 		return $result;
 	}
-	
+
 	function updatePage(&$page) {
 		$result = false;
 		assert($page != null && $page->id > 0 && !empty($page->header) && ($page->uri == '/' || Page::isNameValid($page->name)));
 		$page->name = strtolower($page->name);
-		$old = &$this->reader->getPage($page->id);
+		$old = $this->reader->getPage($page->id);
 		assert($old != null);
-		
+
 		$super = $this->reader->superDecide($page->id, 'managesub');
 		WCS::assertValue($super || WCS::decide($old, 'editpage'), $old, 'editpage');
-		
+
 		$page->compileTitle();
 		$updates[] = sprintf(
 			"t.header = '%s', p.tpl = %d, p.addtitle = %d, p.robots = %d, p.contenttype = '%s', p.title = '%s', p.ctitle = '%s', p.css = '%s', p.meta_keywords = '%s', p.meta_description = '%s'"
@@ -157,9 +160,10 @@ class PageFactory {
 			);
 		if($super || WCS::decide($old, 'editpage.uri')) {
 			if($old->uri != '/' && $page->name != $old->name) {
-				$fs = &$this->_getFsHelper();
+				$fs = $this->_getFsHelper();
 				if($fs->rename($old->uri, substr($old->uri, 0, -strlen($old->name) - 1).$page->name))
 					$updates[] = "t.name = '{$page->name}'";
+				$this->_clearTree();
 			}
 			$page->location = trim($page->location);
 			if($page->location == $page->uri.'index.php')
@@ -172,9 +176,9 @@ class PageFactory {
 			$page->linkTo = 0;
 			if(substr($page->location, 0, 1) == '/') {
 				$uri = substr($page->location, -10) == '/index.php' ? substr($page->location, 0, -9) : $page->location;
-				$tree = &$this->_getTree();
+				$tree = $this->_getTree();
 				if($tree->uriExists($uri)) {
-					$link = &$tree->getPageByUri($uri);
+					$link = $tree->getPageByUri($uri);
 					$page->linkTo = $link->linkTo ? $link->linkTo : $link->id;
 					unset($link);
 					$page->location = $tree->node[$page->linkTo]->getFullKey('/').'index.php';
@@ -191,8 +195,8 @@ class PageFactory {
 				, $page->router ? 1 : 0, addslashes($page->location)
 			);
 		}
-		
-		$db = &WCDB::bo();
+
+		$db = WCDB::bo();
 		$db->query(sprintf(
 			"UPDATE {$this->pagesTable} p, {$this->treeTable} t SET %s WHERE p.id = {$page->id} AND t.id = p.id"
 			, implode(',', $updates)
@@ -210,30 +214,30 @@ class PageFactory {
 		}
 		return $result;
 	}
-	
+
 	function _updateLinks(&$page) {
 		assert($page != null && $page->id > 0);
 		if($page->linkTo > 0) {
-			$link = &$this->reader->getPage($page->linkTo);
+			$link = $this->reader->getPage($page->linkTo);
 			assert($page != null);
 		} else
 			$link = &$page;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(sprintf(
 			"UPDATE {$this->pagesTable} SET linkto = %d, location = '%s' WHERE linkto = $page->id", $link->id, $link->uri.'index.php'
 		));
 	}
-	
+
 	function setSubtreeUsers($pageId, $users = null) {
 		$result = false;
-		$page = &$this->reader->getPage($pageId);
+		$page = $this->reader->getPage($pageId);
 		assert($page != null);
 		$super = $this->reader->superDecide($pageId, 'managesub');
-		
+
 		if($super || (WCS::decide($page, 'editpage.security') && WCS::decide($page, 'managesub'))) {
 			if($users != null)
 				$page->setUsers($users);
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query(sprintf(
 				"UPDATE {$this->treeTable} t1, {$this->treeTable} t2, {$this->pagesTable} p SET p.users = '%s' WHERE t1.id = {$page->id} AND t2.num >= t1.num AND (t1.num = t2.num OR t1.next = 0 OR t1.next > t2.num) AND t2.id = p.id"
 				, addslashes(implode(',', $page->users))
@@ -243,18 +247,18 @@ class PageFactory {
 		}
 		return $result;
 	}
-	
+
 	function updateBlocks(&$page) {
 		$result = true;
 		assert($page != null && $page->id > 0);
-		$old = &$this->reader->getPage($page->id);
+		$old = $this->reader->getPage($page->id);
 		assert($old != null);
-		
+
 		if(is_array($page->objects)) {
 			$super = $this->reader->superDecide($page->id, 'managesub');
 			WCS::assertValue($super || WCS::decide($old, 'pageblock'), $old, 'pageblock');
 			require_once(LIBDIR.'/objmanager._wc');
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			foreach($page->objects as $id => $obj)
 				$db->query(sprintf(
 					"UPDATE {$this->objTable} SET observer = %d, crumbs = %d, block = '%s' WHERE page_id = {$page->id} AND obj_id = %d AND !rule"
@@ -269,28 +273,28 @@ class PageFactory {
 		}
 		return $result;
 	}
-	
+
 	function addObject($pageId, $objIds) {
 		return $this->_manageBlocks($pageId, $objIds, 'add');
 	}
-	
+
 	function removeObject($pageId, $objIds) {
 		return $this->_manageBlocks($pageId, $objIds, 'remove');
 	}
-	
+
 	function _manageBlocks($pageId, &$objIds, $action) {
 		assert($action == 'add' || $action == 'remove');
 		assert($pageId > 0 && !empty($objIds));
-		$page = &$this->reader->getPage($pageId);
+		$page = $this->reader->getPage($pageId);
 		assert($page != null);
-		
+
 		$super = $this->reader->superDecide($page->id, 'managesub');
 		WCS::assertValue($super || WCS::decide($page, 'pageblock.manage'), $page, 'pageblock.manage');
-		
+
 		if(is_array($objIds))
 			$objIds = implode(',', $objIds);
-			
-		$db = &WCDB::bo();
+
+		$db = WCDB::bo();
 		if($action == 'add') {
 			$db->query(
 				"INSERT INTO {$this->objTable} (page_id, obj_id)".
@@ -311,15 +315,15 @@ class PageFactory {
 		}
 		return $result;
 	}
-	
+
 	function updateObjectUses($objId, $uses) {
 		settype($objId, 'int');
 		assert($objId > 0);
 		require_once(LIBDIR.'/objmanager._wc');
-		$obj = &ObjManager::load($objId);
+		$obj = ObjManager::load($objId);
 		assert($obj != null);
 		$currentUses = array();
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT page_id, observer, block FROM {$this->objTable} WHERE obj_id = {$objId}");
 		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++) {
 			$r = mysql_fetch_row($res);
@@ -329,14 +333,14 @@ class PageFactory {
 		$remove = array_diff(array_keys($currentUses), array_keys($uses));
 		foreach($remove as $pageId) {
 			$super = $this->reader->superDecide($pageId, 'managesub');
-			$page = &$this->reader->getPage($pageId);
+			$page = $this->reader->getPage($pageId);
 			if($super || WCS::decide($page, 'pageblock.manage'))
 				$this->removeObject($pageId, $objId);
 		}
 		foreach($uses as $pageId => $block) {
 			if(!isset($currentUses[$pageId]) || $block != $currentUses[$pageId]) {
 				$super = $this->reader->superDecide($pageId, 'managesub');
-				$page = &$this->reader->getPage($pageId);
+				$page = $this->reader->getPage($pageId);
 				if(!isset($currentUses[$pageId])
 					&& ($super || WCS::decide($page, 'pageblock.manage'))
 					) {
@@ -363,41 +367,41 @@ class PageFactory {
 							WCS::runAs(WCS_ROOT_ID);
 							$this->publishPage($page->id);
 							WCS::stopRunAs();
-						}	
+						}
 					}
 				}
 			}
 		}
 	}
-	
+
 	function publishPage($pageId, $recursive = false) {
 		$result = true;
-		$page = &$this->reader->getPage($pageId);
+		$page = $this->reader->getPage($pageId);
 		$super = $this->reader->superDecide($page->id, 'managesub');
-		
+
 		WCS::assertValue($super || WCS::decide($page, 'editpage.publish'), $page, 'editpage.publish');
-		
+
 		if($page->parent > 0 && !$this->reader->isPublished($page->parent))
 			return false;
-		
+
 		$compiled = $published = array();
-		$compiler = &$this->_getCompiler();
-		$compiled[$page->id] = &$compiler->compile($page);
-		
+		$compiler = $this->_getCompiler();
+		$compiled[$page->id] = $compiler->compile($page);
+
 		if($recursive && @sizeof($compiled[$page->id])) {
 			$subSuper = $super || WCS::decide($page, 'managesub');
 			$tree = $this->_getTree();
-			$ids = &$tree->getAllSubpages($page->id);
+			$ids = $tree->getAllSubpages($page->id);
 			foreach($ids as $id) {
-				$p = &$this->reader->getPage($id);
+				$p = $this->reader->getPage($id);
 				if(isset($compiled[$p->parent]) && is_array($compiled[$p->parent]) && sizeof($compiled[$p->parent])
 					&& ($subSuper || WCS::decide($p, 'editpage.publish') || $this->reader->superDecide($p->id, 'managesub'))
 				)
-					$compiled[$id] = &$compiler->compile($p);
+					$compiled[$id] = $compiler->compile($p);
 			}
 		}
-		$fs = &$this->_getFsHelper();
-		$ftp = &$fs->_getFtp();
+		$fs = $this->_getFsHelper();
+		$ftp = $fs->_getFtp();
 		$ftp->open();
 		foreach($compiled as $id => $files) {
 			if(is_array($files)) {
@@ -410,10 +414,10 @@ class PageFactory {
 				$result = false;
 		}
 		if(sizeof($published)) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query(sprintf("UPDATE {$this->pagesTable} SET published = 1 WHERE id IN (%s)", implode(',', $published)));
 			$this->_updateSitemap();
-			$smc = &$this->_getSmartyCache();
+			$smc = $this->_getSmartyCache();
 			$smc->page_updated($published);
 			require_once(LIBDIR.'/wcdatasource._wc');
 			require_once(LIBDIR.'/htmltext/dshtmltext._wc');
@@ -422,24 +426,24 @@ class PageFactory {
 		$ftp->close();
 		return $result;
 	}
-	
+
 	function unpublishPage($pageId) {
 		$result = true;
-		$page = &$this->reader->getPage($pageId);
+		$page = $this->reader->getPage($pageId);
 		$super = $this->reader->superDecide($page->id, 'managesub');
-		
+
 		WCS::assertValue($super || WCS::decide($page, 'editpage.publish'), $page, 'editpage.publish');
-		
+
 		if($page->published) {
 			$pages[] = $page->uri;
-			$tree = &$this->_getTree();
-			$ids = &$tree->getAllSubpages($page->id);
+			$tree = $this->_getTree();
+			$ids = $tree->getAllSubpages($page->id);
 			foreach($ids as $id)
 				if($tree->node[$id]->published)
 					$pages[] = $tree->node[$id]->getFullKey('/');
-			$fs = &$this->_getFsHelper();
+			$fs = $this->_getFsHelper();
 			$result = $result && $fs->unpublishPages($pages);
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query(
 				"UPDATE {$this->treeTable} t1, {$this->treeTable} t2, {$this->pagesTable} p SET p.published = 0".
 				" WHERE t1.id = {$page->id} AND t2.num >= t1.num AND (t1.next = 0 OR t2.num < t1.next) AND t2.id = p.id"
@@ -447,7 +451,7 @@ class PageFactory {
 			$result = $result && ($db->errorCode() == 0);
 			$this->_updateSitemap();
 			if($result) {
-				$smc = &$this->_getSmartyCache();
+				$smc = $this->_getSmartyCache();
 				$smc->page_updated($ids);
 				require_once(LIBDIR.'/wcdatasource._wc');
 				require_once(LIBDIR.'/htmltext/dshtmltext._wc');
@@ -456,31 +460,31 @@ class PageFactory {
 		}
 		return $result;
 	}
-	
+
 	function republishPages($pageId) {
-		$page = &$this->reader->getPage($pageId);
+		$page = $this->reader->getPage($pageId);
 		assert($page != null && $page->published);
 		$super = $this->reader->superDecide($page->id, 'managesub');
 		WCS::assertValue($super || WCS::decide($page, 'editpage.publish'), $page, 'editpage.publish');
-		
-		
-		$compiler = &$this->_getCompiler();
-		$fs = &$this->_getFsHelper();
-		$ftp = &$fs->_getFtp();
+
+
+		$compiler = $this->_getCompiler();
+		$fs = $this->_getFsHelper();
+		$ftp = $fs->_getFtp();
 		$ftp->open();
-		
-		$compiled = &$compiler->compile($page);
+
+		$compiled = $compiler->compile($page);
 		if(is_array($compiled))
 			$fs->writePage($compiled);
-		
+
 		$tree = $this->_getTree();
-		$ids = &$tree->getAllSubpages($page->id);
+		$ids = $tree->getAllSubpages($page->id);
 		$unpublished = array();
 		foreach($ids as $id)
 			if($tree->node[$id]->published) {
-				$page = &$this->reader->getPage($id);
+				$page = $this->reader->getPage($id);
 				if($super || WCS::decide($page, 'editpage.publish') || $this->reader->superDecide($page->id, 'managesub')) {
-					$compiled = &$compiler->compile($page);
+					$compiled = $compiler->compile($page);
 					if(is_array($compiled))
 						$fs->writePage($compiled);
 				}
@@ -490,30 +494,31 @@ class PageFactory {
 			$fs->unpublishPages($unpublished);
 		$this->_updateSitemap();
 		$ftp->close();
-		$smc = &$this->_getSmartyCache();
+		$smc = $this->_getSmartyCache();
 		$smc->page_updated(array_merge(array($pageId), $ids));
 	}
-	
+
 	function movePage($pageId, $newParentId) {
 		$result = false;
 		assert($pageId > 0 && $newParentId > 0);
-		
-		$page = &$this->reader->getPage($pageId);
-		$parent = &$this->reader->getPage($newParentId);
+
+		$page = $this->reader->getPage($pageId);
+		$parent = $this->reader->getPage($newParentId);
 		assert($page != null && $page->index > 0 && $parent != null && strpos($parent->uri, $page->uri) !== 0);
-		
+
 		WCS::assertValue($this->reader->superDecide($page->id, 'managesub') || WCS::decide($page, 'removepage'), $page, 'removepage');
 		WCS::assertValue($this->reader->superDecide($parent->id, 'managesub') || WCS::decide($parent, 'managesub'), $parent, 'managesub');
-		
-		$tree = &$this->_getTreeHelper();
+
+		$tree = $this->_getTreeHelper();
 		if(!$tree->exists($parent->id, $page->name) && !@file_exists($_SERVER['DOCUMENT_ROOT'].$parent->uri.$page->name)) {
-			$fs = &$this->_getFsHelper();
+			$fs = $this->_getFsHelper();
 			if($fs->rename($page->uri, $parent->uri.$page->name)) {
 				if($tree->moveNode($page->id, $parent->id)) {
 					$result = true;
 					WCS::runAs(WCS_ROOT_ID);
 					$this->unpublishPage($page->id);
 					WCS::stopRunAs();
+					$this->_clearTree();
 				} else {
 					$fs->rename($parent->uri.$page->name, $page->uri);
 					echo "<br/> - PageFactory: Cannot move page in database<br/>";
@@ -524,33 +529,63 @@ class PageFactory {
 		}
 		return $result;
 	}
-	
+
+	function copyPage($pageId, $destId, $pageName = null, $pageHeader = null) {
+		$result = true;
+		$page = $this->reader->getPage($pageId);
+		$destIds = array();
+		$destIds[$page->uri] = $this->createPage($destId, $pageName !== null ? $pageName : $page->name, $pageHeader !== null ? $pageHeader : $page->header, $page->id);
+
+		$tree = $this->_getTree();
+		$ids = $tree->getAllSubpages($page->id);
+		$fs = $this->_getFsHelper();
+		$ftp = $fs->_getFtp();
+		$ftp->open();
+		foreach($ids as $id) {
+			$p = $this->reader->getPage($id);
+			$parentUri = substr($p->uri, 0, -strlen($p->name) - 1);
+			$parentId = (int) @$destIds[$parentUri];
+			assert($parentId > 0);
+			$id = $this->createPage($parentId, $p->name, $p->header, $p->id);
+			if (!($id > 0)) {
+				echo "<br/> - PageFactory: Cannot copy page '{$p->uri}'<br/>";
+				$result = false;
+				break;
+			}
+			$destIds[$p->uri] = $id;
+		}
+		$ftp->close();
+		$this->_clearTree();
+
+        return $result;
+	}
+
 	function incrementPriority($pageId) {
 		assert($pageId > 0);
-		$page = &$this->reader->getPage($pageId);
+		$page = $this->reader->getPage($pageId);
 		assert($page != null && $page->index > 0);
-		
-		$parent = &$this->reader->getPage($page->parent);
+
+		$parent = $this->reader->getPage($page->parent);
 		WCS::assertValue($this->reader->superDecide($page->id, 'managesub'), $parent, 'managesub');
 
-		$tree = &$this->_getTreeHelper();
+		$tree = $this->_getTreeHelper();
 		$tree->moveNodeUp($page->id);
 		$this->_updateSitemap();
 	}
-	
+
 	function decrementPriority($pageId) {
 		assert($pageId > 0);
-		$page = &$this->reader->getPage($pageId);
+		$page = $this->reader->getPage($pageId);
 		assert($page != null && $page->index > 0);
-		
-		$parent = &$this->reader->getPage($page->parent);
+
+		$parent = $this->reader->getPage($page->parent);
 		WCS::assertValue($this->reader->superDecide($page->id, 'managesub'), $parent, 'managesub');
-		
-		$tree = &$this->_getTreeHelper();
+
+		$tree = $this->_getTreeHelper();
 		$tree->moveNodeDown($page->id);
 		$this->_updateSitemap();
 	}
-	
+
 	function updateAuths(&$page) {
 		assert($page->id > 0);
 		$super = $this->reader->superDecide($page->id, 'managesub');
@@ -563,97 +598,101 @@ class PageFactory {
 			$querySet .= ", wcsgroup = {$page->sRes->group}";
 		$querySet .= sprintf(', oauths = CONV("%s", 2, 10), gauths = CONV("%s", 2, 10)', $page->sRes->getOwnerAuths(), $page->sRes->getGroupAuths());
 		if($querySet) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$querySet = substr($querySet, 1);
 			$db->query("UPDATE {$this->treeTable} SET $querySet WHERE id = {$page->id} AND ".($super ? 1 : WCS::getAuthCheckQuery('editpage.chmod')));
 		}
 	}
-	
+
 	function &getPage($pageId) {
 		return $this->reader->getPage($pageId);
 	}
-	
+
 	function &getFtp() {
-		$fs = &$this->_getFsHelper();
+		$fs = $this->_getFsHelper();
 		return $fs->_getFtp();
 	}
-	
+
 	function &getInstance() {
 		static $instance;
 		if(!is_object($instance))
 			$instance = new PageFactory();
 		return $instance;
 	}
-	
+
 	function setFtp(&$ftp) {
-		$fs = &$this->_getFsHelper();
+		$fs = $this->_getFsHelper();
 		$fs->_setFtp($ftp);
 	}
-	
+
 	function _updateSitemap() {
-		$compiler = &$this->_getCompiler();
-		$fs = &$this->_getFsHelper();
+		$compiler = $this->_getCompiler();
+		$fs = $this->_getFsHelper();
 		$fs->writePage(FILES.'/map._wc', $compiler->generateSitemap());
 	}
-	
+
 	function &_getTree($reload = false) {
 		if($reload || !is_object($this->tree))
-			$this->tree = &$this->reader->getTree();
+			$this->tree = $this->reader->getTree();
 		return $this->tree;
 	}
-	
+
+	function _clearTree() {
+		$this->tree = null;
+	}
+
 	function &_getTreeHelper() {
 		if(!is_object($this->treeHelper)) {
 			require_once('sitesqltree._wc');
-			$this->treeHelper = & new SiteSqlTree();
+			$this->treeHelper = new SiteSqlTree();
 		}
 		return $this->treeHelper;
 	}
-	
+
 	function &_getFsHelper() {
 		if(!is_object($this->fsHelper)) {
 			require_once('sitefiles._wc');
-			$this->fsHelper = & new SiteFiles();
+			$this->fsHelper = new SiteFiles();
 		}
 		return $this->fsHelper;
 	}
-	
+
 	function &_getCompiler() {
 		if(!is_object($this->compiler)) {
 			require_once('pagecompiler._wc');
-			$this->compiler = & new PageCompiler();
+			$this->compiler = new PageCompiler();
 		}
 		return $this->compiler;
 	}
-	
+
 	function &_getSmartyCache() {
 		if(!is_object($this->smc)) {
 			require_once(LIBDIR.'/smarty/wcsmartycache._wc');
-			$this->smc = &WCSmartyCache::getInstance();
+			$this->smc = WCSmartyCache::getInstance();
 		}
 		return $this->smc;
 	}
-	
+
 	function _dropAll() {
 		$result = true;
 		WCS::_assert(Authentication::getUserId() == WCS_ROOT_ID);
 		$root = $this->reader->getRootId();
 		assert($root > 0);
-		$level1 = &$this->reader->getSubPages($root, 1);
+		$level1 = $this->reader->getSubPages($root, 1);
 		foreach($level1 as $id => $header) {
 			$result = $result && $this->removePage($id);
 		}
 		$this->unpublishPage($root);
 		if($result) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$res = $db->query("SELECT * FROM {$this->treeTable} t INNER JOIN {$this->pagesTable} p ON(t.id = p.id) WHERE t.id = $root");
 			$page = mysql_fetch_assoc($res);
 			mysql_free_result($res);
-			
+
 			$db->query('TRUNCATE TABLE sitetree');
 			$db->query('TRUNCATE TABLE sitepages');
 			$db->query('TRUNCATE TABLE siteobjects');
-			
+
 			$db->query(sprintf(
 				"INSERT INTO sitetree (id, name, header, wcsowner, wcsgroup, oauths, gauths)".
 				" VALUES (1, 'root', 'Root', %d, %d, '%s', '%s')"

@@ -31,11 +31,12 @@ switch(@$_POST['action'])
 	case 'create_message':
 		assert(trim(@$_POST['subject']) != '');
 		if(@$_POST['hybridid'] > 0) {
-			$hDoc = &WCDataSource::getHybridDoc($_POST['hybridid']);
-			WCS::assert($hDoc, 'editdoc');
+			$ownerDs = WCDataSource::loadByDoc($_POST['hybridid']);
+			$ownerDoc = $ownerDs->getDocument($_POST['hybridid']);
+			WCS::assertValue(WCS::decide($ownerDoc, 'editdoc') || WCS::decide($ownerDs, 'editdoc'), $ownerDoc, 'editdoc');
 			WCS::runAs(WCS_ROOT_ID);
 		}
-		$_ds = &$dsm->load(@$_POST['ds_id']); 
+		$_ds = $dsm->load(@$_POST['ds_id']); 
 		$date = strtotime(@$_POST['date']);
 		$result=$_ds->add($_POST['subject'], @$_POST['html'], $date, @$_POST['author'], @$_POST['email']);
 		if($result)
@@ -57,7 +58,7 @@ switch(@$_POST['action'])
 	case 'edit_message':
 		assert(@$_POST['id'] > 0);
 		assert(trim(@$_POST['subject']) != '');
-		$_ds = &$dsm->load(@$_POST['ds_id']);
+		$_ds = $dsm->load(@$_POST['ds_id']);
 		$date = strtotime(@$_POST['date']);
 		if(@$_POST['published']=='true')
 			$_ds->publish($_POST['id']);
@@ -71,7 +72,7 @@ switch(@$_POST['action'])
 	case 'delete_message':
 		if(isset($_POST['ds_id']))
 		{
-			$_ds = &$dsm->load($_POST['ds_id']);
+			$_ds = $dsm->load($_POST['ds_id']);
 			$_ds->delete(implode(',',@$_POST['ids']));
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -81,7 +82,7 @@ switch(@$_POST['action'])
 	case 'remove_ds':
 		if(isset($_POST['ds_id']))
 		{
-			$_ds = &$dsm->load($_POST['ds_id']); 
+			$_ds = $dsm->load($_POST['ds_id']); 
 			$_ds->remove();
 		}
 //		header('Location: http://'.$_host.WCHOME.'/data/');
@@ -91,8 +92,8 @@ switch(@$_POST['action'])
 	case 'move_documents':
 		assert(@$_POST['ds_id'] > 0 && @$_POST['dest_ds_id'] > 0);
 		if(isset($_POST['ids'])) {
-			assert($_ds = &$dsm->load($_POST['ds_id']));
-			assert($dest_ds = &$dsm->load($_POST['dest_ds_id']));
+			assert($_ds = $dsm->load($_POST['ds_id']));
+			assert($dest_ds = $dsm->load($_POST['dest_ds_id']));
 			assert($_ds->ds_id != $dest_ds->ds_id);
 			$real_ids=$dest_ds->get_real_ids();
 			$ids=$_POST['ids'];
@@ -118,7 +119,7 @@ switch(@$_POST['action'])
 	case 'publish_documents':
 		if(isset($_POST['ds_id']))
 		{
-			$_ds = &$dsm->load($_POST['ds_id']); 
+			$_ds = $dsm->load($_POST['ds_id']); 
 			$_ds->publish(implode(',',@$_POST['ids']));
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -128,7 +129,7 @@ switch(@$_POST['action'])
 	case 'unpublish_documents':
 		if(isset($_POST['ds_id']))
 		{
-			$_ds = &$dsm->load($_POST['ds_id']); 
+			$_ds = $dsm->load($_POST['ds_id']); 
 			$_ds->unpublish(implode(',',@$_POST['ids']));
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -137,23 +138,11 @@ switch(@$_POST['action'])
 	
 	case 'create_alias':
 		assert(@sizeof($_POST['ids']) > 0);
-		assert($_ds = &$dsm->load(@$_POST['ds_id'])); 
+		assert($_ds = $dsm->load(@$_POST['ds_id'])); 
 		$_ids = $_POST['ids'];
 		foreach($_ids as $id)
 			$_ds->create_alias($id);//$result=
 		die('<meta http-equiv="Refresh" content="0; URL='.$_SERVER['HTTP_REFERER'].'">');
-	break;
-	
-	case 'view_detail':
-		foreach((array) @$_COOKIE['vd'] as $key => $val){
-			if(!array_key_exists($key, (array) @$_POST['vdetail']))
-				setcookie('vd['.$key.']', '', time() - 3600, WCHOME.'/data/');
-		}
-		foreach($_POST['vdetail'] as $key => $val)
-			setcookie('vd['.$key.']', $key, 0, WCHOME.'/data/');
-		setcookie('pagesize', $_POST['pagesize'], 0, WCHOME.'/data/');
-		setcookie('vd[_touched]', '_touched', 0, WCHOME.'/data/');
-		header('Location: '.$_SERVER['HTTP_REFERER']);
 	break;
 	
 	default:

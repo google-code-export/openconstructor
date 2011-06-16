@@ -23,11 +23,6 @@
 	require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
 	System::request('data');
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/data._wc');
-	
-	require_once(LIBDIR.'/smarty/ocmsmartybackend._wc');
-	$smartybackend = & new OcmSmartyBackend();
-	$smartybackend->caching = false;
-	
 	//userfriendly names
 	$uf['ds_name']=DS_NAME;
 	$uf['description']=DS_DESCRIPTION;
@@ -35,20 +30,54 @@
 	//default values
 	$ds_name='';
 	$description='';
-	
 	//read values that have not been saved
 	read_fail_header();
-	
-	$ds_name = htmlspecialchars($ds_name, ENT_COMPAT, 'UTF-8');
-	$reportResult = report_results(CREATE_DS_FAILED_W);
-	$isValid['ds_name'] = is_valid('ds_name');
-	$isValid['description'] = is_valid('description');
-	$dis = System::decide('data.dshtmltext') ? 'false' : 'true';
-	$smartybackend->assign("uf", $uf);
-	$smartybackend->assign("ds_name", $ds_name);
-	$smartybackend->assign("description", $description);
-	$smartybackend->assign("dis", $dis);
-	$smartybackend->assign("reportResult", $reportResult);
-	$smartybackend->assign("isValid", $isValid);
-	$smartybackend->display('data/create_htmltext.tpl');
 ?>
+<html>
+<head>
+<title><?=WC.' | '.CREATE_DS_HTMLTEXT?></title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="../<?=SKIN?>.css" type=text/css rel=stylesheet>
+<script language="JavaScript" type="text/JavaScript">
+var re=new RegExp('[^\\s]','gi');
+function dsb(){
+	if(!f.ds_name.value.match(re)||<?=System::decide('data.dshtmltext') ? 'false' : 'true'?>)
+		f.create.disabled=true; else f.create.disabled=false;
+}
+</script>
+</head>
+<body style="border-style:groove;padding:0 20 20">
+<br>
+<h3><?=CREATE_DS_HTMLTEXT?></h3>
+<?php
+	report_results(CREATE_DS_FAILED_W);
+?>
+<form name="f" method="POST" action="i_data.php">
+	<input type="hidden" name="action" value="create_dshtmltext">
+	<fieldset style="padding:10"><legend><?=DS_GENERAL_PROPS?></legend>
+		<div class="property"<?=is_valid('ds_name')?>>
+			<span><?=$uf['ds_name']?>:</span>
+			<input type="text" name="ds_name" value="<?=htmlspecialchars($ds_name, ENT_COMPAT, 'UTF-8')?>" size="64" maxlength="64" onpropertychange="dsb()">
+		</div>
+		<div class="property"<?=is_valid('description')?>>
+			<span><?=$uf['description']?>:</span>
+			<textarea cols="51" rows="5" name="description"><?=$description?></textarea>
+		</div>
+	</fieldset><br>
+	<fieldset style="padding:10"><legend><?=DS_PROPS?></legend>
+	<table style="margin:5 0" cellspacing="3">
+		<tr>
+			<td><?=DS_SIZE?>:</td>
+			<td><input type="text" name="dssize" size="5" maxlength="4"> <?=DS_RECORDS?></td>
+		</tr>
+		<tr>
+			<td><?=DS_INTROSIZE?>:</td>
+			<td><input type="text" name="introsize" size="5" maxlength="4"> <?=DS_CHARS?></td>
+		</tr>
+	</table>
+	</fieldset><br>
+	<div align="right"><input type="submit" value="<?=BTN_CREATE_DS?>" name="create"> <input type="button" value="<?=BTN_CANCEL?>" onclick="window.close()"></div>
+</form>
+<script>dsb();</script>
+</body>
+</html>

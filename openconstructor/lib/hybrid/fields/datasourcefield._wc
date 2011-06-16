@@ -34,15 +34,15 @@ class DatasourceField extends HybridField {
 	}
 
 	function create() {
-		if(HybridField::create())
+		if(parent::create())
 			$this->update();
-		$ds = &FieldUtils::loadDS($this->type, $this->fromDS);
+		$ds = FieldUtils::loadDS($this->type, $this->fromDS);
 		$ds->increaseLock();
 		return $this->id;
 	}
 
 	function update() {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			sprintf("UPDATE $this->table SET header='%s', isreq='%d', fromds='%d' ".// fromds=$this->fromDS
 					"WHERE id=$this->id", addslashes($this->header), intval($this->isRequired), intval($this->fromDS))
@@ -50,7 +50,7 @@ class DatasourceField extends HybridField {
 	}
 
 	function remove() {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT $this->key as id FROM $this->ds_table WHERE $this->key > 0");
 		if(mysql_num_rows($res) > 0) {
 			WCS::runAs(WCS_ROOT_ID);
@@ -61,9 +61,9 @@ class DatasourceField extends HybridField {
 			WCS::stopRunAs();
 		}
 		mysql_free_result($res);
-		$ds = &FieldUtils::loadDS($this->type, $this->fromDS);
+		$ds = FieldUtils::loadDS($this->type, $this->fromDS);
 		$ds->decreaseLock();
-		HybridField::remove();
+		parent::remove();
 	}
 
 	function onCreateDocument(&$doc) {

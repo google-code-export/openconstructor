@@ -28,7 +28,7 @@ function smarty_function_boolwidget($params, &$smarty) {
         $smarty->trigger_error("boolwidget: missing 'field' parameter");
         return;
     }
-	$doc = &$smarty->get_template_vars('doc');
+	$doc = $smarty->get_template_vars('doc');
 	$field = strpos($params['field'], 'f_') === 0 ? @substr($params['field'], 2) : '_'.$params['field']; 
     if(!array_key_exists($field, $doc)) {
         $smarty->trigger_error("boolwidget: field '{$params['field']}' doesn't exists");

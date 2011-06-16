@@ -35,7 +35,7 @@ class WCEnum {
 		WCS::assert($this, 'addvalue');
 		$value = $this->validateValue($value);
 		assert($value != '' && trim($header) != '');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(sprintf(
 			'INSERT INTO enumvalues (enum_id, value, header) VALUES (%d, "%s", "%s")',
 			$this->id, addslashes($value), addslashes($header)
@@ -53,7 +53,7 @@ class WCEnum {
 		settype($id, 'int');
 		$value = $this->validateValue($value);
 		assert($value != '' && trim($header) != '' && $id > 0);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(sprintf(
 			'UPDATE enumvalues SET value = "%s", header = "%s" WHERE id = %d AND enum_id = %d',
 			addslashes($value), addslashes($header), $id, $this->id
@@ -64,7 +64,7 @@ class WCEnum {
 		WCS::assert($this, 'removevalue');
 		if(is_array($ids))
 			$ids = implode(',', $ids);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query("DELETE FROM enumvalues WHERE id IN ($ids) AND enum_id = {$this->id}");
 		
 		loadClass('fieldfactory', '/hybrid/fields/fieldfactory._wc');
@@ -75,7 +75,7 @@ class WCEnum {
 		$result = null;
 		settype($id, 'int');
 		assert($id > 0);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT id, value, header FROM enumvalues WHERE id = $id AND enum_id = {$this->id}");
 		if(mysql_num_rows($res) == 1)
 			$result = mysql_fetch_assoc($res);
@@ -85,7 +85,7 @@ class WCEnum {
 	
 	function &getAllValues() {
 		$result = array();
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT id, value, header FROM enumvalues WHERE enum_id = $this->id");
 		if(mysql_num_rows($res) > 0)
 			while($r = mysql_fetch_assoc($res))

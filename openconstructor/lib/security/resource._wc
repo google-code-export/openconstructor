@@ -33,7 +33,7 @@ class WCSResource {
 	function WCSResource($name, $owner, $group) {
 		$this->name = &$name;
 		$this->owner = (int) $owner;
-		if(is_array(&$group))
+		if(is_array($group))
 			$this->group = &$group;
 		else
 			$this->group = strpos($group, ',') === false ? (int) $group : explode(',', $group);
@@ -60,7 +60,7 @@ class WCSResource {
 		$this->map = &$map;
 		unset($this->actions[0]);
 		$auths = str_repeat('0', $this->length);
-		$this->setAuthorities(&$auths, &$auths);
+		$this->setAuthorities($auths, $auths);
 	}
 	
 	function setAuthorities($ownerAuths, $groupAuths = null) {
@@ -73,7 +73,7 @@ class WCSResource {
 			$this->authorities[0] = $this->authorities[1] = str_pad('0', $this->length + 1, '0');
 			$auths = explode(':', $ownerAuths);
 			for($i = 0, $li = sizeof($auths); $i < $li; $i++) {
-				$bits = explode(',', &$auths[$i]);
+				$bits = explode(',', $auths[$i]);
 				for($j = 0, $lj = sizeof($bits); $j < $lj; $j++)
 					$this->_setBit($this->authorities[$i], $bits[$j], true);
 			}
@@ -114,7 +114,7 @@ class WCSResource {
 	}
 	
 	function setGroup($groupId) {
-		if(is_array(&$groupId))
+		if(is_array($groupId))
 			$this->group = &$groupId;
 		else
 			$this->group = (int) $groupId;

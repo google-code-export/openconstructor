@@ -30,10 +30,10 @@ class CacheVarySuggest {
 	
 	function suggest(&$obj) {
 		$result = array();
-		$lib = &CacheVarySuggest::getLibrary();
+		$lib = self::getLibrary();
 		if(isset($lib[$obj->obj_type])) {
-			$result = &CacheVarySuggest::suggestByFields($obj, $lib[$obj->obj_type]);
-			$result = array_merge($result, CacheVarySuggest::extraSuggest($obj));
+			$result = self::suggestByFields($obj, $lib[$obj->obj_type]);
+			$result = array_merge($result, self::extraSuggest($obj));
 		}
 		return $result;
 	}

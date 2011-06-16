@@ -1,28 +1,28 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- *
+ * 
  * All rights reserved.
- *
+ * 
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- *
+ * 
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- *
+ * 
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- *
+ * 
  * $Id: login.php,v 1.13 2007/03/24 20:14:45 sanjar Exp $
  */
 require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
 require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/main._wc');
-$auth = &Authentication::getInstance();
+$auth = Authentication::getInstance();
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
@@ -35,7 +35,7 @@ $auth = &Authentication::getInstance();
 	<link rel="icon" type="image/gif" href="<?=WCHOME?>/i/<?=SKIN?>/favicon.gif">
 	<script type="text/javascript">
 		var agent = navigator.userAgent.toLowerCase();
-		var browser = ((agent.indexOf("msie") != -1) || (agent.indexOf("gecko") != -1));
+		var isIE = (agent.indexOf("msie") != -1) && !(agent.indexOf("opera") != -1) && !(agent.indexOf("mac") != -1);
 	</script>
 	<style>
 		DIV.top {background:transparent url(i/metallic/about_top.gif) top left repeat-x;font-size:8px;padding:0;height:10px;}
@@ -65,7 +65,7 @@ $auth = &Authentication::getInstance();
 				<div style="padding:10px 40px;border-top: solid 1px #fff; border-bottom: solid 1px #666;" id="stop">
 					<div style="width:100%">
 					<table border="0" cellspacing="0" cellpadding="0" style="color:#060; font-size: 110%;" width="100%"><tr>
-						<td><img src="i/<?=SKIN?>/images/ico/ico-info.gif" alt="Info" width="28" height="28"></td>
+						<td><img src="i/<?=SKIN?>/ico/ico-info.gif" alt="Info" width="28" height="28"></td>
 						<td style="padding-left:10px;">
 							<?=INSTALLER_FIRST_LOGON_I?>
 						</td>
@@ -97,9 +97,24 @@ $auth = &Authentication::getInstance();
 						</table>
 					</form>
 				</div>
+				<div style="padding:25px 0px 0px;margin:0px;">
+					<form method="get" action="i_openid.php" style="margin:0; padding:0;">
+						<input type="hidden" name="action" value="verify" />
+						<table cellpadding="0" cellspacing="0" border="0" style="font-size:200%;font-family:verdana,tahoma,sans-serif;">
+							<tr class="loginpwd">
+								<td><?=USR_OPENID_LOGIN?>:</td>
+								<td>&nbsp;&nbsp;<input type="text" name="identifier" style="font-size:75%" class="blueborder"></td>
+							</tr>
+							<tr>
+								<td>&nbsp;</td>
+								<td>&nbsp;&nbsp;<input type="submit" value="<?=BTN_AUTHORIZE?>" style="font-family:sans-serif; font-size:70%; padding:0 5px"></td>
+							</tr>
+						</table>
+					</form>
+				</div>
 				<?php include(LIBDIR.'/languagesets/'.LANGUAGE.'/login_info.html');?>
 				<script type="text/javascript">
-					if(!browser)
+					if(!isIE)
 						document.getElementById("browser_req").style.color = "#cb3435";
 				</script>
 			</div>

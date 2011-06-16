@@ -27,7 +27,7 @@
 	assert(@$_GET['ds_id'] > 0 && @$_GET['rid'] > 0 && @$_GET['id'] > 0);
 	require_once(LIBDIR.'/dsmanager._wc');
 	$dsm = new DSManager();
-	$_ds = &$dsm->load($_GET['ds_id']); 
+	$_ds = $dsm->load($_GET['ds_id']); 
 	$_doc = $_ds->get_record($_GET['rid']);
 	assert($_doc !== null);
 	$vote = $_ds->getVote($_doc['id'], $_GET['id']);

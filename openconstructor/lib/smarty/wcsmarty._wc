@@ -22,7 +22,7 @@
  *
  * $Id: wcsmarty._wc,v 1.7 2007/04/24 21:49:07 sanjar Exp $
  */
-require_once(SMARTY_DIR.'Smarty.class.php');
+require(SMARTY_DIR.'Smarty.class.php');
 
 class WCSmarty extends Smarty {
 	var $_object_stack = array();
@@ -48,10 +48,10 @@ class WCSmarty extends Smarty {
 		$this->security = true;
 		$this->secure_dir = array(ROOT.WC_SMARTY_TEMPLATES, LIBDIR.'/tpl');
 		$this->security_settings = array(
-			'IF_FUNCS' => array('count', 'isset', 'sizeof', 'is_array'),
+			'IF_FUNCS' => array('count', 'isset', 'sizeof', 'is_array', 'in_array'),
 			'INCLUDE_ANY' => false,
 			'PHP_TAGS' => false,
-			'MODIFIER_FUNCS' => array('sprintf', 'count', 'sizeof', 'join', 'explode', 'substr', 'array_keys', 'array_search'),
+			'MODIFIER_FUNCS' => array('sprintf', 'count', 'sizeof', 'join', 'explode', 'substr'),
 			'ALLOW_CONSTANTS' => false
 		);
 		$this->trusted_dir = array(ROOT.FILES.'/php');
@@ -60,7 +60,6 @@ class WCSmarty extends Smarty {
 		$this->register_modifier('implode', 'smarty_mod_implode', true);
 		$this->register_modifier('ftime', 'smarty_mod_ftime', true);
 		$this->register_modifier('fdate', 'smarty_mod_fdate', true);
-		$this->register_modifier('bool', 'smarty_mod_bool', true);
 		$this->debugging = false;
 		$this->_dir_perms = 0777;
 		$this->_file_perms = 0777;
@@ -84,16 +83,16 @@ function smarty_func_run_block($params, &$smarty) {
 	$ctx = &$smarty->_ctx;
 	if($ctx->page->status == 404)
 		return;
-	$obj = &$ctx->getObjectAt(@$params['id']);
+	$obj = $ctx->getObjectAt(@$params['id']);
 	if($obj !== null) {
 		if(!isset($smarty->_object_stack[$obj->obj_id])) {
 			$smarty->_object_stack[$obj->obj_id] = true;
 			unset($params['id']);
 			if(is_array($obj)) {
 				for($i = 0, $l = sizeof($obj); $i < $l; $i++)
-					$obj[$i]->exec(&$smarty, $params);
+					$obj[$i]->exec($smarty, $params);
 			} else
-				$obj->exec(&$smarty, $params);
+				$obj->exec($smarty, $params);
 			unset($smarty->_object_stack[$obj->obj_id]);
 		} else {
 			$smarty->trigger_error('run_block: Recursive call. Stack = [ '.implode(' &gt; ', array_keys($smarty->_object_stack)).' &gt; <b>'.$obj->obj_id.'</b> ]');
@@ -123,7 +122,7 @@ function smarty_func_href($params, &$smarty) {
 		if(isset($cache[$uid])) {
 			$pattern = &$cache[$uid];
 		} else {
-			$pattern = &$smarty->_ctx->getPatternFor($uri, $p);
+			$pattern = $smarty->_ctx->getPatternFor($uri, $p);
 			$cache[$uid] = $pattern;
 		}
 		return vsprintf($pattern, $v);
@@ -135,7 +134,7 @@ function smarty_func_href($params, &$smarty) {
 
 function smarty_outputfilter_gzip($output, &$smarty) {
 	$result = null;
-	$ctx = &Context::getInstance();
+	$ctx = Context::getInstance();
 	if(headers_sent()) {
 		$ctx->page->_cacheGz = false;
 		$result = &$output;
@@ -147,9 +146,5 @@ function smarty_outputfilter_gzip($output, &$smarty) {
 			$ctx->page->_cacheGz = true;
 	}
 	return $result;
-}
-
-function smarty_mod_bool($text) {
-	return $text == 'true' || $text == 'yes' || $text == 'on' || $text == 1 || $text === true;
 }
 ?>

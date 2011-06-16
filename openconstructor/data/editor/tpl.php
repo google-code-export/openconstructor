@@ -24,11 +24,11 @@
 	WCS::requireAuthentication();
 	
 	require_once(LIBDIR.'/templates/wctemplates._wc');
-	$wt = & new WCTemplates();
-	$tpl = &$wt->load(@$_GET['id']);
+	$wt = new WCTemplates();
+	$tpl = $wt->load(@$_GET['id']);
 	assert(is_object($tpl) && $tpl->type == 'importtables');
 	require_once(LIBDIR.'/smarty/wcsmarty._wc');
-	$smarty = & new WCSmarty();
+	$smarty = new WCSmarty();
 	$smarty->caching = 0;
 	$smarty->display($tpl->id.'.tpl');
 	unset($smarty, $wt, $tpl);

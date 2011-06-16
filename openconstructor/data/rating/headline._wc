@@ -26,7 +26,7 @@
 		$pagesize = (int) $_COOKIE['pagesize'];
 	function &_get_dsrating_headline(&$ds, $pageNum, $pageSize) {
 		$result = array(0, array());
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$pageNum = --$pageNum < 0 ? 0 : $pageNum;
 		$query = 
 			"SELECT SQL_CALC_FOUND_ROWS d.id, h.header, h.published, d.rating, d.raters, d.date".
@@ -55,7 +55,7 @@
 //	list($items, $hl) = get_headline('ds'.$nodetype,$curnode,'published,subject,author,email,html',$pagesize,@$_GET['page'],$searchclause);
 	list($items, $hl) = _get_dsrating_headline($ds, @$_GET['page'], $pagesize);
 	$icon='rating';
-	$eWidth = 788; $eHeight = 520;
+	$w = 788; $h = 520;
 	$editor = 'rating/edit.php?ds_id='.$curnode;
 	$fields = array(
 		'header' => HL_HEADER,
@@ -64,19 +64,10 @@
 		'raters' => HL_RATERS,
 		'date' => HL_DATE
 	);
-	$fieldnames=array(
-		'description'=>array('name' => 'description', 'title' => RP_SHOW_RATING, 'st' => true),
-		'date'=>array('name' => 'date', 'title' => RP_SHOW_DATE, 'st' => true)
+	$fieldnames = array(
+		'description' => RP_SHOW_RATING,
+		'date' => RP_SHOW_DATE
 	);
-	if(sizeof(@$_COOKIE['vd']))
-		foreach($fieldnames as $key => $value){
-			if(!isset($_COOKIE['vd'][$key]))
-				$fieldnames[$key]['st'] = false;
-	        if (!$fieldnames[$key]['st']) unset($fields[$key]);
-		}
-	require_once(LIBDIR.'/pager._wc');
-	$pager = noSqlPager($items, 'page', $pagesize, 10);
-/*
 	if(is_array(@$_COOKIE['vf']))
 		foreach($_COOKIE['vf'] as $f=>$st)
 			if($st=='disabled') unset($fields[$f]);
@@ -93,5 +84,4 @@
 //	pager('page','dsguestbook','id','WHERE ds_id='.$curnode,$pagesize,10,$searchclause);
 	noSqlPager($items, 'page', $pagesize, 10);
 	echo '</documents>';
-*/
 ?>

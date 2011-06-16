@@ -88,7 +88,7 @@ class Captcha {
 	function applyFilters() {
 		for ($i=0; $i<count($this->filters); $i++) {
 			if (class_exists($this->filters[$i])) {
-				$filter = & new $this->filters[$i]($this);
+				$filter = new $this->filters[$i]($this);
 				$filter->run();
 				if ($this->image != $filter->getImage()) {
 					imagedestroy($this->image);
@@ -132,7 +132,7 @@ class Captcha {
 	}
 	
 	function &generate($secureWord, $width, $height, $fontSize, $isTrueType) {
-		$captcha = & new Captcha($secureWord, $width, $height);
+		$captcha = new Captcha($secureWord, $width, $height);
 		$captcha->fontSize = $fontSize;
 		$captcha->isTrueType = true;
 		ob_start();

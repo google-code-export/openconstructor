@@ -25,11 +25,11 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/editors._wc');
 	require_once(LIBDIR.'/site/pagereader._wc');
 	
-	$pr = &PageReader::getInstance();
+	$pr = PageReader::getInstance();
 	$tree = $pr->getTree((int) @$_GET['id']);
 	assert($tree != null);
 	require_once(LIBDIR.'/tree/export/ajaxview._wc');
-	$view = & new AjaxView();
+	$view = new AjaxView();
 	header("Content-type: text/xml; charset=utf-8");
 	echo '<?xml version="1.0" encoding="utf-8"?>';
 	echo '<!--?xml-stylesheet type="text/xsl" href="'.WCHOME.'/skins/'.SKIN.'/tree.xsl"?-->';

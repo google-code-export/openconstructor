@@ -32,7 +32,7 @@ class ConsoleTask_Smarty_ClearCompiled extends ConsoleTask  {
 	
 	function run() {
 		require_once(LIBDIR.'/smarty/wcsmarty._wc');
-		$smarty = & new WCSmarty();
+		$smarty = new WCSmarty();
 		$smarty->clear_compiled_tpl();
 		$this->runner->info('Successfully cleared compiled Smarty templates');
 	}

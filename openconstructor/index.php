@@ -23,7 +23,7 @@
 	require_once($_SERVER['DOCUMENT_ROOT'].'/openconstructor/lib/wccommons._wc');
 	WCS::requireAuthentication();
 	$start = array('data', 'structure' => 'sitemap', 'catalog', 'objects', 'templates' => 'tpls','users');
-	$auth = &Authentication::getInstance();
+	$auth = Authentication::getInstance();
 	$pref = @$auth->profile['startpage'];
 	if(($k = array_search($pref, $start)) !== false && System::decide($pref)) {
 		sendRedirect('http://'.$_host.WCHOME.'/'.(is_int($k) ? $pref : $k), 302);

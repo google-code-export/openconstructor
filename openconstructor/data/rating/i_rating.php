@@ -29,7 +29,7 @@ switch(@$_POST['action'])
 {
 	case 'edit_rating':
 		assert(@$_POST['id'] > 0 && @$_POST['ds_id'] > 0);
-		assert($_ds = &$dsm->load($_POST['ds_id']) == true); 
+		assert($_ds = $dsm->load($_POST['ds_id']) == true); 
 		$result = $_ds->update($_POST['id'], @$_POST['rating'], @$_POST['fakeType']);
 		if($result)
 			header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -37,7 +37,7 @@ switch(@$_POST['action'])
 	
 	case 'delete_vote':
 		assert(@$_POST['id'] > 0 && @$_POST['ds_id'] > 0);
-		assert($_ds = &$dsm->load($_POST['ds_id']) == true); 
+		assert($_ds = $dsm->load($_POST['ds_id']) == true); 
 		$result = $_ds->removeVotes($_POST['id'], @$_POST['ids']);
 		if($result)
 			header('Location: http://'.WC_SITE_HOST.WCHOME."/data/rating/edit.php?ds_id={$_ds->ds_id}&id={$_POST['id']}");
@@ -46,7 +46,7 @@ switch(@$_POST['action'])
 	case 'activate_vote':
 	case 'deactivate_vote':
 		assert(@$_POST['id'] > 0 && @$_POST['ds_id'] > 0);
-		assert($_ds = &$dsm->load($_POST['ds_id']) == true); 
+		assert($_ds = $dsm->load($_POST['ds_id']) == true); 
 		$result = $_ds->setVotesState($_POST['id'], @$_POST['ids'], $_POST['action'] == 'activate_vote');
 		if($result)
 			header('Location: http://'.WC_SITE_HOST.WCHOME."/data/rating/edit.php?ds_id={$_ds->ds_id}&id={$_POST['id']}");
@@ -54,7 +54,7 @@ switch(@$_POST['action'])
 	
 	case 'edit_vote':
 		assert(@$_POST['ratingId'] > 0 && @$_POST['ds_id'] > 0 && @$_POST['userId'] > 0);
-		assert($_ds = &$dsm->load($_POST['ds_id']) == true);
+		assert($_ds = $dsm->load($_POST['ds_id']) == true);
 		$result = $_ds->updateVote($_POST['ratingId'], $_POST['userId'], @$_POST['active'] == 'true', @$_POST['comment'], @$_POST['rating'], @$_POST['votes'], @$_POST['date']);
 		if($result)
 			header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -62,7 +62,7 @@ switch(@$_POST['action'])
 	
 	case 'delete_rating':
 		if(isset($_POST['ds_id'])) {
-			$_ds = &$dsm->load($_POST['ds_id']); 
+			$_ds = $dsm->load($_POST['ds_id']); 
 			$_ds->delete(implode(',', @$_POST['ids']));
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -71,22 +71,10 @@ switch(@$_POST['action'])
 	
 	case 'remove_ds':
 		if(isset($_POST['ds_id'])) {
-			$_ds = &$dsm->load($_POST['ds_id']); 
+			$_ds = $dsm->load($_POST['ds_id']); 
 			$_ds->remove();
 		}
 		die('<meta http-equiv="Refresh" content="0; URL=http://'.$_host.WCHOME.'/data/">');
-	break;
-	
-	case 'view_detail':
-		foreach((array) @$_COOKIE['vd'] as $key => $val){
-			if(!array_key_exists($key, (array) @$_POST['vdetail']))
-				setcookie('vd['.$key.']', '', time() - 3600, WCHOME.'/data/');
-		}
-		foreach($_POST['vdetail'] as $key => $val)
-			setcookie('vd['.$key.']', $key, 0, WCHOME.'/data/');
-		setcookie('pagesize', $_POST['pagesize'], 0, WCHOME.'/data/');
-		setcookie('vd[_touched]', '_touched', 0, WCHOME.'/data/');
-		header('Location: '.$_SERVER['HTTP_REFERER']);
 	break;
 	
 	default:

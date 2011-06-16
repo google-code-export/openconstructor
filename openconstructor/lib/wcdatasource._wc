@@ -48,7 +48,7 @@ class WCDataSource {
 		System::assert('data.ds'.$this->ds_type);
 		$this->name = $name;
 		$this->description = $description;
-		$auth = &Authentication::getOriginal();
+		$auth = Authentication::getOriginal();
 		$this->loadAuths($auth->userId, $auth->groupId, constant('WCS_DS_'.strtoupper($this->ds_type).'_MASK'), null);
 		$ownerId = $this->sRes->owner;
 		$groupId = $this->sRes->group;
@@ -58,14 +58,14 @@ class WCDataSource {
 		}
 		$oAuths = $this->sRes->getOwnerAuths();
 		$gAuths = $this->sRes->getGroupAuths();
-		$doc = &$this->getEmptyDocument();
+		$doc = $this->getEmptyDocument();
 		$doc->loadAuths(0, 0);
 		$doc->sRes->setAuthorities(WCS_DOC_MASK);
 		$dAuths = $doc->sRes->getOwnerAuths();
 		$indexed = $this->isIndexable ? 1 : 0;
-		$clone = &wcfClone($this);
+		$clone = wcfClone($this);
 		unset($clone->docs, $clone->sRes, $clone->docAuths, $clone->isIndexable);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'INSERT INTO datasources '.
 				'(ds_type, indexed, name, description, date, code, internal, wcsowner, wcsgroup, oauths, gauths, docauths) '.
@@ -79,7 +79,7 @@ class WCDataSource {
 	function &_load($id) {
 		$result = null;
 		settype($id, 'int');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query('SELECT wcsowner, wcsgroup, BIN(ROUND(oauths)) as oauths, BIN(ROUND(gauths)) as gauths, BIN(ROUND(docauths)) as docauths, docs, indexed, locks, code, internal FROM datasources WHERE ds_id='.$id);
 		if(mysql_num_rows($res) > 0) {
 			$r = mysql_fetch_assoc($res);
@@ -100,9 +100,9 @@ class WCDataSource {
 		if(!@$this->ds_id) return NULL;
 		WCS::assert($this, 'editds');
 		$indexed = $this->isIndexable ? 1 : 0;
-		$ds = &wcfClone($this);
+		$ds = wcfClone($this);
 		unset($ds->docs, $ds->sRes, $ds->docAuths, $ds->isIndexable, $ds->ftp, $ds->smartycache);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'UPDATE datasources '.
 			"SET indexed = $indexed,name='".addslashes($this->name)."', description='".addslashes($this->description)."', date='".time()."', code='".addslashes(serialize($ds))."' ".
@@ -116,7 +116,7 @@ class WCDataSource {
 	function &get_record($id, $alias = false) {
 		$clause = $alias ? '' : ' d.ds_id='.$this->ds_id.' AND ';
 
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			'SELECT d.*, d0.ds_id as realDsId '.
 			' FROM '.$this->DSTable.' d, '.$this->DSTable.' d0'.
@@ -128,26 +128,26 @@ class WCDataSource {
 	}
 
 	function &getDocument($docId) {
-		$record = &$this->get_record($docId);
-		$result = &$this->wrapDocument($record);
+		$record = $this->get_record($docId);
+		$result = $this->wrapDocument($record);
 		return $result;
 	}
 
 	function &wrapDocument(&$record) {
-		$result = &$this->getEmptyDocument();
+		$result = $this->getEmptyDocument();
 		$result->readValues($record);
 		$result->loadAuths((int) @$record['wcsowner'], $this->docAuths);
 		return $result;
 	}
 
 	function &getEmptyDocument() {
-		$result = & new Document();
+		$result = new Document();
 		return $result;
 	}
 
 	function remove() {
 		WCS::assert($this, 'removeds');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			'SELECT id'.
 			' FROM datasources ds, '.$this->DSTable.' d'.
@@ -158,7 +158,7 @@ class WCDataSource {
 			while($r = mysql_fetch_assoc($res))
 				$ids .= ','.$r['id'];
 			WCS::runAs(WCS_ROOT_ID);
-			$this->delete(&$ids);
+			$this->delete($ids);
 			WCS::stopRunAs();
 		}
 		mysql_free_result($res);
@@ -170,7 +170,7 @@ class WCDataSource {
 	}
 
 	function setHybridField($doc, $field, $id) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			"SELECT id, ds_id, name, family, isown".
 			" FROM dshfields".
@@ -211,6 +211,19 @@ class WCDataSource {
 		return true;
 	}
 
+	function &loadByDoc($docId) {
+		$result = null;
+		$db = WCDB::bo();
+		$res = $db->query("SELECT ds_id FROM dshybrid WHERE id = $docId");
+		if(mysql_num_rows($res) == 1) {
+			list($dsId) =  mysql_fetch_row($res);
+			require_once(LIBDIR.'/dsmanager._wc');
+			$result = DSManager::load($dsId);
+		}
+		mysql_free_result($res);
+		return $result;
+	}
+
 	function &getHybridDoc($docId) {
 		static $ds, $doc;
 		$result = null;
@@ -218,13 +231,13 @@ class WCDataSource {
 		if(isset($doc[$docId]))
 			$result = &$doc[$docId];
 		else {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$res = $db->query("SELECT ds_id FROM dshybrid WHERE id = $docId");
 			if(mysql_num_rows($res) == 1) {
 				list($dsId) =  mysql_fetch_row($res);
 				if(!isset($ds[$dsId])) {
 					require_once(LIBDIR.'/dsmanager._wc');
-					$ds[$dsId] = &DSManager::load($dsId);
+					$ds[$dsId] = DSManager::load($dsId);
 					assert($ds[$dsId] != null);
 				}
 				$doc[$docId] = $ds[$dsId]->getDocument($docId);
@@ -236,13 +249,13 @@ class WCDataSource {
 	}
 
 	function increaseLock() {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query("UPDATE datasources SET locks=locks+1 WHERE ds_id=$this->ds_id");
 		$this->lock++;
 	}
 
 	function decreaseLock()	{
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query("UPDATE datasources SET locks=locks-1 WHERE ds_id=$this->ds_id");
 		$this->lock--;
 	}
@@ -250,17 +263,17 @@ class WCDataSource {
 	function postremove() {}
 
 	function publish($ids) {
-		$this->_publish(&$ids,1);
+		$this->_publish($ids,1);
 	}
 
 	function unpublish($ids) {
-		$this->_publish(&$ids,0);
+		$this->_publish($ids,0);
 	}
 
 	function _publish($ids,$value) {
 		if(!(WCS::decide($this, 'publishdoc') || WCS::ownerAllowed($this->getSDoc(), 'publishdoc')))
 			return;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'UPDATE '.$this->DSTable.' '.
 			'SET published = '.$value.' '.
@@ -268,11 +281,11 @@ class WCDataSource {
 		);
 
 		if($value)
-			$this->addToIndex(&$ids);
+			$this->addToIndex($ids);
 		else
-			$this->removeFromIndex(&$ids);
+			$this->removeFromIndex($ids);
 
-		$this->evictDocCache(&$ids);
+		$this->evictDocCache($ids);
 	}
 
 	function isFull() {
@@ -280,9 +293,9 @@ class WCDataSource {
 		return $this->size <= $this->docs;
 	}
 
-	function &cleanHTML($html) {
+	function &cleanHTML(&$html) {
 		if(@$this->stripHTML) {
-			$result = &wcfStripTags($html, $this->allowedTags);
+			$result = wcfStripTags($html, $this->allowedTags);
 			if(@$this->encodeemail)
 				$result = preg_replace_callback('/(mailto:)?([a-zA-Z0-9_\\-\\.]+)@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.)|(([a-zA-Z0-9\\-]+\\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\\]?)/us', create_function('$m', 'return encodestr($m[0]);'), $result);
 		} else
@@ -290,14 +303,14 @@ class WCDataSource {
 		return $result;
 	}
 
-	function create_intro($html, $size) {
+	function create_intro(&$html, $size) {
 		$txt = strip_tags($html);
 		preg_match('/^.{'.($size-1).'}[^\s\.,:]*/ums', $txt, $intro);
 		return @$intro[0] ? $intro[0] : $txt;
 	}
 
 	function get_real_ids() {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query('SELECT real_id FROM '.$this->DSTable.' WHERE ds_id='.$this->ds_id);
 		$result = array();
 		if(mysql_num_rows($res) > 0)
@@ -308,11 +321,11 @@ class WCDataSource {
 	}
 
 	function evictDocCache($ids = array()) {
-		$smc = &WCDataSource::_getSmartyCache();
-		$smc->record_updated($this->ds_type, $this->ds_id, &$ids);
+		$smc = self::_getSmartyCache();
+		$smc->record_updated($this->ds_type, $this->ds_id, $ids);
 		if($this->isInternal) {
 			$query = array();
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$res = $db->query("SELECT ds_id, name FROM dshfields WHERE family='datasource' AND type='$this->ds_type'");
 			while($r = mysql_fetch_row($res))
 				$query[$r[0]][] = "{$r[1]} = {$this->ds_id}";
@@ -335,7 +348,7 @@ class WCDataSource {
 		static $smc;
 		if($smc === null) {
 			include_once(LIBDIR.'/smarty/wcsmartycache._wc');
-			$smc = & new WCSmartyCache();
+			$smc = new WCSmartyCache();
 		}
 		return $smc;
 	}
@@ -349,7 +362,7 @@ class WCDataSource {
 
 	function updateSize() {
 		if($this->DSTable) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query("UPDATE datasources SET docs = (SELECT COUNT(*) FROM $this->DSTable WHERE ds_id = $this->ds_id) WHERE ds_id = $this->ds_id");
 		}
 	}
@@ -359,7 +372,7 @@ class WCDataSource {
 		$this->encodeemail = $from->encodeemail;
 		$this->setSize($from->size);
 		$this->setIndexable($from->isIndexable);
-		$props = &$this->getCopiableProps();
+		$props = $this->getCopiableProps();
 		for($i = 0, $l = sizeof($props); $i < $l; $i++)
 			if($from->ds_type == 'file' && $props[$i] == 'filetypes')
 				$this->setTypes($from->filetypes);
@@ -401,12 +414,12 @@ class WCDataSource {
 		if(!$this->isIndexable)
 			return;
 		loadClass('indexer', '/search/indexer._wc');
-		$indexer = &Indexer::getInstance();
+		$indexer = Indexer::getInstance();
 
 		if($ids && $header)
 			$indexer->add($this->ds_id, $this->ds_type, $ids, $header, $content, $intro);
 		else {
-			$docs = &$this->getIndexableDocs($ids);
+			$docs = $this->getIndexableDocs($ids);
 			for($i = 0, $l = sizeof($docs); $i < $l; $i++)
 				$indexer->add($this->ds_id, $this->ds_type, $docs[$i]['id'], $docs[$i]['header'], $docs[$i]['content'], $docs[$i]['intro']);
 		}
@@ -416,13 +429,13 @@ class WCDataSource {
 		if(!$this->isIndexable)
 			return;
 		loadClass('indexer', '/search/indexer._wc');
-		$indexer = &Indexer::getInstance();
+		$indexer = Indexer::getInstance();
 
 		if($this->ds_type != 'article' && !empty($header)) {
 			if($this->ds_type == 'file')
 				$published = true;
 			else {
-				$db = &WCDB::bo();
+				$db = WCDB::bo();
 				$res = $db->query("SELECT id FROM $this->DSTable WHERE id = $id AND published LIMIT 1");
 				$published = mysql_num_rows($res) == 1;
 				mysql_free_result($res);
@@ -431,7 +444,7 @@ class WCDataSource {
 				$indexer->update($this->ds_id, $id, $header, false, $content, $intro);
 		}
 		else {
-			$doc = &$this->getIndexableDocs($id);
+			$doc = $this->getIndexableDocs($id);
 			if(sizeof($doc) == 1)
 				$indexer->update($this->ds_id, $doc[0]['id'], $doc[0]['header'], false, $doc[0]['content'], $doc[0]['intro']);
 		}
@@ -442,10 +455,10 @@ class WCDataSource {
 			return;
 
 		loadClass('indexer', '/search/indexer._wc');
-		$indexer = &Indexer::getInstance();
+		$indexer = Indexer::getInstance();
 
 		if($ids)
-			$indexer->remove($this->ds_id, &$ids);
+			$indexer->remove($this->ds_id, $ids);
 		else
 			$indexer->remove($this->ds_id);
 	}
@@ -453,7 +466,7 @@ class WCDataSource {
 	function &getIndexableDocs($id = null) {
 		$result = array();
 		$cond = ($id != null ? "id IN ($id) AND " : '')."ds_id = {$this->ds_id}";
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT id, header, content, intro FROM {$this->DSTable} WHERE $cond AND published");
 		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++)
 			$result[$i] = mysql_fetch_assoc($res);
@@ -463,7 +476,7 @@ class WCDataSource {
 
 	function filterDocs(&$ids) {
 		$sCheck = WCS::decide($this, 'removedoc') ? '' : 'AND '.WCS::getOwnerCheckQuery();
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT id FROM {$this->DSTable} WHERE id IN($ids) AND ds_id = {$this->ds_id} $sCheck");
 		$ids = array();
 		if(mysql_num_rows($res) > 0)
@@ -476,7 +489,7 @@ class WCDataSource {
 		assert(strspn($ids, ',0123456789') == strlen($ids));
 		$result = null;
 		$table = $this->DSTable ? $this->DSTable : strtolower(get_class($this));
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT wcsowner FROM $table WHERE id IN ($ids) GROUP BY wcsowner");
 		if(mysql_num_rows($res) == 1)
 			list($result) = mysql_fetch_array($res, MYSQL_NUM);
@@ -489,7 +502,7 @@ class WCDataSource {
 		$userId = Authentication::getUserId();
 		if($userId == WCS_ROOT_ID) {
 			$table = $this->DSTable ? $this->DSTable : strtolower(get_class($this));
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query("UPDATE $table SET wcsowner = $ownerId WHERE id IN ($ids)");
 		}
 	}
@@ -504,7 +517,7 @@ class WCDataSource {
 		$querySet .= sprintf(', oauths = CONV("%s", 2, 10), gauths = CONV("%s", 2, 10), docauths = CONV("%s", 2, 10)', $this->sRes->getOwnerAuths(), $this->sRes->getGroupAuths(), $this->docAuths);
 		if($querySet) {
 			$querySet = substr($querySet, 1);
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query("UPDATE datasources SET $querySet WHERE ds_id = {$this->ds_id} AND ".WCS::getAuthCheckQuery('editds.chmod'));
 		}
 	}
@@ -532,7 +545,7 @@ class WCDataSource {
 		$result = array();
 		settype($id, 'int');
 		if($id > 0){
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$res = $db->query(
 				'SELECT id FROM '.$this->DSTable.' WHERE real_id='.$id.($includeReal?'':' AND id!='.$id)
 			);

@@ -59,7 +59,7 @@ class PublicationHL extends WCObject {
 		if(!$this->ids) {
 			$page = (int)@$_GET[$this->pid];
 			if(--$page < 0) $page = 0;
-			$displayed = &$this->getDisplayedDocs();
+			$displayed = $this->getDisplayedDocs();
 			$cacheId = $this->obj_id.'|p'.$page.'-c'.implode(':', array_keys($displayed));
 		}
 		return $cacheId;
@@ -71,7 +71,7 @@ class PublicationHL extends WCObject {
 		if(--$page < 0) $page = 0;
 		
 		$where = $this->ids ? 'id IN ('.$this->ids.')' : 'ds_id IN ('.$this->ds_id.')';
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT id, real_id as rid, ds_id, gallery, header, date'.
 			' FROM '.$this->DSTable.
@@ -80,7 +80,7 @@ class PublicationHL extends WCObject {
 			' LIMIT '.($this->offset + $page * $this->pageSize).','.$this->pageSize
 		);
 		if(mysql_num_rows($res) > 0) {
-			$displayed = &$this->getDisplayedDocs();
+			$displayed = $this->getDisplayedDocs();
 			$news=array();
 			$fet=array();
 			$thref=$this->srvuri.'?'.$this->publicationid.'=%d'.(@$this->galleryid?'&'.$this->galleryid.'=%d':'');
@@ -89,7 +89,7 @@ class PublicationHL extends WCObject {
 				$fet[$row['rid']] = true;
 				$news[$row['id']]['ds_id'] = (int) $row['ds_id'];
 				$news[$row['id']]['header'] = escapeTags($row['header']);
-				$news[$row['id']]['href'] = isset($displayed[$row['id']]) ? null : sprintf(&$thref,$row['id']);
+				$news[$row['id']]['href'] = isset($displayed[$row['id']]) ? null : sprintf($thref,$row['id']);
 				$news[$row['id']]['gid'] = $row['gallery'];
 				$news[$row['id']]['date'] = wcfFormatTime($this->dateFormat, $row['date']);
 			}

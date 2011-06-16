@@ -48,8 +48,8 @@ class DSGallery extends WCDataSource
 		assert(trim($header) != '');
 		WCS::assert($this, 'createdoc');
 		if($this->isFull()) return false;
-		$content = &$this->cleanHTML(&$content);
-		$db = &WCDB::bo();
+		$content = $this->cleanHTML($content);
+		$db = WCDB::bo();
 		$db->query(
 			'INSERT INTO '.$this->DSTable.
 				' (ds_id, published, header, content, date, wcsowner)'.
@@ -89,7 +89,7 @@ class DSGallery extends WCDataSource
 				$result=$result&&$this->update_image($id,$imageintro,$imgsize2[2]==2?'jpg':'gif',$imgsize2[0],$imgsize2[1],$this->images['intro'],'img_intro');
 			return $result;
 		}
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query('SELECT img_type FROM '.$this->DSTable.' WHERE id='.$id);
 		$r=mysql_fetch_assoc($res);
 		mysql_free_result($res);
@@ -161,7 +161,7 @@ class DSGallery extends WCDataSource
 		$img='IMG SRC="'.FILES.$this->imagepath.$id.($type=='img_main'?'':'_').'.'.$imgtype.'" BORDER="0" WIDTH="'.intval($width).'" HEIGHT="'.intval($height).'"';
 		$img='"'.addslashes($img).'"';
 
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'UPDATE '.$this->DSTable.
 			' SET '.$type.'='.$img.', img_type="'.$imgtype.'" WHERE real_id='.$id
@@ -176,7 +176,7 @@ class DSGallery extends WCDataSource
 		if(!sizeof($ids)) return;
 		$_ids = implode(',', $ids);
 		
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'DELETE FROM '.$this->DSTable.' '.
 			'WHERE id IN('.$_ids.') OR real_id IN('.$_ids.')'
@@ -184,7 +184,7 @@ class DSGallery extends WCDataSource
 		
 		$this->updateSize();
 		
-		$this->removeFromIndex(&$_ids);
+		$this->removeFromIndex($_ids);
 		
 		foreach($ids as $id) {
 			@unlink($_SERVER['DOCUMENT_ROOT'].FILES.$this->imagepath.intval($id).'.jpg');
@@ -193,20 +193,20 @@ class DSGallery extends WCDataSource
 			@unlink($_SERVER['DOCUMENT_ROOT'].FILES.$this->imagepath.intval($id).'_.gif');
 		}
 		
-		$this->evictDocCache(&$ids);
+		$this->evictDocCache($ids);
 	}
 	
 	function update($id,$header,$content,$date,$imagemain,$imageintro) {
 		assert($header != '');
-		$rec = &$this->get_record($id);
+		$rec = $this->get_record($id);
 		assert($rec['id'] == $rec['real_id']);
-		$doc = &$this->wrapDocument($rec);
+		$doc = $this->wrapDocument($rec);
 		assert($doc->id > 0);
 		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
-		$content = &$this->cleanHTML(&$content);
+		$content = $this->cleanHTML($content);
 		$ids = $this->getAliases($id, true);
 		
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'UPDATE '.$this->DSTable.
 			' SET header="'.addslashes($header).'", content="'.addslashes($content).'", date='.$date.
@@ -216,13 +216,13 @@ class DSGallery extends WCDataSource
 		// If published, update index
 		if($this->autoPublish) {
 			loadClass('indexer', '/search/indexer._wc');
-			$indexer = &Indexer::getInstance();
+			$indexer = Indexer::getInstance();
 			
 			$indexer->update($this->ds_id, $id, $header, false, $content);
 		}
 		
 		$this->update_images($id,$imagemain,$imageintro);
-		$this->evictDocCache(&$ids);
+		$this->evictDocCache($ids);
 		return true;
 	}
 	
@@ -254,7 +254,7 @@ class DSGallery extends WCDataSource
 		if(!@$id) return false;
 		$res = $this->get_record($id, true);
 		if($res == NULL) return false;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'INSERT INTO '.$this->DSTable.
 				' (real_id, ds_id, published, header, content, date, img_intro, img_main, img_type, wcsowner)'.//
@@ -266,7 +266,7 @@ class DSGallery extends WCDataSource
 	function &getIndexableDocs($id = null) {
 		$result = array();
 		$cond = ($id != null ? "id IN ($id) AND " : '')."ds_id = {$this->ds_id}";
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT id, header, content, content as intro FROM {$this->DSTable} WHERE $cond AND published");
 		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++)
 			$result[$i] = mysql_fetch_assoc($res);

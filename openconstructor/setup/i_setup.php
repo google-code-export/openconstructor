@@ -32,7 +32,7 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/classes._wc');
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/setup._wc');
 	
-	$db = &WCDB::bo();
+	$db = WCDB::bo();
 ?>
 <html>
 <head>
@@ -46,7 +46,7 @@
 	<?php
 		if(@$_POST['removepages']){
 			require_once(LIBDIR.'/site/pagefactory._wc');
-			$pf = &PageFactory::getInstance();
+			$pf = PageFactory::getInstance();
 			$pf->_dropAll();
 			echo '<h4 class="ok">'.R_SETUP_OK.'</h4>';
 		} else
@@ -72,7 +72,7 @@
 			if(mysql_num_rows($res) > 0) {
 				require_once(LIBDIR.'/dsmanager._wc');
 				while($r = mysql_fetch_assoc($res)) {
-					$ds = &DSManager::load($r['ds_id']);
+					$ds = DSManager::load($r['ds_id']);
 					if($ds != null)
 						$ds->remove();
 				}
@@ -112,7 +112,7 @@
 	<?php
 		if(@$_POST['removedatasources'] && @$_POST['removenodes']){
 			require_once(LIBDIR.'/tree/sqltree._wc');
-			$sqltree = & new SqlTree();
+			$sqltree = new SqlTree();
 			$sqltree->_dropAll();
 			echo '<h4 class="ok">'.R_SETUP_OK.'</h4>';
 		} else
@@ -134,7 +134,7 @@
 			list($ids) = mysql_fetch_row($res);
 			if($ids) {
 				require_once(LIBDIR.'/templates/wctemplates._wc');
-				$wct = & new WCTemplates();
+				$wct = new WCTemplates();
 				$wct->remove($ids);
 			}
 			mysql_free_result($res);
@@ -147,7 +147,7 @@
 	<h3><?=R_SETUP_REMOVE_USERS_GROUPS?></h3>
 	<?php
 		if(@$_POST['removegroups']){
-			$auth = &Authentication::getInstance();
+			$auth = Authentication::getInstance();
 			$db->query('UPDATE wcsusers SET builtin = 0');
 			$res = $db->query('SELECT GROUP_CONCAT(id SEPARATOR ",") FROM wcsusers');
 			list($ids) = mysql_fetch_row($res);
@@ -204,7 +204,7 @@
 			_marktime();
 			for($i = 0; $i < $l; $i++) {
 				list($id) = mysql_fetch_row($res);
-				$ds = & DSManager::load($id);
+				$ds = DSManager::load($id);
 				$ds->save();
 			}
 			$spentTime = _getperiod();
@@ -217,14 +217,14 @@
 	<?php
 		if(!@$_POST['removepages'] && @$_POST['resavepages']){
 			require_once(LIBDIR.'/site/pagefactory._wc');
-			$pf = &PageFactory::getInstance();
+			$pf = PageFactory::getInstance();
 			$ids = array_keys($pf->reader->getAllPages());
-			$ftp = &$pf->getFtp();
+			$ftp = $pf->getFtp();
 			$ftp->open();
 			set_time_limit(10 + (sizeof($ids) + 1) * 2);
 			_marktime();
 			foreach($ids as $id) {
-				$page  = &$pf->reader->getPage($id);
+				$page  = $pf->reader->getPage($id);
 				$pf->updatePage($page);
 			}
 			set_time_limit(30);
@@ -243,7 +243,7 @@
 			_marktime();
 			for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++) {
 				list($id) = mysql_fetch_row($res);
-				$ds = & DSManager::load($id);
+				$ds = DSManager::load($id);
 				if($ds != null && $ds->isIndexable) {
 					$ds->setIndexable(false);
 					$ds->setIndexable(true);
@@ -263,7 +263,7 @@
 			if($inSite) {
 				$l = strlen($_SERVER['DOCUMENT_ROOT']);
 				require_once(LIBDIR.'/wcftp._wc');
-				$ftp = &WCFTP::getNew();
+				$ftp = WCFTP::getNew();
 				$ftp->open();
 				foreach($files as $f)
 					if($f)
@@ -298,7 +298,7 @@
 				FILES.'/smarty/cache/'
 			);
 			require_once(LIBDIR.'/wcftp._wc');
-			$ftp = &WCFTP::getNew();
+			$ftp = WCFTP::getNew();
 			$files = array_merge(
 				glob($_SERVER['DOCUMENT_ROOT'].FILES.'/*'),
 				glob($_SERVER['DOCUMENT_ROOT'].FILES.'/*/*'),

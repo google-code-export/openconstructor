@@ -60,7 +60,7 @@ class DSFile extends WCDataSource {
 				
 			if($result === true){
 				$this->filePath = '/'.$this->filePath.'/';
-				return WCDataSource::create($name, $description, $internal);
+				return parent::create($name, $description, $internal);
 		}
 		}
 		return $result;
@@ -96,7 +96,7 @@ class DSFile extends WCDataSource {
 		$r=$this->createFile($file,$fname,$type);
 		if($r === true){
 			$time = time();
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query(
 				'INSERT INTO '.$this->DSTable.
 					' (ds_id, name, description, basename, filename, type, size, created, date, wcsowner)'.
@@ -108,7 +108,7 @@ class DSFile extends WCDataSource {
 				$result[]='Cannot insert to DB, deleting file...';
 				@unlink($_SERVER['DOCUMENT_ROOT'].$filename);
 			} else {
-				$this->addToIndex($id, $name, &$description, $description);
+				$this->addToIndex($id, $name, $description, $description);
 				$this->updateSize();
 				$this->evictDocCache();
 			}
@@ -135,8 +135,8 @@ class DSFile extends WCDataSource {
 		
 	function setGroups($groups) {
 		WCS::assert($this, 'editds');
-		$this->groups = array_values(&$groups);
-		if(array_search(WCS_EVERYONE_ID, &$this->groups) !== false)
+		$this->groups = array_values($groups);
+		if(array_search(WCS_EVERYONE_ID, $this->groups) !== false)
 			$this->groups[] = WCS_EVERYONE_ID;
 		$this->updateHtAccess();
 	}
@@ -150,7 +150,7 @@ class DSFile extends WCDataSource {
 			return;
 		
 		$ids = implode(',', $ids);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			'SELECT id, filename'.
 			' FROM '.$this->DSTable.
@@ -169,9 +169,9 @@ class DSFile extends WCDataSource {
 					' WHERE id IN('.implode(',',$ids).') AND ds_id='.$this->ds_id
 				);
 			$_ids = implode(',', $ids);
-			$this->removeFromIndex(&$_ids);
+			$this->removeFromIndex($_ids);
 			$this->updateSize();
-			$this->evictDocCache(&$ids);
+			$this->evictDocCache($ids);
 		}
 		mysql_free_result($res);
 	}
@@ -180,11 +180,11 @@ class DSFile extends WCDataSource {
 		if(!$this->filePath)
 			return;
 		assert(trim($name) != '');
-		$doc = &$this->getDocument($id);
+		$doc = $this->getDocument($id);
 		assert($doc->id > 0);
 		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
 		
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			'SELECT filename'.
 			' FROM '.$this->DSTable.
@@ -234,13 +234,13 @@ class DSFile extends WCDataSource {
 				' WHERE id='.$id
 			);
 		}
-		$this->updateIndex($id, $name, &$description, $description);
+		$this->updateIndex($id, $name, $description, $description);
 		$this->evictDocCache($id);
 		return sizeof($result) == 0 ? true : '<ul><li>'.implode('<li>', $result).'</ul>';
 	}
 	
 	function &get_record($id) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			'SELECT *'.
 			' FROM '.$this->DSTable.
@@ -254,7 +254,7 @@ class DSFile extends WCDataSource {
 	function &getIndexableDocs($id = null) {
 		$result = array();
 		$cond = ($id != null ? "id IN ($id) AND " : '')."ds_id = {$this->ds_id}";
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT id, name as header, description as content, description as intro FROM {$this->DSTable} WHERE $cond");
 		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++)
 			$result[$i] = mysql_fetch_assoc($res);
@@ -263,7 +263,7 @@ class DSFile extends WCDataSource {
 	}
 	
 	function remove() {
-		WCDataSource::remove();
+		parent::remove();
 		$this->init_ftp();
 		$this->ftp->open();
 		$this->ftp->rdEntire(substr(FILES.$this->filePath, 0, -1));
@@ -310,7 +310,7 @@ class DSFile extends WCDataSource {
 		
 		if($this->ftp->move($file,FILES.$this->filePath.$fname)){
 			$time = time();
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query(
 				'INSERT INTO '.$this->DSTable.
 					' (ds_id, name, description, basename, filename, type, size, created, date, wcsowner)'.
@@ -378,7 +378,7 @@ class DSFile extends WCDataSource {
 		$this->init_ftp();
 		$this->ftp->open();
 		$htaccess = FILES.$this->filePath.'.htaccess';
-		if(array_search(WCS_EVERYONE_ID, &$this->groups) !== false) {
+		if(array_search(WCS_EVERYONE_ID, $this->groups) !== false) {
 			if(@file_exists($_SERVER['DOCUMENT_ROOT'].$htaccess))
 				$this->ftp->unlink($htaccess);
 		} else {

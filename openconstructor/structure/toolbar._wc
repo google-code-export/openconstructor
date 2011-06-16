@@ -20,26 +20,30 @@
  *
  * $Id: toolbar._wc,v 1.4 2007/02/27 11:23:19 sanjar Exp $
  */
-	$isFirst = @$sitemap->node[$curnode]->index == 0 || @$sitemap->node[$curnode]->index == @$sitemap->node[$curnode]->parent->index + 1;
-	$isLast = @$sitemap->node[$curnode]->next == @$sitemap->node[$curnode]->parent->next;
+	$isFirst = @$tree->node[$curnode]->index == 0 || @$tree->node[$curnode]->index == @$tree->node[$curnode]->parent->index + 1;
+	$isLast = @$tree->node[$curnode]->next == @$tree->node[$curnode]->parent->next;
 
 	$toolbar = array(
 		SAVE => array(
 			'pic' => 'save',
-			'action' => $super || WCS::decide($page, 'pageblock') || WCS::decide($page, 'editpage') ? 'save()' : ''
+			'action' => $super || WCS::decide($page, 'pageblock') || WCS::decide($page, 'editpage') ? 's = document.getElementById("tplId"); f_doc.tplId.value = s.options[s.selectedIndex].value; f_doc.submit()' : ''
 		),
 		INCLUDE_OBJECT => array(
 			'pic' => 'addobject',
-			'action' => 'addObject(' . $page->id . ')'
+			'action' => 'wxyopen(wchome+"/structure/add_object.php?node="+curnode,600,450)'
 		),
 		'separator',
 		CREATE_PAGE => array(
 			'pic' => 'newpage',
-			'action' => $super || WCS::decide($page, 'managesub') ? 'createPage(' . $page->id . ')' : ''
+			'action' => $super || WCS::decide($page, 'managesub') ? 'wxyopen(wchome+"/structure/create_page.php?node="+curnode,700,370)' : ''
 		),
 		MOVE_PAGE => array(
 			'pic' => 'movepage',
-			'action' => $super ? 'movePage(' . $page->id . ')' : ''
+			'action' => $super ? 'wxyopen(wchome+"/structure/move_page.php?node="+curnode,700,320)' : ''
+		),
+		COPY_PAGE => array(
+			'pic' => 'copy',
+			'action' => $super ? 'copyPage(' . $page->id . ')' : ''
 		),
 		'separator',
 		MOVE_NODE_UP => array(
@@ -66,11 +70,11 @@
 		'separator',
 		EDIT_PAGE => array(
 			'pic' => 'editpage',
-			'action' => 'editPage(' . $page->id . ')'
+			'action' => 'wxyopen(wchome+"/structure/edit_page.php?node="+curnode,650)'
 		),
 		EDIT_SECURITY => array(
 			'pic' => 'editsec',
-			'action' => 'edit_security(' . $page->id . ')'
+			'action' => 'edit_security()'
 		),
 		'separator',
 		REFRESH => array(
@@ -83,4 +87,17 @@
 			'action' => 'remove()'
 		)
 	);
-?>
+/*	$toolbar=array(
+		SAVE=>array('pic'=>'save','action'=> $super || WCS::decide($page, 'pageblock') ?'if(document.all("f_doc")) f_doc.submit()':''),
+		CREATE_PAGE=>array('pic'=>'newpage','action'=> $super || WCS::decide($page, 'managesub') ? 'wxyopen(wchome+"/structure/create_page.php?node="+curnode,700,370)' : ''),
+		INCLUDE_OBJECT=>array('pic'=>'addobject','action'=> 'wxyopen(wchome+"/structure/add_object.php?node="+curnode,600,450)'),
+		'separator',
+		EDIT_PAGE=>array('pic'=>'editpage','action'=>'wxyopen(wchome+"/structure/edit_page.php?node="+curnode,650)'),
+		EDIT_SECURITY=>array('pic'=>'editsec','action'=> 'edit_security()'),
+		MOVE_PAGE=>array('pic'=>'movepage','action'=>!isset($versions[$_site->id_hash[$curnode]])?'wxyopen(wchome+"/structure/move_page.php?node="+curnode,700,250)':''),
+		'separator',
+		REFRESH=>array('pic'=>'reload','action'=>'window.location.href += ""'),
+		'separator',
+		REMOVE=>array('pic'=>'remove','action'=>'remove()')
+	);
+*/?>

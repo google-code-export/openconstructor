@@ -27,24 +27,15 @@
 	$searchclause = get_clause(@$_GET['search'],'header,source');
 	list($items, $hl) = get_headline('ds'.$nodetype,$curnode,'header',$pagesize,@$_GET['page'],$searchclause);
 	$icon='php';
-	$eWidth=788;$eHeight=520;
+	$w=788;$h=520;
 	$editor='phpsource/edit.php?ds_id='.$curnode;
 	$fields=array(
 		'header'=>HL_HEADER,
 		'date'=>HL_DATE
 	);
 	$fieldnames=array(
-		'date'=>array('name' => 'date', 'title' => RP_SHOW_DATE, 'st' => true)
+		'date'=>RP_SHOW_DATE
 	);
-	if(sizeof(@$_COOKIE['vd']))
-		foreach($fieldnames as $key => $value){
-			if(!isset($_COOKIE['vd'][$key]))
-				$fieldnames[$key]['st'] = false;
-	        if (!$fieldnames[$key]['st']) unset($fields[$key]);
-		}
-	require_once(LIBDIR.'/pager._wc');
-	$pager = noSqlPager($items, 'page', $pagesize, 10);
-/*
 	if(is_array(@$_COOKIE['vf']))
 		foreach($_COOKIE['vf'] as $f=>$st)
 			if($st=='disabled') unset($fields[$f]);
@@ -61,5 +52,4 @@
 //	pager('page','dsphpsource','id','WHERE ds_id='.$curnode,$pagesize,10,$searchclause);
 	noSqlPager($items, 'page', $pagesize, 10);
 	echo '</documents>';
-*/
 ?>

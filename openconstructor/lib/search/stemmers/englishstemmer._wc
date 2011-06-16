@@ -38,12 +38,12 @@ class EnglishStemmer {
 		
 		$stem = preg_replace("~('ve|n't|'d)$~", '', $word);
 	
-		$stem = EnglishStemmer::_step1ab($stem);
-		$stem = EnglishStemmer::_step1c($stem);
-		$stem = EnglishStemmer::_step2($stem);
-		$stem = EnglishStemmer::_step3($stem);
-		$stem = EnglishStemmer::_step4($stem);
-		$stem = EnglishStemmer::_step5($stem);
+		$stem = self::_step1ab($stem);
+		$stem = self::_step1c($stem);
+		$stem = self::_step2($stem);
+		$stem = self::_step3($stem);
+		$stem = self::_step4($stem);
+		$stem = self::_step5($stem);
 	
 		if($cache)
 			$this->_cache[$word] = $stem;
@@ -54,30 +54,30 @@ class EnglishStemmer {
 	function _step1ab($word) {
 		// Part a
 		if(substr($word, -1) == 's')
-			EnglishStemmer::_replace($word, 'sses', 'ss')
-			|| EnglishStemmer::_replace($word, 'ies', 'i')
-			|| EnglishStemmer::_replace($word, 'ss', 'ss')
-			|| EnglishStemmer::_replace($word, 's', '');
+			self::_replace($word, 'sses', 'ss')
+			|| self::_replace($word, 'ies', 'i')
+			|| self::_replace($word, 'ss', 'ss')
+			|| self::_replace($word, 's', '');
 		
 		// Part b
-		if(substr($word, -2, 1) != 'e' || !EnglishStemmer::_replace($word, 'eed', 'ee', 0)) { // First rule
+		if(substr($word, -2, 1) != 'e' || !self::_replace($word, 'eed', 'ee', 0)) { // First rule
 			$v = &$this->_v;
 		
-			if(preg_match("~$v+~", substr($word, 0, -3)) && EnglishStemmer::_replace($word, 'ing', '')
-				|| preg_match("~$v+~", substr($word, 0, -2)) && EnglishStemmer::_replace($word, 'ed', '')) { // Note use of && and ||, for precedence reasons
+			if(preg_match("~$v+~", substr($word, 0, -3)) && self::_replace($word, 'ing', '')
+				|| preg_match("~$v+~", substr($word, 0, -2)) && self::_replace($word, 'ed', '')) { // Note use of && and ||, for precedence reasons
 		
-				if(!EnglishStemmer::_replace($word, 'at', 'ate')
-					&& !EnglishStemmer::_replace($word, 'bl', 'ble')
-					&& !EnglishStemmer::_replace($word, 'iz', 'ize')) {
+				if(!self::_replace($word, 'at', 'ate')
+					&& !self::_replace($word, 'bl', 'ble')
+					&& !self::_replace($word, 'iz', 'ize')) {
 		
-					if(EnglishStemmer::_doubleConsonant($word)
+					if(self::_doubleConsonant($word)
 						&& substr($word, -2) != 'll'
 						&& substr($word, -2) != 'ss'
 						&& substr($word, -2) != 'zz') {
 						
 						$word = substr($word, 0, -1);
 					
-					} elseif(EnglishStemmer::_occurrences($word) == 1 && EnglishStemmer::_cvc($word)) {
+					} elseif(self::_occurrences($word) == 1 && self::_cvc($word)) {
 						$word .= 'e';
 					}
 				}
@@ -90,55 +90,55 @@ class EnglishStemmer {
 	function _step1c($word) {
 		$v = &$this->_v;
 		if(substr($word, -1) == 'y' && preg_match("~$v+~", substr($word, 0, -1)))
-			EnglishStemmer::_replace($word, 'y', 'i');
+			self::_replace($word, 'y', 'i');
 		return $word;
 	}
 	
 	function _step2($word) {
 		switch(substr($word, -2, 1)) {
 			case 'a':
-				EnglishStemmer::_replace($word, 'ational', 'ate', 0)
-				|| EnglishStemmer::_replace($word, 'tional', 'tion', 0);
+				self::_replace($word, 'ational', 'ate', 0)
+				|| self::_replace($word, 'tional', 'tion', 0);
 			break;
 		
 			case 'c':
-				EnglishStemmer::_replace($word, 'enci', 'ence', 0)
-				|| EnglishStemmer::_replace($word, 'anci', 'ance', 0);
+				self::_replace($word, 'enci', 'ence', 0)
+				|| self::_replace($word, 'anci', 'ance', 0);
 			break;
 		
 			case 'e':
-				EnglishStemmer::_replace($word, 'izer', 'ize', 0);
+				self::_replace($word, 'izer', 'ize', 0);
 			break;
 		
 			case 'g':
-				EnglishStemmer::_replace($word, 'logi', 'log', 0);
+				self::_replace($word, 'logi', 'log', 0);
 			break;
 		
 			case 'l':
-				EnglishStemmer::_replace($word, 'entli', 'ent', 0)
-				|| EnglishStemmer::_replace($word, 'ousli', 'ous', 0)
-				|| EnglishStemmer::_replace($word, 'alli', 'al', 0)
-				|| EnglishStemmer::_replace($word, 'bli', 'ble', 0)
-				|| EnglishStemmer::_replace($word, 'eli', 'e', 0);
+				self::_replace($word, 'entli', 'ent', 0)
+				|| self::_replace($word, 'ousli', 'ous', 0)
+				|| self::_replace($word, 'alli', 'al', 0)
+				|| self::_replace($word, 'bli', 'ble', 0)
+				|| self::_replace($word, 'eli', 'e', 0);
 			break;
 		
 			case 'o':
-				EnglishStemmer::_replace($word, 'ization', 'ize', 0)
-				|| EnglishStemmer::_replace($word, 'ation', 'ate', 0)
-				|| EnglishStemmer::_replace($word, 'ator', 'ate', 0);
+				self::_replace($word, 'ization', 'ize', 0)
+				|| self::_replace($word, 'ation', 'ate', 0)
+				|| self::_replace($word, 'ator', 'ate', 0);
 			break;
 		
 			case 's':
-				EnglishStemmer::_replace($word, 'iveness', 'ive', 0)
-				|| EnglishStemmer::_replace($word, 'fulness', 'ful', 0)
-				|| EnglishStemmer::_replace($word, 'ousness', 'ous', 0)
-				|| EnglishStemmer::_replace($word, 'alism', 'al', 0);
+				self::_replace($word, 'iveness', 'ive', 0)
+				|| self::_replace($word, 'fulness', 'ful', 0)
+				|| self::_replace($word, 'ousness', 'ous', 0)
+				|| self::_replace($word, 'alism', 'al', 0);
 			break;
 		
 			case 't':
-				EnglishStemmer::_replace($word, 'biliti', 'ble', 0)
-				|| EnglishStemmer::_replace($word, 'aliti', 'al', 0)
-				|| EnglishStemmer::_replace($word, 'iviti', 'ive', 0);
+				self::_replace($word, 'biliti', 'ble', 0)
+				|| self::_replace($word, 'aliti', 'al', 0)
+				|| self::_replace($word, 'iviti', 'ive', 0);
 			break;
 		}
 		
@@ -148,29 +148,29 @@ class EnglishStemmer {
 	function _step3($word) {
 		switch(substr($word, -2, 1)) {
 			case 'a':
-				EnglishStemmer::_replace($word, 'ical', 'ic', 0);
+				self::_replace($word, 'ical', 'ic', 0);
 			break;
 				
 			case 's':
-				EnglishStemmer::_replace($word, 'alise', 'al', 0)
-				|| EnglishStemmer::_replace($word, 'ness', '', 0);
+				self::_replace($word, 'alise', 'al', 0)
+				|| self::_replace($word, 'ness', '', 0);
 			break;
 				
 			case 't':
-				EnglishStemmer::_replace($word, 'icate', 'ic', 0)
-				|| EnglishStemmer::_replace($word, 'iciti', 'ic', 0);
+				self::_replace($word, 'icate', 'ic', 0)
+				|| self::_replace($word, 'iciti', 'ic', 0);
 			break;
 				
 			case 'u':
-				EnglishStemmer::_replace($word, 'ful', '', 0);
+				self::_replace($word, 'ful', '', 0);
 			break;
 				
 			case 'v':
-				EnglishStemmer::_replace($word, 'ative', '', 0);
+				self::_replace($word, 'ative', '', 0);
 			break;
 				
 			case 'z':
-				EnglishStemmer::_replace($word, 'alize', 'al', 0);
+				self::_replace($word, 'alize', 'al', 0);
 			break;
 		}
 		
@@ -180,60 +180,60 @@ class EnglishStemmer {
 	function _step4($word) {
 		switch(substr($word, -2, 1)) {
 			case 'a':
-				EnglishStemmer::_replace($word, 'al', '', 1);
+				self::_replace($word, 'al', '', 1);
 			break;
 		
 			case 'c':
-				EnglishStemmer::_replace($word, 'ance', '', 1)
-				|| EnglishStemmer::_replace($word, 'ence', '', 1);
+				self::_replace($word, 'ance', '', 1)
+				|| self::_replace($word, 'ence', '', 1);
 			break;
 		
 			case 'e':
-				EnglishStemmer::_replace($word, 'er', '', 1);
+				self::_replace($word, 'er', '', 1);
 				break;
 		
 			case 'i':
-				EnglishStemmer::_replace($word, 'ic', '', 1);
+				self::_replace($word, 'ic', '', 1);
 			break;
 		
 			case 'l':
-				EnglishStemmer::_replace($word, 'able', '', 1)
-				|| EnglishStemmer::_replace($word, 'ible', '', 1);
+				self::_replace($word, 'able', '', 1)
+				|| self::_replace($word, 'ible', '', 1);
 			break;
 		
 			case 'n':
-				EnglishStemmer::_replace($word, 'ant', '', 1)
-				|| EnglishStemmer::_replace($word, 'ement', '', 1)
-				|| EnglishStemmer::_replace($word, 'ment', '', 1)
-				|| EnglishStemmer::_replace($word, 'ent', '', 1);
+				self::_replace($word, 'ant', '', 1)
+				|| self::_replace($word, 'ement', '', 1)
+				|| self::_replace($word, 'ment', '', 1)
+				|| self::_replace($word, 'ent', '', 1);
 			break;
 		
 			case 'o':
 				if(substr($word, -4) == 'tion' || substr($word, -4) == 'sion')
-					EnglishStemmer::_replace($word, 'ion', '', 1);
+					self::_replace($word, 'ion', '', 1);
 				else
-					EnglishStemmer::_replace($word, 'ou', '', 1);
+					self::_replace($word, 'ou', '', 1);
 			break;
 		
 			case 's':
-				EnglishStemmer::_replace($word, 'ism', '', 1);
+				self::_replace($word, 'ism', '', 1);
 			break;
 		
 			case 't':
-				EnglishStemmer::_replace($word, 'ate', '', 1)
-				|| EnglishStemmer::_replace($word, 'iti', '', 1);
+				self::_replace($word, 'ate', '', 1)
+				|| self::_replace($word, 'iti', '', 1);
 			break;
 		
 			case 'u':
-				EnglishStemmer::_replace($word, 'ous', '', 1);
+				self::_replace($word, 'ous', '', 1);
 			break;
 		
 			case 'v':
-				EnglishStemmer::_replace($word, 'ive', '', 1);
+				self::_replace($word, 'ive', '', 1);
 			break;
 		
 			case 'z':
-				EnglishStemmer::_replace($word, 'ize', '', 1);
+				self::_replace($word, 'ize', '', 1);
 			break;
 		}
 		
@@ -243,16 +243,16 @@ class EnglishStemmer {
 	function _step5($word) {
 		// Part a
 		if(substr($word, -1) == 'e') {
-			if(EnglishStemmer::_occurrences(substr($word, 0, -1)) > 1) {
-				EnglishStemmer::_replace($word, 'e', '');
-			} elseif(EnglishStemmer::_occurrences(substr($word, 0, -1)) == 1) {
-				if(!EnglishStemmer::_cvc(substr($word, 0, -1)))
-					EnglishStemmer::_replace($word, 'e', '');
+			if(self::_occurrences(substr($word, 0, -1)) > 1) {
+				self::_replace($word, 'e', '');
+			} elseif(self::_occurrences(substr($word, 0, -1)) == 1) {
+				if(!self::_cvc(substr($word, 0, -1)))
+					self::_replace($word, 'e', '');
 			}
 		}
 		
 		// Part b
-		if(EnglishStemmer::_occurrences($word) > 1 && EnglishStemmer::_doubleConsonant($word) && substr($word, -1) == 'l')
+		if(self::_occurrences($word) > 1 && self::_doubleConsonant($word) && substr($word, -1) == 'l')
 			$word = substr($word, 0, -1);
 		
 		return $word;
@@ -262,7 +262,7 @@ class EnglishStemmer {
 		$len = 0 - strlen($check);
 		if(substr($str, $len) == $check) {
 			$substr = substr($str, 0, $len);
-			if(is_null($o) || EnglishStemmer::_occurrences($substr) > $o)
+			if(is_null($o) || self::_occurrences($substr) > $o)
 				$str = $substr . $repl;
 			return true;
 		}

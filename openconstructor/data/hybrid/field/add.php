@@ -178,8 +178,8 @@ function prepare() {
 					<td>
 						<select size="1" name="document_from_none" style="display:none"></select>
 						<?php
-							$map = &$_dsm->getTree();
-							$hds = &$_dsm->getAll('hybrid');
+							$map = $_dsm->getTree();
+							$hds = $_dsm->getAll('hybrid');
 							foreach($_dsm->types as $k=>$v){
 								if($k == 'htmltext' || $k == 'phpsource' || $k == 'rating' || !@$map[$k][$v]) continue;
 								echo '<select size="1" name="document_from_'.$k.'" style="display:none">';
@@ -288,7 +288,7 @@ function prepare() {
 					<td><?=H_DSH_WCENUM?>:</td>
 					<td><select size="1" name="enum_type">
 					<?php
-						$ef = &WCEnumFactory::getInstance();
+						$ef = WCEnumFactory::getInstance();
 						$types = $ef->getAllEnums();
 						foreach($types as $id => $header)
 							echo "<option value='$id'>$header";
@@ -310,7 +310,7 @@ function prepare() {
 					<td><select size="1" name="rating_type">
 					<?php
 						if(isset($map['rating'])) {
-							$db = &WCDB::bo();
+							$db = WCDB::bo();
 							$res = $db->query('SELECT fromds FROM dshfields WHERE family="rating"');
 							while($r = mysql_fetch_row($res))
 								$usedRatings[$r[0]] = true;

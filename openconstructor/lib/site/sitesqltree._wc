@@ -42,7 +42,7 @@ class SiteSqlTree {
 		if($this->exists($parentId, $key))
 			return false;
 		$prev = $this->getLastChild($parentId);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$this->lockTables($db);
 		if($parent['next']) 
 			$num = $parent['next'];
@@ -65,7 +65,7 @@ class SiteSqlTree {
 	function removeNode($nodeId) {
 		$node = $this->getNode($nodeId);
 		assert($node != null && $node['num'] > 0);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$this->lockTables($db);
 		$db->query("DELETE FROM $this->table WHERE num >= {$node['num']}".($node['next'] > 0 ? " AND num < {$node['next']}" : ''));
 		if($db->errorCode()) {
@@ -86,7 +86,7 @@ class SiteSqlTree {
 	function updateNode($nodeId, $key, $header) {
 		$key = $this->validateKey($key);
 		assert(trim($key) != '' && trim($header) != '');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			sprintf("UPDATE $this->table SET name='%s', header='%s' WHERE id = $nodeId", $key, addslashes($header))
 		);
@@ -100,7 +100,7 @@ class SiteSqlTree {
 		if(($newParent['num'] > $node['num'] && ($node['next'] == 0 || $node['next'] > $newParent['num'])) || $this->exists($newParentId, $node['name']))
 			return false;
 		$prev = $this->getLastChild($newParentId);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$this->lockTables($db);
 		if($newParent['next']) 
 			$num = $newParent['next'];
@@ -141,7 +141,7 @@ class SiteSqlTree {
 	}
 	
 	function reserve($placeNum, $level, $size = 1) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			"UPDATE $this->table SET num = num + $size, next = IF(next>0, next + $size, 0) WHERE num >= $placeNum"
 		);
@@ -152,13 +152,13 @@ class SiteSqlTree {
 	}
 	
 	function moveNodeUp($nodeId) {
-		$dest = &$this->getSibling($nodeId, -1);
+		$dest = $this->getSibling($nodeId, -1);
 		assert($dest != null);
 		$this->placeNodeBefore($nodeId, $dest['id']);
 	}
 	
 	function moveNodeDown($nodeId) {
-		$dest = &$this->getSibling($nodeId, 1);
+		$dest = $this->getSibling($nodeId, 1);
 		assert($dest != null);
 		$this->placeNodeAfter($nodeId, $dest['id']);
 	}
@@ -173,29 +173,29 @@ class SiteSqlTree {
 	
 	function placeNode($nodeId, $destNodeId, $place) {
 		assert($nodeId != $destNodeId);
-		$node = &$this->getNode($nodeId);
-		$destNode = &$this->getNode($destNodeId);
+		$node = $this->getNode($nodeId);
+		$destNode = $this->getNode($destNodeId);
 		assert($nodeId != $node['parent'] && $node['parent'] == $destNode['parent']);
-		$parent = &$this->getNode($node['parent']);
+		$parent = $this->getNode($node['parent']);
 		if(($destNode['num'] > $node['num'] && $place == PLACE_NODE_BEFORE) || ($destNode['num'] < $node['num'] && $place == PLACE_NODE_AFTER)) {
 			if($place == PLACE_NODE_AFTER)
-				$destNode = &$this->getNode($destNode['next']);
+				$destNode = $this->getNode($destNode['next']);
 			else
-				$destNode = &$this->getSibling($destNode['id'], -1);
+				$destNode = $this->getSibling($destNode['id'], -1);
 			if($destNode['id'] == $nodeId)
 				return;
 		}
-		$tmp = &$this->getLastChild($nodeId);
+		$tmp = $this->getLastChild($nodeId);
 		$treeSize = $tmp ? $tmp['num'] - $node['num'] + 1 : 1;
 		$min = min($node['num'], $destNode['num']);
 		$max = max($node['num'], $destNode['num']);
 		if($max == $destNode['num']) {
-			$tmp = &$this->getLastChild($destNode['id']);
+			$tmp = $this->getLastChild($destNode['id']);
 			$max = $tmp ? $tmp['num'] : $max;
 			unset($tmp);
 		} else
 			$max += $treeSize - 1;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$this->lockTables($db);
 		$delta = $treeSize * ($destNode['num'] < $node['num'] ? 1 : -1);
 		$tDelta = $destNode['num'] < $node['num'] ? $destNode['num'] - $node['num'] : $max - $min + 1 - $treeSize;
@@ -219,7 +219,7 @@ class SiteSqlTree {
 	
 	function &getSibling($nodeId, $offset) {
 		assert($offset != 0);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			"SELECT t2.* FROM $this->table t1, $this->table t2".
 			' WHERE t1.id = '.$nodeId.' AND t2.num '.($offset > 0 ? '>' : '<').' t1.num AND t2.parent = t1.parent AND t2.level = t1.level'.
@@ -232,7 +232,7 @@ class SiteSqlTree {
 	}
 	
 	function &getLastChild($id) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			"SELECT t2.* FROM $this->table t1, $this->table t2".
 			' WHERE t1.id = '.$id.' AND t2.num > t1.num AND t2.level > t1.level AND t2.next = t1.next'.
@@ -250,7 +250,7 @@ class SiteSqlTree {
 	}
 	
 	function &getNodeByClause(&$clause) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query($q = "SELECT * FROM $this->table WHERE $clause LIMIT 1");
 		$node = mysql_num_rows($res) == 1 ? mysql_fetch_assoc($res) : null;
 		mysql_free_result($res);
@@ -262,7 +262,7 @@ class SiteSqlTree {
 	}
 	
 	function exists($parentId, $key) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query($q="SELECT id FROM $this->table WHERE name = '$key' AND parent = $parentId");
 		$exists = mysql_num_rows($res) == 1;
 		mysql_free_result($res);

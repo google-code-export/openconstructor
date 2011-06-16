@@ -28,7 +28,7 @@
 	assert(!empty($type) && $id > 0);
 	assert(preg_match('/^[a-z]+$/', $type) != false);
 	
-	$db = &WCDB::bo();
+	$db = WCDB::bo();
 	$res = $db->query("SELECT d.ds_id, d.id FROM ds$type d, ds$type d0 WHERE d0.id = $id AND d.id = d0.real_id");
 	$r = mysql_fetch_row($res);
 	mysql_free_result($res);

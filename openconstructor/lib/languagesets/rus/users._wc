@@ -31,6 +31,7 @@
 	@define('CREATE_USER','Создание нового пользователя');
 	define('USER','Пользователь');
 	@define('USR_LOGIN','Логин');
+	@define('USR_OPENID_LOGIN','OpenID');
 	define('USR_NAME','Имя пользователя');
 	define('USR_ADDITIONAL_INFO','Дополнительная информация');
 	define('USR_EMAIL','E-mail');

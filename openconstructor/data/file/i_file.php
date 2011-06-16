@@ -31,8 +31,9 @@ switch(@$_POST['action'])
 {
 	case 'create_file':
 		if(@$_POST['hybridid'] > 0) {
-			$hDoc = &WCDataSource::getHybridDoc($_POST['hybridid']);
-			WCS::assert($hDoc, 'editdoc');
+			$ownerDs = WCDataSource::loadByDoc($_POST['hybridid']);
+			$ownerDoc = $ownerDs->getDocument($_POST['hybridid']);
+			WCS::assertValue(WCS::decide($ownerDoc, 'editdoc') || WCS::decide($ownerDs, 'editdoc'), $ownerDoc, 'editdoc');
 			WCS::runAs(WCS_ROOT_ID);
 		}
 		$fail=array();
@@ -46,7 +47,7 @@ switch(@$_POST['action'])
 			header('Location: '.$ref);
 			die();
 		}
-		$_ds = &$dsm->load(@$_POST['ds_id']);
+		$_ds = $dsm->load(@$_POST['ds_id']);
 		$result=$_ds->add($_POST['name'], @$_POST['description'], @$_POST['fname'],@$_POST['type'], @$_FILES['file']['tmp_name']);
 		if(is_array($result)&&is_int($result[0]))
 		{
@@ -81,7 +82,7 @@ switch(@$_POST['action'])
 			header('Location: '.$ref);
 			die();
 		}
-		$_ds = &$dsm->load(@$_POST['ds_id']);
+		$_ds = $dsm->load(@$_POST['ds_id']);
 		$result=$_ds->update($_POST['id'],$_POST['name'], @$_POST['description'],@$_POST['fname'],@$_POST['type'], @$_FILES['file']['tmp_name']);
 		if($result===true)
 			header('Location: edit.php?ds_id='.$_POST['ds_id'].'&id='.$_POST['id'].'&ok=1');
@@ -95,7 +96,7 @@ switch(@$_POST['action'])
 	case 'delete_file':
 		if(isset($_POST['ds_id']))
 		{
-			$_ds = &$dsm->load($_POST['ds_id']);
+			$_ds = $dsm->load($_POST['ds_id']);
 			$_ds->delete(implode(',',@$_POST['ids']));
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -105,7 +106,7 @@ switch(@$_POST['action'])
 	case 'remove_ds':
 		if(isset($_POST['ds_id']))
 		{
-			$_ds = &$dsm->load($_POST['ds_id']);
+			$_ds = $dsm->load($_POST['ds_id']);
 			$_ds->remove();
 		}
 //		header('Location: http://'.$_host.WCHOME.'/data/');
@@ -115,25 +116,13 @@ switch(@$_POST['action'])
 	case 'move_documents':
 		assert(@$_POST['ds_id'] > 0 && @$_POST['dest_ds_id'] > 0);
 		if(isset($_POST['ids'])) {
-			$_ds = &$dsm->load($_POST['ds_id']);
-			$_dest_ds = &$dsm->load($_POST['dest_ds_id']);
+			$_ds = $dsm->load($_POST['ds_id']);
+			$_dest_ds = $dsm->load($_POST['dest_ds_id']);
 			assert($_ds->ds_id > 0 && $_dest_ds->ds_id > 0);
 			$_dest_ds->moveFiles($_ds,$_POST['ids']);
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
 		die('<meta http-equiv="Refresh" content="0; URL='.$_SERVER['HTTP_REFERER'].'">');
-	break;
-	
-	case 'view_detail':
-		foreach((array) @$_COOKIE['vd'] as $key => $val){
-			if(!array_key_exists($key, (array) @$_POST['vdetail']))
-				setcookie('vd['.$key.']', '', time() - 3600, WCHOME.'/data/');
-		}
-		foreach($_POST['vdetail'] as $key => $val)
-			setcookie('vd['.$key.']', $key, 0, WCHOME.'/data/');
-		setcookie('pagesize', $_POST['pagesize'], 0, WCHOME.'/data/');
-		setcookie('vd[_touched]', '_touched', 0, WCHOME.'/data/');
-		header('Location: '.$_SERVER['HTTP_REFERER']);
 	break;
 	
 	default:

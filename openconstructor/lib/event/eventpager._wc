@@ -43,8 +43,8 @@ class EventPager extends WCObject {
 	}
 	
 	function getCacheId() {
-		$ctx = &Context::getInstance();
-		if($master = &$ctx->getObject((int) $this->master)) {
+		$ctx = Context::getInstance();
+		if($master = $ctx->getObject((int) $this->master)) {
 			$page = (int) @$_GET[$master->pid];
 			if(--$page) $page = 0;
 			$cacheId = $this->obj_id.'|p'.$page;
@@ -54,8 +54,8 @@ class EventPager extends WCObject {
 	
 	function fetchData(&$smarty) {
 		$result = false;
-		$ctx = &Context::getInstance();
-		$master = &$ctx->getObject((int) $this->master);
+		$ctx = Context::getInstance();
+		$master = $ctx->getObject((int) $this->master);
 		if(!$master) return $result;
 		$current = intval(@$_GET[$master->pid])+!intval(@$_GET[$master->pid]);
 		
@@ -64,7 +64,7 @@ class EventPager extends WCObject {
 			$gmtOffset = -date('Z') + WC_TIMEZONE;
 			$where .= ' AND end_date >= FROM_UNIXTIME(' . (mktime() + $gmtOffset) . ')';
 		}
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT COUNT(*) as items FROM '.$this->DSTable.' WHERE '.$where.' AND published != 0'
 		);
@@ -116,7 +116,7 @@ class EventPager extends WCObject {
 	
 	function &_getDSFields() {
 		static $result;
-		if(!is_array(&$result)) $result = array('master');
+		if(!is_array($result)) $result = array('master');
 		return $result;
 	}
 }
