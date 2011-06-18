@@ -1,0 +1,40 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: toolbar._wc,v 1.4 2007/02/27 11:23:24 sanjar Exp $
+ */
+	$toolbar=array(
+		CREATE_USER=>array('pic'=>'newuser','action'=>WCS::decide($group, 'createuser') ? 'wxyopen(wchome+"/users/adduser.php?group_id="+curnode,600)' : ''),
+		CREATE_USERGROUP=>array('pic'=>'newusergroup','action'=>System::decide('users.manage') ? 'wxyopen(wchome + "/users/addgroup.php", 600, 300)' : ''),
+		'separator',
+		ADD_MEMBER=>array('pic'=>'addmember','action'=>$group->name != 'everyone' && WCS::decide($group, 'addmember') ? 'addmember()' : ''),
+		REMOVE_MEMBER=>array('pic'=>'removemember','action'=>$group->name != 'everyone' && WCS::decide($group, 'removemember') ? 'removeMembers()' : ''),
+		'separator',
+		ENABLE_USER=>array('pic'=>'enableuser','action'=>'setUserState(true)'),
+		DISABLE_USER=>array('pic'=>'disableuser','action'=>'setUserState(false)'),
+		'separator',
+		EDIT_USERGROUP=>array('pic'=>'editpage','action'=>'wxyopen(wchome+"/users/editgroup.php?group_id="+curnode,600)'),
+		EDIT_SECURITY => array('pic'=>'editsec','action'=> 'edit_security()'),
+		'separator',
+		REFRESH=>array('pic'=>'reload','action'=>'window.location.href += ""'),
+		'separator',
+		REMOVE=>array('pic'=>'remove','action'=>WCS::decide($group, 'removegroup') ? 'remove()' : ''),
+	);
+?>

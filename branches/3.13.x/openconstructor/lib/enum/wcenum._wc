@@ -1,0 +1,106 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: wcenum._wc,v 1.6 2007/02/27 11:23:25 sanjar Exp $
+ */
+class WCEnum {
+	var $id, $header;
+	var $sRes;
+	
+	function WCEnum($header) {
+		$this->id = null;
+		$this->header = $header;
+	}
+	
+	function addValue($value, $header) {
+		WCS::assert($this, 'addvalue');
+		$value = $this->validateValue($value);
+		assert($value != '' && trim($header) != '');
+		$db = WCDB::bo();
+		$db->query(sprintf(
+			'INSERT INTO enumvalues (enum_id, value, header) VALUES (%d, "%s", "%s")',
+			$this->id, addslashes($value), addslashes($header)
+		));
+		$id = $db->lastInsertId();
+		
+		loadClass('fieldfactory', '/hybrid/fields/fieldfactory._wc');
+		FieldFactory::enumUpdated($this);
+		
+		return $id;
+	}
+	
+	function updateValue($id, $value, $header) {
+		WCS::assert($this, 'editvalue');
+		settype($id, 'int');
+		$value = $this->validateValue($value);
+		assert($value != '' && trim($header) != '' && $id > 0);
+		$db = WCDB::bo();
+		$db->query(sprintf(
+			'UPDATE enumvalues SET value = "%s", header = "%s" WHERE id = %d AND enum_id = %d',
+			addslashes($value), addslashes($header), $id, $this->id
+		));
+	}
+	
+	function removeValue($ids) {
+		WCS::assert($this, 'removevalue');
+		if(is_array($ids))
+			$ids = implode(',', $ids);
+		$db = WCDB::bo();
+		$db->query("DELETE FROM enumvalues WHERE id IN ($ids) AND enum_id = {$this->id}");
+		
+		loadClass('fieldfactory', '/hybrid/fields/fieldfactory._wc');
+		FieldFactory::enumUpdated($this);
+	}
+	
+	function getValue($id) {
+		$result = null;
+		settype($id, 'int');
+		assert($id > 0);
+		$db = WCDB::bo();
+		$res = $db->query("SELECT id, value, header FROM enumvalues WHERE id = $id AND enum_id = {$this->id}");
+		if(mysql_num_rows($res) == 1)
+			$result = mysql_fetch_assoc($res);
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &getAllValues() {
+		$result = array();
+		$db = WCDB::bo();
+		$res = $db->query("SELECT id, value, header FROM enumvalues WHERE enum_id = $this->id");
+		if(mysql_num_rows($res) > 0)
+			while($r = mysql_fetch_assoc($res))
+				$result[(int) $r['id']] = array('value' => $r['value'], 'header' => $r['header']);
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function validateValue($value) {
+		$value = preg_replace('/[^A-Za-z0-9_\\-#\\$]+/u', '', $value);
+		$value = strtolower($value);
+		$value = preg_replace('/^[0-9]+/', '', $value);
+		if(strlen($value) > 32)
+			$value = substr($value, 0, 32);
+		return $value;
+	}
+}
+?>

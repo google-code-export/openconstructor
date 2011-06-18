@@ -1,0 +1,128 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhemdov
+ * 
+ * $Id: sitemap._wc,v 1.6 2007/02/27 11:23:21 sanjar Exp $
+ */
+define('MN_INDEX', 0);
+define('MN_NEXT', 1);
+define('MN_LEVEL', 2);
+
+class SiteMap {
+	var $page, $uri, $id;
+	
+	function SiteMap() {
+		$page = array();
+	}
+	
+	function &getChildrenOf($uri) {
+		$result = array();
+		if(isset($this->uri[$uri]) && isset($this->page[$this->uri[$uri][MN_INDEX] + 1])) {
+			$page = &$this->uri[$uri];
+			for($i = $page[MN_INDEX] + 1; $this->page[$i][MN_LEVEL] > $page[MN_LEVEL]; $i = $this->page[$i][MN_NEXT])
+				$result[] = $this->page[$i]['id'];
+		}
+		return $result;
+	}
+	
+	function hasChildren($uri) {
+		return $this->uri[$uri][MN_NEXT] == 0
+			? isset($this->page[$this->uri[$uri][MN_INDEX] + 1])
+			: ($this->uri[$uri][MN_INDEX] + 1) < $this->uri[$uri][MN_NEXT]
+		;
+	}
+	
+	function &getSiblings($uri) {
+		$result = array();
+		if($uri != '/')
+			$result = array_diff($this->getChildrenOf($this->uri[$uri]['parent']['uri']), array($this->uri[$uri]['id']));
+		return $result;
+	}
+	
+	function getHref($uri) {
+		if($this->uri[$uri]['router']) {
+			$router = $this->id[$this->uri[$uri]['router']]['uri'];
+			return $router.'index.php/'.substr($uri, strlen($router));
+		}
+		return $uri;
+	}
+	
+	function getTitle($uri) {
+		return @$this->uri[$uri]['title'];
+	}
+	
+	function exists($uri) {
+		return isset($this->uri[$uri]);
+	}
+	
+	function relativate($target, $uri) {
+		if($target{0} != '/' || $uri{0} != '/')
+			return $target;
+		$l = min(strlen($target), strlen($uri));
+		$i = $equal = 0;
+		while($i < $l && $target{$i} == $uri{$i}) {
+			if($target{$i} == '/') $equal = $i;
+			$i++;
+		}
+		$diff = sizeof(explode('/', substr($uri, $equal))) - 2;
+		$result = str_repeat('../', $diff).substr($target, $equal + 1);
+		return $result ? $result : '.';
+	}
+	
+	function &_newPage($pageId, $title) {
+		$result = null;
+		if(isset($this->id[$pageId])) {
+			$result = new WebPage($this, $pageId, $this->id[$pageId]['uri']);
+			$result->_cTitle = $title;
+		}
+		return $result;
+	}
+	
+	function _root($id, $title, $users) {
+		$this->_add(0, $id, 0, 0, null, $title, 0, $users);
+		$this->id[$id]['parent'] = null;
+	}
+	
+	function _add($parentId, $pageId, $index, $next, $name, $title, $router = 0, $users = null) {
+		if($index > 0)
+			$parent = &$this->id[$parentId];
+		else
+			$parent = array(MN_LEVEL => -1, 'uri' => '', 'router' => 0, 'usr' => WCS_EVERYONE_ID);
+		$uri = $parent['uri'].$name.'/';
+		if($users == null)
+			$users = $parent['usr'];
+		$this->page[$index] = array(
+			$index,
+			$next,
+			$parent[MN_LEVEL] + 1,
+			'id' => $pageId,
+			'name' => $name,
+			'uri' => &$uri,
+			'parent' => &$parent,
+			'title' => $title,
+			'router' => $router && !$parent['router'] ? $pageId : $parent['router'],
+			'usr' => &$users
+		);
+		$this->uri[$uri] = &$this->page[$index];
+		$this->id[$pageId] = &$this->page[$index];
+	}
+}
+?>

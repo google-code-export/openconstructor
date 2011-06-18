@@ -1,0 +1,89 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Список гостевых книг.
+ * 
+ * Оьъект вывода.
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: gblist._wc,v 1.7 2007/02/27 11:23:21 sanjar Exp $
+ */
+
+class GBList extends WCObject {
+	var $header;
+	var $dateFormat;
+	
+	function GBList() {
+		$this->DSTable='datasources';
+		$this->ds_type='guestbook';
+		$this->obj_type='gblist';
+		$this->dateFormat='[j.m.Y]';
+		$this->gbid='subject';
+		$this->srvuri='./';
+		$this->reverseOrder=false;
+		$this->caching=2;
+		$this->cached_by_WC=true;
+	}
+	
+	function getCacheId() {
+		$displayed = $this->getDisplayedDs();
+		return $this->obj_id.'|c'.implode(',', array_keys($displayed));
+	}
+	
+	function fetchData(&$smarty) {
+		$result = false;
+		if(!$this->defaultGB) return $result;
+		
+		$db = $this->ctx->_getDB();
+		$res = $db->query(
+			'SELECT ds_id, name, description '.
+			'FROM '.$this->DSTable.' '.
+			'WHERE ds_type="'.$this->ds_type.'" AND ds_id IN('.$this->ds_id.') AND internal=0 '.
+			'ORDER BY date '.(@$this->reverseOrder?'ASC':'DESC')
+		);
+		if(mysql_num_rows($res) > 0) {
+			$displayed = $this->getDisplayedDs();
+			while($row = mysql_fetch_assoc($res)) {
+				$gb[$row['ds_id']]['header'] = escapeTags($row['name']);
+				$gb[$row['ds_id']]['href'] = isset($displayed[$row['ds_id']]) ? null : $this->srvuri.'?'.$this->gbid.'='.$row['ds_id'];
+				$gb[$row['ds_id']]['intro'] = $row['description'];
+			}
+			$smarty->assign('header', $this->header);
+			$smarty->assign_by_ref('guestbooks', $gb);
+			$result = array('header', 'guestbooks');
+		}
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &getDisplayedDs() {
+		if(!isset($this->_dispalyedDs))
+			$this->_displayedDs = class_exists('gballmessages') ? GBAllMessages::getDisplayedDs() : array();
+		return $this->_displayedDs;
+	}
+	
+	function &_getDSFields() {
+		static $result;
+		if(!is_array($result)) $result = array('ds_id', 'gbid');
+		return $result;
+	}
+}
+?>

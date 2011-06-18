@@ -1,0 +1,88 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: hybriddocument._wc,v 1.4 2007/02/27 11:23:19 sanjar Exp $
+ */
+class HybridDocument {
+	var $id, $ds_id;
+	var $isPublished;
+	var $header;
+	var $fields;
+	var $record, $fieldNames;
+	var $sRes;
+	
+	function HybridDocument(&$record) {
+		$this->record = $record;
+		$this->ds_id = $record->ds_id;
+		$this->fields = array('id' => &$this->id, 'header' => &$this->header);
+		$this->fieldNames = array_keys($this->record->fields);
+		$this->reset(); 
+	}
+	
+	function readValues(&$arr) {
+		if(isset($arr['id']))
+			$this->id = (int) $arr['id'];
+		if(isset($arr['ds_id']))
+			$this->ds_id = (int) $arr['ds_id'];
+		if(isset($arr['published']))
+			$this->isPublished = $arr['published'] ? true : false;
+		if(isset($arr['header']))
+			$this->header = $arr['header'];
+		foreach($this->fieldNames as $k)
+			if(isset($arr[$k]))
+				$this->fields[$k] = is_array($arr[$k]) ? implode(',', $arr[$k]) : $arr[$k];
+	}
+	
+	function readFiles(&$arr) {
+		for($i = 0, $l = sizeof($this->fieldNames); $i < $l; $i++) {
+			$k = $this->fieldNames[$i];
+			if(isset($arr[$k]) && $this->record->fields[$k]->family == 'file')
+				$this->fields[$k] = $arr[$k];
+		}
+	}
+	
+	function fetchValues() {
+		for($i = 0, $l = sizeof($this->fieldNames); $i < $l; $i++)
+			$this->record->fields[$this->fieldNames[$i]]->fetchValue($this);
+	}
+	
+	function convertToPlain() {
+		for($i = 0, $l = sizeof($this->fieldNames); $i < $l; $i++)
+			$this->record->fields[$this->fieldNames[$i]]->convertToPlain($this);
+	}
+	
+	function reset() {
+		for($i = 0, $l = sizeof($this->fieldNames); $i < $l; $i++)
+			$this->fields[$this->fieldNames[$i]] = null;
+	}
+	
+	function loadAuths($owner, $ownerAuths) {
+		$this->sRes = new WCSResource($this->header, (int) $owner, 0);
+		
+		$this->sRes->addAction('editdoc');
+		$this->sRes->addAction('publishdoc');
+		$this->sRes->addAction('removedoc');
+		
+		$this->sRes->setAuthorities($ownerAuths, '0');
+	}
+}
+?>

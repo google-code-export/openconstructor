@@ -1,0 +1,142 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: wcenumfactory._wc,v 1.5 2007/02/27 11:23:25 sanjar Exp $
+ */
+require_once('wcenum._wc');
+
+class WCEnumFactory {
+	
+	function WCEnumFactory() {
+	}
+	
+	function create($header) {
+		System::assert('data.enum');
+		assert(trim($header) != '');
+		$enum = new WCEnum($header);
+		$auth = Authentication::getInstance();
+		$this->loadAuths($enum, $auth->userId, $auth->groupId, constant('WCS_ENUM_MASK'), null);
+		$db = WCDB::bo();
+		$db->query(
+			sprintf('INSERT INTO enums (header, wcsowner, wcsgroup, oauths, gauths) VALUES ("%s", %d, %d, CONV("%s", 2, 10), CONV("%s", 2, 10))'
+				, addslashes($header), $enum->sRes->owner, $enum->sRes->group, $enum->sRes->getOwnerAuths(), $enum->sRes->getGroupAuths()
+			)
+		);
+		$id = $db->lastInsertId();
+		return $id;
+	}
+	
+	function update(&$enum) {
+		assert(trim($enum->header) != '' && $enum->id > 0);
+		WCS::assert($enum, 'editenum');
+		$db = WCDB::bo();
+		$db->query(
+			sprintf('UPDATE enums SET header = "%s" WHERE id = %d', addslashes($enum->header), $enum->id)
+		);
+	}
+	
+	function updateAuths(&$enum) {
+		assert($enum->id > 0);
+		$querySet = '';
+		$userId = Authentication::getUserId();
+		if($enum->sRes->owner > 0 && $userId == WCS_ROOT_ID)
+			$querySet .= ", wcsowner = {$enum->sRes->owner}";
+		if($enum->sRes->group > 0 && $userId == WCS_ROOT_ID)
+			$querySet .= ", wcsgroup = {$enum->sRes->group}";
+		$querySet .= sprintf(', oauths = CONV("%s", 2, 10), gauths = CONV("%s", 2, 10)', $enum->sRes->getOwnerAuths(), $enum->sRes->getGroupAuths());
+		if($querySet) {
+			$querySet = substr($querySet, 1);
+			$db = WCDB::bo();
+			$db->query("UPDATE enums SET $querySet WHERE id = {$enum->id} AND ".WCS::getAuthCheckQuery('editenum.chmod'));
+		}
+	}
+	
+	function remove(&$enum) {
+		WCS::assert($enum, 'removeenum');
+		loadClass('fieldfactory', '/hybrid/fields/fieldfactory._wc');
+		$db = WCDB::bo();
+		$db->query("DELETE FROM enumvalues WHERE enum_id = {$enum->id}");
+		FieldFactory::enumUpdated($enum);
+		$db->query("DELETE FROM enums WHERE id = {$enum->id}");
+	}
+	
+	function &load($id) {
+		settype($id, 'int');
+		$result = null;
+		$db = WCDB::bo();
+		$res = $db->query("SELECT header, wcsowner, wcsgroup, BIN(ROUND(oauths)) as oauths, BIN(ROUND(gauths)) as gauths FROM enums WHERE id = $id");
+		if(mysql_num_rows($res) > 0) {
+			$r = mysql_fetch_assoc($res);
+			$result = new WCEnum($r['header']);
+			$result->id = $id;
+			$this->loadAuths($result, $r['wcsowner'], $r['wcsgroup'], $r['oauths'], $r['gauths']);
+		}
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &loadFirstEnum() {
+		$result = null;
+		$db = WCDB::bo();
+		$res = $db->query("SELECT id, header, wcsowner, wcsgroup, BIN(ROUND(oauths)) as oauths, BIN(ROUND(gauths)) as gauths FROM enums ORDER BY header LIMIT 1");
+		if(mysql_num_rows($res) > 0) {
+			$r = mysql_fetch_assoc($res);
+			$result = new WCEnum($r['header']);
+			$result->id = (int) $r['id'];
+			$this->loadAuths($result, $r['wcsowner'], $r['wcsgroup'], $r['oauths'], $r['gauths']);
+		}
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &getAllEnums() {
+		$result = array();
+		$db = WCDB::bo();
+		$res = $db->query('SELECT id, header FROM enums ORDER BY header');
+		if(mysql_num_rows($res) > 0)
+			while($r = mysql_fetch_assoc($res))
+				$result[(int) $r['id']] = $r['header'];
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function loadAuths(&$enum, $owner, $group, $ownerAuths, $groupAuths) {
+		$enum->sRes = new WCSResource($enum->header, (int) $owner, (int) $group);
+		
+		$enum->sRes->addAction('editenum');
+		$enum->sRes->addAction('editenum.chmod');
+		$enum->sRes->addAction('removeenum');
+		$enum->sRes->addAction('addvalue');
+		$enum->sRes->addAction('editvalue');
+		$enum->sRes->addAction('removevalue');
+		
+		$enum->sRes->setAuthorities($ownerAuths, $groupAuths);
+	}
+	
+	function &getInstance() {
+		static $instance;
+		if(!is_object($instance))
+			$instance = new WCEnumFactory();
+		return $instance;
+	}
+}
+?>

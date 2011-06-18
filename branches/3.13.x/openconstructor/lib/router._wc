@@ -1,0 +1,128 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Маршрутизатор для виртуальных страниц ВК.
+ * 
+ * @author Sanjar Akhmedov
+ * @since 2005-03-02
+ * 
+ * $Id: router._wc,v 1.8 2007/03/02 10:06:41 sanjar Exp $
+ */
+define('ROUTER_PARAM_KEY', '-');
+define('ROUTER_PARAM_VALUE', '.');
+
+class Router {
+	var $param;
+	var $target, $uri, $folder;
+	var $path, $route;
+	
+	function Router($uri, $folder, $path) {
+		if(strlen($path) > 512)
+			self::_throw404();
+		$this->param = array();
+		$this->target = null;
+		$this->path = null;
+		$this->route = null;
+		$this->folder = $folder;
+		$this->uri = $uri;
+		$this->parse($path);
+	}
+	
+	function parse(&$path) {
+		$path = explode('/', $path);
+		$this->path = $this->route = array();
+		$key = $this->folder;
+		$l = sizeof($path);
+		if(@$path[$l - 1] == 'index.php')
+			unset($path[--$l]);
+		$tild = true;
+		for($i = 0; $i < $l; $i++) {
+			if(!$path[$i])
+				continue;
+			switch($path[$i]{0}){
+				case ROUTER_PARAM_KEY:
+					$f = $key.'.'.@substr($path[$i], 1);
+					$this->param[$f] = (string) @$path[++$i];
+					$this->route[$key][] = $f;
+					$tild = false; break;
+				case ROUTER_PARAM_VALUE:
+					if(!$tild)
+						self::_throw404();
+					$this->param[$key] = @substr($path[$i], 1);
+					$this->route[$key][] = $key;
+					$tild = false; break;
+				default:
+					$key = $path[$i];
+					$this->path[] = $key;
+					$tild = true;
+			}
+		}
+		$this->target = implode('/', $this->path);
+	}
+	
+	function route($uri, &$params = null) {
+		if($uri{0} == '.') {
+			$uri = $this->uri.$this->target.'/'.(strlen($uri) > 1 ? substr($uri, 2) : '');
+		} elseif(strpos($uri, $this->uri) !== 0)
+			return false;
+		$params = (array) $params;
+		$result = $this->uri.'index.php/';
+		$path = (array) @explode('/', substr($uri, strlen($this->uri))); $path[-1] = $this->folder;
+		for($i = -1, $l = sizeof($path) - 1; $i < $l; $i++) {
+			if(!$path[$i]) continue;
+			if($i >= 0)	$result .= $path[$i].'/';
+			if($i < 0 || $path[$i] == @$this->path[$i]) {
+				$param = &$this->route[$path[$i]];
+				if($param[0] != $path[$i] && ($pos = array_search($path[$i], $params)) !== false) {
+					$result .= ROUTER_PARAM_VALUE.'%'.($pos + 1).'$s'.'/';
+					unset($params[$pos]);
+				}
+				for($j = 0, $l1 = sizeof($param); $j < $l1; $j++) {
+					$pos = array_search($param[$j], $params);
+					if($pos === false)
+						$v = $this->param[$param[$j]];
+					else {
+						$v = '%'.($pos + 1).'$s';
+						unset($params[$pos]);
+					}
+					if($param[$j] == $path[$i])
+						$result .= ROUTER_PARAM_VALUE.$v.'/';
+					else
+						$result .= ROUTER_PARAM_KEY.substr($param[$j], strlen($path[$i]) + 1).'/'.$v.'/';
+				}
+			}
+			foreach($params as $pos => $p)
+				if($p == $path[$i]) {
+					$result .= ROUTER_PARAM_VALUE.'%'.($pos + 1).'$s/';
+					unset($params[$pos]);
+				} else if(strpos($p, $path[$i].'.') === 0) {
+					$result .= ROUTER_PARAM_KEY.@substr($p, strlen($path[$i]) + 1).'/%'.($pos + 1).'$s/';
+					unset($params[$pos]);
+				}
+		}
+		return $result;
+	}
+	
+	function _throw404() {
+		@include($_SERVER['DOCUMENT_ROOT'].'/openconstructor/404.php');
+		die();
+	}
+}
+?>

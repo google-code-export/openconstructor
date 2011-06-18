@@ -1,0 +1,102 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * @since 2004-12-15
+ * 
+ * $Id: tokenizer._wc,v 1.5 2007/02/27 11:23:26 sanjar Exp $
+ */
+
+require_once(LIBDIR_THIRD.'/phputf8/utils/ascii.php');
+
+define('TOKEN_NUMBER', 0);
+define('TOKEN_WORD_EN', 1);
+define('TOKEN_WORD_RU', 2);
+define('TOKEN_URL', 3);
+define('TOKEN_EMAIL', 4);
+define('TOKEN_UNDEFINED', 5);
+
+class Tokenizer {
+	var $position;
+	var $text;
+	var $token;
+	var $tokens;
+	var $stopwords;
+	
+	function Tokenizer() {
+		$this->stopwords = array();
+		$this->setText($text = '');
+	}
+	
+	function setText(&$text) {
+		$this->text = $text;
+		$this->split();
+	}
+	
+	function split() {
+		$str = str_replace(array(',','(',')','?','&nbsp;','"','{','}','!','=','&lt;','&gt;','&quot;','&#039;','&laquo;','&raquo;','&trade;','&copy;','&reg;',';'), ' ', $this->text);
+		$this->token = preg_split('/[\s\.:\']*(\s|$)[\.\']*/', $str, -1, PREG_SPLIT_NO_EMPTY);
+		$this->tokens = sizeof($this->token);
+		$this->reset();
+	}
+	
+	function reset() {
+		$this->position = 0;
+	}
+	
+	function &next() {
+		$result = null;
+		while($this->position < $this->tokens && !$this->isValid($result))
+			$result = $this->token[$this->position++];
+		return $result;
+	}
+	
+	function isValid(&$token) {
+		if(!$token)
+			return false;
+		if(utf8_strlen($token) > 32)
+			return false;
+		if(isset($this->stopwords[$token]))
+			return false;
+		if(strspn($token,'[]<>-_$.\\+*/') == strlen($token))
+			return false;
+		return true;
+	}
+	
+	function getType(&$token) {
+		if(strspn($token,'0123456789') == strlen($token))
+			return TOKEN_NUMBER;
+		if(preg_match('/^[а-яё]+$/u',$token))
+			return TOKEN_WORD_RU;
+		if(preg_match('/^[a-z][a-z\'’]*$/',$token))
+			return TOKEN_WORD_EN;
+		if(preg_match('/^(?:http:\/\/)?(?:[a-z0-9][a-z0-9\-\.]*\.[a-z]{2,5}|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/',$token))
+			return TOKEN_URL;
+		if(preg_match('/^[a-z][a-z0-9_\-\.]*@(?:[a-z0-9][a-z0-9\-\.]*\.[a-z]{2,5}|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/',$token))
+			return TOKEN_EMAIL; 
+		return TOKEN_UNDEFINED;
+	}
+	
+	function &toLowerCase(&$text) {
+		$result = utf8_is_ascii($text) ? strtolower($text) : utf8_strtolower($text);
+		return $result;
+	}
+}
+?>

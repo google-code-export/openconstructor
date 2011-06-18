@@ -1,0 +1,233 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: pagereader._wc,v 1.12 2007/02/27 11:23:21 sanjar Exp $
+ */
+require_once('page._wc');
+
+class PageReader {
+	var $treeTable, $pagesTable, $objTable;
+	var $rootId;
+	
+	function PageReader() {
+		$this->treeTable = 'sitetree';
+		$this->pagesTable = 'sitepages';
+		$this->objTable = 'siteobjects';
+	}
+	
+	function &getPage($pageId) {
+		$result = null;
+		settype($pageId, 'int');
+		$query = "
+			SELECT t.id, t.num, t.parent, t.name, GROUP_CONCAT(t1.name ORDER BY t1.num SEPARATOR '/') AS uri, t.header, t.wcsowner, t.wcsgroup, BIN(ROUND(t.oauths)) as oauths, BIN(ROUND(t.gauths)) as gauths
+				, p.linkto, p.published, p.locked, p.tpl, p.router, p.caching, p.cachelife, p.cachegz, p.addtitle, p.robots, p.contenttype, p.title, p.ctitle, p.css, p.location, p.cachevary, p.users, p.profilesinherit, p.profilesload, p.profilesdynamic, p.meta_keywords, p.meta_description
+			FROM {$this->treeTable} t, {$this->treeTable} t1, {$this->pagesTable} p
+			WHERE t.id = $pageId
+				AND t1.num <= t.num AND (t1.next = 0 OR t1.next > t.num) AND t1.level <= t.level
+				AND t.id = p.id
+			GROUP BY t.num";
+		$db = WCDB::bo();
+		$res = $db->query($query);
+		if(mysql_num_rows($res) == 1) {
+			$r = mysql_fetch_assoc($res);
+			$result = new Page($r['name'], $r['header']);
+			$result->id = (int) $r['id'];
+			$result->index = (int) $r['num'];
+			$result->parent = (int) $r['parent'];
+			$result->uri = $result->index > 0 ? substr($r['uri'], strpos($r['uri'], '/')).'/' : '/';
+			$result->linkTo = (int) $r['linkto'];
+			$result->location = $r['location'];
+			$result->published = $r['published'] > 0;
+			$result->locked = $r['locked'] > 0;
+			$result->tpl = (int) $r['tpl'];
+			$result->caching = (int) $r['caching'];
+			$result->cacheLife = (int) $r['cachelife'];
+			$result->cacheGz = (int) $r['cachegz'] > 0;
+			$result->cacheVary = $r['cachevary'];
+			$result->router = $r['router'] > 0;
+			$result->addTitle = $r['addtitle'] > 0;
+			$result->robots = (int) $r['robots'];
+			$result->contentType = $r['contenttype'];
+			$result->title = $r['title'];
+			$result->cTitle = $r['ctitle'];
+			$result->setCss($r['css']);
+			$result->setUsers($r['users']);
+			list($result->profilesInherit, $result->profilesLoad, $result->profilesDynamic)
+				= array($r['profilesinherit'] > 0, (int) $r['profilesload'], $r['profilesdynamic'] > 0);
+			$result->meta['keywords'] = $r['meta_keywords'];
+			$result->meta['description'] = $r['meta_description'];
+			$result->loadAuths($r['wcsowner'], $r['wcsgroup'], $r['oauths'], $r['gauths']);
+		}
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function superDecide($pageId, $act) {
+		settype($pageId, 'int');
+		$db = WCDB::bo();
+		$res = $db->query(
+			"SELECT t2.id FROM {$this->treeTable} t1, {$this->treeTable} t2".
+			" WHERE t1.id = $pageId AND t2.num < t1.num AND (t2.next = 0 OR t2.next > t1.num) AND t2.level < t1.level".
+			' AND '.WCS::getAuthCheckQuery($act, 't2').' LIMIT 1'
+		);
+		$allow = mysql_num_rows($res) == 1;
+		mysql_free_result($res);
+		return $allow;
+	}
+	
+	function &getTree($nodeId = null, $depth = 0) {
+		$tree = null;
+		$db = WCDB::bo();
+		$res = $db->query(
+			"SELECT t2.id, t2.num, t2.parent, t2.next, t2.name, t2.header, p.published, p.linkto, p.router, p.users".
+			" FROM $this->treeTable t1, $this->treeTable t2, $this->pagesTable p".
+			" WHERE ".($nodeId == null ? 't1.num = 0' : 't1.id = '.intval($nodeId))." AND t2.num >= t1.num AND ( t1.next = 0 OR t2.num < t1.next)".($depth ? " AND t2.level <= t1.level + $depth":'').
+			"  AND t2.id = p.id".
+			" ORDER BY t2.level, t2.num"
+		);
+		if(mysql_num_rows($res) > 0) {
+			require_once('sitetree._wc');
+			$i = 0;
+			while($r = mysql_fetch_assoc($res)) {
+				$node[$i] = new Node((int) $r['id'],(int) $r['num'],(int) $r['parent'],(int) $r['next'], $r['name'], $r['header']);
+				$node[$i]->published = $r['published'] > 0;
+				$node[$i]->users = $r['users'];
+				$node[$i]->linkTo = (int) $r['linkto'];
+				$node[$i]->router = $r['router'] > 0;
+				if($tree === null)
+					$tree = new SiteTree($node[$i]);
+				else
+					$tree->addNode($node[$i]);
+				$i++;
+			}
+		}
+		mysql_free_result($res);
+		return $tree;
+	}
+	
+	function getPageContentType(&$page) {
+		if(!$page->contentType && $page->uri != '/') {
+			$db = WCDB::bo();
+			$res = $db->query(
+				"SELECT p.contenttype FROM {$this->treeTable} t1, {$this->treeTable} t2, {$this->pagesTable} p WHERE t1.id = {$page->id} AND t2.num < t1.num AND (t2.next > t1.num OR t2.next = 0) AND t2.id = p.id AND p.contenttype > '' ORDER BY t2.num DESC LIMIT 1"
+			);
+			list($contentType) = mysql_num_rows($res) == 1 ? mysql_fetch_row($res) : array(null);
+			mysql_free_result($res);
+			return $contentType;
+		}
+		return $page->contentType;
+	}
+	
+	function getPageRouter(&$page) {
+		if(!is_object($page) || !$page->router) {
+			$db = WCDB::bo();
+			$id = intval(is_object($page) ? $page->id : $page);
+			$res = $db->query(
+				"SELECT t2.id FROM {$this->treeTable} t1, {$this->treeTable} t2, {$this->pagesTable} p WHERE t1.id = $id AND t2.num <= t1.num AND (t2.num = t1.num OR t2.next > t1.num OR t2.next = 0) AND t2.id = p.id AND p.router > 0 ORDER BY t2.num DESC LIMIT 1"
+			);
+			list($router) = mysql_num_rows($res) == 1 ? mysql_fetch_row($res) : array(0);
+			mysql_free_result($res);
+			return $router;
+		}
+		return $page->id;
+	}
+	
+	function &getPageLinks($pageId) {
+		$result = array();
+		settype($pageId, 'int');
+		$db = WCDB::bo();
+		$res = $db->query("SELECT id FROM {$this->pagesTable} WHERE linkto = $pageId");
+		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++)
+			list($result[]) = mysql_fetch_row($res);
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &getSubPages($pageId, $depth = 0) {
+		$result = array();
+		$db = WCDB::bo();
+		$res = $db->query(
+			"SELECT t2.id, t2.header".
+			" FROM {$this->treeTable} t1, {$this->treeTable} t2".
+			" WHERE t1.id = $pageId AND t2.num > t1.num AND (t1.next = 0 OR t2.num < t1.next)".($depth ? " AND t2.level <= t1.level + $depth":'').
+			" ORDER BY t2.num"
+		);
+		if(mysql_num_rows($res) > 0)
+			while($r = mysql_fetch_assoc($res))
+				$result[$r['id']] = $r['header'];
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &getAllPages() {
+		$result = array();
+		$db = WCDB::bo();
+		$res = $db->query("SELECT id, parent, name FROM {$this->treeTable} ORDER BY num");
+		if(mysql_num_rows($res) > 0)
+			while($r = mysql_fetch_assoc($res))
+				$result[$r['id']] = isset($result[$r['parent']]) ? $result[$r['parent']].$r['name'].'/' : '/';
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &getPages($ids) {
+		$result = array();
+		if(is_array($ids))
+			$ids = implode(',', $ids);
+		if(trim($ids) != '') {
+			$db = WCDB::bo();
+			$res = $db->query("SELECT id, header FROM {$this->treeTable} WHERE id IN ($ids) ORDER BY num");
+			if(mysql_num_rows($res) > 0)
+				while($r = mysql_fetch_row($res))
+					$result[$r[0]] = $r[1];
+			mysql_free_result($res);
+		}
+		return $result;
+	}
+	
+	function isPublished($pageId) {
+		settype($pageId, 'int');
+		$db = WCDB::bo();
+		$res = $db->query("SELECT id FROM {$this->pagesTable} WHERE id = $pageId AND published > 0");
+		$result = mysql_num_rows($res) == 1;
+		return $result;
+	}
+	
+	function getRootId() {
+		if(!$this->rootId) {
+			$db = WCDB::bo();
+			$res = $db->query("SELECT id FROM {$this->treeTable} WHERE num = 0 LIMIT 1");
+			list($this->rootId) = mysql_fetch_row($res);
+			mysql_free_result($res);
+		}
+		return $this->rootId;
+	}
+	
+	function &getInstance() {
+		static $instance;
+		if(!is_object($instance)) {
+			$instance = new PageReader();
+		}
+		return $instance;
+	}
+}
+?>

@@ -1,0 +1,150 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Статья. Объект вывода.
+ * 
+ * @author Rustam Akhmedov
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: articlebody._wc,v 1.15 2007/02/27 11:23:21 sanjar Exp $
+ */
+
+class ArticleBody extends WCObject {
+	var $pagesTable;
+	var $header;
+	var $pid, $articleid;
+	var $dateFormat;
+	var $doc_id;
+	var $no404;
+	
+	function ArticleBody() {
+		$this->DSTable = 'dsarticle';
+		$this->ds_type = 'article';
+		$this->obj_type = 'articlebody';
+		$this->pid = 'p_id';
+		$this->articleid = 'article_id';
+		$this->dateFormat = '[j.m.Y]';
+		$this->pagesTable = 'dsarticlepages';
+		$this->no404 = false;
+		$this->caching = 2;
+		$this->cached_by_WC = true;
+	}
+	
+	function getCacheId() {
+		$id = $this->getDocId();
+		$pid = @$_GET[$this->pid] == 'all' ? 'all' : (int) @$_GET[$this->pid] + 1;
+		return $this->obj_id.'|'.$id.'|'.$pid;
+	}
+	
+	function onPageLoad() {
+		self::_addDisplayed($this->getDocId());
+	}
+	
+	function fetchData(&$smarty) {
+		$result = false;
+		$doc = $this->getDocument();
+		if(sizeof($doc)) {
+			$smarty->assign('header', $this->header);
+			$smarty->assign_by_ref('article', $doc['article']);
+			$smarty->assign_by_ref('pages', $doc['pages']);
+			$result = array('header', 'article', 'pages');
+		} elseif(!$this->no404)
+			$this->ctx->throw404();
+		return $result;
+	}
+	
+	function &getDocument() {
+		if(!isset($this->doc)) {
+			$this->doc = array();
+			$id = $this->getDocId();
+			settype($id, 'int');
+			$pid = @$_GET[$this->pid] == 'all' ? 'all' : ((int) @$_GET[$this->pid] ? $_GET[$this->pid] : 1);
+			
+			if($id && ($pid == 'all' || $pid >= 1)) {
+				$dsIdCheck = $this->ds_id ? 'AND ds.ds_id IN ('.$this->ds_id.')' : '';
+				$db = $this->ctx->_getDB();
+				$res = $db->query(
+					'SELECT ds.real_id as id, ds.header as name, ds.date as date, ds.img_main as image, p.p_id as p_id, p.page as page, p.header as header, p.content as content '.
+					' FROM '.$this->DSTable.' ds, '.$this->pagesTable.' p'.
+					' WHERE ds.id='.$id.' AND p.id=ds.id AND ds.published!=0 '.$dsIdCheck.
+						(intval($pid) > 0 ? ' AND p.page='.$pid : '').
+					' ORDER BY p.page '.
+					($pid != 'all' ? ' LIMIT 1' : '')
+				);
+				if(mysql_num_rows($res) > 0) {
+					$article = array();
+					while($row = mysql_fetch_assoc($res)) {
+						if(!isset($article['id'])) {
+							$article['id'] = $row['id'];
+							$article['header'] = escapeTags($row['name']);
+							$article['date'] = wcfFormatTime($this->dateFormat, $row['date']);
+							$article['image'] = $row['image'];
+							$article['current_page'] = $pid == 'all' ? 0 : $row['page'];
+						}
+						$pages[$row['p_id']]['header'] = escapeTags($row['header']);
+						$pages[$row['p_id']]['content'] = $row['content'];
+					}
+					$this->doc = array('article' => &$article, 'pages' => &$pages);
+				}
+				mysql_free_result($res);
+			}
+		}
+		return $this->doc;
+	}
+	
+	function changeCrumbs(&$crumbs) {
+		if($this->isCached()) {
+			$header = '';
+			$id = (int) $this->getDocId();
+			if($id > 0) {
+				$dsIdCheck = $this->ds_id ? 'AND ds_id IN ('.$this->ds_id.')' : '';
+				$db = $this->ctx->_getDB();
+				$res = $db->query(
+					'SELECT header FROM '.$this->DSTable.' WHERE id = '.$id.' AND published!=0 '.$dsIdCheck.' LIMIT 1'
+				);
+				if($r = mysql_num_row($res))
+					$header = escapeTags($r[0]);
+				mysql_free_result($res);
+			}
+		} else {
+			$doc = $this->getDocument();
+			$header = @$doc['article']['header'];
+		}
+		$crumbs->set($this->ctx->page->uri, $header);
+	}
+	
+	function getDocId() {
+		if(!$this->doc_id)
+			$this->doc_id = (int) $this->ctx->getParam($this->articleid);
+		return $this->doc_id;
+	}
+	
+	function &getDisplayedDocs() {
+		$result = self::_addDisplayed(null, true);
+		return $result;
+	}
+	
+	function _addDisplayed($id, $return = false) {
+		static $displayed;
+		if($id) $displayed[(int) $id] = true;
+		if($return)	return $displayed;
+	}
+}
+?>

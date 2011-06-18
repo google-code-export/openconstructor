@@ -1,0 +1,100 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ *
+ * All rights reserved.
+ *
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ *
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ *
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @author sjakhmedov
+ *
+ * $Id: installer._wc,v 1.12 2007/02/27 11:23:25 sanjar Exp $
+ */
+assert(@!file_exists($_SERVER['DOCUMENT_ROOT'].FILES));
+
+function _installer_install(
+					$ftpHost, $ftpPort, $ftpLogin, $ftpPwd, $ftpSiteroot
+					, $dbServer, $dbName, $dbLogin, $dbPwd
+					, $httpHost, $lng, $tmpDir
+	) {
+
+	mysql_connect($dbServer, $dbLogin, $dbPwd);
+	mysql_select_db($dbName);
+	mysql_query('SET NAMES \'utf8\'');
+
+	$result = _installer_install_db()
+		&& _installer_install_files($ftpHost, $ftpPort, $ftpLogin, $ftpPwd, $ftpSiteroot, $tmpDir, $dbServer, $dbName, $dbLogin, $dbPwd, $httpHost, $lng)
+	;
+	return $result;
+}
+
+function _installer_install_db() {
+	$dump = implode('', file($_SERVER['DOCUMENT_ROOT'].WCHOME.'/dist/base.sql'));
+
+	require_once(LIBDIR.'/db/sqltokenizer._wc');
+	$tok = new SqlTokenizer();
+	$tok->bind($dump);
+
+	$result = true;
+	while($query = $tok->next()) {
+		mysql_query($query);
+		$success = mysql_errno() == 0;
+		if(!$success)
+			printf("<pre>\n<b>Error while executing query:</b> %s<br><b>Error:</b> %s\n</pre>", htmlspecialchars($query), htmlspecialchars(mysql_error()));
+		$result = $result && $success;
+	}
+	if(!$result)
+		echo "<pre>\nInstaller: Failed to set up database...\n</pre>";
+	return $result;
+}
+
+function _installer_install_files($host, $port, $login, $pwd, $root, $tmpDir, $dbServer, $db, $dbLogin, $dbPwd, $httpHost, $lng) {
+	require_once(LIBDIR.'/wcftp._wc');
+	$ftp = WCFTP::getNew($host, $port, $login, $pwd, $root);
+	$ftp->setTmpDir($tmpDir);
+	$ftp->open();
+	$ftp->copy_local_dir($_SERVER['DOCUMENT_ROOT'].WCHOME.'/dist'.FILES, '/');
+	$ftp->copy_local_file($_SERVER['DOCUMENT_ROOT'].WCHOME.'/dist/.root-htaccess', '/.htaccess');
+	$ftp->copy_local_file($_SERVER['DOCUMENT_ROOT'].WCHOME.'/404.php', '/index.php');
+	if(strtoupper(substr(PHP_OS, 0, 3)) != 'WIN') {
+		$ftp->chmod(FILES.'/config._wc', 666);
+		$ftp->chmod('/.htaccess', 666);
+	}
+	$config = implode('', file($_SERVER['DOCUMENT_ROOT'].WCHOME.'/dist'.FILES.'/config._wc'));
+	$config = strtr($config, array(
+		'%db_server%' => $dbServer,
+		'%db_user%' => $dbLogin,
+		'%db_password%' => addslashes($dbPwd),
+		'%db_name%' => $db,
+
+		'%ftp_host%' => $host,
+		'%ftp_port%' => $port,
+		'%ftp_siteroot%' => addslashes($root),
+		'%ftp_user%' => $login,
+		'%ftp_pwd%' => addslashes($pwd),
+
+		'%tmp_dir%' => addslashes($tmpDir),
+
+		'%site_host%' => $httpHost,
+		'%default_language%' => $lng
+	));
+	$ftp->write_file(FILES.'/config._wc', $config);
+	$ftp->close();
+	$result = $ftp->success();
+	if(!$result)
+		echo $ftp->get_message(true);
+	return $result;
+}
+?>

@@ -1,0 +1,176 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: zipfile._wc,v 1.2 2007/02/27 11:23:26 sanjar Exp $
+ */
+
+class ZipFile {
+	function &newReader($filename) {
+		$result = new ZipFileReader($filename);
+		return $result;
+	}
+	
+	function &newWriter($filename) {
+		$result = new ZipFileWriter($filename);
+		return $result;
+	}
+}
+
+class ZipFileWriter {
+	var $_dz;
+	var $_cbOnAdd = null;
+	
+	function ZipFileWriter($filename) {
+		require_once(LIBDIR_THIRD.'/dunzip2/dzip.inc.php');
+		$this->_dz = new dZip($filename);
+	}
+	
+	function mkDir($dirName) {
+		if(substr($dirName, -1) == '/')
+			$dirName = substr($dirName, 0, -1);
+		if($this->_onAddEntry($dirName, true))
+			$this->_dz->addDir($dirName);
+	}
+	
+	function addDir($dirName, $dirInZip = null) {
+		if($dirInZip == null) {
+			$dirInZip = basename($dirName);
+		} elseif(substr($dirInZip, -1) == '/') {
+			$dirInZip = substr($dirInZip, 0, -1);
+		}
+		if(substr($dirName, -1) != '/')
+			$dirName .= '/';
+		$l = strlen($dirName);
+		$entries = $this->_getAllEntries($dirName);
+		ksort($entries);
+		foreach($entries as $entry => $isDir)
+			if($isDir) {
+				$this->_dz->addDir($dirInZip.'/'.substr($entry, $l));
+			} else {
+				$this->_dz->addFile($entry, $dirInZip.'/'.substr($entry, $l));
+			}
+	}
+	
+	function addFile($file, $fileInZip = null) {
+		if($fileInZip == null)
+			$fileInZip = basename($file);
+		if($this->_onAddEntry($file, false))
+			$this->_dz->addFile($filename, $fileInZip);
+	}
+	
+	function addAsFile($data, $filename) {
+		$this->_dz->addFile(false, $filename, '', $data);
+	}
+	
+	function setOnAddEntry($callback) {
+		if(is_callable($callback))
+			$this->_cbOnAdd = $callback;
+	}
+	
+	function _onAddEntry($entry, $isDir) {
+		return $this->_cbOnAdd == null ? true : call_user_func($this->_cbOnAdd, $entry, $isDir);
+	}
+	
+	function save() {
+		$this->_dz->save();
+	}
+	
+	function &_getAllEntries($dirName, $selfInclusive = true) {
+		$result = array();
+		$dir = dir($dirName);
+		if($selfInclusive)
+			$result[$dirName] = true;
+		while(false !== ($entry = $dir->read())) {
+			if($entry != '.' && $entry != '..') {
+				$f = $dirName.$entry;
+				$isDir = is_dir($f);
+				if($this->_onAddEntry($f, $isDir)) {
+					$result[$f] = $isDir;
+					if($isDir) {
+						$subdir = $this->_getAllEntries($f.'/', false);
+						$result = array_merge($result, $subdir);
+					}
+				}
+			}
+		}
+		$dir->close();
+		return $result;
+	}
+}
+
+class ZipFileReader {
+	var $_dz = null;
+	var $_list = null, $_dirList = null, $_fileList = null;
+	
+	function ZipFileReader($filename) {
+		require_once(LIBDIR_THIRD.'/dunzip2/dunzip2.inc.php');
+		$this->_dz = new dUnzip2($filename);
+	}
+	
+	function &getFileContents($filename) {
+		$result = $this->_dz->unzip($filename);
+		return $result;
+	}
+	
+	function &extract($filename, $to) {
+		ob_start();
+		$result = $this->_dz->unzip($filename, $to, false);
+		ob_end_clean();
+		return $result;
+	}
+	
+	function &extractAll($dirname, $to) {
+		ob_start();
+		$result = $this->_dz->unzipAll($to, $dirname, true, false);
+		ob_end_clean();
+		return $result;
+	}
+	
+	function &getList() {
+		if($this->_list === null)
+			$this->_list = $this->_dz->getList();
+		return $this->_list;
+	}
+	
+	function &getDirList() {
+		if($this->_dirList === null) {
+			$list = array_keys($this->getList());
+			for($i = 0, $l = sizeof($list); $i < $l; $i++)
+				if(substr($list[$i], -1) != '/')
+					unset($list[$i]);
+			$this->_dirList = array_values($list);
+		}
+		return $this->_dirList;
+	}
+	
+	function &getFileList() {
+		if($this->_fileList === null) {
+			$list = array_keys($this->getList());
+			for($i = 0, $l = sizeof($list); $i < $l; $i++)
+				if(substr($list[$i], -1) == '/')
+					unset($list[$i]);
+			$this->_fileList = array_values($list);
+		}
+		return $this->_fileList;
+	}
+}
+?>

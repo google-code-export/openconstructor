@@ -1,0 +1,330 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ *
+ * All rights reserved.
+ *
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ *
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ *
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @author Sanjar Akhmedov
+ *
+ * $Id: install._wc,v 1.14 2007/04/13 12:28:12 sanjar Exp $
+ */
+	assert(@!file_exists($_SERVER['DOCUMENT_ROOT'].FILES));
+
+	if(strpos($_SERVER['REQUEST_URI'], WCHOME.'/setup/') !== 0) {
+		header('Location: http://'.$_SERVER['HTTP_HOST'].WCHOME.'/setup/'.(@$_SERVER['QUERY_STRING'] ? '?'.$_SERVER['QUERY_STRING'] : ''));
+		die();
+	}
+
+	$params = &$_POST;
+	if(isset($_GET['params_from_get']) && $_GET['params_from_get'])
+		$params = &$_GET;
+
+	$lng = 'rus'; // default
+	$langs = array('eng' => 'PR_INSTALLER_ENGLISH', 'rus' => 'PR_INSTALLER_RUSSIAN');
+
+	if(isset($_GET['lng']) && isset($langs[$_GET['lng']])) {
+		$lng = $_GET['lng'];
+	} else {
+
+		$lcPriority = array('rus' => 2, 'eng' => 1);
+		$lcMap = array('en' => 'eng', 'ru' => 'rus', 'uz' => 'rus');
+
+		foreach(explode(';', $_SERVER['HTTP_ACCEPT_LANGUAGE']) as $al)
+			foreach(explode(',', $al) as $lc)
+				if(isset($lcMap[$lc]) && $lcPriority[$lcMap[$lc]] > $lcPriority[$lng])
+					$lng = $lcMap[$lc];
+
+	}
+
+	$language = isset($langs[@$params['language']]) ? $params['language'] : $lng;
+
+	require_once(LIBDIR.'/languagesets/'.$lng.'/classes._wc');
+	require_once(LIBDIR.'/languagesets/'.$lng.'/main._wc');
+	require_once(LIBDIR.'/languagesets/'.$lng.'/install._wc');
+
+	require_once(LIBDIR.'/db/dbsetup._wc');
+	require_once('installer_checks._wc');
+
+	$noAutoFtpSiteroot = isset($params['no_ftpsiteroot_auto']);
+	$err = array();
+	if(is_array($params) && isset($params['install']) && isset($params['iAccept'])) {
+//		assert(strpos(@$_SERVER['HTTP_REFERER'], 'http://'.$_SERVER['HTTP_HOST']) === 0);
+		if(sizeof($e = _ic_envCheckTmpDir(@$params['tmpDir']))) {
+			$err['tmpDir'] = $e;
+		} else {
+			require_once(LIBDIR.'/wcftp._wc');
+			$port = (int) @$params['ftpport'];
+			$ftp = WCFTP::getNew($params['ftphost'], $port, $params['ftplogin'], $params['ftppwd'], isset($params['ftpsiteroot_auto']) ? '.' : $params['ftpsiteroot']);
+			$ftp->setTmpDir(@$params['tmpDir']);
+			if($ftp->open(8)) { // timeout 8 seconds
+				if(isset($params['ftpsiteroot_auto']))
+					$params['ftpsiteroot'] = $ftp->suggestSiteroot();
+				if($ftp->isHostValid()){
+					list($ftp_host, $ftp_port, $ftp_username, $ftp_password, $ftp_siteroot) =
+						array($params['ftphost'], $port, $params['ftplogin'], $params['ftppwd'], $params['ftpsiteroot']);
+				} else {
+					$err['ftpsiteroot'] = true;
+					if(isset($params['ftpsiteroot_auto']))
+						$noAutoFtpSiteroot = true;
+				}
+				$ftp->close();
+			} else {
+				$params['ftppwd'] = '';
+				$err['ftphost'] = $err['ftpport'] = true;
+				$err['ftplogin'] = $err['ftppwd'] = true;
+				$err['ftpsiteroot'] = true;
+			}
+			if(!$ftp->success())
+				$err['ftp'] = $ftp->get_message(true);
+		}
+		$dbconn = @mysql_connect( @$params['dbserver'], @$params['dblogin'], @$params['dbpwd']);
+		if(!$dbconn) {
+			$params['dbserver'] = $params['dblogin'] = $params['dbpwd'] = '';
+			$err['dbserver'] = $err['dblogin'] = $err['dbpwd'] = true;
+		} else {
+			if(!@mysql_select_db(@$params['dbname'], $dbconn)) {
+				$params['dbname'] = '';
+				$err['dbname'] = true;
+			}
+			mysql_close($dbconn);
+		}
+		if(sizeof($err) == 0) {
+			require_once('installer._wc');
+			$result = _installer_install(
+				$params['ftphost'], $port,
+				@$params['ftplogin'], @$params['ftppwd'],
+				@$params['ftpsiteroot'],
+				$params['dbserver'], @$params['dbname'],
+				@$params['dblogin'], @$params['dbpwd'],
+				@$params['httpHost'], $language, @$params['tmpDir']
+			);
+			if($result) {
+				if(!headers_sent()) {
+					session_start();
+					$_SESSION['firstlogon'] = true;
+				}
+				$next = WCHOME.'/setup/';
+				header('Location: http://'.$_SERVER['HTTP_HOST'].WCHOME.'/login.php?firstlogon&next='.rawurldecode($next));
+			}
+			die();
+		}
+	} elseif(!$noAutoFtpSiteroot) {
+		if(sizeof(_ic_envCheckTmpDir()) || @$params['tmpDir'])
+			$promptTmpDir = true;
+		$params['ftpsiteroot_auto'] = true;
+	}
+?>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title><?=WC.' '.WC_VERSION?> | <?=H_INSTALL_SYSTEM?></title>
+	<base href="http://<?=$_SERVER['HTTP_HOST'].WCHOME?>/setup/">
+	<link href="setup.css" type="text/css" rel="stylesheet">
+	<link rel="shortcut icon" type="image/x-icon" href="<?=WCHOME?>/i/metallic/favicon.ico">
+	<link rel="icon" type="image/gif" href="<?=WCHOME?>/i/metallic/favicon.gif">
+	<script>
+	function showTables(show) {
+		document.getElementById('tables').style.display = show ? "block" : "none";
+		document.getElementById('a.showTables').style.display = show ? "none" : "inline";
+		document.getElementById('a.hideTables').style.display = show ? "inline" : "none";
+	}
+	</script>
+	<style>
+		.err {
+			color: red;
+		}
+		DIV#tables {
+			border: solid 1px #ddd;
+			margin: 10px 0 0;
+			padding: 5px 10px;
+			background: #eee;
+			font-size: 85%;
+		}
+	</style>
+</head>
+<body style="padding: 3%;">
+	<h3 style="margin-bottom: 0;">
+		<?=H_INSTALL_SYSTEM?>
+		<span style="font-size: 80%;">
+			&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+		<?php
+			if($lng != 'rus')
+				echo '<a href="?lng=rus">'.H_INSTALLER_RUSSIAN.'</a>';
+			if($lng != 'eng')
+				echo '<a href="?lng=eng">'.H_INSTALLER_ENGLISH.'</a>';
+		?>
+		</span>
+	</h3>
+	<?php if(sizeof($err) > 0) :?>
+	<hr>
+	<span style="font-size: 85%;" class="err"><?=H_INVALID_PREFS_GIVEN?></span>
+	<?php endif;?>
+	<form action="?lng=<?=$lng?>" method="POST" style="margin: 0; padding: 0;" name="f_install">
+	<table border="0" cellpadding="0" cellspacing="0">
+		<tr>
+			<td valign="top">
+				<fieldset>
+					<legend><?=H_INSTALLER_GENERAL_PREFS?></legend>
+					<table cellspacing="5">
+						<tr <?=isset($err['httpHost']) ? 'class="err"' : ''?>>
+							<td><?=PR_INSTALLER_HTTP_HOST?>:</td>
+							<td><input name="httpHost" type="text" value="<?=isset($params['httpHost']) ? $params['httpHost'] : $_SERVER['HTTP_HOST'] ?>"></td>
+						</tr>
+						<tr>
+							<td><?=PR_INSTALLER_LANGUAGE?>:</td>
+							<td>
+								<select name="language">
+									<?php
+										foreach($langs as $k => $v)
+											echo sprintf(
+												'<option value="%s" %s>%s</option>'
+												, $k, $language == $k ? 'selected' : '', constant($v)
+											);
+									?>
+								</select>
+							</td>
+						</tr>
+						<?php if(isset($err['tmpDir']) || isset($promptTmpDir)) {?>
+							<tr <?=isset($err['tmpDir']) ? 'class="err"' : ''?>>
+								<td><?=PR_INSTALLER_TMP_DIR?>:</td>
+								<td><input name="tmpDir" type="text" value="<?=@$params['tmpDir']?>"></td>
+							</tr>
+						<?php }?>
+					</table>
+				</fieldset>
+				<fieldset>
+					<legend><?=H_INSTALLER_FTP_PREFS?></legend>
+					<table cellspacing="5">
+						<?php if(isset($err['ftp'])) {?>
+							<tr class="err">
+								<td colspan="2"><?=$err['ftp']?><hr /></td>
+							</tr>
+						<?php } ?>
+						<tr <?=isset($err['ftphost']) ? 'class="err"' : ''?>>
+							<td><?=PR_INSTALLER_FTP_HOST?>:</td>
+							<td><input name="ftphost" type="text" value="<?=@$params['ftphost'] ? $params['ftphost'] : 'localhost' ?>"></td>
+						</tr>
+						<tr <?=isset($err['ftpport']) ? 'class="err"' : ''?>>
+							<td><?=PR_INSTALLER_FTP_PORT?>:</td>
+							<td><input name="ftpport" type="text" value="<?=@array_key_exists('ftpport', $params) ? $params['ftpport'] : 21 ?>"></td>
+						</tr>
+						<tr <?=isset($err['ftplogin']) ? 'class="err"' : ''?>>
+							<td><?=PR_INSTALLER_FTP_LOGIN?>:</td>
+							<td><input name="ftplogin" type="text" value="<?=@$params['ftplogin']?>"></td>
+						</tr>
+						<tr <?=isset($err['ftppwd']) ? 'class="err"' : ''?>>
+							<td><?=PR_INSTALLER_FTP_PWD?>:</td>
+							<td><input name="ftppwd" type="password" value="<?=@$params['ftppwd']?>"></td>
+						</tr>
+						<tr <?=isset($err['ftpsiteroot']) ? 'class="err"' : ''?>>
+							<td><?=PR_INSTALLER_FTP_SITEROOT?>:</td>
+							<td>
+								<input name="ftpsiteroot" type="text" value="<?=@$params['ftpsiteroot']?>">
+								<input name="ftpsiteroot_auto" type="checkbox" <?=$noAutoFtpSiteroot ? 'disabled' : (@$params['ftpsiteroot_auto'] ? 'checked' : '')?> onclick="document.forms.f_install.ftpsiteroot.disabled = this.checked;"> <span style="color: black;"><?=PR_INSTALLER_FTP_SITEROOT_AUTO?></span>
+								<script type="text/javascript">
+									document.forms.f_install.ftpsiteroot_auto.onclick();
+								</script>
+								<input name="no_ftpsiteroot_auto" type="hidden" value="yes" <?=!$noAutoFtpSiteroot ? 'disabled' : ''?>>
+							</td>
+						</tr>
+					</table>
+				</fieldset>
+				<fieldset style="margin-bottom: 0">
+					<legend><?=H_INSTALLER_DB_PREFS?></legend>
+					<table cellspacing="5">
+						<tr <?=isset($err['dbserver']) ? 'class="err"' : ''?>>
+							<td nowrap=""><?=PR_INSTALLER_DB_SERVER?>:</td>
+							<td width="100%"><input name="dbserver" type="text" value="<?=@$params['dbserver'] ? $params['dbserver'] : 'localhost'?>"></td>
+						</tr>
+						<tr <?=isset($err['dbname']) ? 'class="err"' : ''?>>
+							<td nowrap=""><?=PR_INSTALLER_DB_NAME?>:</td>
+							<td width="100%"><input name="dbname" type="text" value="<?=@$params['dbname']?>"></td>
+						</tr>
+						<tr <?=isset($err['dblogin']) ? 'class="err"' : ''?>>
+							<td><?=PR_INSTALLER_DB_LOGIN?>:</td>
+							<td><input name="dblogin" type="text" value="<?=@$params['dblogin']?>"></td>
+						</tr>
+						<tr <?=isset($err['dbpwd']) ? 'class="err"' : ''?>>
+							<td><?=PR_INSTALLER_DB_PWD?>:</td>
+							<td><input name="dbpwd" type="password" value="<?=@$params['dbpwd']?>"></td>
+						</tr>
+						<tr>
+							<td colspan="2">
+								<hr>
+								<span style="font-size: 85%;"><?=TT_INSTALLER_WILL_DROP_TABLES?></span>
+								<a href="javascript: showTables(1);" style="font-size: 75%;" id="a.showTables"><?=H_INSTALLER_SHOW_TABLES?></a>
+								<a href="javascript: showTables(0);" style="font-size: 75%;display:none;" id="a.hideTables"><?=H_INSTALLER_HIDE_TABLES?></a>
+								<div style="display:none;" id="tables">
+									<b><?=H_INSTALLER_TABLE_LIST?>:</b>
+							<?php
+								$t = DBSetup::getWCTables(false);
+								sort($t);
+								$first = true;
+								foreach($t as $table) {
+									echo $first ? '' :', &nbsp;', $table;
+									$first = false;
+								}
+							?>.
+								</div>
+							</td>
+						</tr>
+					</table>
+				</fieldset>
+				<div style="padding: 10px 0;">
+					<input type="checkbox" name="iAccept" id="ch.iAccept" onclick="f_install.install.disabled = !this.checked;" <?=isset($params['iAccept']) ? 'checked' : ''?>>
+					<label for="ch.iAccept"><?=PR_INSTALLER_I_ACCEPT?></label>
+				</div>
+			</td>
+			<td width="10">&nbsp;</td>
+			<td valign="top" width="50%;">
+				<fieldset>
+					<legend><?=H_INSTALLER_ABOUT_SYSTEM?></legend>
+					<div style="padding: 0 20px 20px; font-size: 85%;">
+						<div>
+							<p><?=WC.' '.WC_VERSION_FULL?></p>
+							<p><?=WC_COPYRIGHTS?></p>
+						</div>
+						<div>
+							<?php
+								readfile(LIBDIR.'/languagesets/'.$lng.'/free_software.html');
+							?>
+						</div>
+						<div>
+							<p><?=sprintf(WC_READ_LICENSE_BEFORE_USING, WCHOME)?></p>
+							<p><?=WC_READ_LICENSE_AT_GNU?></p>
+						</div>
+						<div>
+							<?php
+								readfile(LIBDIR.'/languagesets/'.$lng.'/interface_license.html');
+							?>
+						</div>
+					</div>
+				</fieldset>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="3">
+				<input type="submit" value="<?=BTN_INSTALL?>" name="install" style="font-weight: bold; font-size: 100%;padding: 5px 15px;" disabled="yes">
+			</td>
+		</tr>
+	</table>
+	</form>
+	<script type="text/javascript">
+		f_install.iAccept.onclick();
+	</script>
+</body>
+</html>

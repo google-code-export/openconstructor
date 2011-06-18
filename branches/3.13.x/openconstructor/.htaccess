@@ -1,0 +1,6 @@
+Options -Indexes
+
+<Files ~ "\._wc$"> 
+  Order allow,deny 
+  Deny from all 
+</Files>

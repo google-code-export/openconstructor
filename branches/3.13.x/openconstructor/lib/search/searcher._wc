@@ -1,0 +1,140 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Anton "simanyay" Kovalyov
+ * 
+ * $Id: searcher._wc,v 1.6 2007/02/27 11:23:26 sanjar Exp $
+ */
+
+require_once("tokenizer._wc");
+
+// Sorting type
+define("BY_DATE", 0);
+
+class Searcher {
+	/**
+	 * Search for the requested query and
+	 * return sorted result
+	 * 
+	 * Parameters
+	 * 		$query - query for search
+	 * 		$stype - search results' sorting type.
+	 */
+	function search($query, $sort_type, $limit) {
+		$result = array();
+		
+		loadClass('stopwords', '/search/stopwords._wc');
+		$stopw = Stopwords::getInstance();
+		
+		$query = $this->getStemmedText($query);
+		$query = addslashes($query);
+		
+		if($sort_type = BY_DATE) {
+			$sorting = "ORDER BY ind.date DESC";
+		} else
+			$sorting = "";
+		$db = WCDB::bo();
+		$res = $db->query("SELECT document_id, ds_id
+							FROM `index`
+							WHERE MATCH(header, content) AGAINST('$query')
+							$sorting LIMIT $limit");
+							
+		while($row = mysql_fetch_assoc($res)) {
+			$result[] = array("document_id" => $row["document_id"], "ds_id" => $row["ds_id"]);
+		}
+		
+		mysql_free_result($res);
+		
+		return $result;
+	}
+	
+	/**
+	 * @author: Sanjar Akhmedov
+	 */
+	function &getQueryPart($keyword, $table_docs) {
+		$result = array();
+		$keyword = addslashes(self::getStemmedText($keyword));
+		
+		$result['from'] = "`index` i";
+		$result['clause'] = "MATCH(i.header, i.content) AGAINST('$keyword') AND $table_docs.ds_id = i.ds_id AND $table_docs.id = i.document_id";
+		$result['order'] = "MATCH(i.header, i.content) AGAINST('$keyword')";
+		
+		return $result;
+	}
+	
+	/**
+	 * This method will return text with stemmed words and without any tag!
+	 * Actually this method should be 'private', but I can't do this in PHP4
+	 * 
+	 * Parameters:
+	 * 		$text - original text
+	 * 
+	 * Returns:
+	 * 		stemmed text without any tag
+	 */
+	function getStemmedText($text) {
+		$text = Tokenizer::toLowerCase($text);
+		$result = "";
+		
+		$text = strip_tags($text);
+		
+		// Parse original text and stem all words that are not tags
+		$tkn = new Tokenizer();
+		$tkn->setText($text);
+		
+		loadClass('russianstemmer', '/search/stemmers/russianstemmer._wc');
+		loadClass('englishstemmer', '/search/stemmers/englishstemmer._wc');
+		$rustemmer = RussianStemmer::getInstance();
+		$enstemmer = EnglishStemmer::getInstance();
+		
+		while($cur = $tkn->next()) {
+			$type = $tkn->getType($cur);
+			
+			switch($type) {
+				case TOKEN_WORD_EN:
+					$result .= ($result ? ' ' : '') . $enstemmer->stem($cur);
+					break;		
+				case TOKEN_WORD_RU:
+					$stem = $rustemmer->stem($cur);
+					self::_padWord($stem, 'ь');
+					$result .= ($result ? ' ' : '') . $stem;
+					break;
+				default:
+					$result .= ($result ? ' ' : '') . $cur;
+			}
+		}
+		
+		return $result;
+	}
+	
+	function _padWord(&$word, $letter, $length = 4) {
+		$l = utf8_strlen($word);
+		if($l < $length)
+			$word = str_repeat($letter, $length - $l).$word;
+	}
+	
+	function &getInstance() {
+		static $instance;
+		
+		if(!is_object($instance)) $instance = new Searcher();
+		return $instance;
+	}
+}
+?>

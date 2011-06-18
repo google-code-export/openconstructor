@@ -1,0 +1,152 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id$
+ */
+
+class ImgCopier {
+	var $minX, $minY, $maxX, $maxY;
+	var $xRatio, $yRatio;
+	var $resize, $ratio, $width, $height;
+	var $type, $img, $filename;
+	
+	function ImgCopier($minX = 0, $minY = 0, $maxX = 0, $maxY = 0) {
+		$this->setRequirement($minX, $minY, $maxX, $maxY);
+		$this->ftp = null;
+	}
+	
+	function setRequirement($minX, $minY, $maxX, $maxY) {
+		$this->destroy();
+		assert($minX <= $maxX && $minY <= $maxY);
+		$this->minX = (int) $minX;
+		$this->minY = (int) $minY;
+		$this->maxX = (int) $maxX;
+		$this->maxY = (int) $maxY;
+		$this->xRatio = $this->maxY > 0 ? $this->minX / $this->maxY : 0;
+		$this->yRatio = $this->maxX > 0 ? $this->minY / $this->maxX : 0;
+		$this->resize = $this->maxX > 0 && $this->maxY > 0;
+	}
+	
+	function setSource($filename) {
+		$this->destroy();
+		$info = @getimagesize($filename);
+		if(is_array($info)) {
+			list($width, $height, $type) = $info;
+			if(($type >= 1 || $type <= 3)
+				&& ($this->resize
+					&& $height > 0 && $this->xRatio <= $width / $height
+					&& $width > 0 && $this->yRatio <= $height / $width
+					&& $width >= $this->minX
+					)
+				) {
+					$this->width = $width;
+					$this->height = $height;
+					$this->type = $type;
+					$this->ratio = 1;
+					if($this->resize && ($width > $this->maxX || $height > $this->maxY)) {
+						if($width > $this->maxX) {
+							$this->ratio = $this->maxX / $width;
+							$height *= $this->ratio;
+						}
+						if($height > $this->maxY)
+							$this->ratio = $this->ratio * $this->maxY / $height;
+					}
+					$this->filename = $filename;
+					$this->img = self::_createImage($type, $filename);
+					return $this->img ? true : false;
+				}
+		}
+		return false;
+	}
+	
+	function copy($filename, $ratio = 100) {
+		assert($ratio > 0 && $ratio <= 100);
+		assert($this->img != null);
+		$ratio = $this->ratio * ($ratio / 100);
+		if($ratio == 1)
+			$result = copy($this->filename, $filename);
+		else {
+			$width = intval($this->width * $ratio);
+			$height = intval($this->height * $ratio);
+			$img = imagecreatetruecolor($width, $height);
+			imagecopyresampled($img, $this->img, 0, 0, 0, 0, $width, $height, $this->width, $this->height);
+			$result = self::_createImageFile($this->type, $img, $filename);
+			imagedestroy($img);
+		}
+		return $result;
+	}
+	
+	function copyAndDestroy($filename, $ratio = 100) {
+		$this->copy($filename, $ratio);
+		$this->destroy();
+	}
+	
+	function destroy() {
+		if($this->img) {
+			imagedestroy($this->img);
+			$this->img = $this->filename = $this->type = null;
+			$this->ratio = $this->width = $this->height = null;
+		}
+	}
+	
+	function isValid($img, $ratio = 100) {
+		$info = @getimagesize($img);
+		if(is_array($info)) {
+			settype($ratio, 'int');
+			list($width, $height, $type) = $info;
+			return ($type == 2 || $type == 3)
+				&& $ratio > 0 && $ratio <=100
+				&& $height > 0 && $this->xRatio <= $width / $height
+				&& $width > 0 && $this->yRatio <= $height / $width
+				&& intval($width * 100 / $ratio) >= $this->minX
+				;
+		}
+		return false;
+	}
+	
+	function _createImage($type, $filename) {
+		$result = null;
+		switch($type) {
+			case 1:	$func = 'imagecreatefromgif'; break;
+			case 2:	$func = 'imagecreatefromjpeg'; break;
+			case 3:	$func = 'imagecreatefrompng'; break;
+			default: $func = null;
+		}
+		if($func && function_exists($func))
+			$result = call_user_func($func, $filename);
+		return $result;
+	}
+	
+	function _createImageFile($type, $img, $filename) {
+		$result = null;
+		switch($type) {
+			case 1:	$func = 'imagegif'; break;
+			case 2:	$func = 'imagejpeg'; break;
+			case 3:	$func = 'imagepng'; break;
+			default: $func = null;
+		}
+		if($func && function_exists($func))
+			$result = call_user_func($func, $img, $filename);
+		return $result;
+	}
+}
+?>

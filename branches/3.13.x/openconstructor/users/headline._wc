@@ -1,0 +1,98 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * $Id: headline._wc,v 1.6 2007/02/27 11:23:24 sanjar Exp $
+ */
+	require_once('../include/headlines._wc');
+	$pageSize = 50;
+	if(intval(@$_COOKIE['pagesize'])>0)
+		$pageSize = $_COOKIE['pagesize'];
+	$showProf = @$_COOKIE['vf']['prof'] == 'enabled';
+//	$searchclause=get_clause(@$_GET['search'],'login,name,email,description');
+	// TODO: organize this thing, refactor
+	function &users_hl($groupId, $pageNum, $pageSize, $fetchProf) {
+		$pageNum = --$pageNum < 0 ? 0 : $pageNum;
+		$result = array();
+		$db = WCDB::bo();
+		
+		if($fetchProf)
+			$query = 
+				"SELECT u.id, u.profile as prof, g.profile as ptype, u.login as description, u.email, u.name, u.active as published, u.group_id = $groupId AS native".
+				' FROM wcsmembership m, wcsusers u, wcsgroups g'.
+				" WHERE m.group_id = $groupId AND m.user_id = u.id AND g.id = u.group_id";
+		else
+			$query = 
+				"SELECT u.id, u.login as description, u.email, u.name, u.active as published, u.group_id = $groupId AS native".
+				' FROM wcsmembership m, wcsusers u'.
+				" WHERE m.group_id = $groupId AND m.user_id = u.id";
+		$query = $query.
+				' ORDER BY login'.
+				' LIMIT '.($pageNum * $pageSize).', '.$pageSize;
+		
+		$res = $db->query($query);
+		if(mysql_num_rows($res) > 0)
+			while($r = mysql_fetch_assoc($res)) {
+				$result[$r['id']] = $r;
+				unset($result[$r['id']]['id']);
+			}
+		mysql_free_result($res);
+		return $result;
+	}
+//	echo '<postscript>alert("'.($showProf ? 'yes' : 'no').'")</postscript>';
+	$hl = users_hl($curnode, (int) @$_GET['page'], $pageSize, $showProf);
+	$uids = array_keys($hl);
+	for($i = 0, $l = sizeof($uids); $i < $l; $i++) {
+		if($hl[$uids[$i]]['native'])
+			$hl[$uids[$i]]['name'] = '<b>'.$hl[$uids[$i]]['name'].'</b>';
+		if($showProf) {
+			if($hl[$uids[$i]]['prof'])
+				$hl[$uids[$i]]['prof'] = "<a href='javascript:ep({$hl[$uids[$i]]['ptype']}, {$hl[$uids[$i]]['prof']})'>".H_EDIT_PROFILE."</a>";
+			else
+				$hl[$uids[$i]]['prof'] = '';
+		}
+	}
+	$icon='user';
+	$w=600;
+	$editor=WCHOME.'/users/edituser.php?j=1';
+	$fields=array(
+		'name'=>HL_NAME,
+		'description'=>true,
+		'email'=>'&lt;nobr&gt;'.HL_EMAIL.'&lt;/nobr&gt;',
+		'prof'=>HL_PROFILE
+	);
+	$fieldnames=array(
+		'email'=>RP_SHOW_EMAIL,
+		'description'=>RP_SHOW_LOGIN,
+		'prof'=>RP_SHOW_PROFILE
+	);
+	if(is_array(@$_COOKIE['vf']))
+		foreach($_COOKIE['vf'] as $f=>$st)
+			if($st == 'disabled')
+				unset($fields[$f]);
+	if(!$showProf)
+		unset($fields['prof']);
+	echo '<documents server="'.WCHOME.'/users/i_users.php" type="'.$icon.'" defaultaction="remove_users" size="'.(intval(@$_COOKIE['pagesize'])>0?$_COOKIE['pagesize']:$pageSize).'">';
+	echo '<editor href="'.$editor.'" width="'.$w.'" height="null"/>';
+	echo '<hidden name="group_id" value="'.$curnode.'"/>';
+	print_headline($hl);
+	require_once(LIBDIR.'/pager._wc');
+	pager('page','wcsmembership','','WHERE group_id='.$curnode,$pageSize,10);//,$searchclause);
+	echo '</documents>';
+?>

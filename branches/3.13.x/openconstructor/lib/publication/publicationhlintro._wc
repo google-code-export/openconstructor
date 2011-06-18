@@ -1,0 +1,141 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * Список публикаций с интро.
+ * 
+ * Объект вывода.
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: publicationhlintro._wc,v 1.17 2007/03/15 07:02:46 sanjar Exp $
+ */
+
+class PublicationHLIntro extends WCObject {
+	var $header;
+	var $pid, $srvuri, $publicationid, $glruri;
+	var $offset, $pageSize, $ohneMian, $reverseOrder;
+	var $more, $cutIntro, $withCurrent, $dateFormat;
+	var $keywordKey, $sortByRank, $noResTpl;
+	var $ids;
+	var $no404;
+	
+	function PublicationHLIntro() {
+		$this->DSTable='dspublication';
+		$this->ds_type='publication';
+		$this->obj_type='publicationhlintro';
+		$this->offset=0;
+		$this->pageSize=10;
+		$this->pid='page';
+		$this->srvuri='publication/';
+		$this->publicationid='publication_id';
+		$this->glruri='';
+		$this->ohneMain=false;
+		$this->withCurrent=false;
+		$this->more='...';
+		$this->cutIntro=NULL;
+		$this->dateFormat='[j.m.Y]';
+		$this->reverseOrder=false;
+		$this->no404=false;
+		$this->caching=2;
+		$this->cached_by_WC=true;
+	}
+	
+	function getCacheId() {
+		$cacheId = null;
+		if(!$this->ids) {
+			$page = (int)@$_GET[$this->pid];
+			if(--$page < 0) $page = 0;
+			$displayed = $this->getDisplayedDocs();
+			$cacheId = $this->obj_id.'|p'.$page.'-c'.implode(':', array_keys($displayed));
+		}
+		return $cacheId;
+	}
+	
+	function fetchData(&$smarty) {
+		$result = false;
+		$page = (int)@$_GET[$this->pid];
+		if(--$page < 0) $page = 0;
+		
+		$where = $this->ids ? 't.id IN ('.$this->ids.')' : 't.ds_id IN ('.$this->ds_id.')';
+		$search = parent::getSearchQuery($this->keywordKey, 't');
+		$db = $this->ctx->_getDB();
+		$res = $db->query(
+			'SELECT t.id, t.real_id as rid, t.ds_id, t.gallery, t.header, t.intro, t.img_intro as image, t.date'.($this->glruri ? ', ds.docs' : '').
+			' FROM '.$this->DSTable.' t'.($this->glruri ? ' INNER JOIN datasources ds ON (t.gallery=ds.ds_id)' : '').$search['from'].
+			' WHERE '.$where.' AND t.published!=0'.($this->ohneMain ? ' AND t.main=0' : '').$search['where'].
+			' ORDER BY '.($this->sortByRank ? $search['order'] : 't.date').($this->reverseOrder ? ' ASC' : ' DESC').
+			' LIMIT '.($this->offset+$page*$this->pageSize).','.$this->pageSize
+		);
+		if(mysql_num_rows($res) > 0) {
+			$fet = array();
+			$displayed = $this->getDisplayedDocs();
+			$ctx = Context::getInstance();
+			settype($this->cutIntro, 'int');
+			$href = substr($this->srvuri, -1) == '?'
+				? $ctx->getPlainPattern($this->srvuri, $this->publicationid)
+				: $ctx->getPatternFor($this->srvuri, $this->publicationid);
+			$ghref = $ctx->getPatternFor($this->glruri, $this->publicationid);
+			while($row = mysql_fetch_assoc($res)) {
+				if(isset($fet[$row['rid']])||(!$this->withCurrent&&@$fet[$row['id']])) continue;
+				$fet[$row['rid']] = true;
+				$news[$row['id']]['ds_id'] = (int) $row['ds_id'];
+				$news[$row['id']]['header'] = escapeTags($row['header']);
+				$news[$row['id']]['href'] = isset($displayed[$row['id']]) ? null : sprintf($href, $row['id']);
+				$news[$row['id']]['ghref'] = @$row['docs'] ? sprintf($ghref, $row['id']) : null;
+				$news[$row['id']]['image'] = $row['image'];
+				$news[$row['id']]['date'] = wcfFormatTime($this->dateFormat, $row['date']);
+				$news[$row['id']]['intro'] = $this->cutIntro > 0
+					? $this->create_intro($row['intro'], $this->cutIntro)
+					: $row['intro'];
+			}
+			$smarty->assign('header',$this->header);
+			$smarty->assign_by_ref('more',$this->more);
+			$smarty->assign_by_ref('news',$news);
+			$result = array('header','more','news');
+		} elseif($search['where'] && !$page) {
+			$smarty->assign('header', $this->header);
+			$smarty->assign('keyword', $this->ctx->getParam($this->keywordKey));
+			$smarty->assign('found', 0);
+			$smarty->assign('result', array());
+			$this->tpl = $this->noResTpl;
+			$result = array('header', 'keyword', 'found', 'result');
+		} elseif($page > 1 && !$this->no404)
+			$this->ctx->throw404();
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function &getDisplayedDocs() {
+		if(!isset($this->_dispalyedDocs))
+			$this->_displayedDocs = class_exists('publicationbody') ? PublicationBody::getDisplayedDocs() : array();
+		return $this->_displayedDocs;
+	}
+	
+	function &create_intro(&$txt, $size) {
+		$txt = strip_tags($txt);
+		preg_match('/^.{'.($size-1).'}[^\s\.,:]*/ums', $txt, $intro);
+		return @$intro[0] ? $intro[0] : $txt;
+	}
+	
+	function getExtraClause() {
+		return '';
+	}
+}
+?>

@@ -1,0 +1,72 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * HTML текст. Выводит контент страницы.
+ * 
+ * Объект вывода.
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: htmltextbody._wc,v 1.7 2007/02/27 11:23:21 sanjar Exp $
+ */
+
+class HTMLTextBody extends WCObject {
+	
+	function HTMLTextBody() {
+		$this->DSTable='dshtmltext';
+		$this->ds_type='htmltext';
+		$this->obj_type='htmltextbody';
+		$this->header='';
+		$this->page_id = null;
+		$this->caching=2;
+		$this->cached_by_WC=true;
+	}
+	
+	function getCacheId() {
+		$cacheId = $this->obj_id.'|'.$this->getDocId();
+		return $cacheId;
+	}
+	
+	function fetchData(&$smarty) {
+		$result = false;
+		$ctx = &$this->ctx;
+		$pageId = $this->getDocId();
+		$title = $ctx->map->getTitle($ctx->page->uri);
+		$db = $this->ctx->_getDB();
+		$res = $db->query(
+			'SELECT html FROM '.$this->DSTable.
+			' WHERE id='.$pageId.' AND ds_id='.$this->ds_id.' AND published != 0'
+		);
+		if(mysql_num_rows($res) > 0){
+			list($content) = mysql_fetch_row($res);
+			$smarty->assign('header', $this->header);
+			$smarty->assign_by_ref('content', $content);
+			$smarty->assign_by_ref('title', $title);
+			$result = array('header', 'content', 'title');
+		}
+		mysql_free_result($res);
+		return $result;
+	}
+	
+	function getDocId() {
+		return $this->page_id ? $this->page_id : $this->ctx->page->id;
+	}
+}
+?>

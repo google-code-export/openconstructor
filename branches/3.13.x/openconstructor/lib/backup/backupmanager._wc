@@ -1,0 +1,118 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: backupmanager._wc,v 1.4 2007/04/30 12:40:05 sanjar Exp $
+ */
+require_once(LIBDIR.'/wcftp._wc');
+
+class BackupManager {
+	var $_maxFileSize = 1;
+	var $_backupTimeout = 0;
+	
+	function BackupManager() {
+	}
+	
+	function create($id = null) {
+		if($id == null)
+			$id = self::newId();
+		$ftp = WCFTP::getNew();
+		$this->_createBackup($id, $ftp);
+	}
+	
+	function createRemote($id, &$ftp) {
+		$this->_createBackup($id, $ftp);
+	}
+	
+	function _createBackup($id, &$ftp) {
+		require_once('backupjob._wc');
+		$backup = new BackupJob(FILES.'/backup', $id);
+		$backup->setFtp($ftp);
+		$backup->setMaxFileSize($this->_maxFileSize);
+		ignore_user_abort(true);
+		set_time_limit($this->_backupTimeout);
+		$backup->run();
+	}
+	
+	function restore($id) {
+		$folder = $_SERVER['DOCUMENT_ROOT'].FILES.'/backup';
+		assert(file_exists($folder.'/'.$id));
+		require_once('restorejob._wc');
+		$restore = new RestoreJob($folder, $id);
+		ignore_user_abort(true);
+		set_time_limit(0);
+		return $restore->run();
+	}
+	
+	function restoreLast() {
+		$id = null;
+		$ids = (array) glob($_SERVER['DOCUMENT_ROOT'].FILES.'/backup/*');
+		rsort($ids);
+		for($i = 0, $l = sizeof($ids); $i < $l; $i++) {
+			$f = basename($ids[$i]);
+			if(preg_match('~^\d{4}-\d{2}-\d{2}-\d{6}-\d{3}$~', $f) && is_dir($ids[$i])) {
+				$id = $f;
+				break;
+			}
+		}
+		if($id)
+			return $this->restore($id);
+		return false;
+	}
+	
+	function wrapBackups($size = 20) {
+		$result = true;
+		$dir = (array) glob($_SERVER['DOCUMENT_ROOT'].FILES.'/backup/*');
+		for($i = 0, $l = sizeof($dir); $i < $l; $i++)
+			if(!(preg_match('~^\d{4}-\d{2}-\d{2}-\d{6}-\d{3}$~', basename($dir[$i])) && is_dir($dir[$i])))
+				unset($dir[$i]);
+		$ids = array_values($dir);
+		if(sizeof($ids)) {
+			$result = false;
+			rsort($ids);
+			$ftp = WCFTP::getNew();
+			$ftp->open();
+			$dl = strlen($_SERVER['DOCUMENT_ROOT']);
+			for($i = intval($size), $l = sizeof($ids); $i < $l; $i++)
+				$ftp->rdEntire(substr($ids[$i], $dl));
+			$ftp->close();
+			$result = $ftp->success();
+			if(!$result)
+				echo $ftp->get_message(true);
+		}
+		return $result;
+	}
+	
+	function newId() {
+		$id = gmdate('Y-m-d-His');
+		$mt = explode(' ', microtime());
+		return sprintf('%s-%03d', $id, (float) $mt[0] * 1000);
+	}
+	
+	function setMaxFileSize($size) {
+		$this->_maxFileSize = $size;
+	}
+	
+	function setBackupTimeout($timeout) {
+		$this->_backupTimeout = (int) $timeout;
+	}
+}
+?>

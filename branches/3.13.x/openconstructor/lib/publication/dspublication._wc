@@ -1,0 +1,315 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: dspublication._wc,v 1.14 2007/02/27 11:23:24 sanjar Exp $
+ */
+class DSPublication extends WCDataSource
+{
+	var $allowedTags;
+	var $introSize;
+	var $imagepath;
+	var $images;
+	var $stripHTML;
+	var $autoPublish;
+	var $attachGallery;
+	
+	function DSPublication()
+	{
+		$this->ds_type='publication';
+		$this->DSTable='dspublication';
+		$this->allowedTags='<a href,target><strong><b><em><i><u><p align><br><ul><ol><li><h3><h4><nobr><** id,name,class,style,title>';
+		$this->size=0;
+		$this->introSize=600;
+		$this->stripHTML=true;
+		$this->isIndexable = false;
+		$this->imagepath='/publ/';
+		$this->images=NULL;
+		$this->attachGallery=NULL;
+		$this->autoPublish=true;
+		umask(0);
+	}
+	
+	function add($header, $content, $date, $intro = null, $gallery = null) {
+		WCS::assert($this, 'createdoc');
+		assert($header != '');
+		if($this->isFull()) return false;
+		$auth = Authentication::getInstance();
+		$dsg = null;
+		if($this->attachGallery && !$gallery) {
+			loadClass('dsgallery', '/gallery/dsgallery._wc');
+			$dsg = new DSGallery();
+			$dsg->images = $this->attachGallery;
+			WCS::runAs(WCS_ROOT_ID);
+			$gallery = $dsg->create($header.' (Галерея)', '', 1); // TODO: externalize string
+			WCS::stopRunAs();
+		} else
+			$gallery = 'NULL';
+		$content = $this->cleanHTML($content);
+		if($intro === null) $intro=$this->create_intro($content,$this->introSize);
+		settype($date, 'int');
+		$db = WCDB::bo();
+		$db->query(
+			'INSERT INTO '.$this->DSTable.
+				' (ds_id, published, gallery, header, intro, content, date, wcsowner)'.
+			'VALUES'.
+				' ('.$this->ds_id.', '.intval($this->autoPublish).', '.$gallery.', "'.addslashes($header).'", "'.addslashes($intro).'", "'.addslashes($content).'", "'.$date.'", '.$auth->userId.')'
+		);
+		$id = $db->lastInsertId();
+		if($id) {
+			$db->query(
+				'UPDATE '.$this->DSTable.
+				' SET real_id = '.$id.
+				' WHERE id = '.$id
+			);
+			
+			$this->updateSize();
+			if($this->autoPublish) {
+				$this->addToIndex($id, $header, $content, $intro);
+				$this->evictDocCache();
+			}
+		} elseif($dsg)
+			$dsg->remove();
+		return $id;
+	}
+	
+	function update_images($id,$imagemain,$imageintro=true)
+	{
+		if($imageintro===true)
+			$imageintro=$imagemain;
+		$imgsize1=@getimagesize($imagemain);
+		$imgsize2=@getimagesize($imageintro);
+		$result=true;
+		if(is_array($imgsize1)&&is_array($imgsize2))
+		{ // проверка типа картинки
+			if($imgsize1[2]!=$imgsize2[2]||$imgsize1[2]>2) return false;
+			if(@$this->images['main'])
+				$result=$result&&$this->update_image($id,$imagemain,$imgsize1[2]==2?'jpg':'gif',$imgsize1[0],$imgsize1[1],100,'img_main');
+			if(@$this->images['intro'])
+				$result=$result&&$this->update_image($id,$imageintro,$imgsize2[2]==2?'jpg':'gif',$imgsize2[0],$imgsize2[1],$this->images['intro'],'img_intro');
+			return $result;
+		}
+		$db = WCDB::bo();
+		$res = $db->query('SELECT img_type FROM '.$this->DSTable.' WHERE id='.$id);
+		$r=mysql_fetch_assoc($res);
+		mysql_free_result($res);
+		if(@$this->images['main']&&is_array($imgsize1)&&@$imgsize1[2]<=2)
+		{
+			if(!$r['img_type']) $r['img_type']=$imgsize1[2]==2?'jpg':'gif';
+			if($r['img_type']==($imgsize1[2]==2?'jpg':'gif'))
+				$result=$result&&$this->update_image($id,$imagemain,$r['img_type'],$imgsize1[0],$imgsize1[1],100,'img_main');
+		}
+		if(@$this->images['intro']&&is_array($imgsize2)&&@$imgsize2[2]<=2)
+		{
+			if(!$r['img_type']) $r['img_type']=$imgsize2[2]==2?'jpg':'gif';
+			if($r['img_type']==($imgsize2[2]==2?'jpg':'gif'))
+				$result=$result&&$this->update_image($id,$imageintro,$r['img_type'],$imgsize2[0],$imgsize2[1],$this->images['intro'],'img_intro');
+		}
+		return $result;
+	}
+	
+	function update_image($id,$image,$imgtype,$width,$height,$ratio,$type)
+	{
+		$owidth=$width;$oheight=$height;
+		$re=false;
+		$xmax=intval($this->images['xmax']*$ratio/100);
+		$ymax=intval($this->images['ymax']*$ratio/100);
+		$xmin=intval($this->images['xmin']*$ratio/100);
+		$ymin=intval($this->images['ymin']*$ratio/100);
+		if($width>$xmax||$height>$ymax)
+		{
+			$re=true;
+			$w=$ymax*$width/$height;
+			$h=$xmax*$height/$width;
+			if($w>$xmax)
+			{
+				$width=$xmax;
+				$height=$h;
+			}
+			else
+			{
+				$height=$ymax;
+				$width=$w;
+			}
+		}
+
+		if($width<$xmin||$height<$ymin)
+		{
+			echo $type.': Invalid Width/Height Ratio';
+			return false;
+		}
+
+		@unlink($_SERVER['DOCUMENT_ROOT'].FILES.$this->imagepath.$id.($type=='img_main'?'':'_').'.jpg');
+		@unlink($_SERVER['DOCUMENT_ROOT'].FILES.$this->imagepath.$id.($type=='img_main'?'':'_').'.gif');
+		if($re)
+		{
+			$img_gd=$imgtype=='jpg'?imagecreatefromjpeg($image):imagecreatefromgif($image);
+			$tmp=@imagecreatetruecolor(intval($width),intval($height));
+			if($tmp)
+				imagecopyresampled($tmp,$img_gd,0,0,0,0,$width,$height,$owidth,$oheight);
+			else
+			{
+				$tmp=imagecreate(intval($width),intval($height));
+				imagecopyresized($tmp,$img_gd,0,0,0,0,$width,$height,$owidth,$oheight);
+			}
+			$result=$imgtype=='jpg'?imagejpeg($tmp,$_SERVER['DOCUMENT_ROOT'].FILES.$this->imagepath.$id.($type=='img_main'?'':'_').'.'.$imgtype)
+				:imagegif($tmp,$_SERVER['DOCUMENT_ROOT'].FILES.$this->imagepath.$id.($type=='img_main'?'':'_').'.'.$imgtype);
+			unset($img_gd,$tmp);
+		}
+		else
+			copy($image,$_SERVER['DOCUMENT_ROOT'].FILES.$this->imagepath.$id.($type=='img_main'?'':'_').'.'.$imgtype);
+		$img='IMG SRC="'.FILES.$this->imagepath.$id.($type=='img_main'?'':'_').'.'.$imgtype.'" BORDER="0" WIDTH="'.intval($width).'" HEIGHT="'.intval($height).'"';
+		$img='"'.addslashes($img).'"';
+
+		$db = WCDB::bo();
+		$db->query(
+			'UPDATE '.$this->DSTable.
+			' SET '.$type.'='.$img.', img_type="'.$imgtype.'" WHERE real_id='.$id
+		);
+
+		return true;
+	}
+	
+	function delete($ids, $leaveGalleries = false) {
+		WCS::assertValue(WCS::decide($this, 'removedoc') || WCS::ownerAllowed($this->getSDoc(), 'removedoc'), $this, 'removedoc');
+		$this->filterDocs($ids);
+		if(!sizeof($ids))
+			return;
+		
+		$_ids = implode(',', $ids);
+		
+		if($this->attachGallery && !$leaveGalleries)
+			$this->removeGalleries($_ids);
+		$db = WCDB::bo();
+		$db->query(
+			'DELETE FROM '.$this->DSTable.' '.
+			'WHERE real_id IN('.$_ids.') OR id IN('.$_ids.')'
+		);
+		
+		$this->updateSize();
+			
+		$this->removeFromIndex($_ids);
+		
+		foreach($ids as $id) {
+			@unlink($_SERVER['DOCUMENT_ROOT'].FILES.$this->imagepath.intval($id).'.jpg');
+			@unlink($_SERVER['DOCUMENT_ROOT'].FILES.$this->imagepath.intval($id).'.gif');
+			@unlink($_SERVER['DOCUMENT_ROOT'].FILES.$this->imagepath.intval($id).'_.jpg');
+			@unlink($_SERVER['DOCUMENT_ROOT'].FILES.$this->imagepath.intval($id).'_.gif');
+		}
+		
+		$this->evictDocCache($ids);
+	}
+	
+	function removeGalleries($ids) {
+		$db = WCDB::bo();
+		$res = $db->query(
+			'SELECT gallery FROM '.$this->DSTable.' WHERE id IN ('.$ids.') AND ds_id='.$this->ds_id
+		);
+		if(mysql_num_rows($res) > 0) {
+			require_once(LIBDIR.'/dsmanager._wc');
+			$dsm = new DSManager();
+			$gIds = array();
+			WCS::runAs(WCS_ROOT_ID);
+			while($r = mysql_fetch_assoc($res)) {
+				$ds = $dsm->load((int) $r['gallery']);
+				$ds->remove();
+			}
+			WCS::stopRunAs();
+			unset($ds);
+		}
+		mysql_free_result($res);
+	}
+	
+	function update($id, $header, $content, $date, $intro = null) {
+		assert($header != '');
+		$rec = $this->get_record($id);
+		assert($rec['id'] == $rec['real_id']);
+		$doc = $this->wrapDocument($rec);
+		assert($doc->id > 0);
+		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
+		$content = $this->cleanHTML($content);
+		if($intro === null)
+			$intro=$this->create_intro($content, $this->introSize);
+		$ids = $this->getAliases($id, true);
+		settype($date, 'int');
+		$db = WCDB::bo();
+		$db->query(
+			'UPDATE '.$this->DSTable.
+			' SET header="'.addslashes($header).'", intro="'.addslashes($intro).'", content="'.addslashes($content).'", date="'.$date.'"'.
+			' WHERE id IN('.implode(',',$ids).')'
+		);
+		
+		$this->updateIndex($id, $header, $content, $intro);
+		$this->evictDocCache($ids);
+		return true;
+	}
+	
+	function set_images($xmin,$ymin,$xmax,$ymax,$main,$intro)
+	{
+		$xmax=intval($xmax);$xmin=intval($xmin);$ymax=intval($ymax);$ymin=intval($ymin);
+		if($xmin>$xmax||$ymin>$ymax||$xmin<20||$ymin<20) return false;
+		$intro=intval($intro);
+		if(!$main&&!$intro)
+		{
+			$this->images=NULL;
+			return;
+		}
+		$this->images['xmax']=$xmax;
+		$this->images['xmin']=$xmin;
+		$this->images['ymax']=$ymax;
+		$this->images['ymin']=$ymin;
+		$this->images['intro']=$intro;
+		if($intro)
+		{
+			if($this->images['intro']<10) $this->images['intro']=10;
+			if($this->images['intro']>100) $this->images['intro']=100;
+		}else{$this->images['intro']=NULL;}
+		if($main) $this->images['main']=true;
+	}
+	
+	function set_main($id) {
+		$db = WCDB::bo();
+		$db->query('UPDATE '.$this->DSTable.' SET main=0 WHERE main=1 AND ds_id='.$this->ds_id.' LIMIT 1');
+		$db->query('UPDATE '.$this->DSTable.' SET main=1 WHERE id='.$id.' AND ds_id='.$this->ds_id.' LIMIT 1');
+	}
+	
+	function create_alias($id){
+//			WCS::assert($this, 'createdoc');
+		if(!@$id) return false;
+		$res=$this->get_record($id, true);
+		if($res==NULL) return false;
+		$db = WCDB::bo();
+		$db->query(
+			'INSERT INTO '.$this->DSTable.
+				' (real_id, ds_id, published, main, gallery, header, intro, content, date, img_intro, img_main, img_type, wcsowner)'.//
+			'VALUES'.
+				' ('.$id.', '.$this->ds_id.', '.intval($this->autoPublish).', "'.$res['main'].'", '.(@$res['gallery']?$res['gallery']:'NULL').', "'.addslashes($res['header']).'", "'.addslashes($res['intro']).'", "'.addslashes($res['content']).'", "'.$res['date'].'", "'.addslashes($res['img_intro']).'", "'.addslashes($res['img_main']).'", "'.$res['img_type'].'", '.Authentication::getOriginalUserId().')'//
+		);
+	}
+	
+	function &getCopiableProps() {
+		static $result;
+		if(!is_array($result))
+			$result = array('allowedTags', 'introSize', 'images', 'stripHTML', 'autoPublish', 'attachGallery');
+		return $result;
+	}
+}
+?>

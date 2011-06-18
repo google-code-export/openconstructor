@@ -1,0 +1,356 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ *
+ * All rights reserved.
+ *
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ *
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ *
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @author Sanjar Akhmedov
+ *
+ * $Id: dshybridfactory._wc,v 1.13 2007/03/24 20:14:34 sanjar Exp $
+ */
+require_once('dshybrid._wc');
+
+class DSHybridFactory {
+	var $prefix;
+	var $separator;
+	var $table;
+	var $ftp;
+
+	function DSHybridFactory() {
+		$this->prefix = 'dshybrid_';
+		$this->separator = '.';
+		$this->table = 'hybriddatasources';
+	}
+
+	function create($key, $name, $description, $parent) {
+		$parent = intval($parent);
+		$key = $this->getFullKey($key, $parent);
+		if($key == null || $this->exists($key))
+			return null;
+		$ds = new DSHybrid($key, $parent);
+		if(!$ds->create($name, $description))
+			return null;
+		if($this->createTable($ds->ds_id)) {
+			if($this->createFolder($ds->ds_id)) {
+				$this->updateStruct($ds);
+				WCS::runAs(WCS_ROOT_ID);
+				$ds->save();
+				WCS::stopRunAs();
+				return $ds;
+			}
+			$this->removeTable($ds->ds_id);
+		}
+		$ds->remove();
+		return null;
+	}
+
+	function remove($id) {
+		$ids = $this->getChildren($id);
+		if(!sizeof($ids))
+			return;
+		require_once(LIBDIR.'/dsmanager._wc');
+		$dsm = new DSManager();
+		$ds = $dsm->load($id);
+		WCS::assert($ds, 'removeds');
+		WCS::runAs(WCS_ROOT_ID);
+		foreach($ids as $id) {
+			$ds = $dsm->load($id);
+			$ds->remove();
+			$this->removeTable($id);
+			$this->removeFolder($id);
+		}
+		WCS::stopRunAs();
+		$db = WCDB::bo();
+		$db->query(
+			"DELETE FROM $this->table WHERE ds_id IN(" . implode(',', $ids) . ")"
+		);
+	}
+
+	function removeDocuments(&$docids) {
+		require_once(LIBDIR.'/dsmanager._wc');
+		$dsm = new DSManager();
+		$ids = implode(',', $docids);
+		$db = WCDB::bo();
+		$res = $db->query("SELECT id, ds_id FROM dshybrid WHERE id IN($ids) ORDER BY ds_id DESC");
+		if(mysql_num_rows($res) > 0){
+			$type = array();
+			while($r = mysql_fetch_assoc($res))
+				$type[(int) $r['ds_id']][] = (int) $r['id'];
+			foreach($type as $id=>$docs) {
+				$ds = $dsm->load($id);
+				$ds->removeOwnDocuments($docs);
+			}
+			unset($ds, $type);
+		}
+		mysql_free_result($res);
+	}
+
+	function publishDocuments(&$ids) {
+		$this->setPublished($ids,1);
+	}
+
+	function unpublishDocuments(&$ids) {
+		$this->setPublished($ids,0);
+	}
+
+	function setPublished(&$ids, $value) {
+		if(sizeof($ids) > 0) {
+			$db = WCDB::bo();
+			$res = $db->query(
+				'SELECT dsh.id, dsh.ds_id FROM dshybrid dsh, datasources dss'.
+				' WHERE dsh.id IN('.implode(',', $ids).') AND dsh.ds_id = dss.ds_id AND ('.
+					WCS::getAuthCheckQuery('publishdoc', 'dss').
+					' OR ('.WCS::getOwnerCheckQuery('dsh').' AND FIND_IN_SET("publishdoc", dss.docauths))'.
+				')'
+			);
+			$docs = array();
+			for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++) {
+				list($id, $ds_id) = mysql_fetch_row($res);
+				$docs[$ds_id][] = (int) $id;
+			}
+			mysql_free_result($res);
+			if(sizeof($docs)) {
+				require_once(LIBDIR.'/dsmanager._wc');
+				$dsm = new DSManager();
+				loadClass('wcsmartycache', '/smarty/wcsmartycache._wc');
+				$dsIds = array_keys($docs);
+				$smc = WCSmartyCache::getInstance();
+				WCS::runAs(WCS_ROOT_ID);
+				foreach($dsIds as $dsId) {
+					$ds = $dsm->load($dsId);
+					assert($ds->ds_id > 0);
+					$_ids = implode(',', $docs[$dsId]);
+					if($value)
+						$ds->addToIndex($_ids);
+					else
+						$ds->removeFromIndex($_ids);
+					$db->query("UPDATE dshybrid SET published = $value WHERE ds_id = $dsId AND id IN ($_ids)");
+					$ds->evictDocCache($_ids);
+					unset($ds);
+				}
+				WCS::stopRunAs();
+				unset($smc);
+			}
+		}
+	}
+
+	function castDocuments(&$ids, $fromId, $toId) {
+		assert($fromId > 0 && $toId > 0 && $fromId != $toId);
+		if(sizeof($ids) > 0) {
+			require_once(LIBDIR.'/dsmanager._wc');
+			$dsm = new DSManager();
+			assert($from = $dsm->load($fromId) && $to = $dsm->load($toId));
+			WCS::assert($to, 'createdoc');
+			$ids = implode(',', $ids);
+			$db = WCDB::bo();
+			$res = $db->query("SELECT id FROM dshybrid WHERE ds_id = {$from->ds_id} AND id IN ($ids)");
+			if(($l = mysql_num_rows($res)) > 0) {
+				$add = $remove = array();
+				$fromRec = $from->getRecord(); $toRec = $to->getRecord();
+				$path1 = explode(',', $from->path); $path2 = explode(',', $to->path);
+				$removeDs = array_diff($path1, $path2);
+				$addDs = array_diff($path2, $path1);
+				$commonDs = intval(max(array_intersect($path1, $path2)));
+
+				foreach($fromRec->fields as $key => $field)
+					if(!(isset($toRec->fields[$key]) && $toRec->fields[$key]->ds_id == $field->ds_id))
+						$remove[] = &$fromRec->fields[$key];
+				foreach($toRec->fields as $key => $field)
+					if(!(isset($fromRec->fields[$key]) && $fromRec->fields[$key]->ds_id == $field->ds_id))
+						$add[] = &$toRec->fields[$key];
+				$lr = sizeof($remove); $la = sizeof($add);
+				$ids = array();
+
+				for($i = 0; $i < $l; $i++) {
+					list($docId) = mysql_fetch_row($res);
+					$doc = $from->getDocument($docId);
+					if(WCS::decide($doc, 'removedoc')) {
+						for($r = 0; $r < $lr; $r++)
+							$remove[$r]->onRemoveDocument($doc);
+						$ids[] = $doc->id;
+					}
+				}
+
+				if(sizeof($ids)) {
+					$failed = array();
+					$_ids = implode(',', $ids);
+					if(sizeof($removeDs)) {
+						foreach($removeDs as $dsId)
+							$db->query("DELETE FROM dshybrid_".intval($dsId)." WHERE id IN ($_ids)");
+					}
+					foreach($ids as $k => $id) {
+						$success = true;
+						foreach($addDs as $dsId) {
+							$db->query("INSERT INTO dshybrid_".intval($dsId)." (id) VALUES ($id)");
+							$success = $success && ($db->affectedRows() > 0);
+						}
+						if(!$success) {
+							foreach($addDs as $dsId)
+								$db->query("DELETE FROM dshybrid_".intval($dsId)." WHERE id = $id");
+							$failed[] = $id;
+							unset($ids[$k]);
+						}
+					}
+					if(sizeof($failed)) {
+						$fids = implode(',', $failed);
+						if($commonDs > 0)
+							$db->query("UPDATE dshybrid SET ds_id = $commonDs WHERE id IN ($fids)");
+						else
+							$db->query("DELETE FROM dshybrid WHERE id IN ($fids)");
+					}
+					if(sizeof($ids)) {
+						foreach($ids as $id) {
+							$doc = $to->getDocument($id);
+							for($a = 0; $a < $la; $a++)
+								$add[$a]->onCreateDocument($doc);
+							$query = $toRec->getSQL($doc);
+							foreach($query as $q)
+								$db->query($q);
+						}
+						$db->query("UPDATE dshybrid SET ds_id = {$to->ds_id} WHERE id IN (".implode(',', $ids).")");
+						$from->updateSize();
+						$from->evictDocCache($ids);
+						$to->updateSize();
+						$to->evictDocCache($ids);
+					}
+				}
+			}
+			mysql_free_result($res);
+		}
+	}
+
+	function &getChildren($ds_id) {
+		settype($ds_id, 'int');
+		$db = WCDB::bo();
+		$res = $db->query(
+			"SELECT t2.ds_id AS id FROM $this->table t1, $this->table t2 WHERE t1.ds_id=$ds_id AND INSTR(t2.ds_key, t1.ds_key) = 1 ORDER BY t2.ds_key DESC"
+		);
+		$ids = array();
+		if(mysql_num_rows($res))
+			while($r = mysql_fetch_assoc($res))
+				$ids[] = $r['id'];
+		mysql_free_result($res);
+		return $ids;
+	}
+
+	function getFullKey($key, $parent) {
+		$key = $this->validateKey($key);
+		if(!$parent)
+			return $key;
+		$db = WCDB::bo();
+		$res = $db->query(
+			"SELECT ds_key, path FROM $this->table WHERE ds_id=$parent"
+		);
+		if(mysql_num_rows($res) > 0) {
+			$r = mysql_fetch_assoc($res);
+			$fullkey = $r['ds_key'] . $this->separator . $key;
+		}
+		else
+			$fullkey = null;
+		mysql_free_result($res);
+		return $fullkey;
+	}
+
+	function exists($key) {
+		$db = WCDB::bo();
+		$res = $db->query("SELECT ds_id FROM $this->table WHERE ds_key = '$key'");
+		$exists = mysql_num_rows($res) > 0;
+		mysql_free_result($res);
+		return $exists;
+	}
+
+	function createTable($id) {
+		$name = $this->prefix . $id;
+		$db = WCDB::bo();
+		$db->query(
+			'CREATE TABLE `'.$name.'` ('.
+			' `id` int(11) unsigned NOT NULL default "0",'.
+			' PRIMARY KEY (`id`)'.
+			') ENGINE=MyISAM DEFAULT CHARSET=utf8'
+		);
+		return $db->errorCode() == 0;
+	}
+
+	function removeTable($id) {
+		$name = $this->prefix . $id;
+		$db = WCDB::bo();
+		$db->query("DROP TABLE `$name`");
+	}
+
+	function createFolder($folder) {
+		settype($folder, 'int');
+		if($folder > 0 && !@file_exists(ROOT.FILES.'/hyb/'.$folder)) {
+			$ftp = $this->getFtp();
+			$ftp->open();
+			$ftp->md(FILES.'/hyb/'.$folder);
+			$ftp->close();
+			if($ftp->success())
+				return true;
+			echo $ftp->get_message(true);
+		}
+		return false;
+	}
+
+	function removeFolder($folder) {
+		settype($folder, 'int');
+		if($folder > 0 && @file_exists(ROOT.FILES.'/hyb/'.$folder)) {
+			$ftp = $this->getFtp();
+			$ftp->open();
+			$ftp->rdEntire(FILES.'/hyb/'.$folder);
+			$ftp->close();
+			if($ftp->success())
+				return true;
+			echo $ftp->get_message(true);
+		}
+		return !@file_exists(ROOT.FILES.'/hyb/'.$folder);
+	}
+
+	function updateStruct(&$ds) {
+		$db = WCDB::bo();
+		if($ds->parent) {
+			$res = $db->query("SELECT path FROM $this->table WHERE ds_id=$ds->parent");
+			$r = mysql_fetch_assoc($res);
+			mysql_free_result($res);
+			$ds->path = $r['path'] . ',' . $ds->ds_id;
+		}
+		else
+			$ds->path = '0,' . $ds->ds_id;
+		$db->query(
+			"INSERT INTO $this->table".
+			' (ds_id, parent, ds_key, path)'.
+			'VALUES'.
+			" ($ds->ds_id, $ds->parent, '$ds->key', '$ds->path')"
+		);
+	}
+
+	function validateKey($key) {
+		$key = preg_replace('/[^A-Za-z0-9]+/', '', $key);
+		$key = strtolower($key);
+		if(strlen($key) > 16)
+			$key = substr($key, 0, 16);
+		return $key;
+	}
+
+	function &getFtp() {
+		if(!is_object($this->ftp)) {
+			loadClass('wcftp', '/wcftp._wc');
+			$this->ftp = WCFTP::getNew();
+		}
+		return $this->ftp;
+	}
+}
+?>

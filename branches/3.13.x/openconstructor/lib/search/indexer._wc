@@ -1,0 +1,269 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Anton "simanyay" Kovalyov
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: indexer._wc,v 1.10 2007/02/27 11:23:26 sanjar Exp $
+ */
+require_once('tokenizer._wc');
+require_once(LIBDIR_THIRD.'/htmlparser/htmlparser.php');
+
+define('BOOST_LIMIT', 20);
+
+class Indexer {
+	var $text;
+	var $strong_tags;
+	var $tag_rankings;
+	
+	function Indexer() {
+		$this->strong_tags = array();
+		$this->tag_rankings = array();
+		
+		$db = WCDB::bo();
+		$res = $db->query("SELECT tag,rank FROM strongtags");
+		
+		while($row = mysql_fetch_array($res, MYSQL_ASSOC)) {
+			$tag = strtolower($row["tag"]);
+			$this->strong_tags[$row["tag"]] = "<" . $row["tag"] . ">";
+			$this->tag_rankings[$tag] = (int) $row["rank"];
+		}
+		
+		mysql_free_result($res);
+	}
+	
+	/**
+	 * Add new data to the index
+	 * 
+	 * Parameters:
+	 * 		$ds_id
+	 * 		$ds_type
+	 * 		$document_id
+	 * 		$header
+	 * 		$content
+	 */
+	function add($ds_id, $ds_type, $document_id, $header, $content = "", $annotation = '') {
+		$title = is_array($header) ? $header[0] : $header;
+		if(is_array($header))
+			$header = implode(' ', $header);
+		if(is_array($content))
+			$content = implode(' ', $content);
+		$header = Tokenizer::toLowerCase($header);
+		$content = Tokenizer::toLowerCase($content);
+		
+		// TODO: replace with assertions
+		if(!$this->checkData($ds_id, $ds_type, $document_id)) return;
+
+		$header = $this->getRankedText($header);
+		$header = $this->getStemmedText($header);
+
+		$content = $this->getRankedText($content);		
+		$content = $this->getStemmedText($content);
+		
+		$db = WCDB::bo();
+		$result = $db->query("SELECT ds_id FROM `index` WHERE ds_id = $ds_id AND document_id = $document_id");
+		
+		if(mysql_num_rows($result) == 0)
+			$db->query(sprintf(
+				"INSERT INTO `index` (`ds_id`, `ds_type`, `document_id`, `header`, `content`, `date`, `title`, `annotation`)
+					VALUES ('$ds_id', '$ds_type', '$document_id', '%s', '%s', %d, '%s', '%s')" 
+				, addslashes($header), addslashes($content), time(), addslashes($title), addslashes(strip_tags($annotation))
+			));
+								 
+		mysql_free_result($result);
+	}
+	
+	/**
+	 * Update requested date in the index
+	 * 
+	 * Parameters:
+	 * 		$ds_id
+	 * 		$document_id
+	 * 		$header
+	 * 		$updateDate;
+	 * 		$content
+	 */
+	function update($ds_id, $document_id, $header, $updateDate = false, $content = "", $annotation = '') {
+		$title = is_array($header) ? $header[0] : $header;
+		if(is_array($header))
+			$header = implode(' ', $header);
+		if(is_array($content))
+			$content = implode(' ', $content);
+		$header = Tokenizer::toLowerCase($header);
+		$content = Tokenizer::toLowerCase($content);
+		
+		if(!$this->checkData($ds_id, "space", $document_id)) return;
+		
+		$header = $this->getRankedText($header);
+		$header = $this->getStemmedText($header);
+
+		$content = $this->getRankedText($content);		
+		$content = $this->getStemmedText($content);
+		
+		$date = ($updateDate) ? ", date = ".time() : "";
+		
+		$db = WCDB::bo();
+		$db->query(sprintf(
+			"UPDATE `index` SET `header`='%s', `content`='%s' $date, `title`='%s', `annotation`='%s' WHERE `ds_id`='$ds_id' AND `document_id`='$document_id'"
+			, addslashes($header), addslashes($content), addslashes($title), addslashes(strip_tags($annotation))
+		));
+	}
+	
+	/**
+	 * Remove specific data from the index
+	 * 
+	 * Parameters:
+	 * 		$id - data's id ('id' field in the 'index' table)
+	 */
+	function remove($ds_id, $document_id = null) {
+		if(!is_numeric($ds_id)) return;
+		
+		if($document_id != null) {
+			$optional= "AND document_id IN ($document_id)";
+		} else $optional = "";
+		
+		$db = WCDB::bo();
+		$db->query("DELETE FROM `index` WHERE `ds_id` = $ds_id $optional");
+	}
+	
+	/**
+	 * Clear index
+	 * 
+	 * WARNING: This function is dangerous. Use it only if you really know what
+	 * 			you're doing
+	 */
+	function clear() {
+		$db = WCDB::bo();
+		$db->query("DELETE FROM `index`");
+	}
+	
+	/**
+	 * This method will return text with stemmed words and strong tags only
+	 * Actually this method should be 'private', but I can't do this in PHP4
+	 * 
+	 * Parameters:
+	 * 		$text - original text
+	 * 
+	 * Returns:
+	 * 		stemmed text with no tags except strong tags (see 'strongtags' table)
+	 */
+	function getStemmedText($text) {
+		$result = "";
+		
+		$text = strip_tags($text);
+		
+		loadClass('stopwords', '/search/stopwords._wc');
+		$stopw = Stopwords::getInstance();
+		
+		// Parse original text and stem all words that are not tags
+		$tkn = new Tokenizer();
+		$tkn->setText($text);
+		$tkn->stopwords = &$stopw->all;
+		
+		loadClass('russianstemmer', '/search/stemmers/russianstemmer._wc');
+		loadClass('englishstemmer', '/search/stemmers/englishstemmer._wc');
+		$rustemmer = RussianStemmer::getInstance();
+		$enstemmer = EnglishStemmer::getInstance();
+		
+		while($cur = $tkn->next()) {
+			$type = $tkn->getType($cur);
+			
+			switch($type) {
+				case TOKEN_WORD_EN:
+					$result .= $enstemmer->stem($cur, true) . ' ';
+					break;		
+				case TOKEN_WORD_RU:
+					$stem = $rustemmer->stem($cur, true);
+					self::_padWord($stem, 'ь');
+					$result .= $stem . ' ';
+					break;
+				default:
+					$result .= $cur . ' ';
+			}
+		}
+		
+		return $result;
+	}
+	
+	function _padWord(&$word, $letter, $length = 4) {
+		$l = utf8_strlen($word);
+		if($l < $length)
+			$word = str_repeat($letter, $length - $l).$word;
+	}
+	
+	function getRankedText($text) {
+		$result = "";
+		$ranks = 0;
+		
+		// I should convert my array $this->strong_tags to one row with space
+		// as delimiter because of implementation of 'strip_tags' function in PHP4
+		$text = strip_tags($text, implode('', $this->strong_tags));
+		
+		$parser = new HtmlParser($text);
+		
+		while($parser->parse()) {
+			$iNodeName = strtolower($parser->iNodeName);
+			if($parser->iNodeType == NODE_TYPE_ELEMENT) {
+				if(isset($this->tag_rankings[$iNodeName])) {
+					$ranks += $this->tag_rankings[$iNodeName];
+					if($parser->iNodeValue != '')
+						for($i = 0, $l = $ranks >= BOOST_LIMIT ? BOOST_LIMIT : $ranks + 1; $i < $l; $i++)
+							$result = $result . ' ' . $parser->iNodeValue;
+				}
+			} else if($parser->iNodeType == NODE_TYPE_ENDELEMENT) {
+				if(isset($this->tag_rankings[$iNodeName]))
+					$ranks -= $this->tag_rankings[$iNodeName];
+			} else if($parser->iNodeType == NODE_TYPE_TEXT) {
+				if($parser->iNodeValue != '')
+					for($i = 0, $l = $ranks >= BOOST_LIMIT ? BOOST_LIMIT : $ranks + 1; $i < $l; $i++)
+						$result = $result . ' ' . $parser->iNodeValue;
+			}
+		}
+		
+		return $result;
+	}
+	
+	function &getInstance() {
+		static $instance;
+		
+		if(!is_object($instance)) $instance = new Indexer();
+		return $instance;
+	}
+	
+	/**
+	 * This method checks input data.
+	 * 
+	 * Parameters:
+	 * 		$ds_id
+	 * 		$ds_type
+	 * 		$document_id
+	 * 
+	 *  Returns:
+	 *  	true if all parameters are valid
+	 *  	false if at least one of the parameters is invalid
+	 */
+	function checkData($ds_id, $ds_type, $document_id) {
+		if(!is_numeric($ds_id) || !is_numeric($document_id)) return false;
+		if(!is_string($ds_type)) return false;
+		
+		return true;
+	}
+}
+?>

@@ -1,0 +1,89 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: taskrunner._wc,v 1.2 2007/02/27 11:23:26 sanjar Exp $
+ */
+define('CTR_LEVEL_NONE', 0);
+define('CTR_LEVEL_ERROR', 1);
+define('CTR_LEVEL_WARNING', 2);
+define('CTR_LEVEL_INFO', 3);
+
+class ConsoleTaskRunner {
+	var $reporting = CTR_LEVEL_ERROR;
+	
+	function ConsoleTaskRunner() {
+		
+	}
+	
+	function run(&$task) {
+		echo "\n-\n- Running task '{$task->name}'...\n-\n";
+		$task->setRunner($this);
+		$task->run();
+	}
+	
+	function &getTask($key) {
+		$result = null;
+		$filename = LIBDIR.'/console/tasks/task.'.strtr($key,'/', '_').'._wc';
+		if(@file_exists($filename)) {
+			require_once($filename);
+			$class = "ConsoleTask_".strtr($key, '.', '_');
+			$result = new $class;
+		}
+		return $result;
+	}
+	
+	function info($msg) {
+		$this->_report(CTR_LEVEL_INFO, $msg);
+	}
+	
+	function warning($msg) {
+		$this->_report(CTR_LEVEL_WARNING, $msg);
+	}
+	
+	function error($msg) {
+		$this->_report(CTR_LEVEL_ERROR, $msg);
+	}
+	
+	function _report($level, $msg) {
+		if($level <= $this->reporting)
+			echo "$msg\n";
+	}
+	
+	function runFromRouter(&$router) {
+		$runner = new ConsoleTaskRunner();
+		$runner->reporting = CTR_LEVEL_INFO;
+		$taskId = implode('.', (array) @$router->path);
+		$task = $runner->getTask($taskId);
+		if(is_object($task)) {
+			$params = $task->getArgNames();
+			foreach($params as $name => $comment)
+				foreach($router->path as $ns)
+					if(array_key_exists("{$ns}.{$name}", $router->param)) {
+						$task->setParam($name, $router->param["{$ns}.{$name}"]);
+						break;
+					}
+			$runner->run($task);
+		} else
+			echo "\n-\n- Task '{$taskId}' not found\n-\n";
+	}
+}
+?>

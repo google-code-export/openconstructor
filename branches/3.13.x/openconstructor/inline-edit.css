@@ -1,0 +1,56 @@
+DIV.wciBlock {
+	font-family: sans-serif;
+	position: absolute;
+	padding: 3px 5px;
+	margin: 0;
+	font-size: 12px;
+	background: #eee;
+	border: solid 1px #ccc;
+	text-align: left;
+	cursor: hand;
+}
+
+DIV.wciBlock SPAN {
+	margin: 0;
+	padding: 0;
+	color: #c00;
+	text-decoration: none;
+	font-weight: bold;
+}
+
+DIV.wciToolbar {
+	font-family: sans-serif;
+	cursor: default;
+	position: absolute;
+	padding: 7px;
+	font-size: 14px;
+	background: #eee;
+	border: outset 2px;
+	text-align: left;
+	z-index: 10;
+}
+DIV.wciToolbar H4 {
+	font-size: 12px;
+	font-weight: bold;
+	color: #000;
+}
+DIV.wciToolbar UL {
+	border-top: solid 1px #ccc;
+	margin: 5px 0 0;
+	padding: 5px 0 0;
+}
+DIV.wciToolbar UL A, DIV.wciToolbar UL A:visited {
+	color: #06c !important;
+	text-decoration: underline !important;
+}
+DIV.wciToolbar UL A:hover {
+	color: #000 !important;
+	text-decoration: none !important;
+}
+DIV.wciToolbar UL LI {
+	margin: 0 0 5px;
+	padding: 0;
+}
+DIV.wciToolbar UL LI.dis {
+	color: #888;
+}

@@ -1,0 +1,83 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: phpcallback._wc,v 1.3 2007/02/27 11:23:18 sanjar Exp $
+ */
+require_once(LIBDIR.'/context._wc'); // Used by included php code
+require_once(LIBDIR.'/wcobject._wc'); // Used by included php code
+
+class PHPCallback extends WCObject {
+	var $sourcePath, $source;
+	
+	function PHPCallback() {
+		$this->DSTable = 'dsphpsource';
+		$this->ds_type = 'phpsource';
+		$this->obj_type = 'phpcallback';
+		$this->sourcePath = '/php/';
+		$this->source = false;
+	}
+	
+	function getCacheId() {
+		return null;
+	}
+	
+	function exec(&$smarty, $params = array()) {
+		if($this->block != 'PRE') {
+			$args = (array) $params;
+			return $this->runArgs($args);
+		}
+	}
+	
+	function run() {
+		return $this->runArgs($args = array());
+	}
+	
+	function runArgs(&$args) {
+		settype($this->source, 'int');
+		if((@include_once ROOT.FILES.$this->sourcePath.$this->source.'._wc') !== false)
+			return call_user_func_array('_wcf_phpsource_'.$this->source, array(&$args));
+	}
+	
+	function getDocId() {
+		return $this->source;
+	}
+	
+	function &_getDSFields() {
+		static $result;
+		if(!is_array($result)) $result = array('ds_id', 'source');
+		return $result;
+	}
+	
+	function &_newCallback($sourceId, $name = null) {
+		$result = null;
+		settype($sourceId, 'int');
+		if($sourceId > 0) {
+			$obj = new PHPCallback();
+			$obj->obj_id = null;
+			$obj->source = intval($sourceId);
+			$obj->name = $name;
+			$result = array(&$obj, 'runArgs');
+		}
+		return $result;
+	}
+}
+?>

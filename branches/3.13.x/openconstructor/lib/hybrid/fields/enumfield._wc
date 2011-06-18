@@ -1,0 +1,90 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: enumfield._wc,v 1.3 2007/02/27 11:23:19 sanjar Exp $
+ */
+require_once('fieldutils._wc');
+
+class EnumField extends HybridField {
+	var $enumId;
+	var $isArray;
+	
+	function EnumField($key, $header, $enumId, $required, $isArray) {
+		$this->enumId = (int) $enumId;
+		$this->HybridField($key, $header, 'enum', $this->enumId, $required);
+		$this->isArray = $isArray ? 1 : 0;
+	}
+	
+	function create() {
+		if(parent::create())
+			$this->update();
+		return $this->id;
+	}
+	
+	function update() {
+		$db = WCDB::bo();
+		$db->query(
+			sprintf("UPDATE $this->table SET header='%1\$s', enum_id='%2\$d', isarray='%3\$d', isreq='%4\$d' ".
+					"WHERE id=$this->id", addslashes($this->header), intval($this->enumId), intval($this->isArray), intval($this->isRequired))
+		);
+	}
+	
+	function onCreateDocument(&$doc) {
+		if(!$this->isValid($doc->fields[$this->key]))
+			$doc->fields[$this->key] = null;
+	}
+	
+	function onUpdateDocument(&$old, &$new) {
+		if(!$this->isValid($new->fields[$this->key]))
+			$new->fields[$this->key] = $old->fields[$this->key];
+	} 
+	
+	function fetchValue(&$doc) {
+		if($this->isArray)
+			$doc->fields[$this->key] = $doc->fields[$this->key] ? explode(',', $doc->fields[$this->key]) : array();
+		else
+			settype($doc->fields[$this->key], 'int');
+	}
+	
+	function convertToPlain(&$doc) {
+		$doc->fields[$this->key] = null;
+	}
+	
+	function isValid($value) {
+		if($this->isArray)
+			return strlen($value) == strspn($value, '0123456789,');
+		return $this->isRequired ? intval($value) == $value && intval($value) > 0 : intval($value) == $value;
+	}
+
+	function getMysqlType() {
+		loadClass('wcenumfactory', '/enum/wcenumfactory._wc');
+		$ef = WCEnumFactory::getInstance();
+		$ids = array();
+		$enum = $ef->load($this->enumId);
+		if($enum != null) {
+			$values = $enum->getAllValues();
+			$ids = array_keys($values);
+		}
+		return ($this->isArray ? 'SET("'.implode('","', $ids).'")' : 'ENUM("'.implode('","', $ids).'")').' NOT NULL';
+	}
+}
+?>

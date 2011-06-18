@@ -1,0 +1,111 @@
+<?php
+/**
+ * Copyright 2003 - 2007 eSector Solutions, LLC
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of Open Constructor (http://www.openconstructor.org/).
+ * 
+ * Open Constructor is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation.
+ * 
+ * Open Constructor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ * 
+ * @author Sanjar Akhmedov
+ * 
+ * $Id: group._wc,v 1.3 2007/02/27 11:23:21 sanjar Exp $
+ */
+
+class Group {
+	var $id, $name, $title, $builtIn;
+	var $profileType;
+	var $umask, $auths;
+	var $sRes;
+	
+	function Group($name, $title) {
+		$this->name = $name;
+		$this->title = $title;
+	}
+	
+	function addMember($userId) {
+		assert($this->id > 0);
+		WCS::assert($this, 'addmember');
+		if(!is_array($userId))
+			$userId = array($userId);
+		$query = "INSERT INTO wcsmembership (group_id, user_id) VALUES ({$this->id}, %d)";
+		$db = WCDB::bo();
+		for($i = 0, $l = sizeof($userId); $i < $l; $i++)
+			if($userId[$i] > 0)
+				$db->query(sprintf($query, $userId[$i]));
+	}
+	
+	function removeMember($userId) {
+		assert($this->name != 'everyone');
+		WCS::assert($this, 'removemember');
+		if(!is_array($userId))
+			$userId = array($userId);
+		for($i = 0, $l = sizeof($userId); $i < $l; $i++) {
+			settype($userId[$i], 'int');
+			if($userId[$i] <= 0)
+				unset($userId[$i]);
+		}
+		$userId = implode($userId);
+		if($userId) {
+			$db = WCDB::bo();
+			$db->query(
+				"DELETE m.* FROM wcsmembership m, wcsusers u WHERE m.group_id = {$this->id} AND m.user_id = u.id AND u.group_id != {$this->id} AND u.id IN ($userId)"
+			);
+		}
+	}
+	
+	function &getMembers() {
+		loadClass('user', '/security/user._wc');
+		$result = array();
+		$db = WCDB::bo();
+		$res = $db->query(
+			"SELECT u.id, u.login, u.group_id, u.autologin, u.email, u.name, u.active, u.builtin, u.profile, u.expiry, BIN(ROUND(u.oauths)) as oauths, BIN(ROUND(u.gauths)) as gauths, GROUP_CONCAT(m.group_id) as membership
+				FROM wcsmembership m0, wcsusers u, wcsmembership m
+				WHERE m0.group_id = {$this->id} AND u.id = m0.user_id AND m.user_id = m0.user_id
+				GROUP BY u.id"
+		);
+		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++) {
+			$r = mysql_fetch_assoc($res);
+			$r['profile_type'] = $this->profileType;
+			$result[$i] = User::fromArray($r);
+		}
+		return $result;
+	}
+	
+	function &getMemberIds() {
+		$result = array();
+		$db = WCDB::bo();
+		$res = $db->query("SELECT user_id FROM wcsmembership WHERE group_id = {$this->id}");
+		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++)
+			list($result[$i]) = mysql_fetch_row($res);
+		return $result;
+	}
+	
+	function loadAuths($owner, $group, $ownerAuths, $groupAuths) {
+		$this->sRes = new WCSResource($this->title."[{$this->name}]", (int) $owner, (int) $group);
+		
+		$this->sRes->addAction('editgroup');
+		$this->sRes->addAction('editgroup.chmod');
+		$this->sRes->addAction('editgroup.umask');
+		$this->sRes->addAction('removegroup');
+		$this->sRes->addAction('addmember');
+		$this->sRes->addAction('removemember');
+		$this->sRes->addAction('createuser');
+		$this->sRes->addAction('edituser');
+		$this->sRes->addAction('removeuser');
+		
+		$this->sRes->setAuthorities($ownerAuths, $groupAuths);
+	}
+}
+?>
