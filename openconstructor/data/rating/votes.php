@@ -29,14 +29,14 @@
 	
 	
 	
-	$_ds = &$dsm->load($_GET['ds_id']);
+	$_ds = $dsm->load($_GET['ds_id']);
 	$_doc = $_ds->get_record($_GET['id']);
 	assert($_doc !== null);
 	
 	require_once('../../include/sections._wc');
 	
 	function get_votes_headline($votes, $pagesize, $page = 1, $clause = '') {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$result = array(0, array());
 		$page = intval($page);
 		if(--$page < 0)

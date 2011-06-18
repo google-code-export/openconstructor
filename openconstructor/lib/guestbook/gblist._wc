@@ -44,7 +44,7 @@ class GBList extends WCObject {
 	}
 	
 	function getCacheId() {
-		$displayed = &$this->getDisplayedDs();
+		$displayed = $this->getDisplayedDs();
 		return $this->obj_id.'|c'.implode(',', array_keys($displayed));
 	}
 	
@@ -52,7 +52,7 @@ class GBList extends WCObject {
 		$result = false;
 		if(!$this->defaultGB) return $result;
 		
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT ds_id, name, description '.
 			'FROM '.$this->DSTable.' '.
@@ -60,7 +60,7 @@ class GBList extends WCObject {
 			'ORDER BY date '.(@$this->reverseOrder?'ASC':'DESC')
 		);
 		if(mysql_num_rows($res) > 0) {
-			$displayed = &$this->getDisplayedDs();
+			$displayed = $this->getDisplayedDs();
 			while($row = mysql_fetch_assoc($res)) {
 				$gb[$row['ds_id']]['header'] = escapeTags($row['name']);
 				$gb[$row['ds_id']]['href'] = isset($displayed[$row['ds_id']]) ? null : $this->srvuri.'?'.$this->gbid.'='.$row['ds_id'];
@@ -82,7 +82,7 @@ class GBList extends WCObject {
 	
 	function &_getDSFields() {
 		static $result;
-		if(!is_array(&$result)) $result = array('ds_id', 'gbid');
+		if(!is_array($result)) $result = array('ds_id', 'gbid');
 		return $result;
 	}
 }

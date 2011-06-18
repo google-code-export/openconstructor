@@ -46,8 +46,8 @@ class DSGuestBook extends WCDataSource
 		WCS::assert($this, 'createdoc');
 		assert(trim($subject) != '');
 		if($this->isFull()) return false;
-		$html = &$this->cleanHTML(&$html);
-		$db = &WCDB::bo();
+		$html = $this->cleanHTML($html);
+		$db = WCDB::bo();
 		$db->query(
 			'INSERT INTO '.$this->DSTable.
 				' (ds_id, published, subject, author, email, html, date, wcsowner)'.
@@ -63,7 +63,7 @@ class DSGuestBook extends WCDataSource
 			);
 			$this->updateSize();
 			if($this->autoPublish) {
-				$this->addToIndex($id, $subject, &$html, $html);
+				$this->addToIndex($id, $subject, $html, $html);
 				$this->evictDocCache($id);
 			}
 		}
@@ -76,7 +76,7 @@ class DSGuestBook extends WCDataSource
 		if(!sizeof($ids)) return;
 		$_ids = implode(',', $ids);
 		
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'DELETE FROM '.$this->DSTable.
 			' WHERE real_id IN('.$_ids.') OR id IN('.$_ids.')'
@@ -84,22 +84,22 @@ class DSGuestBook extends WCDataSource
 		
 		$this->updateSize();
 
-		$this->removeFromIndex(&$_ids);
+		$this->removeFromIndex($_ids);
 		
-		$this->evictDocCache(&$ids);
+		$this->evictDocCache($ids);
 	}
 
 	function update($id, $subject, $html, $date, $author = '', $email = '') {
 		assert(trim($subject) != '');
-		$rec = &$this->get_record($id);
+		$rec = $this->get_record($id);
 		assert($rec['id'] == $rec['real_id']);
-		$doc = &$this->wrapDocument($rec);
+		$doc = $this->wrapDocument($rec);
 		assert($doc->id > 0);
 		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
 		
-		$html = &$this->cleanHTML(&$html);
+		$html = $this->cleanHTML($html);
 		$ids = $this->getAliases($id, true);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'UPDATE '.$this->DSTable.
 			' SET subject="'.addslashes($subject).
@@ -110,9 +110,9 @@ class DSGuestBook extends WCDataSource
 			' WHERE id IN('.implode(',',$ids).')'
 		);
 		
-		$this->updateIndex($id, $subject, &$html, $html);
+		$this->updateIndex($id, $subject, $html, $html);
 		
-		$this->evictDocCache(&$ids);
+		$this->evictDocCache($ids);
 		return true;
 	}
 
@@ -121,7 +121,7 @@ class DSGuestBook extends WCDataSource
 		if(!@$id) return false;
 		$res = $this->get_record($id, true);
 		if($res == NULL) return false;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'INSERT INTO '.$this->DSTable.
 				' (real_id, ds_id, published, subject, author, email, html, date, wcsowner)'.
@@ -138,7 +138,7 @@ class DSGuestBook extends WCDataSource
 	function &getIndexableDocs($id = null) {
 		$result = array();
 		$cond = ($id != null ? "id IN ($id) AND " : '')."ds_id = {$this->ds_id}";
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT id, subject as header, html as content, html as intro FROM {$this->DSTable} WHERE $cond AND published");
 		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++)
 			$result[$i] = mysql_fetch_assoc($res);

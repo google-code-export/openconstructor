@@ -25,7 +25,7 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/editors._wc');
 	
 	require_once(LIBDIR.'/templates/wctemplates._wc');
-	$wt = & new WCTemplates();
+	$wt = new WCTemplates();
 	$tpls = $wt->get_all_tpls('importtables');
 	$prototype = @$_GET['prototype'];
 	assert(!$prototype || isset($tpls[$prototype]) == true);

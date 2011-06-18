@@ -27,10 +27,11 @@ class SiteAuthentication {
 	var $userId, $userLogin, $groupId;
 	var $profile, $profileId, $_profileLoader;
 	var $userName, $userEmail;
+	var $activeOpenid;
 	var $_wciEditor;
 	
 	function SiteAuthentication() {
-		$this->userId = $this->userLogin = $this->userName = $this->userEmail = $this->groupId = $this->profileId = null;
+		$this->userId = $this->userLogin = $this->userName = $this->userEmail = $this->activeOpenid = $this->groupId = $this->profileId = null;
 		$this->profile = array();
 		$this->_wciEditor = false;
 	}
@@ -42,15 +43,15 @@ class SiteAuthentication {
 	function _loadProfile($loaderId, $dynamic = false) {
 		$this->_profileLoader = (int) $loaderId;
 		if($this->_profileLoader > 0 && $this->profileId > 0 && ($dynamic || !sizeof($this->profile))) {
-			$ctx = &Context::getInstance();
+			$ctx = Context::getInstance();
 			$ctx->_attachEventListener('onLoadObjects', array(&$this, '_profileLoaderObserver'));
 		}
 	}
 	
 	function _profileLoaderObserver() {
 		if($this->profileId > 0 && $this->_profileLoader > 0) {
-			$ctx = &Context::getInstance();
-			if($obj = &$ctx->page->_getObject($this->_profileLoader, true)) {
+			$ctx = Context::getInstance();
+			if($obj = $ctx->page->_getObject($this->_profileLoader, true)) {
 				$this->profile = (array) $obj->getDocument($this->profileId);
 				@$_SESSION['wcsProfile'] = $this->profile;
 				$ctx->_fireEventArgs('onLoadProfile', $args = array('profile' => &$this->profile));
@@ -65,6 +66,7 @@ class SiteAuthentication {
 		$this->userLogin = $auth->userLogin;
 		$this->userName = $auth->userName;
 		$this->userEmail = $auth->userEmail;
+		$this->activeOpenid = $auth->activeOpenid;
 		$this->groupId = $auth->groupId;
 		$this->profileId = $auth->profileId;
 		$this->profile = (array) $auth->profile;
@@ -72,12 +74,13 @@ class SiteAuthentication {
 	}
 	
 	function &createFromSession() {
-		$result = & new SiteAuthentication();
+		$result = new SiteAuthentication();
 		if(@$_SESSION['wcsUserId']) {
 			$result->userId = @$_SESSION['wcsUserId'];
 			$result->userLogin = @$_SESSION['wcsUserLogin'];
 			$result->userName = @$_SESSION['wcsUserName'];
 			$result->userEmail = @$_SESSION['wcsUserEmail'];
+			$result->activeOpenid = @$_SESSION['wcsActiveOpenid'];
 			$result->groupId = @$_SESSION['wcsGroupId'];
 			$result->profileId = (int) @$_SESSION['wcsProfileId'];
 			$result->profile = (array) @$_SESSION['wcsProfile'];
@@ -88,8 +91,8 @@ class SiteAuthentication {
 	
 	function &createFrom(&$auth) {
 		if(is_object($auth)) {
-			$result = & new SiteAuthentication();
-			$result->_copy(&$auth);
+			$result = new SiteAuthentication();
+			$result->_copy($auth);
 		} else
 			$result = null;
 		return $result;

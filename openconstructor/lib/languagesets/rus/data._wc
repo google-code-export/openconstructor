@@ -128,6 +128,10 @@
 	define('BTN_REMOVE_FIELDS','Удалить поля');
 	define('REMOVE_SELECTED_FIELDS_Q','Удалить выделенные поля?');
 	define('DS_DOC_EDIT_TPL','Шаблон редактора');
+	define('H_DSH_EVENTS', 'События');
+	define('H_DSH_EVENTS_ON_CREATE', 'При создание');
+	define('H_DSH_EVENTS_ON_UPDATE', 'При редактирование');
+	define('H_DSH_EVENTS_ON_DELETE', 'При удаление');
 	define('H_ADD_FIELD','Добавление поля');
 	define('H_EDIT_FIELD','Редактирование поля');
 	define('H_DSH_FIELD_KEY','ID поля');

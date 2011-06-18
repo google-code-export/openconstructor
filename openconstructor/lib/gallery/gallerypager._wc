@@ -44,7 +44,7 @@ class GalleryPager extends WCObject {
 	}
 	
 	function getCacheId() {
-		$master = &$this->ctx->getObject($this->master);
+		$master = $this->ctx->getObject($this->master);
 		if(is_object($master)) {
 			$page = (int) @$_GET[$master->pid];
 			if(--$page < 0) $page = 0;
@@ -57,13 +57,13 @@ class GalleryPager extends WCObject {
 	function fetchData(&$smarty) {
 		$result = false;
 		settype($this->master, 'int');
-		$master = &$this->ctx->getObject($this->master);
+		$master = $this->ctx->getObject($this->master);
 		if(!is_object($master)) return $result;
 		$current = intval(@$_GET[$master->pid])+!intval(@$_GET[$master->pid]);
 		$ds_id = $master->getDsId();
 		if(!$ds_id) return $result;
 		
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT COUNT(*) as items'.
 			' FROM '.$this->DSTable.' ds'.($master->dynamic_ds ? ', dspublication p':'').
@@ -120,7 +120,7 @@ class GalleryPager extends WCObject {
 	
 	function &_getDSFields() {
 		static $result;
-		if(!is_array(&$result)) $result = array('master');
+		if(!is_array($result)) $result = array('master');
 		return $result;
 	}
 }

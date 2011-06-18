@@ -44,7 +44,7 @@ function _installer_install_db() {
 	$dump = implode('', file($_SERVER['DOCUMENT_ROOT'].WCHOME.'/dist/base.sql'));
 
 	require_once(LIBDIR.'/db/sqltokenizer._wc');
-	$tok = & new SqlTokenizer();
+	$tok = new SqlTokenizer();
 	$tok->bind($dump);
 
 	$result = true;
@@ -62,7 +62,7 @@ function _installer_install_db() {
 
 function _installer_install_files($host, $port, $login, $pwd, $root, $tmpDir, $dbServer, $db, $dbLogin, $dbPwd, $httpHost, $lng) {
 	require_once(LIBDIR.'/wcftp._wc');
-	$ftp = & WCFTP::getNew($host, $port, $login, $pwd, $root);
+	$ftp = WCFTP::getNew($host, $port, $login, $pwd, $root);
 	$ftp->setTmpDir($tmpDir);
 	$ftp->open();
 	$ftp->copy_local_dir($_SERVER['DOCUMENT_ROOT'].WCHOME.'/dist'.FILES, '/');

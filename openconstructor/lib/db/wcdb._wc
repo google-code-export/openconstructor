@@ -25,18 +25,18 @@
 
 class WCDB {
 	function &fo() {
-		return WCDB::_get(WCDB_FRONT);
+		return self::_get(WCDB_FRONT);
 	}
 	
 	function &bo() {
 		static $bo;
 		if(!is_object($bo))
-			$bo = &WCDB::_get(WCDB_SYSTEM);
+			$bo = self::_get(WCDB_SYSTEM);
 		return $bo;
 	}
 	
 	function &get($key) {
-		return WCDB::_get($key);
+		return self::_get($key);
 	}
 	
 	function &_get($key) {
@@ -52,7 +52,7 @@ class WCDB {
 				if(isset($dbs[$key]['setnames']) && $dbs[$key]['setnames'])
 					$instances[$key]->query('SET NAMES \'utf8\'');
 				if(class_exists('Context')) {
-					$ctx = & Context::getInstance();
+					$ctx = Context::getInstance();
 					$ctx->_fireEventArgs('onDBConnect', $args = array('db' => &$instances[$key]));
 				}
 			}

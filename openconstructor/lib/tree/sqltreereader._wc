@@ -33,25 +33,25 @@ class SqlTreeReader {
 	
 	function &getChildren($nodeId) {
 		$result = array();
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
-			"SELECT t2.id AS id, t2.num AS num, t2.parent AS parent, t2.next AS next, t2.level as level, t2.name AS name, t2.header AS header".
+			"SELECT t2.id AS id, t2.num AS num, t2.parent AS parent, t2.next AS next, t2.name AS name, t2.header AS header".
 			" FROM $this->table t1, $this->table t2".
 			" WHERE t1.id = $nodeId AND t2.num > t1.num AND ( t1.next = 0 OR t2.num < t1.next ) AND t2.level = t1.level + 1".
 			" ORDER BY t2.num"
 		);
 		if(mysql_num_rows($res) > 0)
 			while($r = mysql_fetch_assoc($res))
-				$result[] = new Node((int) $r['id'],(int) $r['num'],(int) $r['level'],(int) $r['parent'],(int) $r['next'], $r['name'], $r['header']);
+				$result[] = new Node((int) $r['id'],(int) $r['num'],(int) $r['parent'],(int) $r['next'], $r['name'], $r['header']);
 		mysql_free_result($res);
 		return $result;
 	}
 	
 	function &getTree($nodeId, $depth = 0) {
 		$tree = null;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
-			"SELECT t2.id AS id, t2.num AS num, t2.parent AS parent, t2.next AS next, t2.level as level, t2.name AS name, t2.header AS header".
+			"SELECT t2.id AS id, t2.num AS num, t2.parent AS parent, t2.next AS next, t2.name AS name, t2.header AS header".
 			" FROM $this->table t1, $this->table t2".
 			" WHERE t1.id = $nodeId AND t2.num >= t1.num AND ( t1.next = 0 OR t2.num < t1.next)".($depth ? " AND t2.level <= t1.level + $depth":'').
 			" ORDER BY t2.level, t2.num"
@@ -59,7 +59,7 @@ class SqlTreeReader {
 		if(mysql_num_rows($res) > 0) {
 			$i = 0;
 			while($r = mysql_fetch_assoc($res)) {
-				$node[$i] = new Node((int) $r['id'],(int) $r['num'],(int) $r['level'],(int) $r['parent'],(int) $r['next'], $r['name'], $r['header']);
+				$node[$i] = new Node((int) $r['id'],(int) $r['num'],(int) $r['parent'],(int) $r['next'], $r['name'], $r['header']);
 				if($tree === null)
 					$tree = new Tree($node[$i]);
 				else
@@ -73,9 +73,9 @@ class SqlTreeReader {
 	
 	function &getPartialTree($nodeIds, $depth = 0) {
 		$tree = null;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
-			"SELECT t2.id AS id, t2.num AS num, t2.parent AS parent, t2.next AS next, t2.level as level, t2.name AS name, t2.header AS header".
+			"SELECT t2.id AS id, t2.num AS num, t2.parent AS parent, t2.next AS next, t2.name AS name, t2.header AS header".
 			" FROM $this->table t1, $this->table t2".
 			' WHERE t1.id IN ('.implode(',',$nodeIds).') AND ((t2.num >= t1.num AND ( t1.next = 0 OR t2.num < t1.next)'.($depth ? " AND t2.level <= t1.level + $depth)" : ')').' OR (t1.id = '.intval(current($nodeIds)).' AND t2.id = t1.parent))'.
 			" ORDER BY t2.level, t2.num"
@@ -83,7 +83,7 @@ class SqlTreeReader {
 		if(mysql_num_rows($res) > 0) {
 			$i = 0;
 			while($r = mysql_fetch_assoc($res)) {
-				$node[$i] = new Node((int) $r['id'],(int) $r['num'],(int) $r['level'],(int) $r['parent'],(int) $r['next'], $r['name'], $r['header']);
+				$node[$i] = new Node((int) $r['id'],(int) $r['num'],(int) $r['parent'],(int) $r['next'], $r['name'], $r['header']);
 				if($tree === null)
 					$tree = new Tree($node[$i]);
 				else
@@ -91,7 +91,7 @@ class SqlTreeReader {
 				$i++;
 			}
 		} else {
-			$root = new Node(-1, -1, -1, -1, -1, '','');
+			$root = new Node(-1, -1, -1, -1, '','');
 			$tree = new Tree($root);
 		}
 		mysql_free_result($res);
@@ -101,11 +101,11 @@ class SqlTreeReader {
 	function &getNode($nodeId) {
 		$node = null;
 		settype($nodeId, 'int');
-		$db = &WCDB::bo();
-		$res = $db->query("SELECT id, num, parent, next, level, name, header FROM catalogtree WHERE id = $nodeId");
+		$db = WCDB::bo();
+		$res = $db->query("SELECT id, num, parent, next, name, header FROM catalogtree WHERE id = $nodeId");
 		if(mysql_num_rows($res) == 1) {
 			$r = mysql_fetch_assoc($res);
-			$node = new Node((int) $r['id'],(int) $r['num'],(int) $r['level'],(int) $r['parent'],(int) $r['next'], $r['name'], $r['header']);
+			$node = new Node((int) $r['id'],(int) $r['num'],(int) $r['parent'],(int) $r['next'], $r['name'], $r['header']);
 		}
 		mysql_free_result($res);
 		return $node;
@@ -114,9 +114,9 @@ class SqlTreeReader {
 	function &getRootNode($subNodeId) {
 		$node = null;
 		settype($subNodeId, 'int');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
-			"SELECT t2.id AS id, t2.num AS num, t2.parent AS parent, t2.next AS next, t2.level as level, t2.name AS name, t2.header AS header".
+			"SELECT t2.id AS id, t2.num AS num, t2.parent AS parent, t2.next AS next, t2.name AS name, t2.header AS header".
 			" FROM catalogtree t1, catalogtree t2".
 			" WHERE t1.id = $subNodeId AND t2.num <= t1.num AND ( t2.next = 0 OR (t1.next > 0 AND t2.next >= t1.next)) AND t2.level > 0 AND t2.level <= t1.level".
 			" ORDER BY t2.num".
@@ -124,8 +124,8 @@ class SqlTreeReader {
 		);
 		if(mysql_num_rows($res) == 1) {
 			$r = mysql_fetch_assoc($res);
-			$node = new Node((int) $r['id'],(int) $r['num'],(int) $r['level'],(int) $r['parent'],(int) $r['next'], $r['name'], $r['header']);
-			SqlTreeReader::loadAuths($node);
+			$node = new Node((int) $r['id'],(int) $r['num'],(int) $r['parent'],(int) $r['next'], $r['name'], $r['header']);
+			self::loadAuths($node);
 		}
 		mysql_free_result($res);
 		return $node;
@@ -133,7 +133,7 @@ class SqlTreeReader {
 	
 	function loadAuths(&$node, $owner = -1, $group = null, $ownerAuths = null, $groupAuths = null) {
 		if($owner === -1) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$res = $db->query('SELECT wcsowner, wcsgroup, BIN(ROUND(oauths)) as oauths, BIN(ROUND(gauths)) as gauths FROM catalogtree WHERE id = '.intval($node->id));
 			if(mysql_num_rows($res) == 1)
 				list($owner, $group, $ownerAuths, $groupAuths) = mysql_fetch_row($res);

@@ -26,6 +26,9 @@
  * 
  * $Id: phpinclude._wc,v 1.9 2007/02/27 11:23:18 sanjar Exp $
  */
+require_once(LIBDIR.'/context._wc'); // Used by included php code
+require_once(LIBDIR.'/wcobject._wc'); // Used by included php code
+
 class PHPInclude extends WCObject {
 	var $once;
 	var $sourcePath, $source;
@@ -81,13 +84,13 @@ class PHPInclude extends WCObject {
 	
 	function exec(&$smarty, $params = array()) {
 		if($this->block != 'PRE')
-			WCObject::exec($smarty, $params);
+			parent::exec($smarty, $params);
 	}
 	
 	function run() {
 		settype($this->source, 'int');
 		include_once(ROOT.FILES.$this->sourcePath.$this->source.'._wc');
-		return call_user_func('_wcf_phpsource_'.$this->source, $a = array());
+		return call_user_func('_wcf_phpsource_'.$this->source, array());
 	}
 	
 	function _setCidTpl($tpl) {
@@ -105,7 +108,7 @@ class PHPInclude extends WCObject {
 	
 	function &_getDSFields() {
 		static $result;
-		if(!is_array(&$result)) $result = array('ds_id', 'source');
+		if(!is_array($result)) $result = array('ds_id', 'source');
 		return $result;
 	}
 }

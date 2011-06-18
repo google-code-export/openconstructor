@@ -42,7 +42,7 @@ class SqlTree {
 		if($parentId == 1)
 			System::assert('catalog.tree');
 		else {
-			$rootNode = &SqlTreeReader::getRootNode($parentId);
+			$rootNode = SqlTreeReader::getRootNode($parentId);
 			WCS::assert($rootNode, 'managetree');
 		}
 		$parent = $this->getNode($parentId);
@@ -51,7 +51,7 @@ class SqlTree {
 		if($this->exists($parentId, $key))
 			return false;
 		$prev = $this->getLastChild($parentId);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$this->lockTables($db);
 		if($parent['next']) 
 			$num = $parent['next'];
@@ -65,9 +65,9 @@ class SqlTree {
 				$num, $parentId, $parent['next'] > 0 ? $parent['next'] + 1 : 0, $parent['level'] + 1, addslashes($key), addslashes($header)
 			);
 		else {
-			$node = &SqlTreeReader::getNode(1);
+			$node = SqlTreeReader::getNode(1);
 			SqlTreeReader::loadAuths($node, 0, 0, constant('WCS_WCTREE_MASK'));
-			$auth = &Authentication::getInstance();
+			$auth = Authentication::getInstance();
 			$query = sprintf(
 				"INSERT INTO $this->structTable (num, parent, next, level, name, header, wcsowner, wcsgroup, oauths, gauths)".
 				" VALUES (%d, %d, %d, %d, '%s', '%s', %d, %d, CONV('%s', 2, 10),  CONV('%s', 2, 10))"
@@ -87,9 +87,9 @@ class SqlTree {
 	function removeNode($nodeId) {
 		$node = $this->getNode($nodeId);
 		assert($node != null && $node['num'] > 0);
-		$rootNode = &SqlTreeReader::getRootNode($nodeId);
+		$rootNode = SqlTreeReader::getRootNode($nodeId);
 		WCS::assert($rootNode, $rootNode->id == $nodeId ? 'removetree' : 'managetree');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$this->lockTables($db);
 		$db->query("DELETE $this->assocTable FROM $this->assocTable, $this->structTable WHERE num >= {$node['num']}".($node['next'] > 0 ? " AND num < {$node['next']}" : '')." AND $this->assocTable.node = $this->structTable.id");
 		$db->query("DELETE FROM $this->structTable WHERE num >= {$node['num']}".($node['next'] > 0 ? " AND num < {$node['next']}" : ''));
@@ -118,9 +118,9 @@ class SqlTree {
 	function updateNode($nodeId, $key, $header) {
 		$key = $this->validateKey($key);
 		assert(trim($key) != '' && trim($header) != '');
-		$rootNode = &SqlTreeReader::getRootNode($nodeId);
+		$rootNode = SqlTreeReader::getRootNode($nodeId);
 		WCS::assert($rootNode, 'edittree');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			sprintf("UPDATE $this->structTable SET name='%s', header='%s' WHERE id = $nodeId", $key, addslashes($header))
 		);
@@ -137,7 +137,7 @@ class SqlTree {
 			$querySet .= ", wcsgroup = {$node->sRes->group}";
 		$querySet .= sprintf(', oauths = CONV("%s", 2, 10), gauths = CONV("%s", 2, 10)', $node->sRes->getOwnerAuths(), $node->sRes->getGroupAuths());
 		if($querySet) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$querySet = substr($querySet, 1);
 			$db->query("UPDATE catalogtree SET $querySet WHERE id = {$node->id} AND ".WCS::getAuthCheckQuery('edittree.chmod'));
 		}
@@ -150,15 +150,15 @@ class SqlTree {
 		assert($nodeId != $newParentId && $newParent != null && $node != null);
 		if(($node['num'] > $newParent['num'] && ($newParent['next'] == 0 || $newParent['next'] > $node['num'])) || $this->exists($newParentId, $node['name']))
 			return false;
-		$rootNode = &SqlTreeReader::getRootNode($nodeId);
-		$destRootNode = &SqlTreeReader::getRootNode($newParentId);
+		$rootNode = SqlTreeReader::getRootNode($nodeId);
+		$destRootNode = SqlTreeReader::getRootNode($newParentId);
 		WCS::assert($rootNode, $rootNode->id == $nodeId ? 'removetree' : 'managetree');
 		if($destRootNode->id == 1)
 			System::assert('catalog.tree');
 		else
 			WCS::assert($destRootNode, 'managetree');
 		$prev = $this->getLastChild($newParentId);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$this->lockTables($db);
 		if($newParent['next']) 
 			$num = $newParent['next'];
@@ -200,7 +200,7 @@ class SqlTree {
 	}
 	
 	function reserve($placeNum, $level, $size = 1) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			"UPDATE $this->structTable SET num = num + $size, next = IF(next>0, next + $size, 0) WHERE num >= $placeNum"
 		);
@@ -211,13 +211,13 @@ class SqlTree {
 	}
 	
 	function moveNodeUp($nodeId) {
-		$dest = &$this->getSibling($nodeId, -1);
+		$dest = $this->getSibling($nodeId, -1);
 		assert($dest != null);
 		$this->placeNodeBefore($nodeId, $dest['id']);
 	}
 	
 	function moveNodeDown($nodeId) {
-		$dest = &$this->getSibling($nodeId, 1);
+		$dest = $this->getSibling($nodeId, 1);
 		assert($dest != null);
 		$this->placeNodeAfter($nodeId, $dest['id']);
 	}
@@ -232,35 +232,35 @@ class SqlTree {
 	
 	function placeNode($nodeId, $destNodeId, $place) {
 		assert($nodeId != $destNodeId);
-		$node = &$this->getNode($nodeId);
-		$destNode = &$this->getNode($destNodeId);
+		$node = $this->getNode($nodeId);
+		$destNode = $this->getNode($destNodeId);
 		assert($nodeId != $node['parent'] && $node['parent'] == $destNode['parent']);
-		$parent = &$this->getNode($node['parent']);
+		$parent = $this->getNode($node['parent']);
 		if($parent['id'] == 1)
 			System::assert('catalog.tree');
 		else {
-			$rootNode = &SqlTreeReader::getRootNode($nodeId);
+			$rootNode = SqlTreeReader::getRootNode($nodeId);
 			WCS::assert($rootNode, 'managetree');
 		}
 		if(($destNode['num'] > $node['num'] && $place == PLACE_NODE_BEFORE) || ($destNode['num'] < $node['num'] && $place == PLACE_NODE_AFTER)) {
 			if($place == PLACE_NODE_AFTER)
-				$destNode = &$this->getNode($destNode['next']);
+				$destNode = $this->getNode($destNode['next']);
 			else
-				$destNode = &$this->getSibling($destNode['id'], -1);
+				$destNode = $this->getSibling($destNode['id'], -1);
 			if($destNode['id'] == $nodeId)
 				return;
 		}
-		$tmp = &$this->getLastChild($nodeId);
+		$tmp = $this->getLastChild($nodeId);
 		$treeSize = $tmp ? $tmp['num'] - $node['num'] + 1 : 1;
 		$min = min($node['num'], $destNode['num']);
 		$max = max($node['num'], $destNode['num']);
 		if($max == $destNode['num']) {
-			$tmp = &$this->getLastChild($destNode['id']);
+			$tmp = $this->getLastChild($destNode['id']);
 			$max = $tmp ? $tmp['num'] : $max;
 			unset($tmp);
 		} else
 			$max += $treeSize - 1;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$this->lockTables($db);
 		$delta = $treeSize * ($destNode['num'] < $node['num'] ? 1 : -1);
 		$tDelta = $destNode['num'] < $node['num'] ? $destNode['num'] - $node['num'] : $max - $min + 1 - $treeSize;
@@ -285,7 +285,7 @@ class SqlTree {
 	
 	function &getSibling($nodeId, $offset) {
 		assert($offset != 0);
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			"SELECT t2.* FROM $this->structTable t1, $this->structTable t2".
 			' WHERE t1.id = '.$nodeId.' AND t2.num '.($offset > 0 ? '>' : '<').' t1.num AND t2.parent = t1.parent AND t2.level = t1.level'.
@@ -298,7 +298,7 @@ class SqlTree {
 	}
 	
 	function &getLastChild($id) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			"SELECT t2.* FROM $this->structTable t1, $this->structTable t2".
 			' WHERE t1.id = '.$id.' AND t2.num > t1.num AND t2.level > t1.level AND t2.next = t1.next'.
@@ -316,7 +316,7 @@ class SqlTree {
 	}
 	
 	function &getNodeByClause(&$clause) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query($q = "SELECT * FROM $this->structTable WHERE $clause LIMIT 1");
 		$node = mysql_num_rows($res) == 1 ? mysql_fetch_assoc($res) : null;
 		mysql_free_result($res);
@@ -333,7 +333,7 @@ class SqlTree {
 	}
 	
 	function exists($parentId, $key) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT id FROM $this->structTable WHERE name = '$key' AND parent = $parentId");
 		$exists = mysql_num_rows($res) == 1;
 		mysql_free_result($res);
@@ -341,7 +341,7 @@ class SqlTree {
 	}
 	
 	function refreshNodes() {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query("DELETE FROM $this->nodesTable");
 		$db->query(
 			"REPLACE INTO $this->nodesTable (id, num, name)
@@ -365,7 +365,7 @@ class SqlTree {
 	function _dropAll() {
 		WCS::_assert(Authentication::getUserId() == WCS_ROOT_ID);
 		
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		
 		$db->query("TRUNCATE TABLE {$this->structTable}");
 		$db->query("TRUNCATE TABLE {$this->assocTable}");

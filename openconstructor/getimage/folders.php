@@ -25,7 +25,7 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/editors._wc');
 	header('Content-Type: text/html; charset=utf-8');
 	
-	$db = &WCDB::bo();
+	$db = WCDB::bo();
 	$res = $db->query(
 		'SELECT ds_id, name, description'.
 		' FROM datasources'.

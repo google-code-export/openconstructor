@@ -28,7 +28,7 @@
 switch(@$_POST['action'])
 {
 	case 'create_html':
-		$_ds = &$dsm->load(@$_POST['ds_id']); 
+		$_ds = $dsm->load(@$_POST['ds_id']); 
 		if(@$_POST['autointro'] != 'true') {
 			$intro = @$_POST['intro'];
 			if(substr($intro, 0, 2) == '<P')
@@ -55,7 +55,7 @@ switch(@$_POST['action'])
 	break;
 	
 	case 'edit_html':
-		$_ds = &$dsm->load(@$_POST['ds_id']); 
+		$_ds = $dsm->load(@$_POST['ds_id']); 
 		$intro=@$_POST['intro'];
 		if(substr($intro, 0, 2) == '<P')
 			$intro = utf8_substr($intro, utf8_strpos($intro, '>', 1) + 1);
@@ -66,8 +66,8 @@ switch(@$_POST['action'])
 		//	echo '<script>window.opener.location.reload();</script>Succesfully created!';
 	break;
 	
-	case 'delete_htmltext':
-		$_ds = &$dsm->load(@$_POST['ds_id']);
+	case 'delete_html':
+		$_ds = $dsm->load(@$_POST['ds_id']);
 		$_ds->delete(implode(',',@$_POST['ids']));
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
 		die('<meta http-equiv="Refresh" content="0; URL='.$_SERVER['HTTP_REFERER'].'">');
@@ -76,7 +76,7 @@ switch(@$_POST['action'])
 	case 'remove_ds':
 		if(isset($_POST['ds_id']))
 		{
-			$_ds = &$dsm->load($_POST['ds_id']); 
+			$_ds = $dsm->load($_POST['ds_id']); 
 			$_ds->remove();
 		}
 //		header('Location: http://'.$_host.WCHOME.'/data/');
@@ -86,8 +86,8 @@ switch(@$_POST['action'])
 	case 'move_documents':
 		assert(@$_POST['ds_id'] > 0 && @$_POST['dest_ds_id'] > 0);
 		if(isset($_POST['ids'])) {
-			assert($_ds = &$dsm->load($_POST['ds_id']));
-			assert($dest_ds = &$dsm->load($_POST['dest_ds_id']));
+			assert($_ds = $dsm->load($_POST['ds_id']));
+			assert($dest_ds = $dsm->load($_POST['dest_ds_id']));
 			assert($_ds->ds_id != $dest_ds->ds_id);
 			$dest_ds->delete(implode(',',$_POST['ids']));
 			foreach($_POST['ids'] as $id)
@@ -104,7 +104,7 @@ switch(@$_POST['action'])
 	case 'publish_documents':
 		if(isset($_POST['ds_id']))
 		{
-			$_ds = &$dsm->load($_POST['ds_id']); 
+			$_ds = $dsm->load($_POST['ds_id']); 
 			$_ds->publish(implode(',',@$_POST['ids']));
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -114,23 +114,11 @@ switch(@$_POST['action'])
 	case 'unpublish_documents':
 		if(isset($_POST['ds_id']))
 		{
-			$_ds = &$dsm->load($_POST['ds_id']); 
+			$_ds = $dsm->load($_POST['ds_id']); 
 			$_ds->unpublish(implode(',',@$_POST['ids']));
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
 		die('<meta http-equiv="Refresh" content="0; URL='.$_SERVER['HTTP_REFERER'].'">');
-	break;
-	
-	case 'view_detail':
-		foreach((array) @$_COOKIE['vd'] as $key => $val){
-			if(!array_key_exists($key, (array) @$_POST['vdetail']))
-				setcookie('vd['.$key.']', '', time() - 3600, WCHOME.'/data/');
-		}
-		foreach($_POST['vdetail'] as $key => $val)
-			setcookie('vd['.$key.']', $key, 0, WCHOME.'/data/');
-		setcookie('pagesize', $_POST['pagesize'], 0, WCHOME.'/data/');
-		setcookie('vd[_touched]', '_touched', 0, WCHOME.'/data/');
-		header('Location: '.$_SERVER['HTTP_REFERER']);
 	break;
 	
 	default:

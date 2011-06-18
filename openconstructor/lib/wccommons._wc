@@ -37,8 +37,8 @@
 	}
 
 	Authentication::importFromSession();
-	$sys = &System::getInstance();
-	$auth = &Authentication::getInstance();
+	$sys = System::getInstance();
+	$auth = Authentication::getInstance();
 
 	define('LANGUAGE', @$auth->profile['language'] ? $auth->profile['language'] : DEFAULT_LANGUAGE);
 	define('SKIN', @$auth->profile['skin'] ? $auth->profile['skin'] : DEFAULT_SKIN);

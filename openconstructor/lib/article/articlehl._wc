@@ -55,7 +55,7 @@ class ArticleHL extends WCObject
 		$cacheId = null;
 		if(!$this->ids) {
 			$page = (int) @$_GET[$this->pid];
-			$displayed = &$this->getDisplayedDocs();
+			$displayed = $this->getDisplayedDocs();
 			if(--$page < 0) $page = 0;
 			$cacheId = $this->obj_id.'|p'.$page.'-c'.implode(',', array_keys($displayed));
 		}
@@ -68,7 +68,7 @@ class ArticleHL extends WCObject
 		if(--$page < 0) $page = 0;
 
 		$where = $this->ids ? 'id IN ('.$this->ids.')' : 'ds_id IN ('.$this->ds_id.')';
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT id, real_id as rid, header, date '.
 			'FROM '.$this->DSTable.' '.
@@ -78,13 +78,13 @@ class ArticleHL extends WCObject
 		);
 		if(mysql_num_rows($res) > 0) {
 			$fet = array();
-			$displayed = &$this->getDisplayedDocs();
+			$displayed = $this->getDisplayedDocs();
 			$thref=$this->srvuri.'?'.$this->articleid.'=%d';
 			while($row = mysql_fetch_assoc($res)) {
 				if(isset($fet[$row['rid']])) continue;
 				$fet[$row['rid']] = true;
 				$article[$row['id']]['header'] = escapeTags($row['header']);
-				$article[$row['id']]['href'] = isset($displayed[$row['id']]) ? '' : sprintf(&$thref, $row['id']);
+				$article[$row['id']]['href'] = isset($displayed[$row['id']]) ? '' : sprintf($thref, $row['id']);
 				$article[$row['id']]['date'] = wcfFormatTime($this->dateFormat, $row['date']);
 			}
 			$smarty->assign('header',$this->header);

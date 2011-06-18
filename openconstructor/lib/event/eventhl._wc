@@ -56,7 +56,7 @@ class EventHL extends WCObject {
 		if(!$this->ids) {
 			$page = (int)@$_GET[$this->pid];
 			if(--$page < 0) $page = 0;
-			$displayed = &$this->getDisplayedDocs();
+			$displayed = $this->getDisplayedDocs();
 			$cacheId = $this->obj_id.'|p'.$page.'-c'.implode(':', array_keys($displayed));
 		}
 		return $cacheId;
@@ -72,7 +72,7 @@ class EventHL extends WCObject {
 			$gmtOffset = -date('Z') + WC_TIMEZONE;
 			$where .= ' AND end_date >= ' . (time() + $gmtOffset);
 		}
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT id, real_id as rid, header, date, end_date, place'.
 			' FROM '.$this->DSTable.
@@ -82,7 +82,7 @@ class EventHL extends WCObject {
 		);
 		if(mysql_num_rows($res) > 0) {
 			$fet=array();
-			$displayed = &$this->getDisplayedDocs();
+			$displayed = $this->getDisplayedDocs();
 			$href = $this->srvuri.'?'.$this->eventid.'=';
 			while($row = mysql_fetch_assoc($res)) {
 				if(isset($fet[$row['rid']])) continue;

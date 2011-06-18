@@ -25,7 +25,7 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/editors._wc');
 
 	assert(@$_GET['id'] > 0);
-	$db = &WCDB::bo();
+	$db = WCDB::bo();
 	$res = $db->query(
 		'SELECT id, name, filename, size, type, date'.
 		' FROM dsfile'.

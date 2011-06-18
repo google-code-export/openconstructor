@@ -25,11 +25,10 @@ WCS::requireAuthentication();
 require_once(LIBDIR.'/dsmanager._wc');
 $dsm = new DSManager();
 
-
 switch(@$_POST['action'])
 {
 	case 'add_field':
-		$ds = &$dsm->load(@$_POST['ds_id']);
+		$ds = $dsm->load(@$_POST['ds_id']);
 		assert($ds->ds_id > 0 && @$_POST['fieldclass'] != '' && utf8_strpos($_POST['fieldclass'], '/') === false);
 
 		require_once(LIBDIR.'/hybrid/fields/'.$_POST['fieldclass'].'field._wc');
@@ -77,7 +76,7 @@ switch(@$_POST['action'])
 	case 'edit_field':
 		require_once(LIBDIR.'/hybrid/fields/fieldfactory._wc');
 		$f = FieldFactory::getField(@$_POST['id']);
-		$old = $f;
+		$old = wcfClone($f);
 
 		switch ($f->family) {
 			case 'primitive':
@@ -137,7 +136,7 @@ switch(@$_POST['action'])
 	break;
 
 	case 'remove_field':
-		$ds = &$dsm->load(@$_POST['ds_id']);
+		$ds = $dsm->load(@$_POST['ds_id']);
 		assert($ds->ds_id > 0);
 
 		if(@sizeof($_POST['field']))
@@ -152,11 +151,12 @@ switch(@$_POST['action'])
 		require_once(LIBDIR.'/hybrid/dshybrid._wc');
 		assert(isset($_POST['header']) && trim($_POST['header']) !='' && @$_POST['ds_id'] > 0);
 		if(@$_POST['hybridid'] > 0) {
-			$hDoc = &WCDataSource::getHybridDoc($_POST['hybridid']);
-			WCS::assert($hDoc, 'editdoc');
+			$ownerDs = WCDataSource::loadByDoc($_POST['hybridid']);
+			$ownerDoc = $ownerDs->getDocument($_POST['hybridid']);
+			WCS::assertValue(WCS::decide($ownerDoc, 'editdoc') || WCS::decide($ownerDs, 'editdoc'), $ownerDoc, 'editdoc');
 			WCS::runAs(WCS_ROOT_ID);
 		}
-		$ds = &$dsm->load($_POST['ds_id']);
+		$ds = $dsm->load($_POST['ds_id']);
 
 		$doc = $ds->getEmptyDocument();
 		$doc->readValues($_POST);
@@ -183,7 +183,7 @@ switch(@$_POST['action'])
 	case 'edit_hybrid':
 		require_once(LIBDIR.'/hybrid/hybriddocument._wc');
 		assert(isset($_POST['header']) && trim($_POST['header']) !='' && @$_POST['ds_id'] > 0);
-		$ds = &$dsm->load($_POST['ds_id']);
+		$ds = $dsm->load($_POST['ds_id']);
 
 		$doc = $ds->getEmptyDocument();
 		$doc->readValues($_POST);
@@ -197,7 +197,7 @@ switch(@$_POST['action'])
 		if(isset($_POST['ds_id']) && isset($_POST['ids'])) {
 			require_once(LIBDIR.'/hybrid/dshybridfactory._wc');
 			$ds = new DSHybridFactory();
-			$ds->removeDocuments(&$_POST['ids']);
+			$ds->removeDocuments($_POST['ids']);
 		}
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
 		die('<meta http-equiv="Refresh" content="0; URL='.$_SERVER['HTTP_REFERER'].'">');
@@ -219,7 +219,7 @@ switch(@$_POST['action'])
 		assert(isset($_POST['ds_id']) && isset($_POST['dest_ds_id']) && isset($_POST['ids']));
 		require_once(LIBDIR.'/hybrid/dshybrid._wc');
 		require_once(LIBDIR.'/hybrid/dshybridfactory._wc');
-		$dsf = & new DSHybridFactory();
+		$dsf = new DSHybridFactory();
 		$dsf->castDocuments($_POST['ids'], $_POST['ds_id'], $_POST['dest_ds_id']);
 		$failed = headers_sent();
 		if(!$failed) {
@@ -249,19 +249,6 @@ switch(@$_POST['action'])
 //		header('Location: '.$_SERVER['HTTP_REFERER']);
 		die('<meta http-equiv="Refresh" content="0; URL='.$_SERVER['HTTP_REFERER'].'">');
 	break;
-	
-	case 'view_detail':
-		foreach((array) @$_COOKIE['vd'] as $key => $val){
-			if(!array_key_exists($key, (array) @$_POST['vdetail']))
-				setcookie('vd['.$key.']', '', time() - 3600, WCHOME.'/data/');
-		}
-		foreach($_POST['vdetail'] as $key => $val)
-			setcookie('vd['.$key.']', $key, 0, WCHOME.'/data/');
-		setcookie('pagesize', $_POST['pagesize'], 0, WCHOME.'/data/');
-		setcookie('vd[_touched]', '_touched', 0, WCHOME.'/data/');
-		header('Location: '.$_SERVER['HTTP_REFERER']);
-	break;
-	
 	default:
 	break;
 }

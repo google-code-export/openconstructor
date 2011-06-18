@@ -39,7 +39,7 @@ class HybridRecord {
 	function load() {
 		$this->fields = array();
 		$this->struct['primitive'] = $this->struct['document'] = $this->struct['array'] = $this->struct['datasource'] = $this->struct['enum'] = $this->struct['tree'] = $this->struct['file'] = $this->struct['rating'] = array(); 
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			"SELECT id".
 			" FROM dshfields, hybriddatasources".
@@ -49,7 +49,7 @@ class HybridRecord {
 			$ids = array();
 			while($r = mysql_fetch_assoc($res))
 				$ids[] = (int) $r['id'];
-			$fields = &FieldFactory::getFields($ids);
+			$fields = FieldFactory::getFields($ids);
 			for($i = 0; $i < sizeof($fields); $i++) {
 				$this->fields[$fields[$i]->key] = &$fields[$i];
 				$this->struct[$fields[$i]->family][$fields[$i]->type][] = $fields[$i]->key;

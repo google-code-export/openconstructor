@@ -56,14 +56,14 @@ class MiscInjector extends WCObject {
 	}
 	
 	function performInjections() {
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		for($i = 0, $l = sizeof($this->jobs); $i < $l; $i++) {
 			$job = &$this->jobs[$i];
 			$type = $job[0] % 10;
 			if(intval($job[0] / 10) == 1)
-				$obj = &$ctx->getObject($job[1]);
+				$obj = $ctx->getObject($job[1]);
 			else
-				$obj = &$ctx->getObjectAt($job[1]);
+				$obj = $ctx->getObjectAt($job[1]);
 			if($obj) {
 				switch($type) {
 					case INJ_CTX:
@@ -90,7 +90,7 @@ class MiscInjector extends WCObject {
 	
 	function &_getDSFields() {
 		static $result;
-		if(!is_array(&$result)) $result = array('jobs');
+		if(!is_array($result)) $result = array('jobs');
 		return $result;
 	}
 }

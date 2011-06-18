@@ -30,7 +30,7 @@
 	require_once(LIBDIR.'/hybrid/fields/fieldfactory._wc');
 	$field = FieldFactory::getField($_GET['id']);
 	assert(is_object($field) && $field->family == 'array');
-	$ds = &$_dsm->load($field->ds_id);
+	$ds = $_dsm->load($field->ds_id);
 ?>
 <html>
 <head>

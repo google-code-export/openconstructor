@@ -1,25 +1,25 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- * 
+ *
  * All rights reserved.
- * 
+ *
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- * 
+ *
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- * 
+ *
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- * 
+ *
  * @author Sanjar Akhmedov
- * 
+ *
  * $Id: authenticator._wc,v 1.5 2007/02/27 11:23:21 sanjar Exp $
  */
 require_once('authentication._wc');
@@ -30,14 +30,31 @@ class Authenticator {
 		$result = null;
 		if(User::isLoginValid($login)) {
 			$pwd = wcs_pwd_hash($password);
-			$db = &WCDB::fo();
+			$db = WCDB::fo();
 			$res = $db->query(sprintf(
 				'SELECT id FROM wcsusers WHERE login = "%s" AND pwd = "%s" AND active AND (expiry = 0 OR expiry > %d)'
 				, addslashes(strtolower($login)), addslashes($pwd), time()
 			));
 			if(mysql_num_rows($res) == 1) {
 				list($id) = mysql_fetch_row($res);
-				$result = &Authenticator::create($id);
+				$result = self::create($id);
+			}
+			mysql_free_result($res);
+		}
+		return $result;
+	}
+
+	function &openidAuthenticate($openid) {
+		$result = null;
+		if(User::isOpenidValid($openid)) {
+			$db = WCDB::fo();
+			$res = $db->query(sprintf(
+				'SELECT u.id FROM wcsopenid o, wcsusers u WHERE o.openid = "%s" AND u.id = o.user_id AND u.active AND (u.expiry = 0 OR u.expiry > %d)'
+				, addslashes(strtolower($openid)), time()
+			));
+			if(mysql_num_rows($res) == 1) {
+				list($id) = mysql_fetch_row($res);
+				$result = self::create($id, $openid);
 			}
 			mysql_free_result($res);
 		}
@@ -46,34 +63,37 @@ class Authenticator {
 	
 	function &restore($autologinId) {
 		$result = null;
-		$db = &WCDB::fo();
+		$db = WCDB::bo();
 		$res = $db->query(sprintf(
 			'SELECT id FROM wcsusers WHERE autologin = "%s" AND active AND (expiry = 0 OR expiry > %d)'
 			, addslashes($autologinId), time()
 		));
 		if(mysql_num_rows($res) ==  1) {
 			list($id) = mysql_fetch_row($res);
-			$result = &Authenticator::create($id);
+			$result = self::create($id);
 		}
 		mysql_free_result($res);
 		return $result;
 	}
-	
-	function &create($userId) {
+
+	function &create($userId, $openid = null) {
 		assert($userId > 0);
 		$result = null;
-		$user = &User::load($userId);
+		$user = User::load($userId);
 		if($user != null) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query('UPDATE wcsusers SET lastlogin = '.time().' WHERE id = '.intval($userId));
-			$result = &Authentication::create($user);
+			if ($openid != null)
+				$result = Authentication::create($user, $openid);
+			else
+				$result = Authentication::create($user);
 		}
 		return $result;
 	}
-	
+
 	function &loadProfile($profileId) {
 		$result = array();
-		$db = &WCDB::fo();
+		$db = WCDB::fo();
 		$res = $db->query("SELECT dsh.path FROM dshybrid ds, hybriddatasources dsh WHERE ds.id = $profileId AND dsh.ds_id = ds.ds_id");
 		$row = mysql_fetch_row($res);
 		mysql_free_result($res);

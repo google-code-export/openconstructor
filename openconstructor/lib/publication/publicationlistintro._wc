@@ -61,7 +61,7 @@ class PublicationListIntro extends WCObject {
 	function getCacheId() {
 		$page = (int)@$_GET[$this->pid];
 		if(--$page < 0) $page = 0;
-		$displayed = &$this->getDisplayedDocs();
+		$displayed = $this->getDisplayedDocs();
 		$cacheId = $this->obj_id.'|p'.$page.'-c'.implode(':', array_keys($displayed));
 		return $cacheId;
 	}
@@ -72,7 +72,7 @@ class PublicationListIntro extends WCObject {
 		if(--$page < 0) $page = 0;
 		
 		$extra_clause = $this->getExtraClause();
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT id, real_id as rid, gallery, header, intro, img_intro as image, date '.
 			'FROM '.$this->DSTable.' '.
@@ -85,14 +85,14 @@ class PublicationListIntro extends WCObject {
 		if(mysql_num_rows($res)>0) {
 			$fet = array();
 			settype($this->cutIntro, 'int');
-			$displayed = &$this->getDisplayedDocs();
+			$displayed = $this->getDisplayedDocs();
 			$thref='%s?'.$this->publicationid.'=%d';
 			while($row = mysql_fetch_assoc($res)) {
 				if(isset($fet[$row['rid']])||(!$this->withCurrent&&@$fet[$row['id']])) continue;
 				$fet[$row['rid']] = true;
 				$news[$row['id']]['header'] = escapeTags($row['header']);
-				$news[$row['id']]['href'] = isset($displayed[$row['id']]) ? null : sprintf(&$thref,$this->srvuri,$row['id']);
-				$news[$row['id']]['ghref'] = sprintf(&$thref, $this->glruri, $row['id']);
+				$news[$row['id']]['href'] = isset($displayed[$row['id']]) ? null : sprintf($thref,$this->srvuri,$row['id']);
+				$news[$row['id']]['ghref'] = sprintf($thref, $this->glruri, $row['id']);
 				$news[$row['id']]['image'] = $row['image'];
 				$news[$row['id']]['date'] = wcfFormatTime($this->dateFormat, $row['date']);
 				$news[$row['id']]['intro'] = $this->cutIntro > 0

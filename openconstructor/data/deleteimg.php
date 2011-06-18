@@ -25,10 +25,10 @@
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/editors._wc');
 	require_once(LIBDIR.'/dsmanager._wc');
 	
-	$ds = & DSManager::load(@$_GET['ds']);
+	$ds = DSManager::load(@$_GET['ds']);
 	$type = @$_GET['type'];
 	assert($ds != null && ($type == 'main' || $type == 'intro') && @$ds->imagepath);
-	$doc = & $ds->getDocument(@$_GET['id']);
+	$doc = $ds->getDocument(@$_GET['id']);
 	assert($doc != null);
 	// TODO: невозможно удалить картинку новости которая внутри гибр документа
 	WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($ds, 'editdoc'), $doc, 'editdoc');
@@ -39,7 +39,7 @@
 	$query = $ds->ds_type == 'article'
 		? 'SELECT img_main AS main FROM '.$ds->DSTable.' WHERE id='.$doc->id.' AND img_type!="" LIMIT 1'
 		: 'SELECT img_intro AS intro, img_main AS main FROM '.$ds->DSTable.' WHERE id='.$doc->id.' AND img_type!="" LIMIT 1';
-	$db = &WCDB::bo();
+	$db = WCDB::bo();
 	$res = $db->query($query);
 	$a = mysql_fetch_assoc($res);
 	mysql_free_result($res);

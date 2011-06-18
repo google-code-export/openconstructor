@@ -33,7 +33,7 @@ class ConsoleTask_Users_Deactivate extends AbstractConsoleTask_Users {
 	function run() {
 		$ids = $this->_getUserIds();
 		if(sizeof($ids) > 0) {
-			$uf = &$this->_getUserFactory();
+			$uf = $this->_getUserFactory();
 			$uf->setUserState($ids, 0);
 			$this->runner->info('Successfully deactivated '.sizeof($ids).' user(s)');
 		}

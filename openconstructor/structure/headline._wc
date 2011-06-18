@@ -1,31 +1,31 @@
 <?php
 /**
  * Copyright 2003 - 2007 eSector Solutions, LLC
- *
+ * 
  * All rights reserved.
- *
+ * 
  * This file is part of Open Constructor (http://www.openconstructor.org/).
- *
+ * 
  * Open Constructor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
- *
+ * 
  * Open Constructor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * The GNU General Public License can be found at
  * http://www.gnu.org/copyleft/gpl.html
- *
+ * 
  * $Id: headline._wc,v 1.11 2007/02/27 11:23:19 sanjar Exp $
  */
 	require_once(LIBDIR.'/objmanager._wc');
-	$obj = &$page->getObjects();
+	$obj = $page->getObjects();
 	$blocks = array();
 	$stubs = array();
 	$events = Page::getAllEvents();
-
+	
 	if($tpl) {
 		foreach($tpl->blocks as $id => $v) {
 			$blocks[] = $id;
@@ -33,49 +33,80 @@
 				$stubs[$id] = 1;
 		}
 	}
-
+	
 	uasort($obj, '_cmp_obj');
 	usort($blocks, '_cmp_block_name');
 	$objIds = array_keys($obj);
 	$crumbsExists = false;
-
 	foreach($objIds as $id) {
 		$icon[$id] = $i_t[$obj[$id]['type']];
 		if(ObjManager::isCrumbsClass($obj[$id]['type'])) {
 			$crumbsExists = true;
-			$obj[$id]['crumbs'] = '<input type="checkbox" name="crumbs['.$id.']"'.($obj[$id]['crumbs'] ? ' checked':'').'/>';
+			$obj[$id]['crumbs'] = '<center><input type="checkbox" name="crumbs['.$id.']"'.($obj[$id]['crumbs'] ? ' checked':'').'/></center>';
 		} else
-			$obj[$id]['crumbs'] = '';
-
+			$obj[$id]['crumbs'] = '';//'<center>-</center>';
+		
 		$b = $obj[$id]['block'];
 		$obj[$id]['published'] = $b ? true : false;
 		$t = &$obj[$id]['block'];
-		$t = "<select name='block[$id]' id='block$id' onchange='blockChanged($id)' old='+'><option value='+' class='gray'>-</option>";
+		$t = "<select name='block[$id]' id='block$id' onchange='blockChanged($id)' old='+' class='blocks'><option value='+' class='gray'>-";
 		if(ObjManager::isObserverClass($obj[$id]['type']))
 			foreach($events as $evt) {
-				$t .= sprintf("<option value='@{$evt}' class='event' %s>$evt</option>", $obj[$id]['observer'] && $b == $evt ? 'selected' : '');
+//				if($obj[$id]['observer'] && $b == $evt)
+	//				$obj[$id]['name'] = '<i>'.$obj[$id]['name'].'</i>';
+				$t .= sprintf("<option value='@{$evt}' class='event' %s>$evt", $obj[$id]['observer'] && $b == $evt ? 'selected' : '');
 			}
 		foreach($blocks as $v)
-			$t .= sprintf("<option value='$v'%s%s>$v</option>", isset($stubs[$v]) ? ' class="stub"' : '', $b == $v ? ' selected' : '');
-		$t .= "</select><img src='".WCHOME.'/i/'.SKIN."/images/b/stop.gif' id='img$id' />";
-		$obj[$id]['class'] = @$o_t[$obj[$id]['type']];
+			$t .= sprintf("<option value='$v'%s%s>$v", isset($stubs[$v]) ? ' class="stub"' : '', $b == $v ? ' selected' : '');
+		$t .= "</select><img src='".WCHOME.'/i/'.SKIN."/b/stop.gif' align='absmiddle' id='img$id' class='blockdec'>";
+		$obj[$id]['type'] = '<u>'.@$o_t[$obj[$id]['type']].'</u>';
 	}
-
+	$w = 660;
+	$editor = WCHOME.'/objects/edit.php?j=1';
 	$fields = array(
 		'name'=>HL_OBJECT_NAME,
 		'crumbs'=>HL_CRUMBS,
-		'class'=>HL_TYPE,
+		'type'=>HL_TYPE,
 		'block'=>HL_BLOCK
 	);
 	if(!$crumbsExists)
 		unset($fields['crumbs']);
-
+	echo '<documents server="'.WCHOME.'/structure/i_structure.php" type="page" defaultaction="save_blocks">';
+	echo '<editor href="'.$editor.'" width="'.$w.'" height="null"/>';
+	echo '<hidden name="uri_id" value="'.$page->id.'"/>';
+	echo '<hidden name="tplId" value="'.$page->tpl.'"/>';
+	print_headline($obj);
+	echo '</documents>';
 	if($router) {
-		$pageHref = $sitemap->node[$router]->getFullKey('/');
+		$pageHref = $tree->node[$router]->getFullKey('/');
 		$pageHref = $pageHref.'index.php'.substr($page->uri, strlen($pageHref) - 1);
 	} else
 		$pageHref = $page->uri;
-
+?>
+	<postscript>
+	<![CDATA[
+		var blocks = [<?=sizeof($objIds) ? '"'.implode('", "', $objIds).'"' : ''?>];
+		var stubs = [<?=sizeof($stubs) ? '"'.implode('", "', array_keys($stubs)).'"' : ''?>];
+		for(var i = 0; i < blocks.length; i++)
+			document.getElementById("block" + blocks[i]).onchange();
+	]]>
+	</postscript>
+<blocks>
+<![CDATA[
+	<div align="right" style="margin:20 20 20 0">
+		<span style="font-size:8pt"><?=HL_OPEN_IN_NEW_WINDOW?></span>
+		<a href="<?=$pageHref?>" target="_blank">http://<?=$_SERVER['HTTP_HOST'].$pageHref?></a>
+	</div>
+	<div align="center" style="padding:20px;">
+		<?php if($tpl && $tpl->mockup > '') :?>
+			<div class="mockGroup"><div style="width: 100%;"><?=$tpl->mockup?></div></div>
+		<?php elseif(!$tpl && $page->tpl > 0) : ?>
+			<span style="color:red;"><?=TPL_NOT_FOUND_W?></span>
+		<?php endif; ?>
+	</div>
+]]>
+</blocks>
+<?php
 	function _cmp_block_name($a, $b) {
 		$cmp = strcmp($a, $b);
 	    if($cmp == 0)
@@ -90,7 +121,7 @@
 			return 1;
 	    return $cmp;
     }
-
+    
 	function _cmp_obj(&$a, &$b) {
 		if($a['block'] == '')
 			return $b['block'] == '' ? strcmp($a['name'], $b['name']) : -1;
@@ -108,5 +139,4 @@
 		}
 		return $a['observer'] ? -1 : 1;
 	}
-
 ?>

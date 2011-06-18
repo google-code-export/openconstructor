@@ -31,7 +31,7 @@
 	require_once(LIBDIR.'/hybrid/fields/fieldfactory._wc');
 	$field = FieldFactory::getField($_GET['id']);
 	assert(is_object($field) && $field->family == 'enum');
-	$ds = &$_dsm->load($field->ds_id);
+	$ds = $_dsm->load($field->ds_id);
 ?>
 <html>
 <head>
@@ -72,7 +72,7 @@ function prepare() {
 			<td><?=H_DSH_FIELD_TYPE?>:</td>
 			<td>
 			<?php
-				$ef = &WCEnumFactory::getInstance();
+				$ef = WCEnumFactory::getInstance();
 				$types = $ef->getAllEnums();
 				if(!array_key_exists($field->enumId, $types)) {
 					echo '<span style="color: red;">The enumeration was deleted.</span>';

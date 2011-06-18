@@ -44,8 +44,8 @@ class PublicationPager extends WCObject {
 	
 	function getCacheId() {
 		$cacheId = null;
-		$ctx = &Context::getInstance();
-		if($master = &$ctx->getObject((int) $this->master)) {
+		$ctx = Context::getInstance();
+		if($master = $ctx->getObject((int) $this->master)) {
 			$page = (int) @$_GET[$master->pid];
 			if(--$page) $page = 0;
 			$cacheId = $this->obj_id.'|p'.$page;
@@ -55,14 +55,14 @@ class PublicationPager extends WCObject {
 	
 	function fetchData(&$smarty) {
 		$result = false;
-		$ctx = &Context::getInstance();
-		$master = &$ctx->getObject((int) $this->master);
+		$ctx = Context::getInstance();
+		$master = $ctx->getObject((int) $this->master);
 		if(!$master) return $result;
 		$current = intval(@$_GET[$master->pid]) + !intval(@$_GET[$master->pid]);
 		$extra_clause = $master->getExtraClause();
 		
 		$where = @$master->ids ? 'id IN ('.$master->ids.')' : 'ds_id IN ('.$master->ds_id.')';
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT COUNT(*) as items '.
 			'FROM '.$this->DSTable.' '.
@@ -120,7 +120,7 @@ class PublicationPager extends WCObject {
 	
 	function &_getDSFields() {
 		static $result;
-		if(!is_array(&$result)) $result = array('master');
+		if(!is_array($result)) $result = array('master');
 		return $result;
 	}
 }

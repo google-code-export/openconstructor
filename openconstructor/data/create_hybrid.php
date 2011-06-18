@@ -24,11 +24,6 @@
 	System::request('data');
 	require_once(LIBDIR.'/languagesets/'.LANGUAGE.'/data._wc');
 	require_once(LIBDIR.'/dsmanager._wc');
-	
-	require_once(LIBDIR.'/smarty/ocmsmartybackend._wc');
-	$smartybackend = & new OcmSmartyBackend();
-	$smartybackend->caching = false;
-	
 	//userfriendly names
 	$uf['ds_name']=DS_NAME;
 	$uf['ds_key']=DS_KEY;
@@ -42,27 +37,56 @@
 	
 	$_dsm=new DSManager();
 	$ds = $_dsm->getAll('hybrid');
-	
-	foreach($ds as $v)
-		$v['pathView'] = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;',substr_count($v['path'],',') - 1);
-	
-	$getIn = @$_GET['in'];
-	
-	$ds_key = htmlspecialchars($ds_key, ENT_COMPAT, 'UTF-8');
-	$ds_name = htmlspecialchars($ds_name, ENT_COMPAT, 'UTF-8');
-	$reportResult = report_results(CREATE_DS_FAILED_W);
-	$isValid['ds_key'] = is_valid('ds_key');
-	$isValid['ds_name'] = is_valid('ds_name');
-	$isValid['description'] = is_valid('description');
-	$dis = System::decide('data.dshybrid') ? 'false' : 'true';
-	$smartybackend->assign("uf", $uf);
-	$smartybackend->assign("ds_key", $ds_key);
-	$smartybackend->assign("ds_name", $ds_name);
-	$smartybackend->assign("description", $description);
-	$smartybackend->assign("dis", $dis);
-	$smartybackend->assign("ds", $ds);
-	$smartybackend->assign("getIn", $getIn);
-	$smartybackend->assign("reportResult", $reportResult);
-	$smartybackend->assign("isValid", $isValid);
-	$smartybackend->display('data/create_hybrid.tpl');
 ?>
+<html>
+<head>
+<title><?=WC.' | '.CREATE_DS_HYBRID?></title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="../<?=SKIN?>.css" type=text/css rel=stylesheet>
+<script language="JavaScript" type="text/JavaScript">
+var re=new RegExp('[^\\s]','gi');
+var rek=/^[a-zA-Z][a-zA-Z0-9]{0,15}$/g;
+function dsb(){
+	if(!f.ds_key.value.match(rek)||!f.ds_name.value.match(re)||<?=System::decide('data.dshybrid') ? 'false' : 'true'?>)
+		f.create.disabled=true; else f.create.disabled=false;
+}
+</script>
+</head>
+<body style="border-style:groove;padding:0 20 20">
+<br>
+<h3><?=CREATE_DS_HYBRID?></h3>
+<?php
+	report_results(CREATE_DS_FAILED_W);
+?>
+<form name="f" method="POST" action="i_data.php">
+	<input type="hidden" name="action" value="create_dshybrid">
+	<fieldset style="padding:10"><legend><?=DS_GENERAL_PROPS?></legend>
+		<div class="property"<?=is_valid('ds_key')?>>
+			<span><?=$uf['ds_key']?>:</span>
+			<input type="text" name="ds_key" value="<?=htmlspecialchars($ds_key, ENT_COMPAT, 'UTF-8')?>" size="64" maxlength="64" onpropertychange="dsb()">
+		</div>
+		<div class="property"<?=is_valid('ds_name')?>>
+			<span><?=$uf['ds_name']?>:</span>
+			<input type="text" name="ds_name" value="<?=htmlspecialchars($ds_name, ENT_COMPAT, 'UTF-8')?>" size="64" maxlength="64" onpropertychange="dsb()">
+		</div>
+		<div class="property"<?=is_valid('description')?>>
+			<span><?=$uf['description']?>:</span>
+			<textarea cols="51" rows="5" name="description"><?=$description?></textarea>
+		</div>
+	</fieldset><br>
+	<fieldset style="padding:10"><legend><?=DS_PROPS?></legend>
+		<?=DS_PARENT?>:
+		<select name="parent" size="1" align="absmiddle">
+			<option value="0">-
+<?php
+	foreach($ds as $v)
+		echo '<OPTION VALUE="'.$v['id'].'"'.($v['id'] == @$_GET['in']?' SELECTED':'').'>'.str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;',substr_count($v['path'],',') - 1).
+			$v['name'];
+?>
+		</select>
+	</fieldset><br>
+	<div align="right"><input type="submit" value="<?=BTN_CREATE_DS?>" name="create"> <input type="button" value="<?=BTN_CANCEL?>" onclick="window.close()"></div>
+</form>
+<script>dsb();</script>
+</body>
+</html>

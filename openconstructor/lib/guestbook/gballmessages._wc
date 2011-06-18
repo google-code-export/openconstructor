@@ -52,7 +52,7 @@ class GBAllMessages extends WCObject {
 		if($this->tpl && $this->defaultGB) {
 			$ids = explode(',', $this->getDsId());
 			foreach($ids as $id)
-				GBAllMessages::_addDisplayed($id);
+				self::_addDisplayed($id);
 		}
 	}
 	
@@ -61,7 +61,7 @@ class GBAllMessages extends WCObject {
 		if(!$this->defaultGB) return $result;
 		$ds_id = $this->getDsId();
 		$multi = strpos($ds_id, ',');
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT d.id, d.real_id as rid,d.subject,d.author,d.email,d.html,d.date'.($multi ? '' : ', ds.name').
 			' FROM '.$this->DSTable.' d'.($multi ? '' : ', datasources ds').
@@ -114,7 +114,7 @@ class GBAllMessages extends WCObject {
 	}
 	
 	function &getDisplayedDs() {
-		$result = GBAllMessages::_addDisplayed(null, true);
+		$result = self::_addDisplayed(null, true);
 		return $result;
 	}
 	
@@ -126,7 +126,7 @@ class GBAllMessages extends WCObject {
 	
 	function &_getDSFields() {
 		static $result;
-		if(!is_array(&$result)) $result = array('ds_id', 'defaultGB', 'gbid');
+		if(!is_array($result)) $result = array('ds_id', 'defaultGB', 'gbid');
 		return $result;
 	}
 }

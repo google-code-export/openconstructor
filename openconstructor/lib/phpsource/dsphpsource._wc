@@ -39,7 +39,7 @@ class DSPHPSource extends WCDataSource {
 		WCS::assert($this, 'createdoc');
 		assert(trim($header) != '');
 		if($this->isFull()) return false;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'INSERT INTO '.$this->DSTable.
 				' (ds_id, header, source, date, wcsowner)'.
@@ -65,7 +65,7 @@ class DSPHPSource extends WCDataSource {
 				unset($ids[$k]);
 		}
 		if(sizeof($ids) > 0) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query(
 				'DELETE FROM '.$this->DSTable.
 				' WHERE id IN('.implode(',',$ids).') AND ds_id='.$this->ds_id
@@ -76,11 +76,11 @@ class DSPHPSource extends WCDataSource {
 
 	function update($id,$header,$source) {
 		assert(trim($header) != '');
-		$doc = &$this->getDocument($id);
+		$doc = $this->getDocument($id);
 		assert($doc->id > 0);
 		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
 
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'UPDATE '.$this->DSTable.
 			' SET header="'.addslashes($header).'", source="'.addslashes($source).'", date="'.time().'"'.
@@ -94,7 +94,7 @@ class DSPHPSource extends WCDataSource {
 	}
 
 	function &get_record($id) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			"SELECT * FROM {$this->DSTable} WHERE ds_id={$this->ds_id} AND id=".intval($id)
 		);
@@ -108,7 +108,7 @@ class DSPHPSource extends WCDataSource {
 		$this->ftp->open();
 		$incfile=FILES.$this->sourcePath.$id.'._wc';
 		$func = '_wcf_phpsource_'.$id;
-		$content = "<?php if(!function_exists('{$func}')) { function {$func}(&\$args){ \$ctx = &Context::getInstance();?>$source<?php } } if(isset(\$this) && strtolower(get_class(\$this)) == 'wcsmarty') {\$__j = array(); {$func}(\$__j);}?>";
+		$content = "<?php if(!function_exists('{$func}')) { function {$func}(&\$args){ \$ctx = Context::getInstance();?>$source<?php } } if(isset(\$this) && strtolower(get_class(\$this)) == 'wcsmarty') {\$__j = array(); {$func}(\$__j);}?>";
 		$this->ftp->write_file($incfile,$content);
 		$this->ftp->close();
 		if($this->ftp->success())
@@ -122,7 +122,7 @@ class DSPHPSource extends WCDataSource {
 			WCS::assert($this, 'createdoc');
 			$sCheck = WCS::decide($fromDs, 'removedoc') ? '' : 'AND '.WCS::getOwnerCheckQuery();
 			$userId = Authentication::getUserId();
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$db->query(
 				"UPDATE {$this->DSTable}".
 				" SET ds_id = {$this->ds_id}, wcsowner = $userId".

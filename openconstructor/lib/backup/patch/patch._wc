@@ -1,0 +1,65 @@
+<?php
+class Patch {
+
+	/**
+	 * @var string
+	 */
+	var $name;
+	
+	/**
+	 * @var WCFTP
+	 */
+	var $ftp;
+
+	/**
+	 * @var WCC_MySqlDB
+	 */
+	var $db;
+
+	function Patch($name) {
+		$this->name = $name;
+	}
+
+	function setFtp(&$ftp) {
+		$this->ftp = & $ftp;
+	}
+
+	function setDb(&$db) {
+		$this->db = & $db;
+	}
+
+	/**
+	 * Applies patch and returns true on success.
+	 *
+	 * @return boolean
+	 */
+	function apply() {
+		return false;
+	}
+	
+	function info($msg) {
+		$this->_message("[INFO] $msg");
+	}
+	
+	function error($msg) {
+		$this->_message("[ERROR] $msg");
+	}
+	
+	function _message($msg) {
+		echo '<p>'.htmlspecialchars($msg).'</p>';
+	}
+	
+	/**
+	 * Loads and returns patch with specified ID.
+	 * 
+	 * @param string $id ID of the patch
+	 * @return Patch
+	 */
+	function &load($id) {
+		require_once(LIBDIR."/backup/patch/repo/patch.{$id}._wc");
+		$class = "Patch_$id";
+		$result = new $class;
+		return $result;
+	}
+}
+?>

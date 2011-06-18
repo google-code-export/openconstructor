@@ -54,7 +54,7 @@ class UsersAuthorize extends WCObject {
 			$this->ctx->_setAuthentication(Authentication::getInstance());
 		}
 		
-		$auth = &Authenticator::authenticate(@$_POST[$this->loginID],@$_POST[$this->passwordID]);
+		$auth = Authenticator::authenticate(@$_POST[$this->loginID],@$_POST[$this->passwordID]);
 		
 		if(is_object($auth)) {
 			global $_host;

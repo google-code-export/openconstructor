@@ -33,18 +33,18 @@ class System {
 	}
 	
 	function request($act) {
-		$sys = &System::getInstance();
-		WCS::request($sys, &$act);
+		$sys = self::getInstance();
+		WCS::request($sys, $act);
 	}
 	
 	function assert($act) {
-		$sys = &System::getInstance();
-		WCS::assert($sys, &$act);
+		$sys = self::getInstance();
+		WCS::assert($sys, $act);
 	}
 	
 	function decide($act) {
-		$sys = &System::getInstance();
-		return WCS::decide($sys, &$act);
+		$sys = self::getInstance();
+		return WCS::decide($sys, $act);
 	}
 	
 	function &getInstance() {
@@ -53,7 +53,7 @@ class System {
 		if(is_object($instance))
 			return $instance;
 		$instance = new System();
-		$res = & new WCSResource('Open Constructor', WCS_ROOT_ID, WCS_USERGROUP);
+		$res = new WCSResource('Open Constructor', WCS_ROOT_ID, WCS_USERGROUP);
 		
 		$res->addAction('sitemap');
 		$res->addAction('data');
@@ -113,7 +113,7 @@ class System {
 		
 		$res->compile();
 
-		$auth = &Authentication::getInstance();
+		$auth = Authentication::getInstance();
 		$ownerAuths = str_repeat('1', $res->length);
 		$res->setAuthorities($ownerAuths, $auth->auths);
 		$instance->sRes = &$res;

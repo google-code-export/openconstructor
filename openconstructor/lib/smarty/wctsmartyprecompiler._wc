@@ -31,7 +31,7 @@ class WCTSmartyPrecompiler extends Smarty_Compiler {
 	}
 	function _compile_file($resource_name, $source_content, &$compiled_content) {
 		error_reporting(($_oldLevel = error_reporting()) & ~E_NOTICE);
-		parent::_compile_file($resource_name, $source_content, &$compiled_content);
+		parent::_compile_file($resource_name, $source_content, $compiled_content);
 		error_reporting($_oldLevel);
 	}
 	

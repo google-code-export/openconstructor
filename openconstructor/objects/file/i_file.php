@@ -27,7 +27,7 @@
 	
 	//print_r($_POST); die();
 	if (isset($_POST['action'])) {
-		$obj = &ObjManager::load(@$_POST['obj_id']);
+		$obj = ObjManager::load(@$_POST['obj_id']);
 		assert($obj != null);
 		$obj->name=@$_POST['name'];
 		$obj->description=@$_POST['description'];

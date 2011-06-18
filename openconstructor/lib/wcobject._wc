@@ -69,7 +69,7 @@ class WCObject {
 			$smarty->cache_lifetime = $this->cache_lifetime;
 			$cacheId = $this->getCacheId();
 			if(!$smarty->is_cached($this->tpl.'.tpl', $cacheId)) {
-				$fetched = $this->fetchData(&$smarty);
+				$fetched = $this->fetchData($smarty);
 				if($fetched) {
 					if(isset($this->tpl_args)) {
 						$tpl_params = array();
@@ -88,7 +88,7 @@ class WCObject {
 			}
 		} else {
 			$smarty->caching = 0;
-			$fetched = $this->fetchData(&$smarty);
+			$fetched = $this->fetchData($smarty);
 			if($fetched) {
 				if(isset($this->tpl_args)) {
 					$tpl_params = array();
@@ -116,18 +116,18 @@ class WCObject {
 	}
 
 	function run($params = array()) {
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		$this->exec($ctx->_smarty, $params);
 	}
 
 	function &getSearchQuery($keywordKey, $docsTable) {
 		$result = array('from' => null, 'where' => null, 'order' => null);
 		if($keywordKey) {
-			$ctx = &Context::getInstance();
+			$ctx = Context::getInstance();
 			$keyword = $ctx->getParam($keywordKey);
 			if($keyword) {
 				loadClass('searcher', '/search/searcher._wc');
-				$part = &Searcher::getQueryPart($keyword, &$docsTable);
+				$part = Searcher::getQueryPart($keyword, $docsTable);
 				$result['from'] = ' JOIN '.$part['from'];
 				$result['where'] = ' AND '.$part['clause'];
 				$result['order'] = &$part['order'];
@@ -148,6 +148,7 @@ class WCObject {
 	function changeCrumbs(&$crumbs) {}
 
 	// TODO: кажется этот метод нигде не используется... выяснить и удалить
+	// rustam.akhmedov: Правильно, не используется
 	function &cache($key, $value = null) {
 		global $__cache;
 		$result = null;

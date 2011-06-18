@@ -38,7 +38,7 @@ class DocumentField extends HybridField {
 	}
 	
 	function create() {
-		HybridField::create();
+		parent::create();
 		if(!$this->id)
 			return false;
 		if($this->isOwn && $this->type != 'hybrid'){
@@ -48,7 +48,7 @@ class DocumentField extends HybridField {
 				return false;
 			}
 		} else {
-			$ds = &$this->getDS();
+			$ds = $this->getDS();
 			$ds->increaseLock();
 		}
 		$this->update();
@@ -56,7 +56,7 @@ class DocumentField extends HybridField {
 	}
 	
 	function update() {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			sprintf("UPDATE $this->table SET header='%1\$s', isreq='%2\$d', isown='%3\$d', fromds='%4\$d' WHERE id=$this->id"
 			, addslashes($this->header), intval($this->isRequired), intval($this->isOwn),intval($this->fromDS))
@@ -64,20 +64,20 @@ class DocumentField extends HybridField {
 	}
 	
 	function remove() {
-		$ds = &$this->getDS();
+		$ds = $this->getDS();
 		if($this->isOwn) {
 			WCS::runAs(WCS_ROOT_ID);
 			if($this->type != 'hybrid')
 				$ds->remove();
 			else {
-				$db = &WCDB::bo();
+				$db = WCDB::bo();
 				$res = $db->query("SELECT {$this->key} FROM {$this->ds_table} WHERE {$this->key} > 0");
 				if(mysql_num_rows($res) > 0) {
 					while($r = mysql_fetch_row($res))
 						$doc[] = $r[0];
 					loadClass('dshybridfactory', '/hybrid/dshybridfactory._wc');
 					$dsf = new DSHybridFactory();
-					$dsf->removeDocuments(&$doc);
+					$dsf->removeDocuments($doc);
 				}
 				mysql_free_result($res);
 				$ds->decreaseLock(); 
@@ -86,7 +86,7 @@ class DocumentField extends HybridField {
 		}
 		else
 			$ds->decreaseLock();
-		HybridField::remove();
+		parent::remove();
 	}
 	
 	function onUpdateDocument(&$old, &$new) {
@@ -107,9 +107,9 @@ class DocumentField extends HybridField {
 	
 	function onRemoveDocument(&$doc) {
 		if($this->isOwn && $doc->fields[$this->key]){
-			$ds = &$this->getDS();
+			$ds = $this->getDS();
 			WCS::runAs(WCS_ROOT_ID);
-			$ds->delete(&$doc->fields[$this->key]);
+			$ds->delete($doc->fields[$this->key]);
 			WCS::stopRunAs();
 		}
 	}
@@ -140,7 +140,7 @@ class DocumentField extends HybridField {
 	
 	function &getDS() {
 		if(!is_object($this->ds))
-			$this->ds = &FieldUtils::loadDS($this->type, $this->fromDS);
+			$this->ds = FieldUtils::loadDS($this->type, $this->fromDS);
 		return $this->ds;
 	}
 }

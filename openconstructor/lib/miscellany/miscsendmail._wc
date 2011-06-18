@@ -111,7 +111,7 @@ class MiscSendMail extends WCObject {
 			return false;
 		$cc = str_replace("\n", ' ', $this->proccessPattern($this->cc));
 		$bcc = str_replace("\n", ' ', $this->proccessPattern($this->bcc));
-		$msg = & new WCMessage();
+		$msg = new WCMessage();
 		$msg->setTemplate($this->tpl.'.tpl');
 		$msg->setContentType($this->isHtml ? 'text/html' : 'text/plain');
 		$msg->setContent($this->msg);
@@ -168,7 +168,7 @@ class MiscSendMail extends WCObject {
 		}
 		if($this->isHtml)
 			switch($type = $f[0] - $src) {
-				case FTYPE_HTML:	$value = &wcfStripTags($value, $this->allowedTags);	break;
+				case FTYPE_HTML:	$value = wcfStripTags($value, $this->allowedTags);	break;
 				case FTYPE_TXT:		$value = htmlspecialchars($value, ENT_COMPAT, 'UTF-8');
 			}
 		return $value;
@@ -253,13 +253,13 @@ class MiscSendMail extends WCObject {
 			$l = &$_FILES[$f[1]];
 			foreach($l['tmp_name'] as $k => $j) {
 				$v = array('name' => $l['name'][$k], 'type' => $l['type'][$k], 'tmp_name' => $l['tmp_name'][$k], 'error' => $l['error'][$k], 'size' => $l['size'][$k]);
-				if(($file = $this->getFile(&$v, $f[2], $f[3])) != null)
+				if(($file = $this->getFile($v, $f[2], $f[3])) != null)
 					$this->attachments[] = $file;
 			}
 		}
 	}
 	
-	function getFile($file, $ext, $size) {
+	function getFile(&$file, $ext, $size) {
 		$result = null;
 		if(is_array($file) && $file['error'] == UPLOAD_ERR_OK)
 			if($this->isFileOk($file['tmp_name'], $file['name'], $file['size'], $ext, $size))

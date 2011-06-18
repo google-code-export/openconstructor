@@ -48,7 +48,7 @@ class SearchDSs extends WCObject {
 	
 	function getCacheId() {
 		$cacheId = null;
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		$keyword = sprintf('%x', crc32(Searcher::getStemmedText($ctx->getParam($this->keywordKey))));
 		$cacheId = $this->obj_id.'|'.$keyword.'|o-'.$this->listOffset;
 		return $cacheId;
@@ -56,14 +56,14 @@ class SearchDSs extends WCObject {
 	
 	function fetchData(&$smarty) {
 		$result = false;
-		$searchResults = &$this->performSearch();
-		$ctx = &Context::getInstance();
+		$searchResults = $this->performSearch();
+		$ctx = Context::getInstance();
 		$keyword = $ctx->getParam($this->keywordKey);
 		$smarty->assign('keyword', escapeTags($keyword));
 		$smarty->assign('found', (int) @$this->availableDocsCount);
 		$smarty->assign('time', round($this->time, 3));
 		$smarty->assign('header', $this->header);
-		$smarty->assign_by_ref('results', &$searchResults);
+		$smarty->assign_by_ref('results', $searchResults);
 		$smarty->assign_by_ref('offset', $this->listOffset);
 		$smarty->assign_by_ref('size', $this->listSize);
 		$result = array('header', 'found', 'keyword', 'results');
@@ -73,7 +73,7 @@ class SearchDSs extends WCObject {
 	function &performSearch() {
 		if(is_array($this->results))
 			return $this->results;
-		$ctx = &Context::getInstance();
+		$ctx = Context::getInstance();
 		$keyword = $ctx->getParam($this->keywordKey);
 		$stemmedKeyword = Searcher::getStemmedText($keyword);
 		settype($this->listOffset, 'int');
@@ -81,12 +81,12 @@ class SearchDSs extends WCObject {
 		$match = sprintf('MATCH(i.header, i.content) AGAINST("%s")', addslashes($stemmedKeyword));
 		$dsId = $this->ds_id ? $this->ds_id : 0;
 		$start = _gettime();
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			"SELECT SQL_CALC_FOUND_ROWS i.document_id as id, i.ds_id, i.ds_type as type, i.title, i.annotation, sum($match) as rank, IF(i.ds_type = 'file', f.filename, NULL) as file".
 			' FROM `index` i LEFT JOIN dsfile f ON(i.document_id = f.id AND i.ds_id = f.ds_id)'.
 			" WHERE $match > 0 AND i.ds_id IN ($dsId)".
-			' GROUP BY ds_type, id'.
+			' GROUP BY i.ds_type, i.document_id'.
 			" ORDER BY rank DESC".
 			' LIMIT '.($this->listOffset).', '.$this->listSize
 		);
@@ -103,7 +103,7 @@ class SearchDSs extends WCObject {
 				$paramValues[0] = &$r['id'];
 				$paramValues[1] = &$r['ds_id'];
 				$paramValues[2] = &$r['file'];
-				$results[$i]['href'] = $r['type'] != 'htmltext' ? str_replace(&$paramNames, &$paramValues, &$this->hrefs[$r['ds_id']]) : $ctx->map->getHref($ctx->map->id[$r['id']]['uri']);
+				$results[$i]['href'] = $r['type'] != 'htmltext' ? str_replace($paramNames, $paramValues, $this->hrefs[$r['ds_id']]) : $ctx->map->getHref($ctx->map->id[$r['id']]['uri']);
 			}
 		} elseif($this->availableDocsCount > (int) @$this->originalOffset && !$this->no404)
 			$this->ctx->throw404();
@@ -115,7 +115,7 @@ class SearchDSs extends WCObject {
 	}
 	
 	function countAvailableDocs() {
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query('SELECT FOUND_ROWS()');
 		list($this->availableDocsCount) = mysql_fetch_row($res);
 		mysql_free_result($res);

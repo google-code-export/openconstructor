@@ -49,7 +49,7 @@ class HTMLTextBody extends WCObject {
 		$ctx = &$this->ctx;
 		$pageId = $this->getDocId();
 		$title = $ctx->map->getTitle($ctx->page->uri);
-		$db = &$this->ctx->_getDB();
+		$db = $this->ctx->_getDB();
 		$res = $db->query(
 			'SELECT html FROM '.$this->DSTable.
 			' WHERE id='.$pageId.' AND ds_id='.$this->ds_id.' AND published != 0'

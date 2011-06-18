@@ -28,7 +28,7 @@
 	require_once(LIBDIR.'/dsmanager._wc');
 	
 	$_dsm = new DSManager();
-	$from = &$_dsm->load((int) $_GET['ds_id']);
+	$from = $_dsm->load((int) $_GET['ds_id']);
 	assert($from != null);
 	$ds = $_dsm->getAll($from->ds_type);
 ?>

@@ -72,7 +72,7 @@ class ConsoleTaskRunner {
 		$runner = new ConsoleTaskRunner();
 		$runner->reporting = CTR_LEVEL_INFO;
 		$taskId = implode('.', (array) @$router->path);
-		$task = &$runner->getTask($taskId);
+		$task = $runner->getTask($taskId);
 		if(is_object($task)) {
 			$params = $task->getArgNames();
 			foreach($params as $name => $comment)

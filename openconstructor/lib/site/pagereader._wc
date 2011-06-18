@@ -45,11 +45,11 @@ class PageReader {
 				AND t1.num <= t.num AND (t1.next = 0 OR t1.next > t.num) AND t1.level <= t.level
 				AND t.id = p.id
 			GROUP BY t.num";
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query($query);
 		if(mysql_num_rows($res) == 1) {
 			$r = mysql_fetch_assoc($res);
-			$result = & new Page($r['name'], $r['header']);
+			$result = new Page($r['name'], $r['header']);
 			$result->id = (int) $r['id'];
 			$result->index = (int) $r['num'];
 			$result->parent = (int) $r['parent'];
@@ -83,7 +83,7 @@ class PageReader {
 	
 	function superDecide($pageId, $act) {
 		settype($pageId, 'int');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			"SELECT t2.id FROM {$this->treeTable} t1, {$this->treeTable} t2".
 			" WHERE t1.id = $pageId AND t2.num < t1.num AND (t2.next = 0 OR t2.next > t1.num) AND t2.level < t1.level".
@@ -96,9 +96,9 @@ class PageReader {
 	
 	function &getTree($nodeId = null, $depth = 0) {
 		$tree = null;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
-			"SELECT t2.id, t2.num, t2.parent, t2.level, t2.next, t2.name, t2.header, p.published, p.linkto, p.router, p.users".
+			"SELECT t2.id, t2.num, t2.parent, t2.next, t2.name, t2.header, p.published, p.linkto, p.router, p.users".
 			" FROM $this->treeTable t1, $this->treeTable t2, $this->pagesTable p".
 			" WHERE ".($nodeId == null ? 't1.num = 0' : 't1.id = '.intval($nodeId))." AND t2.num >= t1.num AND ( t1.next = 0 OR t2.num < t1.next)".($depth ? " AND t2.level <= t1.level + $depth":'').
 			"  AND t2.id = p.id".
@@ -108,13 +108,13 @@ class PageReader {
 			require_once('sitetree._wc');
 			$i = 0;
 			while($r = mysql_fetch_assoc($res)) {
-				$node[$i] = & new Node((int) $r['id'],(int) $r['num'],(int) $r['level'],(int) $r['parent'],(int) $r['next'], $r['name'], $r['header']);
+				$node[$i] = new Node((int) $r['id'],(int) $r['num'],(int) $r['parent'],(int) $r['next'], $r['name'], $r['header']);
 				$node[$i]->published = $r['published'] > 0;
 				$node[$i]->users = $r['users'];
 				$node[$i]->linkTo = (int) $r['linkto'];
 				$node[$i]->router = $r['router'] > 0;
 				if($tree === null)
-					$tree = & new SiteTree($node[$i]);
+					$tree = new SiteTree($node[$i]);
 				else
 					$tree->addNode($node[$i]);
 				$i++;
@@ -126,7 +126,7 @@ class PageReader {
 	
 	function getPageContentType(&$page) {
 		if(!$page->contentType && $page->uri != '/') {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$res = $db->query(
 				"SELECT p.contenttype FROM {$this->treeTable} t1, {$this->treeTable} t2, {$this->pagesTable} p WHERE t1.id = {$page->id} AND t2.num < t1.num AND (t2.next > t1.num OR t2.next = 0) AND t2.id = p.id AND p.contenttype > '' ORDER BY t2.num DESC LIMIT 1"
 			);
@@ -139,7 +139,7 @@ class PageReader {
 	
 	function getPageRouter(&$page) {
 		if(!is_object($page) || !$page->router) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$id = intval(is_object($page) ? $page->id : $page);
 			$res = $db->query(
 				"SELECT t2.id FROM {$this->treeTable} t1, {$this->treeTable} t2, {$this->pagesTable} p WHERE t1.id = $id AND t2.num <= t1.num AND (t2.num = t1.num OR t2.next > t1.num OR t2.next = 0) AND t2.id = p.id AND p.router > 0 ORDER BY t2.num DESC LIMIT 1"
@@ -154,7 +154,7 @@ class PageReader {
 	function &getPageLinks($pageId) {
 		$result = array();
 		settype($pageId, 'int');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT id FROM {$this->pagesTable} WHERE linkto = $pageId");
 		for($i = 0, $l = mysql_num_rows($res); $i < $l; $i++)
 			list($result[]) = mysql_fetch_row($res);
@@ -164,7 +164,7 @@ class PageReader {
 	
 	function &getSubPages($pageId, $depth = 0) {
 		$result = array();
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			"SELECT t2.id, t2.header".
 			" FROM {$this->treeTable} t1, {$this->treeTable} t2".
@@ -180,7 +180,7 @@ class PageReader {
 	
 	function &getAllPages() {
 		$result = array();
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT id, parent, name FROM {$this->treeTable} ORDER BY num");
 		if(mysql_num_rows($res) > 0)
 			while($r = mysql_fetch_assoc($res))
@@ -194,7 +194,7 @@ class PageReader {
 		if(is_array($ids))
 			$ids = implode(',', $ids);
 		if(trim($ids) != '') {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$res = $db->query("SELECT id, header FROM {$this->treeTable} WHERE id IN ($ids) ORDER BY num");
 			if(mysql_num_rows($res) > 0)
 				while($r = mysql_fetch_row($res))
@@ -206,7 +206,7 @@ class PageReader {
 	
 	function isPublished($pageId) {
 		settype($pageId, 'int');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query("SELECT id FROM {$this->pagesTable} WHERE id = $pageId AND published > 0");
 		$result = mysql_num_rows($res) == 1;
 		return $result;
@@ -214,7 +214,7 @@ class PageReader {
 	
 	function getRootId() {
 		if(!$this->rootId) {
-			$db = &WCDB::bo();
+			$db = WCDB::bo();
 			$res = $db->query("SELECT id FROM {$this->treeTable} WHERE num = 0 LIMIT 1");
 			list($this->rootId) = mysql_fetch_row($res);
 			mysql_free_result($res);

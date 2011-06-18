@@ -54,12 +54,12 @@ class ArticleBody extends WCObject {
 	}
 	
 	function onPageLoad() {
-		ArticleBody::_addDisplayed($this->getDocId());
+		self::_addDisplayed($this->getDocId());
 	}
 	
 	function fetchData(&$smarty) {
 		$result = false;
-		$doc = &$this->getDocument();
+		$doc = $this->getDocument();
 		if(sizeof($doc)) {
 			$smarty->assign('header', $this->header);
 			$smarty->assign_by_ref('article', $doc['article']);
@@ -79,7 +79,7 @@ class ArticleBody extends WCObject {
 			
 			if($id && ($pid == 'all' || $pid >= 1)) {
 				$dsIdCheck = $this->ds_id ? 'AND ds.ds_id IN ('.$this->ds_id.')' : '';
-				$db = &$this->ctx->_getDB();
+				$db = $this->ctx->_getDB();
 				$res = $db->query(
 					'SELECT ds.real_id as id, ds.header as name, ds.date as date, ds.img_main as image, p.p_id as p_id, p.page as page, p.header as header, p.content as content '.
 					' FROM '.$this->DSTable.' ds, '.$this->pagesTable.' p'.
@@ -115,7 +115,7 @@ class ArticleBody extends WCObject {
 			$id = (int) $this->getDocId();
 			if($id > 0) {
 				$dsIdCheck = $this->ds_id ? 'AND ds_id IN ('.$this->ds_id.')' : '';
-				$db = &$this->ctx->_getDB();
+				$db = $this->ctx->_getDB();
 				$res = $db->query(
 					'SELECT header FROM '.$this->DSTable.' WHERE id = '.$id.' AND published!=0 '.$dsIdCheck.' LIMIT 1'
 				);
@@ -124,7 +124,7 @@ class ArticleBody extends WCObject {
 				mysql_free_result($res);
 			}
 		} else {
-			$doc = &$this->getDocument();
+			$doc = $this->getDocument();
 			$header = @$doc['article']['header'];
 		}
 		$crumbs->set($this->ctx->page->uri, $header);
@@ -137,7 +137,7 @@ class ArticleBody extends WCObject {
 	}
 	
 	function &getDisplayedDocs() {
-		$result = ArticleBody::_addDisplayed(null, true);
+		$result = self::_addDisplayed(null, true);
 		return $result;
 	}
 	

@@ -38,7 +38,7 @@ class ArrayField extends HybridField {
 	}
 	
 	function create() {
-		HybridField::create();
+		parent::create();
 		if(!$this->id)
 			return false;
 		if($this->isOwn && $this->type != 'hybrid'){
@@ -48,7 +48,7 @@ class ArrayField extends HybridField {
 				return false;
 			}
 		} else {
-			$ds = &$this->getDS();
+			$ds = $this->getDS();
 			$ds->increaseLock();
 		}
 		$this->update();
@@ -56,7 +56,7 @@ class ArrayField extends HybridField {
 	}
 	
 	function update() {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			sprintf("UPDATE $this->table SET header='%1\$s', isreq='%2\$d', isown='%3\$d', fromds='%4\$d' ".
 					"WHERE id=$this->id", addslashes($this->header), intval($this->isRequired), intval($this->isOwn), intval($this->fromDS))
@@ -64,23 +64,23 @@ class ArrayField extends HybridField {
 	}
 	
 	function remove() {
-		$ds = &$this->getDS(); 
+		$ds = $this->getDS(); 
 		if($this->isOwn) {
 			WCS::runAs(WCS_ROOT_ID);
 			if($this->type != 'hybrid')
 				$ds->remove();
 			else {
-				$db = &WCDB::bo();
+				$db = WCDB::bo();
 				$res = $db->query("SELECT {$this->key} FROM {$this->ds_table} WHERE {$this->key} != ''");
 				if(mysql_num_rows($res) > 0) {
 					$doc = array();
 					while($r = mysql_fetch_row($res))
 						if($r[0])
 							$doc[] = $r[0];
-					$doc = explode(',', implode(',', &$doc));
+					$doc = explode(',', implode(',', $doc));
 					loadClass('dshybridfactory', '/hybrid/dshybridfactory._wc');
 					$dsf = new DSHybridFactory();
-					$dsf->removeDocuments(&$doc);
+					$dsf->removeDocuments($doc);
 				}
 				mysql_free_result($res);
 				$ds->decreaseLock(); 
@@ -89,13 +89,13 @@ class ArrayField extends HybridField {
 		}
 		else
 			$ds->decreaseLock();
-		HybridField::remove();
+		parent::remove();
 	}
 	
 	function onUpdateDocument(&$old, &$new) {
 		if($this->isOwn) {
-			$o = explode(',', $old->fields[$this->key]);
-			$n = explode(',', $new->fields[$this->key]);
+			$o = empty($old->fields[$this->key]) ? array() : explode(',', $old->fields[$this->key]);
+			$n = empty($new->fields[$this->key]) ? array() : explode(',', $new->fields[$this->key]);
 			$diff = array_diff($o, $n);
 			if(sizeof($diff) > 0){
 				$ds = $this->getDS();
@@ -110,7 +110,7 @@ class ArrayField extends HybridField {
 		if($this->isOwn && $doc->fields[$this->key]){
 			$ds = $this->getDS();
 			WCS::runAs(WCS_ROOT_ID);
-			$ds->delete(&$doc->fields[$this->key]);
+			$ds->delete($doc->fields[$this->key]);
 			WCS::stopRunAs();
 		}
 	}
@@ -139,7 +139,7 @@ class ArrayField extends HybridField {
 	
 	function &getDS() {
 		if(!is_object($this->ds))
-			$this->ds = &FieldUtils::loadDS($this->type, $this->fromDS);
+			$this->ds = FieldUtils::loadDS($this->type, $this->fromDS);
 		return $this->ds;
 	}
 }

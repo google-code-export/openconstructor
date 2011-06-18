@@ -24,7 +24,7 @@
 	require_once('lib/security/authenticator._wc');
 	Authentication::destroy();
 	
-	$auth = &Authenticator::authenticate(@$_POST['login'],@$_POST['password']);
+	$auth = Authenticator::authenticate(@$_POST['login'],@$_POST['password']);
 	if(is_object($auth)) {
 		if(WCS::inGroup(System::getInstance(), $auth->membership))
 			$auth->fetchProfile();

@@ -49,14 +49,14 @@ class GalleryImage extends WCObject {
 	}
 	
 	function getCacheId() {
-		$doc = &$this->getDocument();
+		$doc = $this->getDocument();
 		$cacheId = $this->obj_id.'|'.intval(@$doc['image']['id']);
 		return $cacheId;
 	}
 	
 	function fetchData(&$smarty) {
 		$result = false;
-		$doc = &$this->getDocument();
+		$doc = $this->getDocument();
 		if(sizeof($doc['image']) > 0) {
 			$smarty->assign('header', $this->header);
 			$smarty->assign_by_ref('prev', $doc['prev']);
@@ -69,7 +69,7 @@ class GalleryImage extends WCObject {
 	}
 	
 	function changeCrumbs(&$crumbs){
-		$doc = &$this->getDocument();
+		$doc = $this->getDocument();
 		$crumbs->set($this->ctx->page->uri, (string) @$doc['image']['header']);
 	}
 	
@@ -100,7 +100,7 @@ class GalleryImage extends WCObject {
 					$query .= " LIMIT $o, $l";
 					$thref = $this->ctx->getPlainPattern($_SERVER['REQUEST_URI'], $this->imageid);
 				}
-				$db = &$this->ctx->_getDB();
+				$db = $this->ctx->_getDB();
 				$res = $db->query($query);
 				if(mysql_num_rows($res) > 0) {
 					while($r = mysql_fetch_assoc($res))
@@ -138,13 +138,13 @@ class GalleryImage extends WCObject {
 	}
 	
 	function _inlineEditGetDocId() {
-		$doc = &$this->getDocument();
+		$doc = $this->getDocument();
 		return sizeof($doc['image']) ? $doc['image']['id'] : null;
 	}
 		
 	function &_getDSFields() {
 		static $result;
-		if(!is_array(&$result)) $result = array('ds_id', 'dynamic_ds');
+		if(!is_array($result)) $result = array('ds_id', 'dynamic_ds');
 		return $result;
 	}
 }

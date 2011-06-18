@@ -22,7 +22,7 @@
  */
 	require_once(LIBDIR.'/site/pagereader._wc');
 	require_once('../include/headlines._wc');
-	$pr = &PageReader::getInstance();
+	$pr = PageReader::getInstance();
 	$pagesize = 30;
 	if(intval(@$_COOKIE['pagesize'])>0)
 		$pagesize=$_COOKIE['pagesize'];
@@ -30,14 +30,14 @@
 	$searchclause = $ds->isIndexable  && !isset($_GET['noindex']) ? get_index_clause(@$_GET['search']) : get_clause(@$_GET['search'],'html, s.name, s.header');
 	list($items, $hl) = $_ds->get_headline(@$_GET['page'], $pagesize, $searchclause);
 	if(is_array($searchclause)) {
-		$pages = &$pr->getAllPages();
+		$pages = $pr->getAllPages();
 		$ids = array_keys($hl);
 		for($i = 0, $l = sizeof($ids); $i < $l; $i++) {
 			$hl[$ids[$i]]['uri'] = '<u>'.$pages[$ids[$i]].'</u>';
 		}
 	}
 	$icon='html';
-	$eWidth=820; $eHeight=520;
+	$w=820; $h=520;
 	$editor='htmltext/edit.php?ds_id='.$curnode;
 	$fields=array(
 		'name'=>HL_NAME,
@@ -45,18 +45,9 @@
 		'date'=>HL_DATE
 	);
 	$fieldnames=array(
-		'uri'=>array('name' => 'uri', 'title' => RP_SHOW_URI, 'st' => true),
-		'date'=>array('name' => 'date', 'title' => RP_SHOW_DATE, 'st' => true)
+		'uri'=>RP_SHOW_URI,
+		'date'=>RP_SHOW_DATE
 	);
-	if(sizeof(@$_COOKIE['vd']))
-		foreach($fieldnames as $key => $value){
-			if(!isset($_COOKIE['vd'][$key]))
-				$fieldnames[$key]['st'] = false;
-	        if (!$fieldnames[$key]['st']) unset($fields[$key]);
-		}
-	require_once(LIBDIR.'/pager._wc');
-	$pager = noSqlPager($items, 'page', $pagesize, 10);
-/*	
 	if(is_array(@$_COOKIE['vf']))
 		foreach($_COOKIE['vf'] as $f=>$st)
 			if($st=='disabled') unset($fields[$f]);
@@ -73,5 +64,4 @@
 //	pager('page','dshtmltext','id','WHERE ds_id='.$_ds->ds_id,$pagesize,10,$searchclause);
 	noSqlPager($items, 'page', $pagesize, 10);
 	echo '</documents>';
-*/
 ?>

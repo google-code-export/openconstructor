@@ -37,7 +37,7 @@ class TreeSiteMapView {
 		if($node->published) {
 			if($node->id == $this->tree->root->id)
 				$result .= sprintf(
-					"\$m = & new SiteMap();\n\$m->_root($node->id, '%s', %s);\n"
+					"\$m = new SiteMap();\n\$m->_root($node->id, '%s', %s);\n"
 					, $node->header, strpos($node->users, ',') ? "array($node->users)" : intval($node->users)
 				);
 			else
@@ -51,7 +51,7 @@ class TreeSiteMapView {
 					);
 			if(sizeof($node->node))
 				foreach($node->node as $k => $v)
-					$result .= $this->exportNode(&$node->node[$k], $level + 1);
+					$result .= $this->exportNode($node->node[$k], $level + 1);
 			if($node->id == $this->tree->root->id)
 				$result .= "\$map = &\$m;\nunset(\$m);\n";
 		}

@@ -26,7 +26,7 @@
 	
 	$ds_id=-1;
 	if(@$_GET['ds_id']) $ds_id=intval($_GET['ds_id']);
-	$db = &WCDB::bo();
+	$db = WCDB::bo();
 	$res = $db->query(
 		'SELECT id, name, filename, type, size'.
 		' FROM dsfile'.

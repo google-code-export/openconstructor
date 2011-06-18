@@ -59,9 +59,9 @@ class DSArticle extends WCDataSource
 		if(count($header)<=0&&count($header)!=count($intro)) return false;
 		if($this->isFull()) return false;
 		for($i=0;$i<count($content);$i++)
-			$content[$i] = &$this->cleanHTML(&$content[$i]);
+			$content[$i] = $this->cleanHTML($content[$i]);
 		settype($date, 'int');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'INSERT INTO '.$this->DSTable.
 			' (ds_id, published, header, intro, related, date, wcsowner)'.
@@ -79,7 +79,7 @@ class DSArticle extends WCDataSource
 			
 			$this->updateSize();
 			if($this->autoPublish) {
-				$this->addToIndex($id, $header, &$content, &$intro);
+				$this->addToIndex($id, $header, $content, $intro);
 				$this->evictDocCache();
 			}
 		}
@@ -89,39 +89,39 @@ class DSArticle extends WCDataSource
 
 	function update($id, $header, $content, $date, $related, $intro) {
 		assert($header != '');
-		$rec = &$this->get_record($id);
+		$rec = $this->get_record($id);
 		assert($rec['id'] == $rec['real_id']);
-		$doc = &$this->wrapDocument($rec);
+		$doc = $this->wrapDocument($rec);
 		assert($doc->id > 0);
 		WCS::assertValue(WCS::decide($doc, 'editdoc') || WCS::decide($this, 'editdoc'), $doc, 'editdoc');
 		if(count($header)<=0&&count($header)!=count($intro)) return false;
 		for($i=0;$i<count($content);$i++)
-			$content[$i] = &$this->cleanHTML(&$content[$i]);
+			$content[$i] = $this->cleanHTML($content[$i]);
 		$ids = $this->getAliases($id, true);
 		settype($date, 'int');
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'UPDATE '.$this->DSTable.
 			' SET header="'.addslashes($header[0]).'", intro="'.addslashes($intro).'", related="'.$related.'", date="'.$date.'"'.
 			' WHERE id IN('.implode(',',$ids).')'
 		);
 		
-		$this->updateIndex($id, $header, &$content, &$intro);
+		$this->updateIndex($id, $header, $content, $intro);
 		
 		$this->update_pages($id, $header, $content);
-		$this->evictDocCache(&$ids);
+		$this->evictDocCache($ids);
 		return true;
 	}
 	
 	function update_pages($id, $header, $content) {
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			'SELECT p_id FROM '.$this->pagesTable.
 			' WHERE id='.$id
 		);
 		for($i=1;$i<count($content);$i++)
 		{
-//				if(empty($intro[$i])) $intro[$i]=$this->create_intro(&$content[$i], 100);
+//				if(empty($intro[$i])) $intro[$i]=$this->create_intro($content[$i], 100);
 			if($row = mysql_fetch_assoc($res)) {
 				$db->query(
 					'UPDATE '.$this->pagesTable.
@@ -155,7 +155,7 @@ class DSArticle extends WCDataSource
 		$this->filterDocs($ids);
 		if(!sizeof($ids))
 			return;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		
 		$_ids = implode(',', $ids);
 		
@@ -175,9 +175,9 @@ class DSArticle extends WCDataSource
 		
 		$this->updateSize();
 		
-		$this->removeFromIndex(&$ids);
+		$this->removeFromIndex($ids);
 		
-		$this->evictDocCache(&$ids);
+		$this->evictDocCache($ids);
 	}
 	
 	function set_images($xmin, $ymin, $xmax, $ymax, $intro)
@@ -213,7 +213,7 @@ class DSArticle extends WCDataSource
 				$result=$result&&$this->update_image($id,$image,$imgsize[2]==2?'jpg':'gif',$imgsize[0],$imgsize[1],100);
 			return $result;
 		}
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query('SELECT img_type FROM '.$this->DSTable.' WHERE id='.$id);
 		$r=mysql_fetch_assoc($res);
 		mysql_free_result($res);
@@ -288,7 +288,7 @@ class DSArticle extends WCDataSource
 		$img='IMG SRC="'.FILES.$this->imagepath.$id.($ratio==100?'':'_').'.'.$imgtype.'" BORDER="0" WIDTH="'.intval($width).'" HEIGHT="'.intval($height).'"';
 		$img='"'.addslashes($img).'"';
 		
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'UPDATE '.$this->DSTable.
 			' SET img_main='.$img.', img_type="'.$imgtype.'" WHERE real_id='.$id
@@ -304,7 +304,7 @@ class DSArticle extends WCDataSource
 		if(!$alias) $clause=' d.ds_id='.$this->ds_id.' AND ';
 		
 		$result = array();
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			'SELECT d.*, d0.ds_id as realDsId '.
 			' FROM '.$this->DSTable.' d, '.$this->DSTable.' d0'.
@@ -355,7 +355,7 @@ class DSArticle extends WCDataSource
 		if(!@$id) return false;
 		$res = $this->get_record($id, true);
 		if($res == NULL) return false;
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$db->query(
 			'INSERT INTO '.$this->DSTable.
 				' (real_id, ds_id, published, header, intro, related, date, img_main, img_type, wcsowner)'.//
@@ -367,7 +367,7 @@ class DSArticle extends WCDataSource
 	function evictDocCache($ids = array()) {
 		settype($ids, 'array');
 		$rIds = array();
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		foreach($ids as $id) {
 			$res = $db->query(
 				'SELECT id FROM '.$this->DSTable.' WHERE ds_id='.$this->ds_id.' AND published>0 AND FIND_IN_SET("'.$id.'",related)>0'
@@ -379,13 +379,13 @@ class DSArticle extends WCDataSource
 		}
 		if(sizeof($rIds))
 			$ids = array_unique(array_merge($ids, $rIds));
-		parent::evictDocCache(&$ids);
+		parent::evictDocCache($ids);
 	}
 	
 	function &getIndexableDocs($id = null) {
 		$result = array();
 		$cond = ($id != null ? "d.id IN ($id) AND " : '')."d.ds_id = {$this->ds_id}";
-		$db = &WCDB::bo();
+		$db = WCDB::bo();
 		$res = $db->query(
 			"SELECT d.id, d.header, CONCAT_WS(' ', GROUP_CONCAT(p.header SEPARATOR ' '), GROUP_CONCAT(p.content SEPARATOR ' ')) as content, d.intro".
 			" FROM {$this->DSTable} d, {$this->pagesTable} p".

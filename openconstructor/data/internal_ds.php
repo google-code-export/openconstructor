@@ -90,7 +90,7 @@
 	<header><?=htmlspecialchars($ds->name, ENT_COMPAT, 'UTF-8')?></header>
 <?php
 		include('internal_toolbar._wc');
-		toolbar(&$toolbar);
+		toolbar($toolbar);
 		if(intval($curnode)>0) {
 			require_once($nodetype.'/headline._wc');
 		} else echo '&#160;';

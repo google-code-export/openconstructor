@@ -28,18 +28,18 @@
 	require_once($_SERVER['DOCUMENT_ROOT'].WCHOME.'/include/toolbar._wc');
 	require_once(LIBDIR.'/dsmanager._wc');
 	$dsm = new DSManager();
-	$_ds = &$dsm->load($_GET['ds_id']);
+	$_ds = $dsm->load($_GET['ds_id']);
 	if($_GET['id']!='new')
 	{
 		$_doc=$_ds->get_record($_GET['id']);
 		assert($_doc !== null);
 		if($_doc['id']!= $_doc['real_id']) {
-			$_ds = &$dsm->load($_doc['realDsId']);
-			$_doc = &$_ds->get_record($_doc['real_id']);
+			$_ds = $dsm->load($_doc['realDsId']);
+			$_doc = $_ds->get_record($_doc['real_id']);
 		}
 	} else {
 		loadClass('user', '/security/user._wc');
-		$user = &User::load(Authentication::getOriginalUserId());
+		$user = User::load(Authentication::getOriginalUserId());
 		$_doc = array('author'=>$user->name,'email'=>$user->email,'real_id'=>NULL);
 	}
 	$m = array();
@@ -123,7 +123,7 @@
 <nobr>
 <?php
 	$save = @$_GET['hybridid'] > 0 || ($_GET['id'] == 'new' ? WCS::decide($_ds, 'createdoc') : WCS::decide($_ds, 'editdoc') || WCS::decide($sDoc, 'editdoc'));
-	toolbar(array(
+	toolbar($toolbar=array(
 		BTN_NEW_DOCUMENT=>array('pic'=>'newdocument','action'=>'window.location.assign("?id=new&ds_id='.$_GET['ds_id'].'")'),
 		BTN_SAVE=>array('pic'=>'save','action' => $save ? 'sendData()' : ''),
 		'separator',
@@ -153,6 +153,7 @@
 		BTN_EDIT_TAG_PROPS=>array('pic'=>'attribute','action'=>'editProps()'),
 		BTN_EDIT_SOURCE=>array('pic'=>'editsrc','action'=>'editsource()')
 	));
+	unset($toolbar);
 ?><wbr><IMG SRC="<?=WCHOME?>/i/default/e/separator.gif" align="top"> <SELECT size=1 id="tagID" align="absmiddle"><?php
 	foreach(explode(',','H1,H2,H3,H4,DIV,SPAN,NOBR') as $tag)
 		if(array_search($tag,$allowed)!==false)
