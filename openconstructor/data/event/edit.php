@@ -114,8 +114,9 @@
 		echo '>'.constant('MONTH_'.$i);
 	}
 	echo '</select>';
+	$maxYear = date("Y") + 10;
 	echo '<select size=1 name="year">';
-	for($i=1999;$i<=2010;$i++)
+	for($i=1999;$i<=$maxYear;$i++)
 	{
 		echo '<option value='.$i;
 		if($i==$year) echo ' selected';
@@ -136,7 +137,7 @@
 	}
 	echo '</select>';
 	echo '<select size=1 name="end_year">';
-	for($i=1999;$i<=2010;$i++)
+	for($i=1999;$i<=$maxYear;$i++)
 	{
 		echo '<option value='.$i;
 		if($i==$year) echo ' selected';
