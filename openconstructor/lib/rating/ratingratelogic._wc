@@ -128,8 +128,8 @@ class RatingRateLogic extends WCObject {
 			return;
 		require_once(LIBDIR.'/wcmessage._wc');
 		$content = array(
-			'ratingHref' => "http://{$GLOBALS['_host']}{$GLOBALS['_wchome']}/data/guestbook/edit.php?ds_id={$ds->ds_id}&id={$doc['id']}",
-			'voteHref' => "http://{$GLOBALS['_host']}{$GLOBALS['_wchome']}/data/guestbook/editvote.php?ds_id={$ds->ds_id}&rid={$doc['id']}&id={$userId}",
+			'ratingHref' => "http://{$GLOBALS['_host']}{$GLOBALS['_wchome']}/data/rating/edit.php?ds_id={$ds->ds_id}&id={$doc['id']}",
+			'voteHref' => "http://{$GLOBALS['_host']}{$GLOBALS['_wchome']}/data/rating/editvote.php?ds_id={$ds->ds_id}&rid={$doc['id']}&id={$userId}",
 			'dsName' => $ds->name,
 			'dsHref' => "http://{$GLOBALS['_host']}{$GLOBALS['_wchome']}/data/?node={$ds->ds_id}",
 			'doc' => array('header' => $doc['header'], 'rating' => $doc['rating'], 'votes' => $doc['raters'], 'date' => $doc['date']),

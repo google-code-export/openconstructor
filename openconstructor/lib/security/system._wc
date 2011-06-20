@@ -64,12 +64,6 @@ class System {
 		$res->addAction('inlineedit');
 		
 		$res->addAction('data.dshtmltext');
-		$res->addAction('data.dspublication');
-		$res->addAction('data.dsevent');
-		$res->addAction('data.dsgallery');
-		$res->addAction('data.dsarticle');
-		$res->addAction('data.dstextpool');
-		$res->addAction('data.dsguestbook');
 		$res->addAction('data.dsphpsource');
 		$res->addAction('data.dsfile');
 		$res->addAction('data.dshybrid');
@@ -77,12 +71,6 @@ class System {
 		$res->addAction('data.enum');
 		
 		$res->addAction('objects.dshtmltext');
-		$res->addAction('objects.dspublication');
-		$res->addAction('objects.dsevent');
-		$res->addAction('objects.dsgallery');
-		$res->addAction('objects.dsarticle');
-		$res->addAction('objects.dstextpool');
-		$res->addAction('objects.dsguestbook');
 		$res->addAction('objects.dsphpsource');
 		$res->addAction('objects.dsfile');
 		$res->addAction('objects.dshybrid');
@@ -92,12 +80,6 @@ class System {
 		$res->addAction('objects.dssearch');
 		
 		$res->addAction('tpls.dshtmltext');
-		$res->addAction('tpls.dspublication');
-		$res->addAction('tpls.dsevent');
-		$res->addAction('tpls.dsgallery');
-		$res->addAction('tpls.dsarticle');
-		$res->addAction('tpls.dstextpool');
-		$res->addAction('tpls.dsguestbook');
 		$res->addAction('tpls.dsphpsource');
 		$res->addAction('tpls.dsfile');
 		$res->addAction('tpls.dshybrid');

@@ -49,30 +49,6 @@ $toolbar=array(
 		'pic'=>'html',
 		'action'=>System::decide('data.dshtmltext') ? 'wxyopen(wchome+"/data/create_htmltext.php",550,500)' : ''
 	),
-	CREATE_DS_PUBLICATION => array(
-		'pic'=>'publication',
-		'action'=>System::decide('data.dspublication') ? 'wxyopen(wchome+"/data/create_publication.php",550)' : ''
-	),
-	CREATE_DS_EVENT => array(
-		'pic'=>'event',
-		'action'=>System::decide('data.dsevent') ? 'wxyopen(wchome+"/data/create_event.php",550)' : ''
-	),
-	CREATE_DS_GALLERY => array(
-		'pic'=>'picture',
-		'action'=>System::decide('data.dsgallery') ? 'wxyopen(wchome+"/data/create_gallery.php",550)' : ''
-	),
-	CREATE_DS_ARTICLE => array(
-		'pic'=>'article',
-		'action'=>System::decide('data.dsarticle') ? 'wxyopen(wchome+"/data/create_article.php",550)' : ''
-	),
-	CREATE_DS_TEXTPOOL => array(
-		'pic'=>'txt',
-		'action'=>System::decide('data.dstextpool') ? 'wxyopen(wchome+"/data/create_textpool.php",550,500)' : ''
-	),
-	CREATE_DS_GUESTBOOK => array(
-		'pic'=>'book',
-		'action'=>System::decide('data.dsguestbook') ? 'wxyopen(wchome+"/data/create_guestbook.php",550,500)' : ''
-	),
 	CREATE_DS_PHPSOURCE => array(
 		'pic'=>'php',
 		'action'=>System::decide('data.dsphpsource') ? 'wxyopen(wchome+"/data/create_phpsource.php",550,500)' : ''

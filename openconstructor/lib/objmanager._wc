@@ -36,47 +36,6 @@ class ObjManager {
 				'htmltexthl'=>OBJ_HTMLTEXT_HL,
 				'htmltexthlintro'=>OBJ_HTMLTEXT_HL_INTRO
 			)),
-			'publication'=>array(DS_PUBLICATION=>array(
-				'publicationhl'=>OBJ_PUBLICATION_HL,
-				'publicationhlintro'=>OBJ_PUBLICATION_HL_INTRO,
-				'publicationlist'=>OBJ_PUBLICATION_LIST,
-				'publicationlistintro'=>OBJ_PUBLICATION_LIST_INTRO,
-				'publicationmainintro'=>OBJ_PUBLICATION_MAIN_INTRO,
-				'publicationbody'=>OBJ_PUBLICATION_BODY,
-				'publicationpager'=>OBJ_PUBLICATION_PAGER
-			)),
-			'event'=>array(DS_EVENT=>array(
-				'eventcalendar'=>OBJ_EVENT_CALENDAR,
-				'eventhl'=>OBJ_EVENT_HL,
-				'eventhlintro'=>OBJ_EVENT_HL_INTRO,
-				'eventbody'=>OBJ_EVENT_BODY,
-				'eventpager'=>OBJ_EVENT_PAGER
-			)),
-			'gallery'=>array(DS_GALLERY=>array(
-				'galleryhl'=>OBJ_GALLERY_HL,
-				'gallerypager'=>OBJ_GALLERY_PAGER,
-				'galleryimage'=>OBJ_GALLERY_IMAGE,
-				'galleryimgpager'=>OBJ_GALLERY_IMG_PAGER
-			)),
-			'article'=>array(DS_ARTICLE=>array(
-				'articlehl'=>OBJ_ARTICLE_HL,
-				'articlehlintro'=>OBJ_ARTICLE_HL_INTRO,
-				'articlebody'=>OBJ_ARTICLE_BODY,
-				'articlebodypager'=>OBJ_ARTICLE_BODY_PAGER,
-				'articlerelated'=>OBJ_ARTICLE_RELATED,
-				'articlepager'=>OBJ_ARTICLE_PAGER
-			)),
-			'textpool'=>array(DS_TEXTPOOL=>array(
-				'textrandom'=>OBJ_TEXT_RANDOM
-			)),
-			'guestbook'=>array(DS_GUESTBOOK=>array(
-				'gbmsghl'=>OBJ_GB_MSG_HL,
-				'gballmessages'=>OBJ_GB_ALL_MESSAGES,
-				'gbmsgbody'=>OBJ_GB_MSG_BODY,
-				'gbaddmsglogic'=>OBJ_GB_ADDMSG_LOGIC,
-				'gbpager'=>OBJ_GB_PAGER,
-				'gblist'=>OBJ_GB_LIST
-			)),
 			'file'=>array(DS_FILE=>array(
 				'filehl'=>OBJ_FILE_HL,
 				'filepager'=>OBJ_FILE_PAGER
@@ -333,12 +292,7 @@ class ObjManager {
 		static $crumbs;
 		if(!is_array($crumbs))
 			$crumbs = array_flip(array(
-				'articlebody',
-				'eventbody', 'eventcalendar',
-				'galleryimage',
-				'gbmsgbody',
-				'hybridbody', 'hybridhl', 'hybridtree',
-				'publicationbody', 'publicatoinmainintro'
+				'hybridbody', 'hybridhl', 'hybridtree'
 			));
 		return isset($crumbs[$class]);
 	}

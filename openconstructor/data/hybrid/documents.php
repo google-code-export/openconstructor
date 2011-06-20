@@ -28,22 +28,8 @@
 	$pageSize = 50;
 	if(isset($_GET['keyword']))
 		switch(@$_GET['doctype']) {
-			case 'publication':
-			case 'event':
-			case 'gallery':
-				list($items, $hl) = get_headline('ds'.$_GET['doctype'], intval(@$_GET['ds_id']), 'header', $pageSize, 1, get_clause(@$_GET['keyword'], 'header, content'));
-			break;
 			case 'hybrid':
 				list($items, $hl) = get_hybrid_headline(intval(@$_GET['ds_id']), true, false, $pageSize, 1, get_clause(@$_GET['keyword'], 'header'));
-			break;
-			case 'article':
-				list($items, $hl) = get_headline('ds'.$_GET['doctype'], intval(@$_GET['ds_id']), 'header', $pageSize, 1, get_clause(@$_GET['keyword'], 'header, intro'));
-			break;
-			case 'textpool':
-				list($items, $hl) = get_headline('ds'.$_GET['doctype'], intval(@$_GET['ds_id']), 'header', $pageSize, 1, get_clause(@$_GET['keyword'], 'header, html'));
-			break;
-			case 'guestbook':
-				list($items, $hl) = get_headline('ds'.$_GET['doctype'], intval(@$_GET['ds_id']), 'subject as header', $pageSize, 1, get_clause(@$_GET['keyword'], 'subject, html'));
 			break;
 			case 'file':
 				list($items, $hl) = get_headline('ds'.$_GET['doctype'], intval(@$_GET['ds_id']), 'name as header', $pageSize, 1, get_clause(@$_GET['keyword'], 'name, description, filename'));

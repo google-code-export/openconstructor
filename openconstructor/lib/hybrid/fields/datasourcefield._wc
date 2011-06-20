@@ -37,7 +37,8 @@ class DatasourceField extends HybridField {
 		if(parent::create())
 			$this->update();
 		$ds = FieldUtils::loadDS($this->type, $this->fromDS);
-		$ds->increaseLock();
+		if ($ds !== null)
+			$ds->increaseLock();
 		return $this->id;
 	}
 
@@ -62,7 +63,8 @@ class DatasourceField extends HybridField {
 		}
 		mysql_free_result($res);
 		$ds = FieldUtils::loadDS($this->type, $this->fromDS);
-		$ds->decreaseLock();
+		if ($ds !== null) 
+			$ds->decreaseLock();
 		parent::remove();
 	}
 
@@ -92,7 +94,7 @@ class DatasourceField extends HybridField {
 
 	function getMysqlType() {
 		switch($this->type) {
-			case 'htmltext': case 'publication': case 'event': case 'gallery': case 'article': case 'textpool': case 'guestbook': case 'file':
+			case 'htmltext': case 'file':
 				return 'INT(11) UNSIGNED';
 		}
 		return null;

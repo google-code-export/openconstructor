@@ -30,12 +30,6 @@ class DSManager {
 		$this->first = null;
 		$this->types=array(
 			'htmltext'=>DS_HTMLTEXT,
-			'publication'=>DS_PUBLICATION,
-			'event'=>DS_EVENT,
-			'gallery'=>DS_GALLERY,
-			'article'=>DS_ARTICLE,
-			'textpool'=>DS_TEXTPOOL,
-			'guestbook'=>DS_GUESTBOOK,
 			'file'=>DS_FILE,
 			'phpsource'=>DS_PHPSOURCE,
 			'hybrid'=>DS_HYBRID,

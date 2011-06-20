@@ -81,7 +81,6 @@
 	echo '<hidden name="dest_ds_id" value="'.$curnode.'"/>';
 	print_headline($hl);
 	require_once(LIBDIR.'/pager._wc');
-//	pager('page','dsguestbook','id','WHERE ds_id='.$curnode,$pagesize,10,$searchclause);
 	noSqlPager($items, 'page', $pagesize, 10);
 	echo '</documents>';
 ?>

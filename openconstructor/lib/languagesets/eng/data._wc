@@ -49,40 +49,7 @@
 	define('DS_CLEAN_HTML','HTML Filtration');
 	define('DS_ENABLE_CLEAN_HTML','HTML Filtration Switch on');
 	define('DS_ALLOWED_TAGS','Allow only');
-	
-	//Публикации
-	define('EDIT_DS_PUBLICATION','Edit a Publication Section');
-	define('DS_RECORD_INTRO','Intro');
-	define('DS_GRAPH_PROPS','Graphics');
-	define('DS_GRAPH_BOUNDS','Restrictions');
-	define('DS_GRAPH_MIN_RECT','Small Rectangle');
-	define('DS_GRAPH_WIDTH','Width');
-	define('DS_GRAPH_HEIGHT','Height');
-	define('DS_GRAPH_MAX_RECT','Large Rectangle');
-	define('DS_GRAPH_IMAGES','Illustration');
-	define('DS_GRAPH_IMAGEMAIN','Big Picture');
-	define('DS_GRAPH_IMAGEINTRO','Intro Picture');
-	define('DS_GRAPH_IMAGEINTRO_SIZE','Size');
-	define('DS_GRAPH_PERCENT_10_100','% of restrictions (10%-100%)');
-	define('DS_ATTACHED_GALLERY','Gallery');
-	define('DS_AUTO_ATTACH_GALLERY','Attach a Gallery');
-	
-	//Календарь событий
-	define('EDIT_DS_EVENT','Events Section Editing');
-	define('DS_EVENTS_YEAR','Year');
-	
-	//Фото галерея
-	define('EDIT_DS_GALLERY','Photogallery Editing');
-	
-	//Статьи
-	define('EDIT_DS_ARTICLE','Articles Section Editing');
-	
-	//Пул текстов
-	define('EDIT_DS_TEXTPOOL','Text Pool Editing');
-	
-	//Гостевая книга
-	define('EDIT_DS_GUESTBOOK','Guest Book Editing');
-	
+
 	//PHP код
 	define('EDIT_DS_PHPSOURCE','PHP Source Section Edition');
 	
@@ -121,12 +88,6 @@
 	@define('CREATE_DS_HTMLTEXT','Create HTML code section');
 	define('DS_SIZE','size of a section');
 	define('DS_RECORDS','documents');
-	@define('CREATE_DS_PUBLICATION','Create new Publications section');
-	@define('CREATE_DS_EVENT','Create new Events section');
-	@define('CREATE_DS_GALLERY','Create new Photo Gallery section');
-	@define('CREATE_DS_ARTICLE','Create new Articles section');
-	@define('CREATE_DS_TEXTPOOL','Create new Text Pool');
-	@define('CREATE_DS_GUESTBOOK','Create new Guest Book section');
 	@define('CREATE_DS_PHPSOURCE','Create new PHP code section');
 	@define('CREATE_DS_FILE','create new File section');
 	define('DS_ALLOWED_FILETYPES','Allowed file types');

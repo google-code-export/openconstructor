@@ -73,7 +73,8 @@ class RatingField extends HybridField {
 			WCS::stopRunAs();
 		}
 		mysql_free_result($res);
-		$ds->decreaseLock(); 
+		if ($ds !== null)
+			$ds->decreaseLock(); 
 		parent::remove();
 	}
 	
