@@ -57,8 +57,8 @@
 		window.onload = function() {
 			disableToolbarButtons();
 			docsHref = document.getElementById('iframe.votes').src;
-			new CalendarWidget(document.getElementById("txt.from"), document.getElementById("btn.from"), 2000, 2010, "calendar", "<?=LANGUAGE?>");
-			new CalendarWidget(document.getElementById("txt.to"), document.getElementById("btn.to"), 2000, 2010, "calendar", "<?=LANGUAGE?>");
+			new CalendarWidget(document.getElementById("txt.from"), document.getElementById("btn.from"), 2000, (new Date()).getUTCFullYear() + 10, "calendar", "<?=LANGUAGE?>");
+			new CalendarWidget(document.getElementById("txt.to"), document.getElementById("btn.to"), 2000, (new Date()).getUTCFullYear() + 10, "calendar", "<?=LANGUAGE?>");
 		}
 	</script>
 	<script src="editor.js"></script>

@@ -60,7 +60,7 @@
 		skin='<?=SKIN?>'
 		;
 	function init() {
-		new CalendarWidget(document.getElementById('date'),document.getElementById('btn.date'),2000,2010,"calendar","<?=LANGUAGE?>");
+		new CalendarWidget(document.getElementById('date'),document.getElementById('btn.date'),2000,(new Date()).getUTCFullYear() + 10,"calendar","<?=LANGUAGE?>");
 	}
 	function sendData()
 	{

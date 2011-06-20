@@ -70,7 +70,7 @@
 				);
 				keys.addTarget(document.getElementById('iframe.comment').contentWindow.document, document.getElementById('iframe.comment').contentWindow);
 				if(document.getElementById("txt.date"))
-					new CalendarWidget(document.getElementById("txt.date"), document.getElementById("btn.date"), 2000, 2010, "calendar", "<?=LANGUAGE?>");
+					new CalendarWidget(document.getElementById("txt.date"), document.getElementById("btn.date"), 2000, (new Date()).getUTCFullYear() + 10, "calendar", "<?=LANGUAGE?>");
 				updateSaveState();
 			}
 			var saveable = <?=(int) $save?>,
