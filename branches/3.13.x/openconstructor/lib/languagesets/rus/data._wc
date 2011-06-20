@@ -52,46 +52,7 @@
 	define('DS_CLEAN_HTML','Фильтрация');
 	define('DS_ENABLE_CLEAN_HTML','Включить фильтрацию');
 	define('DS_ALLOWED_TAGS','Разрешить только');
-	
-	//Публикации
-	@define('CREATE_DS_PUBLICATION','Создание раздела публикаций');
-	define('EDIT_DS_PUBLICATION','Редактирование раздела публикаций');
-	define('DS_RECORD_INTRO','Интро');
-	define('DS_GRAPH_PROPS','Графика');
-	define('DS_GRAPH_BOUNDS','Ограничения');
-	define('DS_GRAPH_MIN_RECT','Малый прямоугольник');
-	define('DS_GRAPH_WIDTH','Ширина');
-	define('DS_GRAPH_HEIGHT','Высота');
-	define('DS_GRAPH_MAX_RECT','Большой прямоугольник');
-	define('DS_GRAPH_IMAGES','Иллюстрация');
-	define('DS_GRAPH_IMAGEMAIN','Большая картинка');
-	define('DS_GRAPH_IMAGEINTRO','Интро картинка');
-	define('DS_GRAPH_IMAGEINTRO_SIZE','Размер');
-	define('DS_GRAPH_PERCENT_10_100','% от ограничений(10%-100%)');
-	define('DS_ATTACHED_GALLERY','Галерея');
-	define('DS_AUTO_ATTACH_GALLERY','Прикреплять галерею');
-	
-	//Календарь событий
-	@define('CREATE_DS_EVENT','Создание раздела событий');
-	define('EDIT_DS_EVENT','Редактирование раздела событий');
-	define('DS_EVENTS_YEAR','Год');
-	
-	//Фото галерея
-	@define('CREATE_DS_GALLERY','Создание фотогалереи');
-	define('EDIT_DS_GALLERY','Редактирование фотогалереи');
-	
-	//Статьи
-	@define('CREATE_DS_ARTICLE','Создание раздела статей');
-	define('EDIT_DS_ARTICLE','Редактирование раздела статей');
-	
-	//Пул текстов
-	@define('CREATE_DS_TEXTPOOL','Создание пула текстов');
-	define('EDIT_DS_TEXTPOOL','Редактирование пула текстов');
-	
-	//Гостевая книга
-	@define('CREATE_DS_GUESTBOOK','Создание гостевой книги');
-	define('EDIT_DS_GUESTBOOK','Редактирование гостевой книги');
-	
+
 	//PHP код
 	@define('CREATE_DS_PHPSOURCE','Создание раздела PHP кодов');
 	define('EDIT_DS_PHPSOURCE','Редактирование раздела PHP кодов');

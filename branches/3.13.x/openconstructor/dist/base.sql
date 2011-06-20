@@ -87,7 +87,7 @@ INSERT INTO `catalogtree` (`id`, `num`, `parent`, `next`, `level`, `name`, `head
 DROP TABLE IF EXISTS `datasources`;
 CREATE TABLE `datasources` (
   `ds_id` int(11) unsigned NOT NULL auto_increment,
-  `ds_type` enum('htmltext','publication','event','gallery','article','textpool','guestbook','phpsource','file','hybrid','rating') NOT NULL default 'htmltext',
+  `ds_type` enum('htmltext','phpsource','file','hybrid','rating') NOT NULL default 'htmltext',
   `docs` int(6) unsigned NOT NULL default '0',
   `indexed` int(1) NOT NULL default '0',
   `name` varchar(64) NOT NULL default '',
@@ -109,87 +109,6 @@ CREATE TABLE `datasources` (
 
 -- 
 -- Dumping data for table `datasources`
--- 
-
-
--- --------------------------------------------------------
-
--- 
--- Table structure for table `dsarticle`
--- 
-
-DROP TABLE IF EXISTS `dsarticle`;
-CREATE TABLE `dsarticle` (
-  `id` int(11) unsigned NOT NULL auto_increment,
-  `real_id` int(11) unsigned NOT NULL default '0',
-  `ds_id` int(11) unsigned NOT NULL default '0',
-  `published` int(1) unsigned default '0',
-  `header` varchar(255) NOT NULL default '',
-  `intro` text,
-  `related` varchar(255) default NULL,
-  `date` int(10) unsigned NOT NULL default '0',
-  `img_main` varchar(128) default NULL,
-  `img_type` varchar(3) NOT NULL default '',
-  `wcsowner` int(10) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`id`),
-  KEY `ds_id` (`ds_id`,`published`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
-
--- 
--- Dumping data for table `dsarticle`
--- 
-
-
--- --------------------------------------------------------
-
--- 
--- Table structure for table `dsarticlepages`
--- 
-
-DROP TABLE IF EXISTS `dsarticlepages`;
-CREATE TABLE `dsarticlepages` (
-  `p_id` int(11) unsigned NOT NULL auto_increment,
-  `id` int(11) unsigned NOT NULL default '0',
-  `page` int(2) unsigned default '0',
-  `header` varchar(255) NOT NULL default '',
-  `content` text,
-  PRIMARY KEY  (`p_id`),
-  KEY `article` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
-
--- 
--- Dumping data for table `dsarticlepages`
--- 
-
-
--- --------------------------------------------------------
-
--- 
--- Table structure for table `dsevent`
--- 
-
-DROP TABLE IF EXISTS `dsevent`;
-CREATE TABLE `dsevent` (
-  `id` int(11) unsigned NOT NULL auto_increment,
-  `real_id` int(11) unsigned NOT NULL default '0',
-  `ds_id` int(11) unsigned NOT NULL default '0',
-  `published` int(1) unsigned default NULL,
-  `header` varchar(255) NOT NULL default '',
-  `intro` text,
-  `content` text,
-  `date` int(10) unsigned NOT NULL default '0',
-  `end_date` int(10) unsigned NOT NULL default '0',
-  `place` text,
-  `img_intro` varchar(128) default NULL,
-  `img_main` varchar(128) default NULL,
-  `img_type` varchar(3) NOT NULL default '',
-  `wcsowner` int(10) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`id`),
-  KEY `ds_id` (`ds_id`,`published`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
-
--- 
--- Dumping data for table `dsevent`
 -- 
 
 
@@ -221,61 +140,6 @@ CREATE TABLE `dsfile` (
 
 -- 
 -- Dumping data for table `dsfile`
--- 
-
-
--- --------------------------------------------------------
-
--- 
--- Table structure for table `dsgallery`
--- 
-
-DROP TABLE IF EXISTS `dsgallery`;
-CREATE TABLE `dsgallery` (
-  `id` int(11) unsigned NOT NULL auto_increment,
-  `real_id` int(11) unsigned NOT NULL default '0',
-  `ds_id` int(11) unsigned NOT NULL default '0',
-  `published` int(1) unsigned default NULL,
-  `header` varchar(255) NOT NULL default '',
-  `content` text,
-  `date` int(10) unsigned NOT NULL default '0',
-  `img_intro` varchar(128) default NULL,
-  `img_main` varchar(128) default NULL,
-  `img_type` varchar(3) NOT NULL default '',
-  `wcsowner` int(10) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`id`),
-  KEY `ds_id` (`ds_id`,`published`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
-
--- 
--- Dumping data for table `dsgallery`
--- 
-
-
--- --------------------------------------------------------
-
--- 
--- Table structure for table `dsguestbook`
--- 
-
-DROP TABLE IF EXISTS `dsguestbook`;
-CREATE TABLE `dsguestbook` (
-  `id` int(11) unsigned NOT NULL auto_increment,
-  `real_id` int(11) unsigned NOT NULL default '0',
-  `ds_id` int(11) unsigned NOT NULL default '0',
-  `published` int(1) unsigned default NULL,
-  `subject` varchar(255) NOT NULL default '',
-  `author` varchar(128) default NULL,
-  `email` varchar(255) default NULL,
-  `html` text,
-  `date` int(10) unsigned NOT NULL default '0',
-  `wcsowner` int(10) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`id`),
-  KEY `ds_id` (`ds_id`,`published`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
-
--- 
--- Dumping data for table `dsguestbook`
 -- 
 
 
@@ -390,37 +254,6 @@ CREATE TABLE `dsphpsource` (
 -- --------------------------------------------------------
 
 -- 
--- Table structure for table `dspublication`
--- 
-
-DROP TABLE IF EXISTS `dspublication`;
-CREATE TABLE `dspublication` (
-  `id` int(11) unsigned NOT NULL auto_increment,
-  `real_id` int(11) unsigned NOT NULL default '0',
-  `ds_id` int(11) unsigned NOT NULL default '0',
-  `published` int(1) unsigned default '0',
-  `main` int(1) unsigned NOT NULL default '0',
-  `gallery` int(11) unsigned default NULL,
-  `header` varchar(255) NOT NULL default '',
-  `intro` text,
-  `content` text,
-  `date` int(10) unsigned NOT NULL default '0',
-  `img_intro` varchar(128) default NULL,
-  `img_main` varchar(128) default NULL,
-  `img_type` varchar(3) NOT NULL default '',
-  `wcsowner` int(10) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`id`),
-  KEY `ds_id` (`ds_id`,`published`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
-
--- 
--- Dumping data for table `dspublication`
--- 
-
-
--- --------------------------------------------------------
-
--- 
 -- Table structure for table `dsrating`
 -- 
 
@@ -463,31 +296,6 @@ CREATE TABLE `dsratinglog` (
 
 -- 
 -- Dumping data for table `dsratinglog`
--- 
-
-
--- --------------------------------------------------------
-
--- 
--- Table structure for table `dstextpool`
--- 
-
-DROP TABLE IF EXISTS `dstextpool`;
-CREATE TABLE `dstextpool` (
-  `id` int(11) unsigned NOT NULL auto_increment,
-  `real_id` int(11) unsigned NOT NULL default '0',
-  `ds_id` int(11) unsigned NOT NULL default '0',
-  `published` int(1) unsigned default NULL,
-  `header` varchar(255) NOT NULL default '',
-  `html` text,
-  `date` int(10) unsigned NOT NULL default '0',
-  `wcsowner` int(10) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`id`),
-  KEY `ds_id` (`ds_id`,`published`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
-
--- 
--- Dumping data for table `dstextpool`
 -- 
 
 
@@ -564,7 +372,7 @@ CREATE TABLE `hybriddatasources` (
 DROP TABLE IF EXISTS `index`;
 CREATE TABLE `index` (
   `ds_id` int(11) NOT NULL default '0',
-  `ds_type` enum('publication','event','gallery','article','textpool','hybrid','guestbook','htmltext','file') NOT NULL default 'publication',
+  `ds_type` enum('hybrid','htmltext','file') NOT NULL default 'htmltext',
   `document_id` int(11) NOT NULL default '0',
   `header` varchar(255) NOT NULL default '',
   `content` text,
@@ -744,7 +552,7 @@ DROP TABLE IF EXISTS `wcsgroups`;
 CREATE TABLE `wcsgroups` (
   `id` int(10) unsigned NOT NULL auto_increment,
   `name` varchar(32) NOT NULL default '',
-  `auths` set('catalog','catalog.filter','catalog.tree','data','data.dsarticle','data.dsevent','data.dsfile','data.dsgallery','data.dsguestbook','data.dshtmltext','data.dshybrid','data.dsphpsource','data.dspublication','data.dsrating','data.dstextpool','data.enum','inlineedit','objects','objects.dsarticle','objects.dsevent','objects.dsfile','objects.dsgallery','objects.dsguestbook','objects.dshtmltext','objects.dshybrid','objects.dsmiscellany','objects.dsphpsource','objects.dspublication','objects.dsrating','objects.dssearch','objects.dstextpool','objects.dsusers','sitemap','tpls','tpls.dsarticle','tpls.dsevent','tpls.dsfile','tpls.dsgallery','tpls.dsguestbook','tpls.dshtmltext','tpls.dshybrid','tpls.dsmiscellany','tpls.dsphpsource','tpls.dspublication','tpls.dsrating','tpls.dssearch','tpls.dssite','tpls.dstextpool','users','users.manage') NOT NULL default '',
+  `auths` set('catalog','catalog.filter','catalog.tree','data','data.dsfile','data.dshtmltext','data.dshybrid','data.dsphpsource','data.dsrating','data.enum','inlineedit','objects','objects.dsfile','objects.dshtmltext','objects.dshybrid','objects.dsmiscellany','objects.dsphpsource','objects.dsrating','objects.dssearch','objects.dsusers','sitemap','tpls','tpls.dsfile','tpls.dshtmltext','tpls.dshybrid','tpls.dsmiscellany','tpls.dsphpsource','tpls.dsrating','tpls.dssearch','tpls.dssite','users','users.manage') NOT NULL default '',
   `title` varchar(128) NOT NULL default '',
   `umask` varchar(64) default 'NULL',
   `builtin` int(1) unsigned NOT NULL default '0',

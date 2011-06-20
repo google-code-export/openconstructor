@@ -68,12 +68,6 @@
 	define('SYS_USERS', 'Видеть вкладку "Пользователи"');
 	
 	define('SYS_DATA_DSHTMLTEXT', 'Создавать разделы HTML текст');
-	define('SYS_DATA_DSPUBLICATION', 'Создавать разделы Публикаций');
-	define('SYS_DATA_DSEVENT', 'Создавать Календари событий');
-	define('SYS_DATA_DSGALLERY', 'Создавать Фото галереи');
-	define('SYS_DATA_DSARTICLE', 'Создавать разделы Статей');
-	define('SYS_DATA_DSTEXTPOOL', 'Создавать Пулы текстов');
-	define('SYS_DATA_DSGUESTBOOK', 'Создавать Гостевые книги');
 	define('SYS_DATA_DSPHPSOURCE', 'Создавать разделы PHP кода');
 	define('SYS_DATA_DSFILE', 'Создавать разделы Файлов');
 	define('SYS_DATA_DSHYBRID', 'Создавать Гибридные разделы');
@@ -81,12 +75,6 @@
 	define('SYS_DATA_ENUM', 'Создавать Перечисления(enum)');
 	
 	define('SYS_OBJECTS_DSHTMLTEXT', 'Создавать объекты HTML текста');
-	define('SYS_OBJECTS_DSPUBLICATION', 'Создавать объекты Публикаций');
-	define('SYS_OBJECTS_DSEVENT', 'Создавать объекты Календаря событий');
-	define('SYS_OBJECTS_DSGALLERY', 'Создавать объекты Фотогалерей');
-	define('SYS_OBJECTS_DSARTICLE', 'Создавать объекты Статей');
-	define('SYS_OBJECTS_DSTEXTPOOL', 'Создавать объекты Пула текстов');
-	define('SYS_OBJECTS_DSGUESTBOOK', 'Создавать объекты Гостевой книги');
 	define('SYS_OBJECTS_DSPHPSOURCE', 'Создавать объекты PHP кода');
 	define('SYS_OBJECTS_DSFILE', 'Создавать объекты Файлов');
 	define('SYS_OBJECTS_DSHYBRID', 'Создавать объекты Гибридных данных');
@@ -96,12 +84,6 @@
 	define('SYS_OBJECTS_DSRATING', 'Создавать объекты Журналов оценок');
 	
 	define('SYS_TPLS_DSHTMLTEXT', 'Создавать шаблоны HTML текста');
-	define('SYS_TPLS_DSPUBLICATION', 'Создавать шаблоны Публикаций');
-	define('SYS_TPLS_DSEVENT', 'Создавать шаблоны Календаря событий');
-	define('SYS_TPLS_DSGALLERY', 'Создавать шаблоны Фото галерей');
-	define('SYS_TPLS_DSARTICLE', 'Создавать шаблоны Статей');
-	define('SYS_TPLS_DSTEXTPOOL', 'Создавать шаблоны Пула текстов');
-	define('SYS_TPLS_DSGUESTBOOK', 'Создавать шаблоны Гостевой книги');
 	define('SYS_TPLS_DSPHPSOURCE', 'Создавать шаблоны PHP кода');
 	define('SYS_TPLS_DSFILE', 'Создавать шаблоны Файлов');
 	define('SYS_TPLS_DSHYBRID', 'Создавать шаблоны Гибридных данных');

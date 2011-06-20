@@ -81,16 +81,9 @@
 			
 			$db->query('TRUNCATE TABLE datasources');
 			$db->query('TRUNCATE TABLE dshybrid');
-			$db->query('TRUNCATE TABLE dspublication');
-			$db->query('TRUNCATE TABLE dsarticle');
-			$db->query('TRUNCATE TABLE dsarticlepages');
-			$db->query('TRUNCATE TABLE dsevent');
-			$db->query('TRUNCATE TABLE dsgallery');
 			$db->query('TRUNCATE TABLE dsfile');
 			$db->query('TRUNCATE TABLE dshtmltext');
 			$db->query('TRUNCATE TABLE dsphpsource');
-			$db->query('TRUNCATE TABLE dstextpool');
-			$db->query('TRUNCATE TABLE dsguestbook');
 			$db->query('TRUNCATE TABLE dshfields');
 			$db->query('TRUNCATE TABLE dsrating');
 			$db->query('TRUNCATE TABLE dsratinglog');

@@ -48,39 +48,12 @@
 			case 'htmltextbody':
 			case 'htmltexthl':
 			case 'htmltexthlintro':
-			//publication
-			case 'publicationhl':
-			case 'publicationhlintro':
-			case 'publicationbody':
-			case 'publicationpager':
-			case 'publicationmainintro':
-			case 'publicationlist':
-			case 'publicationlistintro':
-			//event
-			case 'eventcalendar':
-			case 'eventhl':
-			case 'eventhlintro':
-			case 'eventbody':
-			case 'eventpager':
-			//textpool
-			case 'textrandom':
-			//guestbook
-			case 'gbmsgbody':
-			case 'gbmsghl':
-			case 'gbpager':
 			//phpsource
 			case 'phpinclude':
 			case 'phpcallback':
 			//file
 			case 'filehl':
 			case 'filepager':
-			//article
-			case 'articlebody':
-			case 'articlebodypager':
-			case 'articlehl':
-			case 'articlehlintro':
-			case 'articlepager':
-			case 'articlerelated':	
 			//hybrid
 			case 'hybridtree':
 			case 'hybridhl':
@@ -99,40 +72,7 @@
 				$result = ObjManager::create($obj);
 			break;
 			
-			
-			//gallery
-			case 'galleryhl':
-			case 'galleryimage':
-			case 'gallerypager':
-			case 'galleryimgpager':
-				if(@$_POST['ds_id'])
-					$obj->ds_id = $_POST['ds_id'];
-				else {
-					$obj->dynamic_ds=true;
-					$obj->ds_id = 'gallery_id';
-				}
-				$obj->name = $_POST['name'];
-				$obj->description = $_POST['description'];				
-				$result = ObjManager::create($obj);
-				if($result)
-					die("<script>window.opener.location.reload();window.location.href='$dsType/$class.php?id=$result';</script>Successfully created.");			
-			break;
-			
-			
-			//guestbook
-			case 'gballmessages':
-			case 'gbaddmsglogic':
-			case 'gblist':
-				$obj->ds_id = @$_POST['ds_id'];
-				$obj->name = $_POST['name'];
-				$obj->description = $_POST['description'];
-				$obj->defaultGB = @$_POST['ds_id'];
-				$result = ObjManager::create($obj);
-				if($result)
-					die("<script>window.opener.location.reload();window.location.href='$dsType/$class.php?id=$result';</script>Successfully created.");			
-			break;
-			
-			
+
 			//miscellany
 			case 'miscfetchtpl':
 			case 'misccrumbs':

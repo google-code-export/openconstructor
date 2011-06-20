@@ -95,12 +95,6 @@
 	define('PUBLISH_DOCUMENTS','Publish Documents');
 	define('UNPUBLISH_DOCUMENTS','Unpublish Documents');
 	define('CREATE_DS_HTMLTEXT','Creare HTML Source Section');
-	define('CREATE_DS_PUBLICATION','Create Publications Section');
-	define('CREATE_DS_EVENT','Create Events Section');
-	define('CREATE_DS_GALLERY','Create Picture Gallery');
-	define('CREATE_DS_ARTICLE','Create Articles Section');
-	define('CREATE_DS_TEXTPOOL','Create Texts Section');
-	define('CREATE_DS_GUESTBOOK','Create Guest Book');
 	define('CREATE_DS_PHPSOURCE','Create HTML Source');
 	define('CREATE_DS_FILE','Create Files Section');
 	define('EDIT_CURRENT_DS','Edit Current Section');

@@ -200,7 +200,7 @@ class HybridAgent {
 				$dss[$fId] = true;
 			} elseif($f['type'] == DSF_DOCUMENT && !@$fields[$i]['fetcher']) {
 				$result['tables'] .= " LEFT JOIN ds{$f['ds_type']} dds{$fId} ON (f_{$f['name']} = dds{$fId}.id".($f['ds_type'] != 'file' ? " AND dds{$fId}.published)" : ')');
-				$result['fields'] .= ',dds'.$fId.($f['ds_type'] == 'file' ? '.name' : ($f['ds_type'] == 'guestbook' ? '.subject ' : '.header ')).' AS "'.$fId.'header"';
+				$result['fields'] .= ',dds'.$fId.($f['ds_type'] == 'file' ? '.name' : '.header ').' AS "'.$fId.'header"';
 				$dds[$fId] = true;
 			} elseif($f['type'] == DSF_RATING) {
 				$range = $this->_parseRatingRange(@$fields[$i]['range'], $fId);
@@ -251,7 +251,7 @@ class HybridAgent {
 					} elseif($f['type'] == DSF_DOCUMENT) {
 						if(!isset($dds[$fId])) {
 							$result['tables'] .= " LEFT JOIN ds{$f['ds_type']} dds{$fId} ON (f_{$f['name']} = dds{$fId}.id".($f['ds_type'] != 'file' ? " AND dds{$fId}.published)" : ')');
-							$result['order'] .= ", dds{$fId}.".($f['ds_type'] == 'file' ? 'name ' : ($f['ds_type'] == 'guestbook' ? 'subject ' : 'header ')).$dir;
+							$result['order'] .= ", dds{$fId}.".($f['ds_type'] == 'file' ? 'name ' : 'header ').$dir;
 						} else
 							$result['order'] .= ", \"{$fId}header\" $dir";
 					} elseif($f['type'] == DSF_TREE && !$f['isarray']) {

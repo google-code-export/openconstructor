@@ -33,7 +33,7 @@ class WCDataSource {
 	var $ds_type;
 	var $name;
 	var $description;
-	var $DSTable; // Datasource table in the database (e.g. dspublication)
+	var $DSTable; // Datasource table in the database (e.g. dshybrid)
 	var $smartycache;
 	var $ftp;
 	var $encodeemail;
@@ -431,7 +431,7 @@ class WCDataSource {
 		loadClass('indexer', '/search/indexer._wc');
 		$indexer = Indexer::getInstance();
 
-		if($this->ds_type != 'article' && !empty($header)) {
+		if(!empty($header)) {
 			if($this->ds_type == 'file')
 				$published = true;
 			else {
@@ -442,11 +442,6 @@ class WCDataSource {
 			}
 			if($published)
 				$indexer->update($this->ds_id, $id, $header, false, $content, $intro);
-		}
-		else {
-			$doc = $this->getIndexableDocs($id);
-			if(sizeof($doc) == 1)
-				$indexer->update($this->ds_id, $doc[0]['id'], $doc[0]['header'], false, $doc[0]['content'], $doc[0]['intro']);
 		}
 	}
 

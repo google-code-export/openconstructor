@@ -103,8 +103,6 @@ class FieldUtils {
 		$ids = implode(',', $ids);
 		if($type == 'file')
 			$col = 'name';
-		else if($type == 'guestbook')
-			$col = 'subject';
 		else
 			$col = 'header';
 		$db = WCDB::bo();

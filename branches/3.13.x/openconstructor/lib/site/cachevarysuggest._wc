@@ -54,12 +54,6 @@ class CacheVarySuggest {
 	
 	function &extraSuggest(&$obj) {
 		$result = array();
-		switch($obj->obj_type) {
-			case 'galleryimage':
-				if($obj->dynamic_ds && $obj->ds_id)
-					$result[] = '{ctx.'.$obj->ds_id.'}';
-			break;
-		}
 		return $result;
 	}
 	
@@ -67,29 +61,12 @@ class CacheVarySuggest {
 		static $lib;
 		if(!isset($lib)) {
 			$lib = array(
-				'articlebody' => 'x.articleid,g.pid',
-				'articlehl' => 'g.pid',
-				'articlehlintro' => 'g.pid',
-				'eventbody' => 'x.eventid',
-				'eventcalendar' => 'x.monthid',
-				'eventhl' => 'g.pid',
-				'eventhlintro' => 'g.pid',
 				'filehl' => 'x.pid',
-				'galleryhl' => 'x.pid',
-				'galleryimage' => 'x.imageid',
-				'gballmessages' => 'x.gbid',
-				'gbmsgbody' => 'x.messageid',
-				'gbmsghl' => 'g.pid',
 				'hybridbar' => 'r.dsIdKey',
 				'hybridbody' => 'r.dsIdKey,r.docId',
 				'hybridhl' => 'r.dsIdKey',
 				'hybridpager' => 'x.pageNumberKey,x.listSizeKey',
 				'hybridtree' => 'r.dsIdKey,r.nodeId',
-				'publicationbody' => 'x.publicationid',
-				'publicationhl' => 'g.pid',
-				'publicationhlintro' => 'g.pid',
-				'publicationlist' => 'g.pid',
-				'publicationlistintro' => 'g.pid',
 				'searchdss' => 'x.keywordKey',
 				'searchdsspager' => 'x.pageNumberKey,x.listSizeKey'
 			);

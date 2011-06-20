@@ -49,7 +49,8 @@ class ArrayField extends HybridField {
 			}
 		} else {
 			$ds = $this->getDS();
-			$ds->increaseLock();
+			if ($ds !== null)
+				$ds->increaseLock();
 		}
 		$this->update();
 		return $this->id;
@@ -83,11 +84,12 @@ class ArrayField extends HybridField {
 					$dsf->removeDocuments($doc);
 				}
 				mysql_free_result($res);
-				$ds->decreaseLock(); 
+				if ($ds !== null)
+					$ds->decreaseLock(); 
 			}
 			WCS::stopRunAs();
 		}
-		else
+		elseif ($ds !== null)
 			$ds->decreaseLock();
 		parent::remove();
 	}
@@ -127,7 +129,7 @@ class ArrayField extends HybridField {
 	
 	function getMysqlType() {
 		switch($this->type) {
-			case 'publication': case 'event': case 'gallery': case 'article': case 'textpool': case 'guestbook': case 'file': case 'hybrid':
+			case 'file': case 'hybrid':
 				return 'VARCHAR(255)';
 		}
 		return null;

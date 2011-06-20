@@ -51,14 +51,8 @@
 	// Security defaults
 	define('WCS_DS_MASK', 'createdoc,editdoc,editds,editds.chmod,publishdoc,removedoc,removeds:createdoc,editdoc,publishdoc,removedoc');
 	define('WCS_DS_HTMLTEXT_MASK', WCS_DS_MASK);
-	define('WCS_DS_PUBLICATION_MASK', WCS_DS_MASK);
-	define('WCS_DS_EVENT_MASK', WCS_DS_MASK);
-	define('WCS_DS_GALLERY_MASK', WCS_DS_MASK);
-	define('WCS_DS_TEXTPOOL_MASK', WCS_DS_MASK);
-	define('WCS_DS_GUESTBOOK_MASK', WCS_DS_MASK);
 	define('WCS_DS_PHPSOURCE_MASK', 'createdoc,editdoc,editds,editds.chmod,removedoc,removeds:createdoc');
 	define('WCS_DS_FILE_MASK', WCS_DS_MASK);
-	define('WCS_DS_ARTICLE_MASK', WCS_DS_MASK);
 	define('WCS_DS_HYBRID_MASK', WCS_DS_MASK);
 	define('WCS_DS_RATING_MASK', WCS_DS_MASK);
 

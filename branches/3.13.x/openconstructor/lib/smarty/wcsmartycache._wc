@@ -129,12 +129,6 @@ class WCSmartyCache {
 			switch($obj['type']) {
 				case 'htmltextbody':
 				case 'phpinclude':
-				case 'eventbody':
-				case 'articlerelated':
-				case 'articlebody':
-				case 'articlebodypager':
-				case 'galleryimage':
-				case 'publicationbody':
 				case 'hybridbody':
 				case 'hybridbodyedit':
 					$o[] = $obj['id'];
@@ -144,7 +138,6 @@ class WCSmartyCache {
 					break;
 				case 'htmltexthl':
 				case 'misccrumbs':
-				case 'gbaddmsglogic':
 				case 'usersauthorize':
 				case 'ratingratelogic':
 					break;

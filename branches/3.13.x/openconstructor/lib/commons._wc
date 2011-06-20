@@ -20,8 +20,8 @@
  *
  * $Id: commons._wc,v 1.64 2007/04/13 13:51:27 sanjar Exp $
  */
-	define('WC_VERSION', '3.12.0');
-	define('WC_VERSION_FULL', '3.12.0');
+	define('WC_VERSION', '3.13');
+	define('WC_VERSION_FULL', '3.13-dev');
 
 	define('WCHOME', '/openconstructor');
 	define('LIBDIR', $_SERVER['DOCUMENT_ROOT'].WCHOME.'/lib');

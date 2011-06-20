@@ -31,14 +31,8 @@
 	//Разделы данных
 	
 	define('DS_HTMLTEXT','HTML text');
-	define('DS_PUBLICATION','Publications');
-	define('DS_EVENT','Events Calendar');
-	define('DS_GALLERY','Picture Gallery');
-	define('DS_TEXTPOOL','Text Pool');
-	define('DS_GUESTBOOK','Guest Book');
 	define('DS_PHPSOURCE','PHP source');
 	define('DS_FILE','Files');
-	define('DS_ARTICLE','Articles');
 	define('DS_MISCELLANY','Miscellaneous');
 	define('DS_USERS','Users');
 	
@@ -48,36 +42,6 @@
 	define('OBJ_HTMLTEXT_BODY','HTML text');
 	define('OBJ_HTMLTEXT_HL','List of pages');
 	define('OBJ_HTMLTEXT_HL_INTRO','List of pages with intro');
-	
-	define('OBJ_PUBLICATION_HL','Publications List');
-	define('OBJ_PUBLICATION_HL_INTRO','Publications List with Intro');
-	define('OBJ_PUBLICATION_MAIN_INTRO','Main publication, Intro');
-	define('OBJ_PUBLICATION_BODY','Publication');
-	define('OBJ_PUBLICATION_PAGER','Pagination');
-	define('OBJ_PUBLICATION_LIST','Publications Alphabetically');
-	define('OBJ_PUBLICATION_LIST_INTRO','Publications Alphabetically with Intro');
-	
-	define('OBJ_EVENT_CALENDAR','Events Calendar');
-	define('OBJ_EVENT_HL','List of Events');
-	define('OBJ_EVENT_BODY','Event');
-	
-	define('OBJ_GALLERY_HL','Pictures List');
-	define('OBJ_GALLERY_PAGER','Pagination for a Gallery');
-	define('OBJ_GALLERY_IMAGE','Picture for a Gallery');
-	define('OBJ_GALLERY_IMG_PAGER','Pagination for a Picture');
-	
-	define('OBJ_ARTICLE_BODY','Article');
-	define('OBJ_ARTICLE_BODY_PAGER','Pagination for an Article');
-	define('OBJ_ARTICLE_HL','Articles List');
-	define('OBJ_ARTICLE_HL_INTRO','Articles List with Intro');
-	define('OBJ_ARTICLE_PAGER','Pagination');
-	define('OBJ_ARTICLE_RELATED','Related Articles');
-	
-	define('OBJ_TEXT_RANDOM','Random Text');
-	
-	define('OBJ_GB_ALL_MESSAGES','Messages List');
-	define('OBJ_GB_ADDMSG_LOGIC','Add Messages Handler');
-	define('OBJ_GB_LIST','Guest Books List');
 	
 	define('OBJ_PHP_INCLUDE','Source Inclusion');
 	

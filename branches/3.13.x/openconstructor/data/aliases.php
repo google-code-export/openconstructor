@@ -28,20 +28,6 @@
 	$pageSize = 50;
 	if(isset($_GET['keyword']))
 		switch(@$_GET['doctype']) {
-			case 'publication':
-			case 'event':
-			case 'gallery':
-				list($items, $hl) = get_alias_headline('ds'.$_GET['doctype'], intval(@$_GET['ds_id']), 'ds_id,header', $pageSize, 1, get_clause(@$_GET['keyword'], 'd1.header, d1.content, d.name'));
-			break;
-			case 'article':
-				list($items, $hl) = get_alias_headline('ds'.$_GET['doctype'], intval(@$_GET['ds_id']), 'ds_id,header', $pageSize, 1, get_clause(@$_GET['keyword'], 'd1.header, d1.intro, d.name'));
-			break;
-			case 'textpool':
-				list($items, $hl) = get_alias_headline('ds'.$_GET['doctype'], intval(@$_GET['ds_id']), 'ds_id,header', $pageSize, 1, get_clause(@$_GET['keyword'], 'd1.header, d1.html, d.name'));
-			break;
-			case 'guestbook':
-				list($items, $hl) = get_alias_headline('ds'.$_GET['doctype'], intval(@$_GET['ds_id']), 'ds_id,subject as header', $pageSize, 1, get_clause(@$_GET['keyword'], 'd1.subject, d1.html, d.name'));
-			break;
 			default:
 				assert(true == false);// Invalid type of document
 		}

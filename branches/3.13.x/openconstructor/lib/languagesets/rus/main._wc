@@ -111,12 +111,6 @@
 	define('UNPUBLISH_DOCUMENTS','Снять документы с публикации');
 	define('EDIT_SECURITY','Настроить безопасность');
 	define('CREATE_DS_HTMLTEXT','Создать раздел HTML кода');
-	define('CREATE_DS_PUBLICATION','Создать раздел публикаций');
-	define('CREATE_DS_EVENT','Создать раздел событий');
-	define('CREATE_DS_GALLERY','Создать фото галерею');
-	define('CREATE_DS_ARTICLE','Создать раздел статей');
-	define('CREATE_DS_TEXTPOOL','Создать раздел текстов');
-	define('CREATE_DS_GUESTBOOK','Создать гостевую книгу');
 	define('CREATE_DS_PHPSOURCE','Создать PHP код');
 	define('CREATE_DS_FILE','Создать раздел файлов');
 	define('CREATE_DS_HYBRID','Создать гибридный раздел данных');
