@@ -51,17 +51,17 @@ class DSFile extends WCDataSource {
 		System::assert('data.dsfile');
 		if($this->filePath != false && substr((string) $this->filePath, 0, 1) != '/') {
 			if($this->filePath === true) {
-			do {
+				do {
 					$this->filePath = 'auto/'.sprintf('%x', crc32(microtime()));
 				} while(file_exists(ROOT.FILES.'/'.$this->filePath));
 				$result = $this->createFolder($this->filePath, false);
-		} else
+			} else
 				$result = $this->createFolder($this->filePath);
 				
 			if($result === true){
 				$this->filePath = '/'.$this->filePath.'/';
 				return parent::create($name, $description, $internal);
-		}
+			}
 		}
 		return $result;
 	}
@@ -411,6 +411,10 @@ class DSFile extends WCDataSource {
 		if(!is_array($result))
 			$result = array('filetypes', 'autoName');
 		return $result;
+	}
+	
+	function initFilePath($filePath) {
+		$this->filePath = $filePath;
 	}
 }
 ?>
