@@ -34,12 +34,12 @@ class FieldUtils {
 		loadClass($class, '/'.$type.'/'.$class.'._wc');
 		WCS::runAs(WCS_ROOT_ID);
 		$ds=new $class;
+		if($type == 'file')
+			$ds->initFilePath(true);
 		$ds->create($name, $name.' (Internal Datasource)', 1);
 		if($orig_id) {
 			$prototype = DSManager::load($orig_id);
 			$ds->copyProps($prototype);
-			if($type == 'file')
-				$ds->initFilePath(true);
 			$ds->save();
 		}
 		if($ownerId) {
